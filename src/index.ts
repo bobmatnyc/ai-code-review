@@ -80,7 +80,7 @@ const program = new Command();
 program
   .name('code-review')
   .description('AI-powered code review tool using Google Gemini 2.5 Max')
-  .version('0.1.0');
+  .version('0.9.0');
 
 program
   .command('code-review')

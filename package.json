@@ -1,6 +1,6 @@
 {
   "name": "code-review",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "A TypeScript-based tool for automated code reviews using Google's Gemini 2.5 Max model",
   "main": "dist/index.js",
   "scripts": {

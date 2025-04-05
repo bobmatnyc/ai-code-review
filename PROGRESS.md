@@ -11,6 +11,8 @@
 - Updated the Gemini model from 1.5 Pro to 2.5 Max for better code review capabilities
 - Updated documentation in README.md and .env.example
 - Updated PROJECT.md with the latest changes
+- Created VERSION.md with structured version history
+- Updated version to 0.9.0 across the codebase
 
 ### Current Status
 - Environment variable handling is now more robust
