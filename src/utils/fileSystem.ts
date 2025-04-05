@@ -48,6 +48,57 @@ export async function createDirectory(dirPath: string): Promise<void> {
 }
 
 /**
+ * Generate a versioned output path for review files
+ * @param outputBaseDir Base directory for output
+ * @param reviewType Type of review
+ * @param extension File extension (default: .md)
+ * @returns Promise resolving to the output path with version
+ */
+export async function generateVersionedOutputPath(
+  outputBaseDir: string,
+  reviewType: string,
+  extension: string = '.md'
+): Promise<string> {
+  // Format the current date for the filename
+  const date = new Date();
+  const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+  // Base filename without version
+  const baseFilename = `${reviewType}-${formattedDate}`;
+
+  // Check for existing files with the same base name
+  const pattern = path.join(outputBaseDir, `${baseFilename}-*${extension}`);
+  const existingFiles = await glob(pattern);
+
+  // Also check for the file without version number
+  const noVersionFile = path.join(outputBaseDir, `${baseFilename}${extension}`);
+  const noVersionExists = await fileExists(noVersionFile);
+
+  // Determine the next version number
+  let nextVersion = 1;
+
+  if (existingFiles.length > 0) {
+    // Extract version numbers from existing files
+    const versions = existingFiles.map(file => {
+      const match = path.basename(file).match(new RegExp(`${baseFilename}-(\\d+)${extension.replace('.', '\\.')}$`));
+      return match ? parseInt(match[1], 10) : 0;
+    });
+
+    // Find the highest version number
+    nextVersion = Math.max(...versions) + 1;
+  } else if (noVersionExists) {
+    // If the file without version exists, start with version 1
+    nextVersion = 1;
+  } else {
+    // If no files exist, don't add a version number
+    return path.join(outputBaseDir, `${baseFilename}${extension}`);
+  }
+
+  // Return the path with version number
+  return path.join(outputBaseDir, `${baseFilename}-${nextVersion}${extension}`);
+}
+
+/**
  * Read a file's content
  * @param filePath Path to the file
  * @returns Promise resolving to file content as string

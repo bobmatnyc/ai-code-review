@@ -7,19 +7,29 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/ge
  * @returns Promise resolving to a boolean indicating if the model is available
  */
 export async function testModel(apiKey: string, modelName: string): Promise<boolean> {
+  // Validate API key
+  if (!apiKey) {
+    console.error('Error: API key is required to test the model');
+    throw new Error('Missing API key');
+  }
+
   try {
     console.log(`Testing model: ${modelName}...`);
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
 
+    // Get configuration from environment variables or use defaults
+    const temperature = parseFloat(process.env.GEMINI_TEMPERATURE || '0.2');
+    const maxOutputTokens = parseInt(process.env.GEMINI_MAX_OUTPUT_TOKENS || '100', 10);
+
     // Try a simple generation to verify the model works
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: 'Hello, are you available?' }] }],
       generationConfig: {
-        temperature: 0.2,
+        temperature: temperature,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 100,
+        maxOutputTokens: maxOutputTokens,
       },
       safetySettings: [
         {
@@ -46,8 +56,18 @@ export async function testModel(apiKey: string, modelName: string): Promise<bool
 
     console.log(`Model ${modelName} is available. Response: "${text.substring(0, 50)}..."`);
     return true;
-  } catch (error: any) {
-    console.error(`Error testing model ${modelName}:`, error.message || error);
+  } catch (error: unknown) {
+    // Handle specific error types
+    const errorObj = error as Error;
+    if (errorObj.message && errorObj.message.includes('API key')) {
+      console.error(`Invalid API key when testing model ${modelName}:`, errorObj.message);
+    } else if (errorObj.message && errorObj.message.includes('Rate limit')) {
+      console.error(`Rate limit exceeded when testing model ${modelName}:`, errorObj.message);
+    } else if (errorObj.message && errorObj.message.includes('not found')) {
+      console.error(`Model ${modelName} not found:`, errorObj.message);
+    } else {
+      console.error(`Error testing model ${modelName}:`, errorObj.message || String(error));
+    }
     return false;
   }
 }
@@ -58,7 +78,16 @@ export async function testModel(apiKey: string, modelName: string): Promise<bool
  * @returns Promise resolving to the name of the first available model, or null if none are available
  */
 export async function findAvailableModel(apiKey: string): Promise<string | null> {
-  const modelOptions = [
+  // Validate API key
+  if (!apiKey) {
+    console.error('Error: API key is required to find available models');
+    throw new Error('Missing API key');
+  }
+
+  // Get model options from environment variables or use defaults
+  const modelOptionsEnv = process.env.GEMINI_MODEL_OPTIONS;
+  const modelOptions = modelOptionsEnv ?
+    modelOptionsEnv.split(',').map(model => model.trim()) : [
     'gemini-2.5-pro-preview-03-25', // Try with updated API key
     'gemini-2.0-flash',
     'gemini-1.5-pro',
@@ -66,12 +95,20 @@ export async function findAvailableModel(apiKey: string): Promise<string | null>
     'gemini-pro-latest'
   ];
 
+  console.log(`Testing ${modelOptions.length} models in order of preference...`);
+
   for (const modelName of modelOptions) {
-    const isAvailable = await testModel(apiKey, modelName);
-    if (isAvailable) {
-      return modelName;
+    try {
+      const isAvailable = await testModel(apiKey, modelName);
+      if (isAvailable) {
+        return modelName;
+      }
+    } catch (error) {
+      console.error(`Error in findAvailableModel when testing ${modelName}:`, error);
+      // Continue to the next model
     }
   }
 
+  console.error('No available models found. Please check your API key and quota.');
   return null;
 }

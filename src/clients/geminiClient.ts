@@ -1,19 +1,19 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import { globalRateLimiter } from '../utils/rateLimiter';
 import fs from 'fs/promises';
 import path from 'path';
-import { ReviewType, ReviewResult, FileInfo, ReviewCost } from '../types/review';
+import { ReviewType, ReviewResult, FileInfo, ReviewCost, ReviewOptions } from '../types/review';
+import { StreamHandler } from '../utils/streamHandler';
 import { getCostInfo } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
 // Initialize the Google Generative AI client
 // Get the API key from environment variables
-// We support both GOOGLE_AI_STUDIO_KEY and GOOGLE_GENERATIVE_AI_KEY for backward compatibility
-// Prioritize GOOGLE_AI_STUDIO_KEY as per project requirements
-const apiKey = process.env.GOOGLE_AI_STUDIO_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
+const apiKey = process.env.GOOGLE_GENERATIVE_AI_KEY;
 
 // Check if API key is available
 if (!apiKey) {
-  console.warn('Warning: Neither GOOGLE_AI_STUDIO_KEY nor GOOGLE_GENERATIVE_AI_KEY environment variable is set.');
+  console.warn('Warning: GOOGLE_GENERATIVE_AI_KEY environment variable is not set.');
   console.warn('Using mock responses for testing. For real reviews, please add your API key to .env.local.');
 } else {
   console.log('API key found. Using real Gemini API responses.');
@@ -176,7 +176,8 @@ export async function generateReview(
   fileContent: string,
   filePath: string,
   reviewType: ReviewType,
-  projectDocs?: ProjectDocs | null
+  projectDocs?: ProjectDocs | null,
+  options?: ReviewOptions
 ): Promise<ReviewResult> {
   try {
     // Load the appropriate prompt template
@@ -221,44 +222,94 @@ ${projectContext ? projectContext + '\n\n' : ''}## File: ${filePath}
 
 ${codeBlock}`;
 
-      // Call the Gemini API with proper configuration
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,  // Lower temperature for more focused code reviews
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192,  // Allow for detailed reviews
-        },
-        safetySettings: [
-          {
-            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-          },
-          {
-            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-          },
-          {
-            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-          },
-          {
-            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-          }
-        ]
-      });
+      // Check if we should use streaming mode
+      const isInteractive = options?.interactive === true;
 
-      const response = result.response;
-      content = response.text();
+      // Acquire a token from the rate limiter before making the request
+      await globalRateLimiter.acquireToken();
+
+      if (isInteractive) {
+        // Create a stream handler
+        const streamHandler = new StreamHandler(reviewType, 'Google Gemini AI');
+
+        // Use streaming mode
+        const streamResult = await model.generateContentStream({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,  // Lower temperature for more focused code reviews
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 8192,  // Allow for detailed reviews
+          },
+          safetySettings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+            }
+          ]
+        });
+
+        // Process the stream
+        for await (const chunk of streamResult.stream) {
+          const chunkText = chunk.text();
+          streamHandler.handleChunk(chunkText);
+        }
+
+        // Complete the stream and get the full content
+        content = streamHandler.complete();
+      } else {
+
+        // Call the Gemini API with proper configuration
+        const result = await model.generateContent({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,  // Lower temperature for more focused code reviews
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 8192,  // Allow for detailed reviews
+          },
+          safetySettings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+            }
+          ]
+        });
+
+        const response = result.response;
+        content = response.text();
+      }
 
       // Calculate cost information
       cost = getCostInfo(prompt, content);
     }
 
     return {
-      filePath,
+      filePath: path.basename(filePath),
       reviewType,
       content,
       timestamp: new Date().toISOString(),
@@ -348,6 +399,10 @@ async function retryWithBackoff<T>(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
+      // Acquire a token from the rate limiter before making the request
+      await globalRateLimiter.acquireToken();
+
+      // Make the request
       return await fn();
     } catch (error: any) {
       lastError = error;
@@ -374,7 +429,8 @@ export async function generateConsolidatedReview(
   files: FileInfo[],
   projectName: string,
   reviewType: ReviewType,
-  projectDocs?: ProjectDocs | null
+  projectDocs?: ProjectDocs | null,
+  options?: ReviewOptions
 ): Promise<ReviewResult> {
   try {
     let content = '';
@@ -505,9 +561,17 @@ ${fileSummaries}`;
               throw new Error(`Failed to initialize ${modelOption.displayName}`);
             }
 
-            // Use retry with backoff for rate limit errors
-            result = await retryWithBackoff(async () => {
-              return genModel.generateContent({
+            // Check if we should use streaming mode
+            const isInteractive = options?.interactive === true;
+
+            if (isInteractive) {
+              // Create a stream handler
+              const streamHandler = new StreamHandler(reviewType, modelOption.displayName);
+
+              // Use streaming mode
+              await globalRateLimiter.acquireToken();
+
+              const streamResult = await genModel.generateContentStream({
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 generationConfig: {
                   temperature: 0.2,
@@ -534,11 +598,53 @@ ${fileSummaries}`;
                   }
                 ]
               });
-            }, 3, 2000);
 
-            content = result.response.text();
-            success = true;
-            modelUsed = modelOption.displayName;
+              // Process the stream
+              for await (const chunk of streamResult.stream) {
+                const chunkText = chunk.text();
+                streamHandler.handleChunk(chunkText);
+              }
+
+              // Complete the stream and get the full content
+              content = streamHandler.complete();
+              success = true;
+              modelUsed = modelOption.displayName;
+            } else {
+              // Use regular mode with retry with backoff for rate limit errors
+              result = await retryWithBackoff(async () => {
+                return genModel.generateContent({
+                  contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                  generationConfig: {
+                    temperature: 0.2,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 8192,
+                  },
+                  safetySettings: [
+                    {
+                      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                    },
+                    {
+                      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                    },
+                    {
+                      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                    },
+                    {
+                      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                    }
+                  ]
+                });
+              }, 3, 2000);
+
+              content = result.response.text();
+              success = true;
+              modelUsed = modelOption.displayName;
+            }
           }
         } catch (error: any) {
           console.warn(`Failed to generate review with ${modelOption.displayName}: ${error.message || error}`);
@@ -561,7 +667,7 @@ ${fileSummaries}`;
     const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
     return {
-      filePath: `${projectName}/${reviewType}-review-${formattedDate}`,
+      filePath: `${reviewType}`,
       reviewType,
       content,
       timestamp: new Date().toISOString(),
@@ -578,7 +684,8 @@ ${fileSummaries}`;
 export async function generateArchitecturalReview(
   files: FileInfo[],
   projectName: string,
-  projectDocs?: ProjectDocs | null
+  projectDocs?: ProjectDocs | null,
+  options?: ReviewOptions
 ): Promise<ReviewResult> {
   try {
     let content: string;
@@ -669,7 +776,7 @@ ${fileSummaries}`;
     }
 
     return {
-      filePath: `${projectName}/architectural-review`,
+      filePath: 'architectural',
       reviewType: 'architectural',
       content,
       timestamp: new Date().toISOString(),

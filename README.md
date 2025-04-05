@@ -47,8 +47,11 @@ yarn dev code-review project-name path/to/file.ts
 # Review a directory in a sibling project
 yarn dev code-review project-name path/to/directory
 
-# Review the current project (use 'self' or '.' as the project name)
-yarn dev code-review self src
+# Review the current project (use 'this', 'self', or '.' as the project name)
+yarn dev code-review this src
+
+# Interactive mode (streams output to console, only works with single files)
+yarn dev code-review this src/utils/fileSystem.ts --interactive
 
 # Specify review type (architectural, quick-fixes, security, performance)
 yarn dev code-review project-name path/to/file.ts --type=security

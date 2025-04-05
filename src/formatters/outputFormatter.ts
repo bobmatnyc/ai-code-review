@@ -1,4 +1,5 @@
 import { ReviewResult } from '../types/review';
+import { sanitizeContent } from '../utils/sanitizer';
 
 /**
  * Format the review output based on the specified format
@@ -26,9 +27,13 @@ function formatAsJson(review: ReviewResult): string {
     modelInfo = `Google Gemini AI (${review.modelUsed})`;
   }
 
+  // Sanitize the content to prevent XSS attacks
+  const sanitizedContent = sanitizeContent(review.content);
+
   // Create a copy of the review with additional metadata
   const reviewWithMeta = {
     ...review,
+    content: sanitizedContent,
     meta: {
       model: modelInfo,
       generatedAt: new Date(review.timestamp).toISOString(),
@@ -69,6 +74,9 @@ function formatAsMarkdown(review: ReviewResult): string {
 - Estimated cost: ${cost.formattedCost}`;
   }
 
+  // Sanitize the content to prevent XSS attacks
+  const sanitizedContent = sanitizeContent(content);
+
   return `# Code Review: ${filePath}
 
 > **Review Type**: ${reviewType}
@@ -76,7 +84,7 @@ function formatAsMarkdown(review: ReviewResult): string {
 
 ---
 
-${content}
+${sanitizedContent}
 
 ---${costInfo}
 

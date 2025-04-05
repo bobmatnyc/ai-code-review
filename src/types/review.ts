@@ -36,6 +36,11 @@ export interface ReviewOptions {
    * Whether to generate individual file reviews instead of a consolidated review
    */
   individual?: boolean;
+
+  /**
+   * Whether to stream the review output to the console as it is generated
+   */
+  interactive?: boolean;
 }
 
 /**

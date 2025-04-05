@@ -1,11 +1,11 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { fileExists, directoryExists, createDirectory } from '../utils/fileSystem';
+import { fileExists, directoryExists, createDirectory, generateVersionedOutputPath } from '../utils/fileSystem';
 import { getFilesToReview } from '../utils/fileFilters';
 import { generateReview, generateArchitecturalReview, generateConsolidatedReview } from '../clients/geminiClient';
 import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
-import { readProjectDocs, formatProjectDocs } from '../utils/projectDocs';
+import { readProjectDocs } from '../utils/projectDocs';
 import { ReviewOptions, ReviewType, FileInfo } from '../types/review';
 
 export async function reviewCode(
@@ -25,15 +25,33 @@ export async function reviewCode(
   let projectPath;
 
   // Check if the project is the current directory
-  if (project === 'self' || project === '.') {
+  let actualProjectName = project;
+  if (project === 'self' || project === '.' || project === 'this') {
     projectPath = process.cwd();
+    // Extract the actual project name from the current directory
+    actualProjectName = path.basename(projectPath);
     console.log(`Reviewing the current project: ${projectPath}`);
   } else {
     // Look for a sibling project
     projectPath = path.resolve('..', project);
   }
 
-  const targetPath = path.resolve(projectPath, target);
+  // Validate and normalize the target path
+  const normalizedTarget = path.normalize(target);
+
+  // Check for path traversal attempts
+  if (normalizedTarget.includes('..')) {
+    throw new Error(`Invalid target path: ${target}. Path traversal is not allowed.`);
+  }
+
+  // Resolve the target path
+  const targetPath = path.resolve(projectPath, normalizedTarget);
+
+  // Ensure the target path is within the project directory
+  const relativeTargetPath = path.relative(projectPath, targetPath);
+  if (relativeTargetPath.startsWith('..') || path.isAbsolute(relativeTargetPath)) {
+    throw new Error(`Target path is outside the project directory: ${target}`);
+  }
 
   // Validate paths
   if (!(await directoryExists(projectPath))) {
@@ -59,10 +77,18 @@ export async function reviewCode(
     return;
   }
 
+  // Check if interactive mode is appropriate
+  if (options.interactive && filesToReview.length > 1) {
+    console.warn('Interactive mode is only supported for single file reviews.');
+    console.warn('Disabling interactive mode for this review.');
+    options.interactive = false;
+  }
+
   console.log(`Found ${filesToReview.length} files to review.`);
 
-  // Create output directory
-  const outputBaseDir = path.resolve('review', project);
+  // Create output directory with project name
+  console.log(`Creating output directory for project: ${actualProjectName}`);
+  const outputBaseDir = path.resolve('reviews', actualProjectName);
   await createDirectory(outputBaseDir);
 
   // Handle architectural and consolidated reviews differently
@@ -132,24 +158,32 @@ async function handleConsolidatedReview(
       fileInfos,
       project,
       options.type as ReviewType,
-      projectDocs
+      projectDocs,
+      options
     );
 
-    // Format the current date for the filename
-    const date = new Date();
-    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-
-    // Format and save output
-    const outputPath = path.join(
-      outputBaseDir,
-      `${options.type}-review-${formattedDate}${options.output === 'json' ? '.json' : '.md'}`
-    );
+    // Generate a versioned output path
+    const extension = options.output === 'json' ? '.json' : '.md';
+    const outputPath = await generateVersionedOutputPath(outputBaseDir, options.type + '-review', extension);
 
     // Format and save the review
     const formattedOutput = formatReviewOutput(review, options.output);
-    await fs.writeFile(outputPath, formattedOutput);
 
-    console.log(`Consolidated review saved to: ${outputPath}`);
+    try {
+      await fs.writeFile(outputPath, formattedOutput);
+      console.log(`Consolidated review saved to: ${outputPath}`);
+    } catch (error: any) {
+      const errorLogPath = await logError(error, {
+        operation: 'writeFile',
+        outputPath,
+        reviewType: options.type
+      });
+
+      console.error(`Error saving review to ${outputPath}:`);
+      console.error(`  Message: ${error.message}`);
+      console.error(`  Error details logged to: ${errorLogPath}`);
+      throw new Error(`Failed to save review to ${outputPath}. See error log for details.`);
+    }
   } catch (apiError: any) {
     // Log the error
     const errorLogPath = await logError(apiError, {
@@ -212,19 +246,30 @@ async function handleArchitecturalReview(
 
   try {
     // Generate architectural review
-    const review = await generateArchitecturalReview(fileInfos, project, projectDocs);
+    const review = await generateArchitecturalReview(fileInfos, project, projectDocs, options);
 
-    // Format and save output
-    const outputPath = path.join(
-      outputBaseDir,
-      `architectural-review${options.output === 'json' ? '.json' : '.md'}`
-    );
+    // Generate a versioned output path
+    const extension = options.output === 'json' ? '.json' : '.md';
+    const outputPath = await generateVersionedOutputPath(outputBaseDir, 'architectural-review', extension);
 
     // Format and save the review
     const formattedOutput = formatReviewOutput(review, options.output);
-    await fs.writeFile(outputPath, formattedOutput);
 
-    console.log(`Architectural review saved to: ${outputPath}`);
+    try {
+      await fs.writeFile(outputPath, formattedOutput);
+      console.log(`Architectural review saved to: ${outputPath}`);
+    } catch (error: any) {
+      const errorLogPath = await logError(error, {
+        operation: 'writeFile',
+        outputPath,
+        reviewType: 'architectural'
+      });
+
+      console.error(`Error saving architectural review to ${outputPath}:`);
+      console.error(`  Message: ${error.message}`);
+      console.error(`  Error details logged to: ${errorLogPath}`);
+      throw new Error(`Failed to save architectural review to ${outputPath}. See error log for details.`);
+    }
   } catch (error) {
     console.error('Error generating architectural review:', error);
   }
@@ -239,7 +284,7 @@ async function handleArchitecturalReview(
  * @param options Review options
  */
 async function handleIndividualFileReviews(
-  project: string,
+  _project: string, // Unused but kept for consistency
   projectPath: string,
   filesToReview: string[],
   outputBaseDir: string,
@@ -268,13 +313,21 @@ async function handleIndividualFileReviews(
           fileContent,
           filePath,
           options.type as ReviewType,
-          projectDocs
+          projectDocs,
+          options
         );
 
-        // Format and save output
-        const outputPath = path.join(
-          outputBaseDir,
-          relativePath + (options.output === 'json' ? '.json' : '.md')
+        // Create the output directory for this file
+        const fileOutputDir = path.join(outputBaseDir, path.dirname(relativePath));
+        await createDirectory(fileOutputDir);
+
+        // Generate a versioned output path for this file
+        const extension = options.output === 'json' ? '.json' : '.md';
+        const baseName = path.basename(relativePath, path.extname(relativePath));
+        const outputPath = await generateVersionedOutputPath(
+          fileOutputDir,
+          `${options.type}-review-${baseName}`,
+          extension
         );
 
         // Ensure output directory exists
@@ -282,9 +335,23 @@ async function handleIndividualFileReviews(
 
         // Format and save the review
         const formattedOutput = formatReviewOutput(review, options.output);
-        await fs.writeFile(outputPath, formattedOutput);
 
-        console.log(`Review saved to: ${outputPath}`);
+        try {
+          await fs.writeFile(outputPath, formattedOutput);
+          console.log(`Review saved to: ${outputPath}`);
+        } catch (error: any) {
+          const errorLogPath = await logError(error, {
+            operation: 'writeFile',
+            outputPath,
+            filePath,
+            reviewType: options.type
+          });
+
+          console.error(`Error saving review to ${outputPath}:`);
+          console.error(`  Message: ${error.message}`);
+          console.error(`  Error details logged to: ${errorLogPath}`);
+          throw new Error(`Failed to save review to ${outputPath}. See error log for details.`);
+        }
       } catch (apiError: any) {
         // Log the error
         const errorLogPath = await logError(apiError, {
