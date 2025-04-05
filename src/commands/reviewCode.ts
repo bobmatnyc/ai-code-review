@@ -27,6 +27,7 @@ import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { readProjectDocs } from '../utils/projectDocs';
 import { ReviewOptions, ReviewType, FileInfo } from '../types/review';
+import { processReviewResults } from '../utils/reviewActionHandler';
 
 export async function reviewCode(
   project: string,
@@ -97,11 +98,11 @@ export async function reviewCode(
     return;
   }
 
-  // Check if interactive mode is appropriate
-  if (options.interactive && filesToReview.length > 1) {
-    console.warn('Interactive mode is only supported for single file reviews.');
-    console.warn('Disabling interactive mode for this review.');
-    options.interactive = false;
+  // Check if interactive mode is appropriate for individual reviews
+  if (options.interactive && options.individual && filesToReview.length > 1) {
+    console.warn('Interactive mode with individual reviews is only supported for single file reviews.');
+    console.warn('Switching to consolidated review mode for interactive review of multiple files.');
+    options.individual = false;
   }
 
   console.log(`Found ${filesToReview.length} files to review.`);
@@ -192,6 +193,30 @@ async function handleConsolidatedReview(
     try {
       await fs.writeFile(outputPath, formattedOutput);
       console.log(`Consolidated review saved to: ${outputPath}`);
+
+      // If interactive mode is enabled, process the review results
+      if (options.interactive) {
+        console.log('\nProcessing review results in interactive mode...');
+
+        // Read the review content
+        const reviewContent = await fs.readFile(outputPath, 'utf-8');
+
+        // Process the review results
+        const results = await processReviewResults(
+          reviewContent,
+          projectPath,
+          options.autoFix !== false, // Auto-implement high priority fixes unless explicitly disabled
+          !options.promptAll // Prompt for medium and low priority fixes, but not high priority if promptAll is false
+        );
+
+        // Print summary
+        console.log('\n--- Review Action Summary ---');
+        console.log(`High priority fixes implemented: ${results.highPriorityFixed}`);
+        console.log(`Medium priority fixes implemented: ${results.mediumPriorityFixed}`);
+        console.log(`Low priority fixes implemented: ${results.lowPriorityFixed}`);
+        console.log(`Total suggestions: ${results.totalSuggestions}`);
+        console.log('---------------------------');
+      }
     } catch (error: any) {
       const errorLogPath = await logError(error, {
         operation: 'writeFile',

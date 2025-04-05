@@ -104,7 +104,9 @@ program
   .option('-d, --include-project-docs', 'Include project documentation (PROJECT.md only) in the context', true)
   .option('-c, --consolidated', 'Generate a single consolidated review instead of individual file reviews (default: true)', true)
   .option('--individual', 'Generate individual file reviews instead of a consolidated review', false)
-  .option('-i, --interactive', 'Stream the review output to the console as it is generated (only works with single file reviews)', false)
+  .option('-i, --interactive', 'Process review results interactively, implementing fixes based on priority', false)
+  .option('--auto-fix', 'Automatically implement high priority fixes without confirmation', true)
+  .option('--prompt-all', 'Prompt for confirmation on all fixes, including high priority ones', false)
   .action(async (project, target, options) => {
     try {
       await reviewCode(project, target, options);

@@ -57,9 +57,19 @@ export interface ReviewOptions {
   individual?: boolean;
 
   /**
-   * Whether to stream the review output to the console as it is generated
+   * Whether to process review results interactively, implementing fixes based on priority
    */
   interactive?: boolean;
+
+  /**
+   * Whether to automatically implement high priority fixes without confirmation
+   */
+  autoFix?: boolean;
+
+  /**
+   * Whether to prompt for confirmation on all fixes, including high priority ones
+   */
+  promptAll?: boolean;
 }
 
 /**
