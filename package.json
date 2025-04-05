@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts review",
-    "review": "ts-node src/index.ts review",
+    "dev": "ts-node src/index.ts code-review",
+    "review": "ts-node src/index.ts code-review",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "vitest run",

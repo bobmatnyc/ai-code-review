@@ -24,7 +24,7 @@ function formatAsJson(review: ReviewResult): string {
   const reviewWithMeta = {
     ...review,
     meta: {
-      model: review.isMock ? 'Mock Response' : 'Google Gemini 1.5 Pro',
+      model: review.isMock ? 'Mock Response' : 'Google Gemini 2.5 Max',
       generatedAt: new Date(review.timestamp).toISOString(),
       costEstimation: review.cost
     }
@@ -44,7 +44,7 @@ function formatAsMarkdown(review: ReviewResult): string {
   // Determine if this is a real or mock response
   const modelInfo = isMock
     ? 'Mock Response (No API Key)'
-    : 'Google Gemini 1.5 Pro';
+    : 'Google Gemini 2.5 Max';
 
   // Format cost information if available
   let costInfo = '';

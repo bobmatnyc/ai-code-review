@@ -1,10 +1,10 @@
 # Code Review Tool
 
-A TypeScript-based tool for automated code reviews using Google's Gemini 1.5 Pro model.
+A TypeScript-based tool for automated code reviews using Google's Gemini 2.5 Max model.
 
 ## Overview
 
-This tool analyzes code from specified files or directories in sibling projects and generates structured code evaluations. It leverages the Gemini 1.5 Pro model to provide insightful feedback on code quality, best practices, and potential improvements.
+This tool analyzes code from specified files or directories in sibling projects and generates structured code evaluations. It leverages the Gemini 2.5 Max model to provide insightful feedback on code quality, best practices, and potential improvements.
 
 ## Features
 
@@ -33,26 +33,27 @@ npm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Add your GOOGLE_GENERATIVE_AI_KEY to .env.local
+# Add your API key to .env.local
+# You can use either GOOGLE_GENERATIVE_AI_KEY or GOOGLE_AI_STUDIO_KEY
 ```
 
 ## Usage
 
 ```bash
 # Review a specific file
-yarn dev project-name path/to/file.ts
+yarn dev code-review project-name path/to/file.ts
 
 # Review a directory
-yarn dev project-name path/to/directory
+yarn dev code-review project-name path/to/directory
 
 # Specify review type (architectural, quick-fixes, security, performance)
-yarn dev project-name path/to/file.ts --type=security
+yarn dev code-review project-name path/to/file.ts --type=security
 
 # Include test files in the review
-yarn dev project-name path/to/directory --include-tests
+yarn dev code-review project-name path/to/directory --include-tests
 
 # Specify output format (markdown or json)
-yarn dev project-name path/to/file.ts --output=json
+yarn dev code-review project-name path/to/file.ts --output=json
 ```
 
 ## Output

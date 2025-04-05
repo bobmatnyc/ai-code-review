@@ -1,5 +1,27 @@
 # Project Progress Log
 
+## 2024-04-05 - Environment Variable Handling Improvements and Model Update
+
+### Completed Tasks
+- Fixed API key handling to remove hardcoded keys from the codebase
+- Updated command structure to use `yarn dev code-review [project] [file|directory]`
+- Improved environment variable loading from .env.local
+- Added support for both GOOGLE_GENERATIVE_AI_KEY and GOOGLE_AI_STUDIO_KEY
+- Enhanced error handling and debugging for environment variable loading
+- Updated the Gemini model from 1.5 Pro to 2.5 Max for better code review capabilities
+- Updated documentation in README.md and .env.example
+- Updated PROJECT.md with the latest changes
+
+### Current Status
+- Environment variable handling is now more robust
+- Command structure matches the requirements
+- Documentation is up-to-date
+
+### Next Steps
+- Continue testing with real-world projects
+- Consider adding more comprehensive error handling for API calls
+- Explore adding more review types or customization options
+
 ## 2023-07-25 - Initial Setup
 
 ### Completed Tasks

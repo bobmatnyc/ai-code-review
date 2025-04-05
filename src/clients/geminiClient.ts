@@ -5,18 +5,14 @@ import { ReviewType, ReviewResult, FileInfo, ReviewCost } from '../types/review'
 import { getCostInfo } from '../utils/tokenCounter';
 
 // Initialize the Google Generative AI client
-// Try to get the API key from environment variables
-let apiKey = process.env.GOOGLE_GENERATIVE_AI_KEY;
-
-// If not found in environment variables, use the hardcoded key from .env.local
-if (!apiKey) {
-  // This is the key from .env.local
-  apiKey = 'AIzaSyDPUQSpBaxWyt79KbmFeIWXFxYo-P33tEY';
-}
+// Get the API key from environment variables
+// We support both GOOGLE_GENERATIVE_AI_KEY and GOOGLE_AI_STUDIO_KEY for backward compatibility
+const apiKey = process.env.GOOGLE_GENERATIVE_AI_KEY || process.env.GOOGLE_AI_STUDIO_KEY;
 
 // Check if API key is available
 if (!apiKey) {
-  console.warn('Warning: GOOGLE_GENERATIVE_AI_KEY environment variable is not set. Using mock responses for testing.');
+  console.warn('Warning: Neither GOOGLE_GENERATIVE_AI_KEY nor GOOGLE_AI_STUDIO_KEY environment variable is set.');
+  console.warn('Using mock responses for testing. For real reviews, please add your API key to .env.local.');
 } else {
   console.log('API key found. Using real Gemini API responses.');
 }
@@ -30,9 +26,9 @@ let model: any = null;
 
 if (!useMockResponses) {
   genAI = new GoogleGenerativeAI(apiKey);
-  // Use gemini-1.5-pro instead of gemini-2.5-max as it's more widely available
-  model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-  console.log('Using Gemini model: gemini-1.5-pro');
+  // Use gemini-2.5-max for the best code review capabilities
+  model = genAI.getGenerativeModel({ model: 'gemini-2.5-max' });
+  console.log('Using Gemini model: gemini-2.5-max');
 }
 
 /**
@@ -74,7 +70,7 @@ This file appears to be a ${language} file. In a real review, this would contain
 2. Ensure consistent code style
 3. Follow best practices for ${language}
 
-*This is a mock response. To get real reviews, please set the GOOGLE_AI_STUDIO_KEY environment variable.*`;
+*This is a mock response. To get real reviews, please set either GOOGLE_GENERATIVE_AI_KEY or GOOGLE_AI_STUDIO_KEY environment variable in your .env.local file.*`;
 }
 
 /**
@@ -204,7 +200,7 @@ This project contains ${files.length} files. In a real review, this would contai
 3. Minimize external dependencies
 4. Implement clear separation of concerns
 
-*This is a mock response. To get real reviews, please set the GOOGLE_AI_STUDIO_KEY environment variable.*`;
+*This is a mock response. To get real reviews, please set either GOOGLE_GENERATIVE_AI_KEY or GOOGLE_AI_STUDIO_KEY environment variable in your .env.local file.*`;
 }
 
 /**

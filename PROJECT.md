@@ -34,11 +34,13 @@ Responsible for:
 
 #### 3. Gemini API Client
 // Updated: 2023-07-25
+// Updated: 2024-04-05
 Responsible for:
 - Authenticating with the Google AI Studio API
-- Sending properly formatted prompts to the Gemini model
+- Sending properly formatted prompts to the Gemini 2.5 Max model
 - Processing and structuring the API responses
 - Handling different review types with specialized prompts
+- Supporting both GOOGLE_GENERATIVE_AI_KEY and GOOGLE_AI_STUDIO_KEY for backward compatibility
 
 #### 4. Review Orchestrator
 // Updated: 2023-07-25
@@ -132,9 +134,13 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
 
 ### Environment Variables
 // Updated: 2023-07-25
+// Updated: 2024-04-05
 - `.env.local` for local development
-- Required variables:
+- Required variables (either one is sufficient):
   - `GOOGLE_GENERATIVE_AI_KEY`: API key for Google Generative AI
+  - `GOOGLE_AI_STUDIO_KEY`: Alternative name for the API key (supported for backward compatibility)
+- Improved error handling for missing environment variables
+- Detailed debugging information when environment variables can't be loaded
 
 ## Implementation Strategy
 
@@ -154,10 +160,13 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
 
 ### Phase 3: Refinement
 // Updated: 2023-07-25
+// Updated: 2024-04-05
 1. Add configuration options for customizing reviews
 2. Implement caching to reduce API calls
 3. Add support for different output formats
 4. Optimize performance for large codebases
+5. Improve environment variable handling and error messages
+6. Add support for multiple API key environment variable names
 
 ## Deployment & Usage
 
@@ -170,11 +179,14 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
 
 ### Usage
 // Updated: 2023-07-25
+// Updated: 2024-04-05
 Run the tool using:
 ```bash
-npm run review -- --file=../project-name/path/to/file.ts
-# or
-npm run review -- --dir=../project-name/path/to/directory
+# Using npm
+npm run review -- code-review project-name path/to/file.ts
+
+# Using yarn
+yarn dev code-review project-name path/to/file.ts
 ```
 
 Output will be generated in the `/review/[project-name]/` directory, with subdirectories matching the source path structure.
