@@ -10,10 +10,10 @@ console.log(`Loading environment variables from: ${envLocalPath}`);
 dotenv.config({ path: envLocalPath });
 
 // Get API key
-const apiKey = process.env.GOOGLE_AI_STUDIO_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
+const apiKey = process.env.GOOGLE_GENERATIVE_AI_KEY;
 
 if (!apiKey) {
-  console.error('No API key found. Please set GOOGLE_AI_STUDIO_KEY or GOOGLE_GENERATIVE_AI_KEY in .env.local');
+  console.error('No API key found. Please set GOOGLE_GENERATIVE_AI_KEY in .env.local');
   process.exit(1);
 }
 
@@ -22,7 +22,7 @@ async function runTest() {
   console.log('Testing available Gemini models...');
 
   if (!apiKey) {
-    console.error('No API key found. Please set GOOGLE_AI_STUDIO_KEY or GOOGLE_GENERATIVE_AI_KEY in .env.local');
+    console.error('No API key found. Please set GOOGLE_GENERATIVE_AI_KEY in .env.local');
     return;
   }
 

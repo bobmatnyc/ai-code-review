@@ -1,4 +1,23 @@
 /**
+ * @fileoverview Type definitions for the code review system.
+ *
+ * This module defines the core type system used throughout the code review tool,
+ * including review types, options, results, and file information structures.
+ * These types provide a consistent interface for data exchange between different
+ * components of the system.
+ *
+ * Key type definitions include:
+ * - ReviewType: The different types of reviews supported (architectural, quick-fixes, etc.)
+ * - ReviewOptions: Configuration options for review operations
+ * - FileInfo: Structure for file content and metadata
+ * - ReviewResult: Structure for review outputs and metadata
+ * - ReviewCost: Information about token usage and estimated costs
+ *
+ * These types ensure type safety and consistency across the application while
+ * providing clear documentation of the data structures used throughout the system.
+ */
+
+/**
  * Types of code reviews supported by the tool
  */
 export type ReviewType = 'architectural' | 'quick-fixes' | 'security' | 'performance' | 'consolidated';

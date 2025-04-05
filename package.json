@@ -14,11 +14,6 @@
     "test:watch": "vitest",
     "test:model": "ts-node src/test-model.ts",
     "list:models": "ts-node src/list-models.ts",
-    "test:model-variations": "ts-node src/test-model-variations.ts",
-    "test:simple": "ts-node src/test-simple.ts",
-    "test:v1beta": "ts-node src/test-v1beta.ts",
-    "test:v1beta-simple": "ts-node src/test-v1beta-simple.ts",
-    "test:fetch": "ts-node src/test-fetch.ts",
     "test:latest": "ts-node src/test-latest.ts"
   },
   "keywords": [

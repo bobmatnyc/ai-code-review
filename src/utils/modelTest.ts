@@ -1,3 +1,21 @@
+/**
+ * @fileoverview Utilities for testing Gemini model availability and capabilities.
+ *
+ * This module provides functions for testing the availability and functionality of
+ * different Gemini AI models. It helps users verify that their API key is valid and
+ * that the models they intend to use are accessible and functioning correctly.
+ *
+ * Key responsibilities:
+ * - Testing if specific Gemini models are available
+ * - Verifying API key validity
+ * - Testing model response quality with simple prompts
+ * - Finding the best available model from a list of candidates
+ * - Providing detailed feedback on model availability and performance
+ *
+ * These utilities are particularly useful during setup and troubleshooting to ensure
+ * that the code review tool can successfully connect to and use the Gemini API.
+ */
+
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 /**

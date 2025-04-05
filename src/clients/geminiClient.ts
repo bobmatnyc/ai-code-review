@@ -1,126 +1,205 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+/**
+ * @fileoverview Client for interacting with the Google Gemini API.
+ *
+ * This module provides a comprehensive client for interacting with Google's Gemini AI models.
+ * It handles API key management, model selection and fallback, request formatting, response
+ * processing, rate limiting, error handling, and cost estimation for code reviews.
+ *
+ * Key features:
+ * - Automatic model selection with fallback to alternative models
+ * - Support for both streaming and non-streaming responses
+ * - Robust error handling and rate limit management
+ * - Mock response generation for testing without an API key
+ * - Cost estimation for API usage
+ * - Support for different review types (quick fixes, architectural, security, performance)
+ *
+ * The client prioritizes the latest Gemini models but includes fallback options
+ * to ensure reliability even when specific models are unavailable.
+ */
+
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold
+} from '@google/generative-ai';
 import { globalRateLimiter } from '../utils/rateLimiter';
 import fs from 'fs/promises';
 import path from 'path';
-import { ReviewType, ReviewResult, FileInfo, ReviewCost, ReviewOptions } from '../types/review';
+import {
+  ReviewType,
+  ReviewResult,
+  FileInfo,
+  ReviewCost,
+  ReviewOptions
+} from '../types/review';
 import { StreamHandler } from '../utils/streamHandler';
 import { getCostInfo } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
-// Initialize the Google Generative AI client
-// Get the API key from environment variables
+/**
+ * @fileoverview Client for interacting with the Google Gemini API.
+ * Handles API key management, request formatting, response processing,
+ * rate limiting, and cost estimation for code reviews.
+ * Supports mock responses when API key is not available.
+ */
+
+/**
+ * API Key for Google Generative AI.
+ * Reads from GOOGLE_GENERATIVE_AI_KEY environment variable.
+ * @type {string | undefined}
+ */
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_KEY;
 
-// Check if API key is available
-if (!apiKey) {
-  console.warn('Warning: GOOGLE_GENERATIVE_AI_KEY environment variable is not set.');
-  console.warn('Using mock responses for testing. For real reviews, please add your API key to .env.local.');
-} else {
-  console.log('API key found. Using real Gemini API responses.');
+/**
+ * Flag indicating if the client is operating in mock mode (no API key).
+ * @type {boolean}
+ */
+let useMockResponses = false;
+
+/**
+ * Instance of the GoogleGenerativeAI client.
+ * Initialized only if an API key is found and valid.
+ * @type {GoogleGenerativeAI | null}
+ */
+let genAI: GoogleGenerativeAI | null = null;
+
+/**
+ * The Gemini model instance to use for generating content.
+ */
+interface CustomModel {
+  name: string;
+  displayName: string;
+  useV1Beta?: boolean;
+  generateContent: (
+    params: any
+  ) => Promise<{ response: { text: () => string } }>;
+  generateContentStream?: (params: any) => Promise<any>;
 }
 
-// Flag to indicate if we're using mock responses
-let useMockResponses = !apiKey;
+let model:
+  | ReturnType<GoogleGenerativeAI['getGenerativeModel']>
+  | CustomModel
+  | null = null;
 
-// Initialize the Google Generative AI client if API key is available
-let genAI: GoogleGenerativeAI | null = null;
-let model: any = null;
+// Initialize the client based on API key availability
+if (!apiKey) {
+  console.warn(
+    'Warning: GOOGLE_GENERATIVE_AI_KEY environment variable is not set.'
+  );
+  console.warn(
+    'Using mock responses for testing. For real reviews, please add your API key to .env.local.'
+  );
+  useMockResponses = true;
+} else {
+  console.log('API key found. Using real Gemini API responses.');
+  try {
+    genAI = new GoogleGenerativeAI(apiKey);
+  } catch (error) {
+    console.error('Error initializing GoogleGenerativeAI client:', error);
+    console.warn('Falling back to mock responses due to initialization error.');
+    useMockResponses = true;
+  }
+}
+
+// Define available models in order of preference
+const modelOptions = [
+  // Use the experimental version of Gemini 2.5 Pro with v1beta API
+  {
+    name: 'gemini-2.5-pro-exp-03-25',
+    displayName: 'Gemini 2.5 Pro Experimental',
+    useV1Beta: true
+  },
+  // Fallback models with v1 API
+  { name: 'gemini-2.0-flash', displayName: 'Gemini 2.0 Flash' },
+  { name: 'gemini-1.5-pro', displayName: 'Gemini 1.5 Pro' },
+  { name: 'gemini-pro', displayName: 'Gemini Pro' },
+  { name: 'gemini-pro-latest', displayName: 'Gemini Pro Latest' }
+];
+
+// Try models in order until one works
+let modelInitialized = false;
 
 if (!useMockResponses) {
-  if (apiKey) {
-    genAI = new GoogleGenerativeAI(apiKey);
-  } else {
-    console.error('API key is undefined. Using mock responses.');
-    useMockResponses = true;
-  }
+  for (const modelOption of modelOptions) {
+    if (modelInitialized) break;
 
-  // Define available models in order of preference
-  const modelOptions = [
-    // Use the experimental version of Gemini 2.5 Pro with v1beta API
-    {
-      name: 'gemini-2.5-pro-exp-03-25',
-      displayName: 'Gemini 2.5 Pro Experimental',
-      useV1Beta: true
-    },
-    // Fallback models with v1 API
-    { name: 'gemini-2.0-flash', displayName: 'Gemini 2.0 Flash' },
-    { name: 'gemini-1.5-pro', displayName: 'Gemini 1.5 Pro' },
-    { name: 'gemini-pro', displayName: 'Gemini Pro' },
-    { name: 'gemini-pro-latest', displayName: 'Gemini Pro Latest' }
-  ];
+    try {
+      console.log(`Trying to initialize ${modelOption.displayName}...`);
 
-  // Try models in order until one works
-  let modelInitialized = false;
+      if (modelOption.useV1Beta) {
+        // For v1beta API, we need to use fetch directly
+        // We'll create a custom model object that uses v1beta API without testing it first
+        // The actual test will happen when the model is used
 
-  if (!useMockResponses) {
-    for (const modelOption of modelOptions) {
-      if (modelInitialized) break;
+        // Create a custom model object that uses v1beta API
+        model = {
+          name: modelOption.name,
+          displayName: modelOption.displayName,
+          useV1Beta: true,
+          generateContent: async (params: any) => {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelOption.name}:generateContent?key=${apiKey}`;
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(params)
+            });
 
-      try {
-        console.log(`Trying to initialize ${modelOption.displayName}...`);
+            if (!response.ok) {
+              const errorText = await response.text();
+              // Check if it's a rate limit error (429)
+              if (response.status === 429) {
+                console.warn(
+                  `Rate limit exceeded for ${modelOption.displayName}. Using fallback model.`
+                );
+                throw new Error(
+                  `Rate limit exceeded for ${modelOption.displayName}`
+                );
+              } else {
+                throw new Error(
+                  `HTTP error! status: ${response.status}, response: ${errorText}`
+                );
+              }
+            }
 
-        if (modelOption.useV1Beta) {
-          // For v1beta API, we need to use fetch directly
-          // We'll create a custom model object that uses v1beta API without testing it first
-          // The actual test will happen when the model is used
-
-          // Create a custom model object that uses v1beta API
-          model = {
-            name: modelOption.name,
-            displayName: modelOption.displayName,
-            useV1Beta: true,
-            generateContent: async (params: any) => {
-              const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelOption.name}:generateContent?key=${apiKey}`;
-              const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(params)
-              });
-
-              if (!response.ok) {
-                const errorText = await response.text();
-                // Check if it's a rate limit error (429)
-                if (response.status === 429) {
-                  console.warn(`Rate limit exceeded for ${modelOption.displayName}. Using fallback model.`);
-                  throw new Error(`Rate limit exceeded for ${modelOption.displayName}`);
-                } else {
-                  throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+            const data = await response.json();
+            return {
+              response: {
+                text: () => {
+                  if (
+                    data.candidates &&
+                    data.candidates[0] &&
+                    data.candidates[0].content &&
+                    data.candidates[0].content.parts &&
+                    data.candidates[0].content.parts[0]
+                  ) {
+                    return data.candidates[0].content.parts[0].text;
+                  }
+                  return '';
                 }
               }
-
-              const data = await response.json();
-              return {
-                response: {
-                  text: () => {
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content &&
-                        data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-                      return data.candidates[0].content.parts[0].text;
-                    }
-                    return '';
-                  }
-                }
-              };
-            }
-          };
-        } else if (genAI) {
-          // For v1 API, use the SDK
-          model = genAI.getGenerativeModel({ model: modelOption.name });
-        } else {
-          throw new Error('Google Generative AI client is not initialized');
-        }
-
-        console.log(`Successfully initialized ${modelOption.displayName}`);
-        modelInitialized = true;
-      } catch (error: any) {
-        console.warn(`Failed to initialize ${modelOption.displayName}: ${error.message || error}`);
+            };
+          }
+        };
+      } else if (genAI) {
+        // For v1 API, use the SDK
+        model = genAI.getGenerativeModel({ model: modelOption.name });
+      } else {
+        throw new Error('Google Generative AI client is not initialized');
       }
+
+      console.log(`Successfully initialized ${modelOption.displayName}`);
+      modelInitialized = true;
+    } catch (error: any) {
+      console.warn(
+        `Failed to initialize ${modelOption.displayName}: ${error.message || error}`
+      );
     }
   }
+}
 
-  if (!modelInitialized) {
-    console.error('Failed to initialize any Gemini model. Using mock responses.');
-    useMockResponses = true;
-  }
+if (!modelInitialized) {
+  console.error('Failed to initialize any Gemini model. Using mock responses.');
+  useMockResponses = true;
 }
 
 /**
@@ -144,7 +223,10 @@ async function loadPromptTemplate(reviewType: ReviewType): Promise<string> {
  * @param filePath Path to the file being reviewed
  * @returns Mock review content
  */
-async function generateMockResponse(reviewType: ReviewType, filePath: string): Promise<string> {
+async function generateMockResponse(
+  reviewType: ReviewType,
+  filePath: string
+): Promise<string> {
   const fileExtension = path.extname(filePath).slice(1);
   const language = getLanguageFromExtension(fileExtension);
 
@@ -233,13 +315,23 @@ ${codeBlock}`;
         const streamHandler = new StreamHandler(reviewType, 'Google Gemini AI');
 
         // Use streaming mode
-        const streamResult = await model.generateContentStream({
+        if (!model) {
+          throw new Error('Model is not initialized');
+        }
+
+        // Check if the model supports streaming
+        if (!('generateContentStream' in model)) {
+          throw new Error('Model does not support streaming');
+        }
+
+        // Now TypeScript knows generateContentStream exists
+        const streamResult = await (model as any).generateContentStream({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.2,  // Lower temperature for more focused code reviews
+            temperature: 0.2, // Lower temperature for more focused code reviews
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 8192,  // Allow for detailed reviews
+            maxOutputTokens: 8192 // Allow for detailed reviews
           },
           safetySettings: [
             {
@@ -270,15 +362,17 @@ ${codeBlock}`;
         // Complete the stream and get the full content
         content = streamHandler.complete();
       } else {
-
         // Call the Gemini API with proper configuration
+        if (!model) {
+          throw new Error('Model is not initialized');
+        }
         const result = await model.generateContent({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.2,  // Lower temperature for more focused code reviews
+            temperature: 0.2, // Lower temperature for more focused code reviews
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 8192,  // Allow for detailed reviews
+            maxOutputTokens: 8192 // Allow for detailed reviews
           },
           safetySettings: [
             {
@@ -328,7 +422,10 @@ ${codeBlock}`;
  * @param projectName Name of the project being reviewed
  * @returns Mock review content
  */
-async function generateMockArchitecturalResponse(files: FileInfo[], projectName: string): Promise<string> {
+async function generateMockArchitecturalResponse(
+  files: FileInfo[],
+  projectName: string
+): Promise<string> {
   // Create a directory structure representation
   const directoryStructure = generateDirectoryStructure(files);
 
@@ -414,7 +511,9 @@ async function retryWithBackoff<T>(
 
       // Calculate delay with exponential backoff
       const delay = initialDelay * Math.pow(2, attempt);
-      console.log(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
+      console.log(
+        `Rate limit exceeded. Retrying in ${delay / 1000} seconds...`
+      );
 
       // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -437,7 +536,7 @@ export async function generateConsolidatedReview(
     let cost: ReviewCost | undefined;
     let isMock = false;
     let modelUsed = 'unknown';
-    let prompt = '';
+    const prompt = '';
 
     if (useMockResponses) {
       // Generate mock response for testing
@@ -458,15 +557,17 @@ export async function generateConsolidatedReview(
       const promptTemplate = await loadPromptTemplate('consolidated');
 
       // Prepare file summaries
-      const fileSummaries = files.map(file => {
-        const fileExtension = path.extname(file.path).slice(1);
-        const language = getLanguageFromExtension(fileExtension);
+      const fileSummaries = files
+        .map(file => {
+          const fileExtension = path.extname(file.path).slice(1);
+          const language = getLanguageFromExtension(fileExtension);
 
-        return `## File: ${file.relativePath}
+          return `## File: ${file.relativePath}
 
 \`\`\`${language}
 ${file.content.substring(0, 1000)}${file.content.length > 1000 ? '\n... (truncated)' : ''}\n\`\`\`\n`;
-      }).join('\n');
+        })
+        .join('\n');
 
       // Create a project structure summary
       const directoryStructure = generateDirectoryStructure(files);
@@ -508,57 +609,78 @@ ${fileSummaries}`;
         if (success) break;
 
         try {
-          console.log(`Trying to generate review with ${modelOption.displayName}...`);
+          console.log(
+            `Trying to generate review with ${modelOption.displayName}...`
+          );
 
           if (modelOption.useV1Beta) {
             // For v1beta API, use fetch directly
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelOption.name}:generateContent?key=${apiKey}`;
 
             // Use retry with backoff for rate limit errors
-            const response = await retryWithBackoff(async () => {
-              const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                  generationConfig: {
-                    temperature: 0.2,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 8192,
+            const response = await retryWithBackoff(
+              async () => {
+                const res = await fetch(url, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                    generationConfig: {
+                      temperature: 0.2,
+                      topK: 40,
+                      topP: 0.95,
+                      maxOutputTokens: 8192
+                    }
+                  })
+                });
+
+                if (!res.ok) {
+                  const errorText = await res.text();
+                  // Check if it's a rate limit error (429)
+                  if (res.status === 429) {
+                    throw new Error(
+                      `Rate limit exceeded for ${modelOption.displayName}`
+                    );
+                  } else {
+                    throw new Error(
+                      `HTTP error! status: ${res.status}, response: ${errorText}`
+                    );
                   }
-                })
-              });
-
-              if (!res.ok) {
-                const errorText = await res.text();
-                // Check if it's a rate limit error (429)
-                if (res.status === 429) {
-                  throw new Error(`Rate limit exceeded for ${modelOption.displayName}`);
-                } else {
-                  throw new Error(`HTTP error! status: ${res.status}, response: ${errorText}`);
                 }
-              }
 
-              return res;
-            }, 3, 2000);
+                return res;
+              },
+              3,
+              2000
+            );
 
             const data = await response.json();
 
-            if (data.candidates && data.candidates[0] && data.candidates[0].content &&
-                data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+            if (
+              data.candidates &&
+              data.candidates[0] &&
+              data.candidates[0].content &&
+              data.candidates[0].content.parts &&
+              data.candidates[0].content.parts[0]
+            ) {
               content = data.candidates[0].content.parts[0].text;
               success = true;
               modelUsed = modelOption.displayName;
             } else {
-              throw new Error(`Invalid response format from ${modelOption.displayName}`);
+              throw new Error(
+                `Invalid response format from ${modelOption.displayName}`
+              );
             }
           } else {
             // For v1 API, use the SDK
-            const genModel = genAI?.getGenerativeModel({ model: modelOption.name });
+            const genModel = genAI?.getGenerativeModel({
+              model: modelOption.name
+            });
 
             if (!genModel) {
-              throw new Error(`Failed to initialize ${modelOption.displayName}`);
+              throw new Error(
+                `Failed to initialize ${modelOption.displayName}`
+              );
             }
 
             // Check if we should use streaming mode
@@ -566,7 +688,10 @@ ${fileSummaries}`;
 
             if (isInteractive) {
               // Create a stream handler
-              const streamHandler = new StreamHandler(reviewType, modelOption.displayName);
+              const streamHandler = new StreamHandler(
+                reviewType,
+                modelOption.displayName
+              );
 
               // Use streaming mode
               await globalRateLimiter.acquireToken();
@@ -577,7 +702,7 @@ ${fileSummaries}`;
                   temperature: 0.2,
                   topK: 40,
                   topP: 0.95,
-                  maxOutputTokens: 8192,
+                  maxOutputTokens: 8192
                 },
                 safetySettings: [
                   {
@@ -611,35 +736,39 @@ ${fileSummaries}`;
               modelUsed = modelOption.displayName;
             } else {
               // Use regular mode with retry with backoff for rate limit errors
-              result = await retryWithBackoff(async () => {
-                return genModel.generateContent({
-                  contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                  generationConfig: {
-                    temperature: 0.2,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 8192,
-                  },
-                  safetySettings: [
-                    {
-                      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-                      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+              result = await retryWithBackoff(
+                async () => {
+                  return genModel.generateContent({
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                    generationConfig: {
+                      temperature: 0.2,
+                      topK: 40,
+                      topP: 0.95,
+                      maxOutputTokens: 8192
                     },
-                    {
-                      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-                    },
-                    {
-                      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-                    },
-                    {
-                      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-                    }
-                  ]
-                });
-              }, 3, 2000);
+                    safetySettings: [
+                      {
+                        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                      },
+                      {
+                        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                      },
+                      {
+                        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                      },
+                      {
+                        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                      }
+                    ]
+                  });
+                },
+                3,
+                2000
+              );
 
               content = result.response.text();
               success = true;
@@ -647,7 +776,9 @@ ${fileSummaries}`;
             }
           }
         } catch (error: any) {
-          console.warn(`Failed to generate review with ${modelOption.displayName}: ${error.message || error}`);
+          console.warn(
+            `Failed to generate review with ${modelOption.displayName}: ${error.message || error}`
+          );
           // Continue to the next model
         }
       }
@@ -712,15 +843,17 @@ export async function generateArchitecturalReview(
       const promptTemplate = await loadPromptTemplate('architectural');
 
       // Prepare file summaries
-      const fileSummaries = files.map(file => {
-        const fileExtension = path.extname(file.path).slice(1);
-        const language = getLanguageFromExtension(fileExtension);
+      const fileSummaries = files
+        .map(file => {
+          const fileExtension = path.extname(file.path).slice(1);
+          const language = getLanguageFromExtension(fileExtension);
 
-        return `## File: ${file.relativePath}
+          return `## File: ${file.relativePath}
 
 \`\`\`${language}
 ${file.content.substring(0, 1000)}${file.content.length > 1000 ? '\n... (truncated)' : ''}\n\`\`\`\n`;
-      }).join('\n');
+        })
+        .join('\n');
 
       // Create a project structure summary
       const directoryStructure = generateDirectoryStructure(files);
@@ -740,13 +873,16 @@ ${directoryStructure}
 ${fileSummaries}`;
 
       // Call the Gemini API with proper configuration
+      if (!model) {
+        throw new Error('Model is not initialized');
+      }
       const result = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.2,  // Lower temperature for more focused architectural reviews
+          temperature: 0.2, // Lower temperature for more focused architectural reviews
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 8192,  // Allow for detailed reviews
+          maxOutputTokens: 8192 // Allow for detailed reviews
         },
         safetySettings: [
           {
@@ -785,7 +921,9 @@ ${fileSummaries}`;
     };
   } catch (error) {
     console.error('Error generating architectural review:', error);
-    throw new Error(`Failed to generate architectural review for ${projectName}`);
+    throw new Error(
+      `Failed to generate architectural review for ${projectName}`
+    );
   }
 }
 
@@ -818,7 +956,8 @@ function generateDirectoryStructure(files: FileInfo[]): string {
   function stringifyStructure(obj: Record<string, any>, indent = 0): string {
     let result = '';
     for (const [key, value] of Object.entries(obj)) {
-      result += '  '.repeat(indent) + (value === null ? '📄 ' : '📁 ') + key + '\n';
+      result +=
+        '  '.repeat(indent) + (value === null ? '📄 ' : '📁 ') + key + '\n';
       if (value !== null) {
         result += stringifyStructure(value, indent + 1);
       }

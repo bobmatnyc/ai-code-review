@@ -1,5 +1,23 @@
 #!/usr/bin/env node
 
+/**
+ * @fileoverview Main entry point for the code review CLI tool.
+ *
+ * This file serves as the primary entry point for the code review command-line interface.
+ * It handles environment variable loading, command-line argument parsing, and dispatches
+ * to the appropriate command handlers. The tool supports multiple review types including
+ * quick fixes, architectural reviews, security reviews, and performance reviews.
+ *
+ * Key responsibilities:
+ * - Loading environment variables from .env.local
+ * - Setting up command-line interface and argument parsing
+ * - Dispatching to appropriate command handlers based on user input
+ * - Providing help and usage information
+ * - Handling model testing and verification
+ *
+ * Usage: yarn review [project] [file|directory] [options]
+ */
+
 // Load dotenv as early as possible
 import * as fs from 'fs';
 import * as path from 'path';

@@ -1,3 +1,23 @@
+/**
+ * @fileoverview Command handler for the code review functionality.
+ *
+ * This module implements the core code review command handler that processes user input,
+ * identifies files to review, coordinates the review process, and manages output generation.
+ * It supports multiple review types and modes, including individual file reviews, consolidated
+ * reviews, and architectural reviews.
+ *
+ * Key responsibilities:
+ * - Parsing and validating command-line arguments
+ * - Identifying and filtering files for review based on user input
+ * - Coordinating with the Gemini API client to generate reviews
+ * - Managing output file generation and organization
+ * - Supporting interactive streaming mode for real-time feedback
+ * - Handling errors and providing user feedback
+ *
+ * The module is designed to be flexible and extensible to support different review types
+ * and output formats while maintaining a consistent user experience.
+ */
+
 import path from 'path';
 import fs from 'fs/promises';
 import { fileExists, directoryExists, createDirectory, generateVersionedOutputPath } from '../utils/fileSystem';

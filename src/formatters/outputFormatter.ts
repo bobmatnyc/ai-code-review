@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Formatter for code review output in different formats.
+ *
+ * This module provides formatting utilities for code review results, supporting
+ * multiple output formats including Markdown and JSON. It handles the transformation
+ * of raw review data into well-structured, readable formats suitable for different
+ * consumption patterns.
+ *
+ * Key responsibilities:
+ * - Converting review results to Markdown format with proper headings and sections
+ * - Converting review results to JSON format for programmatic consumption
+ * - Sanitizing content to prevent rendering issues
+ * - Adding metadata like review date, model used, and cost information
+ * - Formatting code snippets and recommendations consistently
+ *
+ * The formatter ensures that review outputs are consistent, readable, and properly
+ * structured regardless of the review type or content.
+ */
+
 import { ReviewResult } from '../types/review';
 import { sanitizeContent } from '../utils/sanitizer';
 

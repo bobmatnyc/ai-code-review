@@ -1,3 +1,23 @@
+/**
+ * @fileoverview Utilities for reading and processing project documentation.
+ *
+ * This module provides functionality for reading and processing project documentation
+ * files like README.md, PROJECT.md, and PROGRESS.md. These files provide important
+ * context for code reviews, helping the AI model understand the project's purpose,
+ * structure, and current state.
+ *
+ * Key responsibilities:
+ * - Reading documentation files from the project directory
+ * - Formatting documentation content for inclusion in review prompts
+ * - Handling missing documentation files gracefully
+ * - Providing a consistent interface for accessing project documentation
+ * - Limiting documentation size to prevent token limit issues
+ *
+ * Including project documentation in reviews significantly improves the quality and
+ * relevance of AI-generated code reviews by providing essential context about the
+ * project's goals, architecture, and development status.
+ */
+
 import fs from 'fs/promises';
 import path from 'path';
 import { fileExists } from './fileSystem';

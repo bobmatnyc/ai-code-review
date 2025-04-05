@@ -1,4 +1,22 @@
 /**
+ * @fileoverview Token counting and cost estimation utilities for Gemini API usage.
+ *
+ * This module provides utilities for estimating token usage and associated costs
+ * when using the Gemini API. It implements approximation methods for token counting
+ * and maintains current pricing information for different Gemini models.
+ *
+ * Key responsibilities:
+ * - Estimating token counts for input and output text
+ * - Calculating approximate API costs based on token usage
+ * - Tracking different pricing tiers for various Gemini models
+ * - Providing cost information for review outputs
+ * - Supporting cost-aware decision making for API usage
+ *
+ * These utilities help users understand the resource usage and costs associated
+ * with their code reviews, enabling better planning and resource allocation.
+ */
+
+/**
  * Utility functions for estimating token counts and costs for Gemini API calls
  */
 
@@ -67,7 +85,7 @@ export function getCostInfo(inputText: string, outputText: string): CostInfo {
   const outputTokens = estimateTokenCount(outputText);
   const totalTokens = inputTokens + outputTokens;
   const estimatedCost = calculateCost(inputTokens, outputTokens);
-  
+
   return {
     inputTokens,
     outputTokens,

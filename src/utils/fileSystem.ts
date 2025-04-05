@@ -1,3 +1,23 @@
+/**
+ * @fileoverview File system utilities for the code review tool.
+ *
+ * This module provides a comprehensive set of file system operations used throughout
+ * the code review tool. It abstracts common file operations like checking existence,
+ * reading/writing files, creating directories, and generating output paths.
+ *
+ * Key responsibilities:
+ * - Checking if files and directories exist
+ * - Reading file content with proper encoding
+ * - Creating directories with recursive support
+ * - Writing review outputs to files
+ * - Generating versioned output paths to prevent overwriting
+ * - Finding files matching patterns
+ * - Managing temporary files
+ *
+ * These utilities ensure consistent file system interaction across the application
+ * and provide error handling for common file operations.
+ */
+
 import fs from 'fs/promises';
 import path from 'path';
 import { glob } from 'glob';

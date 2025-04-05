@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Utilities for filtering and selecting files for code review.
+ *
+ * This module provides functions for identifying, filtering, and selecting files
+ * for code review based on various criteria. It handles file discovery, gitignore
+ * pattern matching, file extension filtering, and test file identification.
+ *
+ * Key responsibilities:
+ * - Discovering files in directories recursively
+ * - Parsing and applying .gitignore patterns
+ * - Filtering files based on extension and content type
+ * - Excluding test files when requested
+ * - Converting file paths to relative paths for consistent processing
+ * - Reading file content and preparing it for review
+ *
+ * The module ensures that only relevant files are included in code reviews,
+ * improving efficiency and relevance of the review process.
+ */
+
 import fs from 'fs/promises';
 import path from 'path';
 import { glob } from 'glob';

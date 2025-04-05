@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Content sanitization utilities for preventing XSS attacks.
+ *
+ * This module provides sanitization functions to clean user-generated or AI-generated
+ * content before rendering or storing it. It uses DOMPurify to remove potentially
+ * malicious HTML, JavaScript, and other harmful content while preserving legitimate
+ * formatting elements.
+ *
+ * Key responsibilities:
+ * - Sanitizing content to prevent Cross-Site Scripting (XSS) attacks
+ * - Configuring allowed HTML tags and attributes for safe rendering
+ * - Preserving legitimate Markdown and HTML formatting
+ * - Removing potentially dangerous scripts and event handlers
+ * - Providing a consistent sanitization interface across the application
+ *
+ * This sanitization is critical for security when rendering AI-generated content
+ * that might inadvertently contain harmful markup.
+ */
+
 import { JSDOM } from 'jsdom';
 import createDOMPurify from 'dompurify';
 
