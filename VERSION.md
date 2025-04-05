@@ -5,12 +5,21 @@ This document tracks the version history of the Code Review Tool.
 ## [0.9.0] - 2024-04-05
 
 ### Added
-- Support for both `GOOGLE_GENERATIVE_AI_KEY` and `GOOGLE_AI_STUDIO_KEY` environment variables
+- Support for both `GOOGLE_AI_STUDIO_KEY` and `GOOGLE_GENERATIVE_AI_KEY` environment variables (prioritizing GOOGLE_AI_STUDIO_KEY)
 - Detailed debugging information for environment variable loading
 - Fallback to `.env` when `.env.local` is not found
+- Support for including project documentation (README.md, PROJECT.md, PROGRESS.md) in the AI context
+- New command-line option `--include-project-docs` (enabled by default)
+- Support for reviewing the current project using 'self' or '.' as the project name
+- Model testing utility to verify model availability
+- Support for gemini-2.5-pro-exp-03-25 model using v1beta API
+- Fallback to gemini-2.0-flash and gemini-1.5-pro models
 
 ### Changed
-- Updated to use Gemini 2.5 Max model instead of Gemini 1.5 Pro
+- Updated to use available Gemini AI models with robust fallback mechanism
+- Added support for v1beta API to access the latest Gemini models
+- Implemented proper API calls with configuration parameters based on official documentation
+- Added safety settings and generation configuration for better results
 - Improved environment variable loading with better error handling
 - Updated command structure to use `yarn dev code-review [project] [file|directory]`
 - Enhanced documentation in README.md, PROJECT.md, and .env.example

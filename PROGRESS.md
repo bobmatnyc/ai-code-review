@@ -1,28 +1,92 @@
 # Project Progress Log
 
-## 2024-04-05 - Environment Variable Handling Improvements and Model Update
+## 2024-04-05 - Project Documentation Context and Model Update
+
+### Summary
+Today we made significant improvements to the code review tool by adding project documentation to the AI context and updating to the Gemini 2.5 Max model. We also fixed environment variable handling and implemented structured version numbering.
 
 ### Completed Tasks
 - Fixed API key handling to remove hardcoded keys from the codebase
 - Updated command structure to use `yarn dev code-review [project] [file|directory]`
 - Improved environment variable loading from .env.local
-- Added support for both GOOGLE_GENERATIVE_AI_KEY and GOOGLE_AI_STUDIO_KEY
+- Added support for both GOOGLE_AI_STUDIO_KEY and GOOGLE_GENERATIVE_AI_KEY (prioritizing GOOGLE_AI_STUDIO_KEY)
 - Enhanced error handling and debugging for environment variable loading
-- Updated the Gemini model from 1.5 Pro to 2.5 Max for better code review capabilities
+- Updated to use available Gemini AI models with robust fallback mechanism based on official documentation
+- Added model testing utility to verify model availability
+- Added support for gemini-2.5-pro-exp-03-25 model using v1beta API
+- Confirmed gemini-2.0-flash and gemini-1.5-pro are available as fallbacks
+- Implemented proper API calls with configuration parameters for better results
+- Added support for including project documentation (README.md, PROJECT.md, PROGRESS.md) in the AI context
+- Created utility functions to read and format project documentation
+- Added a new command-line option to control project documentation inclusion
 - Updated documentation in README.md and .env.example
 - Updated PROJECT.md with the latest changes
 - Created VERSION.md with structured version history
 - Updated version to 0.9.0 across the codebase
+- Added support for reviewing the current project using 'self' or '.' as the project name
+
+### Implementation Details
+
+#### Project Documentation Context
+We implemented a new feature to include project documentation in the AI context:
+
+1. Created a new utility module `src/utils/projectDocs.ts` with functions:
+   - `readProjectDocs()`: Reads README.md, PROJECT.md, and PROGRESS.md files
+   - `formatProjectDocs()`: Formats the documentation for inclusion in the prompt
+
+2. Modified the prompt generation in `geminiClient.ts` to include the documentation
+
+3. Added a new command-line option `--include-project-docs` (enabled by default)
+
+This enhancement provides the AI model with more context about the project, which should result in more accurate and relevant code reviews.
+
+#### Environment Variable Handling
+We improved the environment variable handling to be more robust:
+
+1. Removed hardcoded API key from the codebase
+2. Added support for both environment variable names for backward compatibility
+3. Enhanced error messages and debugging information
+4. Added fallback to `.env` when `.env.local` is not found
+
+#### Model Fallback Mechanism
+We implemented a fallback mechanism for Gemini AI models based on the official Google AI documentation:
+
+1. First tries to use gemini-1.5-pro which has good capabilities
+2. Falls back to gemini-pro if 1.5-pro is not available
+3. Finally tries gemini-pro-latest as a last resort
+4. Uses try-catch blocks to handle model initialization errors
+5. Provides clear console messages about which model is being used
+6. Updated all documentation to use generic "Gemini AI" references
+7. Implemented proper API calls with configuration parameters:
+   - Set temperature to 0.2 for more focused code reviews
+   - Set maxOutputTokens to 8192 for detailed reviews
+   - Added safety settings to comply with API requirements
+   - Used the proper content structure with roles and parts
+
+#### Version Numbering
+We implemented structured version numbering following semantic versioning principles:
+
+1. Created VERSION.md to track version history
+2. Started with version 0.9.0 for the current implementation
+3. Backfilled previous versions with work to date, grouped logically
+4. Updated version number in package.json and src/index.ts
+5. Documented version changes in a structured format (Added, Changed, Fixed)
 
 ### Current Status
 - Environment variable handling is now more robust
 - Command structure matches the requirements
 - Documentation is up-to-date
+- Project documentation (README.md, PROJECT.md, PROGRESS.md) is now included in AI context
+- Using available Gemini AI models with robust fallback mechanism based on official documentation
+- Structured version numbering implemented with VERSION.md
+- Added support for reviewing the current project using 'self' or '.' as the project name
 
 ### Next Steps
-- Continue testing with real-world projects
+- Test the tool with real-world projects
+- Verify that including project documentation improves review quality
 - Consider adding more comprehensive error handling for API calls
 - Explore adding more review types or customization options
+- Implement token usage optimization to handle larger codebases
 
 ## 2023-07-25 - Initial Setup
 

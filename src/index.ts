@@ -56,19 +56,19 @@ if (envFileExists) {
 }
 
 // Support both environment variable names for backward compatibility
-if (process.env.GOOGLE_AI_STUDIO_KEY && !process.env.GOOGLE_GENERATIVE_AI_KEY) {
-  console.log('Found GOOGLE_AI_STUDIO_KEY, using it as GOOGLE_GENERATIVE_AI_KEY');
-  process.env.GOOGLE_GENERATIVE_AI_KEY = process.env.GOOGLE_AI_STUDIO_KEY;
+if (process.env.GOOGLE_GENERATIVE_AI_KEY && !process.env.GOOGLE_AI_STUDIO_KEY) {
+  console.log('Found GOOGLE_GENERATIVE_AI_KEY, using it as GOOGLE_AI_STUDIO_KEY');
+  process.env.GOOGLE_AI_STUDIO_KEY = process.env.GOOGLE_GENERATIVE_AI_KEY;
 }
 
 // Check if we have the API key after all attempts
-if (process.env.GOOGLE_GENERATIVE_AI_KEY) {
+if (process.env.GOOGLE_AI_STUDIO_KEY) {
   console.log('API key is available in process.env');
 } else {
   console.warn('API key is NOT available. The tool will use mock responses.');
   console.warn('Please make sure your .env.local file contains either:');
-  console.warn('- GOOGLE_GENERATIVE_AI_KEY=your_api_key_here');
-  console.warn('- or GOOGLE_AI_STUDIO_KEY=your_api_key_here');
+  console.warn('- GOOGLE_AI_STUDIO_KEY=your_api_key_here');
+  console.warn('- or GOOGLE_GENERATIVE_AI_KEY=your_api_key_here');
 }
 
 // Import other dependencies after environment setup
@@ -90,6 +90,9 @@ program
   .option('-t, --type <type>', 'Type of review (architectural, quick-fixes, security, performance)', 'quick-fixes')
   .option('-i, --include-tests', 'Include test files in the review', false)
   .option('-o, --output <format>', 'Output format (markdown, json)', 'markdown')
+  .option('-d, --include-project-docs', 'Include project documentation (PROJECT.md only) in the context', true)
+  .option('-c, --consolidated', 'Generate a single consolidated review instead of individual file reviews (default: true)', true)
+  .option('--individual', 'Generate individual file reviews instead of a consolidated review', false)
   .action(async (project, target, options) => {
     try {
       await reviewCode(project, target, options);

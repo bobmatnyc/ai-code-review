@@ -20,11 +20,17 @@ export function formatReviewOutput(review: ReviewResult, format: string): string
  * @returns JSON string
  */
 function formatAsJson(review: ReviewResult): string {
+  // Determine model information
+  let modelInfo = review.isMock ? 'Mock Response' : 'Google Gemini AI';
+  if (review.modelUsed && !review.isMock) {
+    modelInfo = `Google Gemini AI (${review.modelUsed})`;
+  }
+
   // Create a copy of the review with additional metadata
   const reviewWithMeta = {
     ...review,
     meta: {
-      model: review.isMock ? 'Mock Response' : 'Google Gemini 2.5 Max',
+      model: modelInfo,
       generatedAt: new Date(review.timestamp).toISOString(),
       costEstimation: review.cost
     }
@@ -42,9 +48,14 @@ function formatAsMarkdown(review: ReviewResult): string {
   const { filePath, reviewType, content, timestamp, cost, isMock } = review;
 
   // Determine if this is a real or mock response
-  const modelInfo = isMock
+  let modelInfo = isMock
     ? 'Mock Response (No API Key)'
-    : 'Google Gemini 2.5 Max';
+    : 'Google Gemini AI';
+
+  // Add specific model information if available
+  if (review.modelUsed && !isMock) {
+    modelInfo = `Google Gemini AI (${review.modelUsed})`;
+  }
 
   // Format cost information if available
   let costInfo = '';

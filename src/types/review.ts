@@ -1,7 +1,7 @@
 /**
  * Types of code reviews supported by the tool
  */
-export type ReviewType = 'architectural' | 'quick-fixes' | 'security' | 'performance';
+export type ReviewType = 'architectural' | 'quick-fixes' | 'security' | 'performance' | 'consolidated';
 
 /**
  * Options for the review command
@@ -21,6 +21,21 @@ export interface ReviewOptions {
    * Output format (markdown or json)
    */
   output: string;
+
+  /**
+   * Whether to include project documentation in the context
+   */
+  includeProjectDocs?: boolean;
+
+  /**
+   * Whether to generate a consolidated review instead of individual file reviews
+   */
+  consolidated?: boolean;
+
+  /**
+   * Whether to generate individual file reviews instead of a consolidated review
+   */
+  individual?: boolean;
 }
 
 /**
@@ -106,4 +121,9 @@ export interface ReviewResult {
    * Whether this is a mock response
    */
   isMock: boolean;
+
+  /**
+   * The model used to generate the review
+   */
+  modelUsed?: string;
 }

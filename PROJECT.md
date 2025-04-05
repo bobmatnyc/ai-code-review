@@ -5,7 +5,7 @@
 ### Overview
 // Updated: 2023-07-25
 // Updated: 2024-04-05
-This project is a TypeScript-based code review tool that leverages Google's Gemini 2.5 Max model to analyze code in sibling projects and provide structured feedback. The tool is designed to be run from the command line, with no UI component.
+This project is a TypeScript-based code review tool that leverages Google's Gemini AI models to analyze code in sibling projects and provide structured feedback. The tool is designed to be run from the command line, with no UI component.
 
 The project follows semantic versioning (SEMVER) with version history tracked in VERSION.md.
 
@@ -14,7 +14,7 @@ The project follows semantic versioning (SEMVER) with version history tracked in
 // Updated: 2024-04-05
 - **Language**: TypeScript
 - **Runtime**: Node.js
-- **AI Model**: Google Gemini 2.5 Max
+- **AI Model**: Google Gemini AI (1.5 Pro or Pro)
 - **API Integration**: Google AI Studio API
 - **Testing**: Vitest
 - **Linting & Formatting**: ESLint, Prettier
@@ -46,6 +46,7 @@ Responsible for:
 - Processing and structuring the API responses
 - Handling different review types with specialized prompts
 - Supporting both GOOGLE_GENERATIVE_AI_KEY and GOOGLE_AI_STUDIO_KEY for backward compatibility
+- Including project documentation (README.md, PROJECT.md, PROGRESS.md) in the AI context
 
 #### 4. Review Orchestrator
 // Updated: 2023-07-25

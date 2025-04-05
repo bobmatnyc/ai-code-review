@@ -11,7 +11,15 @@
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:model": "ts-node src/test-model.ts",
+    "list:models": "ts-node src/list-models.ts",
+    "test:model-variations": "ts-node src/test-model-variations.ts",
+    "test:simple": "ts-node src/test-simple.ts",
+    "test:v1beta": "ts-node src/test-v1beta.ts",
+    "test:v1beta-simple": "ts-node src/test-v1beta-simple.ts",
+    "test:fetch": "ts-node src/test-fetch.ts",
+    "test:latest": "ts-node src/test-latest.ts"
   },
   "keywords": [
     "code-review",
@@ -22,7 +30,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@google/generative-ai": "^0.1.3",
+    "@google/generative-ai": "^0.24.0",
     "commander": "^11.1.0",
     "dotenv": "^16.3.1",
     "glob": "^10.3.10",
