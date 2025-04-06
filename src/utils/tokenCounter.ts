@@ -70,6 +70,10 @@ const MODEL_PRICING: Record<string, { inputTokenCost: number; outputTokenCost: n
     inputTokenCost: 0.005,
     outputTokenCost: 0.015,
   },
+  'deepseek/deepseek-v3': {
+    inputTokenCost: 0.0025,
+    outputTokenCost: 0.0075,
+  },
   'anthropic/claude-2.1': {
     inputTokenCost: 0.0008,
     outputTokenCost: 0.0024,
@@ -138,6 +142,7 @@ export interface CostInfo {
   totalTokens: number;
   estimatedCost: number;
   formattedCost: string;
+  cost: number; // Alias for estimatedCost for backward compatibility
 }
 
 /**
@@ -163,6 +168,7 @@ export function getCostInfoFromText(
     totalTokens,
     estimatedCost,
     formattedCost: formatCost(estimatedCost),
+    cost: estimatedCost // Alias for backward compatibility
   };
 }
 
@@ -187,5 +193,6 @@ export function getCostInfo(
     totalTokens,
     estimatedCost,
     formattedCost: formatCost(estimatedCost),
+    cost: estimatedCost // Alias for backward compatibility
   };
 }

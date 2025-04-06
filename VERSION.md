@@ -7,6 +7,7 @@ This document tracks the version history of the AI Code Review Tool.
 ### Added
 - First stable release with NPM package support
 - Support for OpenRouter API (Claude, GPT-4, and other models) via environment variables
+- API connection testing to verify API keys before running reviews
 - Support for reviewing entire directories and implementing fixes automatically
 - Interactive mode for processing review results
 - Automatic implementation of high priority fixes
@@ -59,7 +60,7 @@ This document tracks the version history of the AI Code Review Tool.
 ### Changed
 - Enhanced architectural reviews to provide consolidated output
 - Improved file filtering to respect .gitignore patterns
-- Updated output directory structure to `/review/[project-name]/`
+- Updated output directory structure to `ai-code-review/[project-name]/`
 
 ## [0.7.0] - 2023-11-10
 

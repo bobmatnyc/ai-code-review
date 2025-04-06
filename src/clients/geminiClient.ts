@@ -102,7 +102,9 @@ if (!apiKey) {
 }
 
 // Get the preferred model from environment variables
-const preferredModel = process.env.CODE_REVIEW_GEMINI_MODEL || 'gemini-1.5-pro';
+const selectedModel = process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+const [adapter, modelName] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
+const preferredModel = adapter === 'gemini' ? modelName : 'gemini-1.5-pro';
 
 // Define available models in order of preference
 const modelOptions = [
@@ -419,7 +421,8 @@ ${codeBlock}`;
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock
+      isMock,
+      modelUsed: currentModel ? `gemini:${currentModel}` : undefined
     };
   } catch (error) {
     console.error('Error generating review:', error);
@@ -929,7 +932,8 @@ ${fileSummaries}`;
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock
+      isMock,
+      modelUsed: currentModel ? `gemini:${currentModel}` : undefined
     };
   } catch (error) {
     console.error('Error generating architectural review:', error);

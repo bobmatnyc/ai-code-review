@@ -70,6 +70,11 @@ export interface ReviewOptions {
    * Whether to prompt for confirmation on all fixes, including high priority ones
    */
   promptAll?: boolean;
+
+  /**
+   * Whether to test API connections before running the review
+   */
+  testApi?: boolean;
 }
 
 /**

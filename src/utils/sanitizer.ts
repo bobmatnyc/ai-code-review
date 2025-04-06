@@ -30,10 +30,15 @@ const DOMPurify = createDOMPurify(window);
  * @param content Content to sanitize
  * @returns Sanitized content
  */
-export function sanitizeContent(content: string): string {
+export function sanitizeContent(content: string | null | undefined): string {
+  // Return empty string for null/undefined
+  if (content == null) {
+    return '';
+  }
+
   try {
     // Configure DOMPurify to allow safe Markdown/HTML elements but remove potentially dangerous ones
-    const sanitized = DOMPurify.sanitize(content, {
+    const sanitized = DOMPurify.sanitize(String(content), {
       ALLOWED_TAGS: [
         // Basic formatting
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr',
@@ -70,4 +75,20 @@ export function sanitizeContent(content: string): string {
     // Return a safe default value
     return 'Error: Content could not be sanitized properly.';
   }
+}
+
+/**
+ * Sanitizes a filename to ensure it's safe for file system operations.
+ * Removes characters that are invalid in filenames across different operating systems.
+ * @param filename The filename to sanitize
+ * @returns Sanitized filename
+ */
+export function sanitizeFilename(filename: string | null | undefined): string {
+  if (filename == null) {
+    return '';
+  }
+
+  // Replace characters that are invalid in filenames across different operating systems
+  // with underscores, while preserving spaces and other valid characters
+  return String(filename).replace(/[\/\\:*?"<>|]/g, '_');
 }

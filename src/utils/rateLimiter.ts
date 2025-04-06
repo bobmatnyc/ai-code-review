@@ -60,6 +60,21 @@ export class RateLimiter {
     // Record this request
     this.requestTimes.push(now);
   }
+
+  /**
+   * Alias for acquireToken for compatibility with other rate limiters
+   */
+  public async acquire(): Promise<void> {
+    return this.acquireToken();
+  }
+
+  /**
+   * Release the token (no-op in this implementation, but included for compatibility)
+   */
+  public release(): void {
+    // This is a no-op in our implementation since we don't have a token pool
+    // But we include it for compatibility with other rate limiters
+  }
 }
 
 // Create a singleton instance for the application

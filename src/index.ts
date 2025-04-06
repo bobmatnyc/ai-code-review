@@ -15,7 +15,7 @@
  * - Providing help and usage information
  * - Handling model testing and verification
  *
- * Usage: ai-review [project] [file|directory] [options]
+ * Usage: ai-code-review [file|directory] [options]
  */
 
 // Load dotenv as early as possible
@@ -78,15 +78,17 @@ const hasGoogleKey = !!process.env.CODE_REVIEW_GOOGLE_API_KEY || !!process.env.G
 const hasOpenRouterKey = !!process.env.CODE_REVIEW_OPENROUTER_API_KEY || !!process.env.OPENROUTER_API_KEY;
 
 // Check for model configuration
-const geminiModel = process.env.CODE_REVIEW_GEMINI_MODEL || 'gemini-1.5-pro';
-const openRouterModel = process.env.CODE_REVIEW_OPENROUTER_MODEL || 'anthropic/claude-3-opus';
+const selectedModel = process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+const [adapter, model] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
 
-if (hasGoogleKey) {
-  console.log(`Google Generative AI API key is available in process.env (Model: ${geminiModel})`);
-}
-
-if (hasOpenRouterKey) {
-  console.log(`OpenRouter API key is available in process.env (Model: ${openRouterModel})`);
+if (adapter === 'gemini' && hasGoogleKey) {
+  console.log(`Using Gemini API with model: ${model}`);
+} else if (adapter === 'openrouter' && hasOpenRouterKey) {
+  console.log(`Using OpenRouter API with model: ${model}`);
+} else if (adapter === 'gemini' && !hasGoogleKey) {
+  console.warn(`Gemini API key not found but Gemini model selected (${model}). Will use mock responses.`);
+} else if (adapter === 'openrouter' && !hasOpenRouterKey) {
+  console.warn(`OpenRouter API key not found but OpenRouter model selected (${model}). Will use mock responses.`);
 }
 
 if (!hasGoogleKey && !hasOpenRouterKey) {
@@ -99,18 +101,43 @@ if (!hasGoogleKey && !hasOpenRouterKey) {
 // Import other dependencies after environment setup
 import { Command } from 'commander';
 import { reviewCode } from './commands/reviewCode';
+import { runApiConnectionTests } from './tests/apiConnectionTest';
 
 const program = new Command();
 
 program
-  .name('ai-review')
+  .name('ai-code-review')
   .description('AI-powered code review tool using Google Gemini AI models')
   .version('1.0.0');
 
 program
-  .description('Review code in a file or directory')
-  .argument('<project>', 'Project name (directory name in sibling directory, use "this" for current project)')
-  .argument('<target>', 'File or directory to review')
+  .command('test-api')
+  .description('Test API connections to verify API keys')
+  .action(async () => {
+    try {
+      await runApiConnectionTests();
+    } catch (error) {
+      // Format the error message for better readability
+      if (error instanceof Error) {
+        console.error('\x1b[31mError testing API connections:\x1b[0m', error.message);
+      } else {
+        console.error('\x1b[31mError testing API connections:\x1b[0m', error);
+      }
+
+      // Add a helpful message about common API issues
+      console.error('\n\x1b[33mCommon solutions:\x1b[0m');
+      console.error('- Check that your API keys are correctly set in .env.local');
+      console.error('- Verify that your internet connection is working');
+      console.error('- Ensure that the API services are available and not experiencing downtime');
+      console.error('- Check for any rate limiting issues with the API providers');
+
+      process.exit(1);
+    }
+  });
+
+program
+  .description('Review code in a file or directory within the current project')
+  .argument('<target>', 'File or directory to review (relative to the current directory)')
   .option('-t, --type <type>', 'Type of review (architectural, quick-fixes, security, performance)', 'quick-fixes')
   .option('--include-tests', 'Include test files in the review', false)
   .option('-o, --output <format>', 'Output format (markdown, json)', 'markdown')
@@ -120,11 +147,24 @@ program
   .option('-i, --interactive', 'Process review results interactively, implementing fixes based on priority', false)
   .option('--auto-fix', 'Automatically implement high priority fixes without confirmation', true)
   .option('--prompt-all', 'Prompt for confirmation on all fixes, including high priority ones', false)
-  .action(async (project, target, options) => {
+  .option('--test-api', 'Test API connections before running the review', false)
+  .action(async (target, options) => {
     try {
-      await reviewCode(project, target, options);
+      await reviewCode(target, options);
     } catch (error) {
-      console.error('Error during code review:', error);
+      // Format the error message for better readability
+      if (error instanceof Error) {
+        console.error('\x1b[31mError during code review:\x1b[0m', error.message);
+      } else {
+        console.error('\x1b[31mError during code review:\x1b[0m', error);
+      }
+
+      // Add a helpful message about common issues
+      console.error('\n\x1b[33mCommon solutions:\x1b[0m');
+      console.error('- Make sure you are running the command from the correct directory');
+      console.error('- Check that the target path exists and is within the current directory');
+      console.error('- For API issues, run with --test-api to verify your API connections');
+
       process.exit(1);
     }
   });

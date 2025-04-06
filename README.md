@@ -61,35 +61,34 @@ You can get API keys from:
 
 ```bash
 # Global installation
-ai-review [project] [file|directory] [options]
+ai-code-review [file|directory] [options]
 
 # Local installation
-npx ai-review [project] [file|directory] [options]
+npx ai-code-review [file|directory] [options]
+
+# Note: The tool only works within the current project
 ```
 
 ### Examples
 
 ```bash
 # Review a single file in the current project
-ai-review this src/index.ts
+ai-code-review src/index.ts
 
 # Review an entire directory with interactive mode
-ai-review this src/utils --interactive
+ai-code-review src/utils --interactive
 
 # Perform an architectural review
-ai-review this src --type architectural
-
-# Review a file in a sibling project
-ai-review other-project src/index.ts
+ai-code-review src --type architectural
 
 # Include test files in the review
-ai-review this src --include-tests
+ai-code-review src --include-tests
 
 # Specify output format (markdown or json)
-ai-review this src/index.ts --output json
+ai-code-review src/index.ts --output json
 
 # Disable including project documentation in the context (enabled by default)
-ai-review this src/index.ts --no-include-project-docs
+ai-code-review src/index.ts --no-include-project-docs
 
 # The AI model is configured in .env.local, not via command line
 # See the Configuration section for details on setting up models
@@ -108,28 +107,29 @@ Options:
   -i, --interactive       Process review results interactively (default: false)
   --auto-fix              Automatically implement high priority fixes (default: true)
   --prompt-all            Prompt for confirmation on all fixes (default: false)
+  --test-api              Test API connections before running the review (default: false)
   -h, --help              Display help information
 ```
 
 ## Output
 
-Review results are stored in the `reviews/[project-name]/` directory. For consolidated reviews, the output follows this naming pattern:
+Review results are stored in the `ai-code-review/[project-name]/` directory. For consolidated reviews, the output follows this naming pattern:
 
 ```
-reviews/[project-name]/[review-type]-review-[date].md
+ai-code-review/[project-name]/[review-type]-review-[date].md
 ```
 
 For example:
 
 ```
-reviews/my-project/quick-fixes-review-2024-04-05.md
-reviews/my-project/architectural-review-2024-04-05.md
+ai-code-review/my-project/quick-fixes-review-2024-04-05.md
+ai-code-review/my-project/architectural-review-2024-04-05.md
 ```
 
 If you use the `--individual` flag, each file will have its own review file with a path structure matching the source:
 
 ```
-reviews/my-project/src/components/Button.ts.md
+ai-code-review/my-project/src/components/Button.ts.md
 ```
 
 ## Configuration
@@ -156,13 +156,51 @@ CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
 # For OpenRouter models (Claude, GPT-4, etc.)
 CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
 
-# Model configuration (required if using the respective API)
-# For Google Gemini models, specify the model name
-CODE_REVIEW_GEMINI_MODEL=gemini-1.5-pro
+# Model configuration
+# Specify which model to use for code reviews using the format adapter:model
+CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
 
-# For OpenRouter models, specify the model name without the 'openrouter-' prefix
-CODE_REVIEW_OPENROUTER_MODEL=anthropic/claude-3-opus
+# See the Supported Models section below for all available models
 ```
+
+## Supported Models
+
+### Gemini Models
+
+| Model Name | Description | API Key Required |
+|------------|-------------|------------------|
+| `gemini:gemini-1.5-pro` | Recommended for most code reviews | `CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-1.5-flash` | Faster but less detailed reviews | `CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-2.5-pro` | Latest model with improved capabilities | `CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-2.0-flash` | Balanced performance and quality | `CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-pro` | Legacy model | `CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-pro-latest` | Latest version of legacy model | `CODE_REVIEW_GOOGLE_API_KEY` |
+
+### OpenRouter Models
+
+| Model Name | Description | API Key Required |
+|------------|-------------|------------------|
+| `openrouter:anthropic/claude-3-opus` | Highest quality, most detailed reviews | `CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:anthropic/claude-3-sonnet` | Good balance of quality and speed | `CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:openai/gpt-4-turbo` | Strong performance on complex code | `CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:openai/gpt-4o` | Latest OpenAI model | `CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:deepseek/deepseek-v3` | Excellent for code analysis and refactoring | `CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:anthropic/claude-2.1` | Reliable performance | `CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:google/gemini-pro` | Google's model via OpenRouter | `CODE_REVIEW_OPENROUTER_API_KEY` |
+
+## Testing API Connections
+
+You can test your API connections to verify that your API keys are valid and working correctly:
+
+```bash
+# Test API connections directly
+ai-code-review test-api
+
+# Test API connections before running a review
+ai-code-review src --test-api
+```
+
+This will test connections to both Google Gemini API and OpenRouter API (if configured) and provide detailed feedback on the status of each connection.
 
 ## Requirements
 

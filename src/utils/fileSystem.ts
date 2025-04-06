@@ -36,10 +36,25 @@ import { glob } from 'glob';
  * validatePath('../../etc/passwd', '/project')
  */
 export function validatePath(filePath: string, basePath: string): string {
-  const absoluteFilePath = path.resolve(filePath);
+  // Normalize paths to handle different path formats
+  const normalizedFilePath = path.normalize(filePath);
+
+  // Check for path traversal attempts using '..' in the normalized path
+  if (normalizedFilePath.includes('..')) {
+    throw new Error(
+      `Path traversal attempt detected. Path "${filePath}" contains ".." which is not allowed.`
+    );
+  }
+
+  // Resolve absolute paths
+  const absoluteFilePath = path.resolve(basePath, normalizedFilePath);
   const absoluteBasePath = path.resolve(basePath);
 
-  if (!absoluteFilePath.startsWith(absoluteBasePath)) {
+  // Use path.relative to ensure the path is truly within the base directory
+  const relativePath = path.relative(absoluteBasePath, absoluteFilePath);
+
+  // If the relative path starts with '..' or is absolute, it's outside the base directory
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
     throw new Error(
       `Path traversal attempt detected. Path "${filePath}" is outside the base directory "${basePath}".`
     );

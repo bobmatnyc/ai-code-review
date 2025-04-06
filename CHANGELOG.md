@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - First stable release of the AI Code Review tool
 - Support for OpenRouter API (Claude, GPT-4, and other models) via environment variables
+- API connection testing to verify API keys before running reviews
 - Support for reviewing entire directories and implementing fixes automatically
 - Interactive mode for processing review results
 - Automatic implementation of high priority fixes

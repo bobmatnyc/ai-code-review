@@ -43,7 +43,11 @@ function formatAsJson(review: ReviewResult): string {
   // Determine model information
   let modelInfo = review.isMock ? 'Mock Response' : 'Google Gemini AI';
   if (review.modelUsed && !review.isMock) {
-    modelInfo = `Google Gemini AI (${review.modelUsed})`;
+    if (review.modelUsed.startsWith('openrouter:')) {
+      modelInfo = `OpenRouter (${review.modelUsed.substring('openrouter:'.length)})`;
+    } else {
+      modelInfo = `Google Gemini AI (${review.modelUsed})`;
+    }
   }
 
   // Sanitize the content to prevent XSS attacks
@@ -78,7 +82,11 @@ function formatAsMarkdown(review: ReviewResult): string {
 
   // Add specific model information if available
   if (review.modelUsed && !isMock) {
-    modelInfo = `Google Gemini AI (${review.modelUsed})`;
+    if (review.modelUsed.startsWith('openrouter:')) {
+      modelInfo = `OpenRouter (${review.modelUsed.substring('openrouter:'.length)})`;
+    } else {
+      modelInfo = `Google Gemini AI (${review.modelUsed})`;
+    }
   }
 
   // Format cost information if available

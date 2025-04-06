@@ -22,7 +22,9 @@ import { getCostInfo } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
 // Get the preferred model from environment variables
-const preferredModel = process.env.CODE_REVIEW_OPENROUTER_MODEL || 'anthropic/claude-3-opus';
+const selectedModel = process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+const [adapter, modelName] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
+const preferredModel = adapter === 'openrouter' ? modelName : 'anthropic/claude-3-opus';
 
 // Default OpenRouter models to try in order of preference
 const DEFAULT_OPENROUTER_MODELS = [
@@ -33,6 +35,7 @@ const DEFAULT_OPENROUTER_MODELS = [
   'openrouter-anthropic/claude-3-sonnet',
   'openrouter-openai/gpt-4-turbo',
   'openrouter-openai/gpt-4o',
+  'openrouter-deepseek/deepseek-v3',
   'openrouter-anthropic/claude-2.1',
   'openrouter-google/gemini-pro'
 ];
@@ -128,7 +131,7 @@ async function initializeOpenRouterModel(modelName: string): Promise<boolean> {
       return false;
     }
 
-    const data = await response.json();
+    const data = await response.json() as any;
     if (data.choices && data.choices.length > 0) {
       console.log(`Successfully initialized ${modelName}`);
       currentModel = modelName;
@@ -338,7 +341,7 @@ Format your response in Markdown.
           throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
         }
 
-        const data = await response.json();
+        const data = await response.json() as any;
 
         // Extract the response content
         content = data.choices[0].message.content;
@@ -373,7 +376,8 @@ Format your response in Markdown.
       reviewType,
       timestamp: new Date().toISOString(),
       cost,
-      isMock
+      isMock,
+      modelUsed: currentModel ? currentModel.replace('openrouter-', 'openrouter:') : undefined
     };
   } catch (error) {
     console.error('Error generating review with OpenRouter:', error);
@@ -536,7 +540,7 @@ Format your response in Markdown.
           throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
         }
 
-        const data = await response.json();
+        const data = await response.json() as any;
 
         // Extract the response content
         content = data.choices[0].message.content;
@@ -573,7 +577,8 @@ Format your response in Markdown.
       reviewType,
       timestamp: new Date().toISOString(),
       cost,
-      isMock
+      isMock,
+      modelUsed: currentModel ? currentModel.replace('openrouter-', 'openrouter:') : undefined
     };
   } catch (error) {
     console.error('Error generating consolidated review with OpenRouter:', error);

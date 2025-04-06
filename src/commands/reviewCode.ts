@@ -20,7 +20,7 @@
 
 import path from 'path';
 import fs from 'fs/promises';
-import { fileExists, directoryExists, createDirectory, generateVersionedOutputPath } from '../utils/fileSystem';
+import { fileExists, directoryExists, createDirectory, generateVersionedOutputPath, validatePath } from '../utils/fileSystem';
 import { getFilesToReview } from '../utils/fileFilters';
 import { generateReview, generateArchitecturalReview, generateConsolidatedReview } from '../clients/geminiClient';
 import { generateOpenRouterReview, generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
@@ -28,63 +28,56 @@ import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { readProjectDocs } from '../utils/projectDocs';
 import { ReviewOptions, ReviewType, FileInfo } from '../types/review';
+import { runApiConnectionTests } from '../tests/apiConnectionTest';
 import { processReviewResults } from '../utils/reviewActionHandler';
 
 export async function reviewCode(
-  project: string,
   target: string,
   options: ReviewOptions
 ): Promise<void> {
+  // Test API connections if requested
+  if (options.testApi) {
+    console.log('Testing API connections before starting review...');
+    await runApiConnectionTests();
+    console.log('API connection tests completed. Proceeding with review...');
+  }
+
   if (options.individual) {
-    console.log(`Starting individual ${options.type} reviews for ${project}/${target}...`);
+    console.log(`Starting individual ${options.type} reviews for ${target}...`);
   } else if (options.type === 'architectural') {
-    console.log(`Starting architectural review for ${project}/${target}...`);
+    console.log(`Starting architectural review for ${target}...`);
   } else {
-    console.log(`Starting consolidated ${options.type} review for ${project}/${target}...`);
+    console.log(`Starting consolidated ${options.type} review for ${target}...`);
   }
 
-  // Resolve paths
-  let projectPath;
+  // Resolve paths - always use the current directory as the project path
+  const projectPath = process.cwd();
 
-  // Check if the project is the current directory
-  let actualProjectName = project;
-  if (project === 'self' || project === '.' || project === 'this') {
-    projectPath = process.cwd();
-    // Extract the actual project name from the current directory
-    actualProjectName = path.basename(projectPath);
-    console.log(`Reviewing the current project: ${projectPath}`);
-  } else {
-    // Look for a sibling project
-    projectPath = path.resolve('..', project);
-  }
+  // Extract the actual project name from the current directory
+  const actualProjectName = path.basename(projectPath);
+  console.log(`Reviewing project: ${projectPath}`);
 
-  // Validate and normalize the target path
-  const normalizedTarget = path.normalize(target);
-
-  // Check for path traversal attempts
-  if (normalizedTarget.includes('..')) {
-    throw new Error(`Invalid target path: ${target}. Path traversal is not allowed.`);
-  }
-
-  // Resolve the target path
-  const targetPath = path.resolve(projectPath, normalizedTarget);
-
-  // Ensure the target path is within the project directory
-  const relativeTargetPath = path.relative(projectPath, targetPath);
-  if (relativeTargetPath.startsWith('..') || path.isAbsolute(relativeTargetPath)) {
-    throw new Error(`Target path is outside the project directory: ${target}`);
+  // Validate the target path using our secure validatePath function
+  let targetPath;
+  try {
+    targetPath = validatePath(target, projectPath);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Invalid target path: ${target}. ${error.message}`);
+    }
+    throw error;
   }
 
   // Validate paths
   if (!(await directoryExists(projectPath))) {
-    throw new Error(`Project directory not found: ${projectPath}`);
+    throw new Error(`Current directory is not valid for review: ${projectPath}\nPlease run this command from the root of your project.`);
   }
 
   const isFile = await fileExists(targetPath);
   const isDirectory = await directoryExists(targetPath);
 
   if (!isFile && !isDirectory) {
-    throw new Error(`Target not found: ${targetPath}`);
+    throw new Error(`Target file or directory not found: ${targetPath}\nPlease check that the path is correct and exists within the project.\nThe path should be relative to the project root.`);
   }
 
   // Get files to review
@@ -110,18 +103,18 @@ export async function reviewCode(
 
   // Create output directory with project name
   console.log(`Creating output directory for project: ${actualProjectName}`);
-  const outputBaseDir = path.resolve('reviews', actualProjectName);
+  const outputBaseDir = path.resolve('ai-code-review', actualProjectName);
   await createDirectory(outputBaseDir);
 
   // Handle architectural and consolidated reviews differently
   if (options.type === 'architectural') {
-    await handleArchitecturalReview(project, projectPath, filesToReview, outputBaseDir, options);
+    await handleArchitecturalReview(actualProjectName, projectPath, filesToReview, outputBaseDir, options);
   } else if (options.individual) {
     // Process each file individually if --individual flag is set
-    await handleIndividualFileReviews(project, projectPath, filesToReview, outputBaseDir, options);
+    await handleIndividualFileReviews(actualProjectName, projectPath, filesToReview, outputBaseDir, options);
   } else {
     // Generate a consolidated review by default
-    await handleConsolidatedReview(project, projectPath, filesToReview, outputBaseDir, options);
+    await handleConsolidatedReview(actualProjectName, projectPath, filesToReview, outputBaseDir, options);
   }
 
   console.log('Review completed!');
