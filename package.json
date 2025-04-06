@@ -1,7 +1,7 @@
 {
   "name": "ai-code-review",
   "version": "1.0.0",
-  "description": "A TypeScript-based tool for automated code reviews using Google's Gemini AI models",
+  "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini and OpenRouter",
   "main": "dist/index.js",
   "bin": "./dist/index.js",
   "scripts": {
@@ -24,6 +24,8 @@
   "keywords": [
     "code-review",
     "gemini",
+    "openrouter",
+    "claude",
     "ai",
     "typescript",
     "static-analysis",
@@ -34,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bobmatnyc/code-review.git"
+    "url": "https://github.com/bobmatnyc/ai-code-review.git"
   },
   "engines": {
     "node": ">=16.0.0"

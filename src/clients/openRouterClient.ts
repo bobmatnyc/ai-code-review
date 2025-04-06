@@ -22,7 +22,7 @@ import { getCostInfo } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
 // Get the preferred model from environment variables
-const selectedModel = process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 const [adapter, modelName] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
 const preferredModel = adapter === 'openrouter' ? modelName : 'anthropic/claude-3-opus';
 
@@ -35,7 +35,6 @@ const DEFAULT_OPENROUTER_MODELS = [
   'openrouter-anthropic/claude-3-sonnet',
   'openrouter-openai/gpt-4-turbo',
   'openrouter-openai/gpt-4o',
-  'openrouter-deepseek/deepseek-v3',
   'openrouter-anthropic/claude-2.1',
   'openrouter-google/gemini-pro'
 ];
@@ -46,7 +45,7 @@ let currentModel: string | null = null;
 let useMockResponses = false;
 
 // Get API key from environment variables
-const apiKey = process.env.CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || process.env.CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
 
 /**
  * Get the language name from a file extension
@@ -207,7 +206,7 @@ This file appears to be a ${language} file. In a real review, this would contain
 2. Ensure consistent code style
 3. Follow best practices for ${language}
 
-*This is a mock response. To get real reviews, please set CODE_REVIEW_OPENROUTER_API_KEY environment variable in your .env.local file.*`;
+*This is a mock response. To get real reviews, please set AI_CODE_REVIEW_OPENROUTER_API_KEY environment variable in your .env.local file.*`;
 }
 
 /**
@@ -430,7 +429,7 @@ This is a mock review of ${files.length} files. In a real review, this would con
 2. Ensure consistent code style
 3. Follow best practices for the project
 
-*This is a mock response. To get real reviews, please set CODE_REVIEW_OPENROUTER_API_KEY environment variable in your .env.local file.*`;
+*This is a mock response. To get real reviews, please set AI_CODE_REVIEW_OPENROUTER_API_KEY environment variable in your .env.local file.*`;
 
       // Add a note that this is a mock response
       content = `> **Note**: This is a mock response because no OpenRouter API key was provided.\n\n${content}`;

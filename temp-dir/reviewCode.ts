@@ -41,7 +41,7 @@ const preferredGeminiModel = adapter === 'gemini' ? modelName : 'gemini-1.5-pro'
  * Get the available API key type
  * @returns The type of API key available ('OpenRouter', 'Google', or null if none)
  */
-function getApiKeyType(): 'OpenRouter' | 'Google' | null {
+function getApiKeyType() {
   if (process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || process.env.CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY) {
     return 'OpenRouter';
   }
@@ -53,41 +53,19 @@ function getApiKeyType(): 'OpenRouter' | 'Google' | null {
 
 /**
  * Log a message with the appropriate level
- * @param level - The log level (info, warn, error, debug)
+ * @param level - The log level (info, warn, error)
  * @param message - The message to log
- * @param options - Review options for controlling output
  */
-function logMessage(
-  level: 'info' | 'warn' | 'error' | 'debug',
-  message: string,
-  options?: ReviewOptions
-): void {
-  // If options are not provided, use default behavior
-  const quiet = options?.quiet || false;
-  const debug = options?.debug || false;
-
-  // In quiet mode, only show warnings and errors
-  if (quiet && level === 'info') {
-    return;
-  }
-
-  // Only show debug messages in debug mode
-  if (level === 'debug' && !debug) {
-    return;
-  }
-
+function logMessage(level: 'info' | 'warn' | 'error', message: string) {
   switch (level) {
-    case 'debug':
-      console.log(`\x1b[36m[DEBUG]\x1b[0m ${message}`);
-      break;
     case 'info':
       console.log(message);
       break;
     case 'warn':
-      console.warn(`\x1b[33m${message}\x1b[0m`);
+      console.warn(message);
       break;
     case 'error':
-      console.error(`\x1b[31m${message}\x1b[0m`);
+      console.error(message);
       break;
   }
 }
@@ -96,27 +74,19 @@ export async function reviewCode(
   target: string,
   options: ReviewOptions
 ): Promise<void> {
-  // Add debug information if debug mode is enabled
-  if (options.debug) {
-    logMessage('debug', `Review options: ${JSON.stringify(options, null, 2)}`, options);
-    logMessage('debug', `Target path: ${target}`, options);
-    logMessage('debug', `Selected model: ${selectedModel}`, options);
-    logMessage('debug', `API key type: ${getApiKeyType() || 'None'}`, options);
-  }
-
   // Test API connections if requested
   if (options.testApi) {
-    logMessage('info', 'Testing API connections before starting review...', options);
+    logMessage('info', 'Testing API connections before starting review...');
     await runApiConnectionTests();
-    logMessage('info', 'API connection tests completed. Proceeding with review...', options);
+    logMessage('info', 'API connection tests completed. Proceeding with review...');
   }
 
   if (options.individual) {
-    logMessage('info', `Starting individual ${options.type} reviews for ${target}...`, options);
+    logMessage('info', `Starting individual ${options.type} reviews for ${target}...`);
   } else if (options.type === 'architectural') {
-    logMessage('info', `Starting architectural review for ${target}...`, options);
+    logMessage('info', `Starting architectural review for ${target}...`);
   } else {
-    logMessage('info', `Starting consolidated ${options.type} review for ${target}...`, options);
+    logMessage('info', `Starting consolidated ${options.type} review for ${target}...`);
   }
 
   // Resolve paths - always use the current directory as the project path
@@ -168,10 +138,10 @@ export async function reviewCode(
     options.individual = false;
   }
 
-  logMessage('info', `Found ${filesToReview.length} files to review.`, options);
+  logMessage('info', `Found ${filesToReview.length} files to review.`);
 
   // Create output directory for reviews
-  logMessage('info', `Creating output directory for reviews`, options);
+  logMessage('info', `Creating output directory for reviews`);
   const outputBaseDir = path.resolve('ai-code-review-docs');
   await createDirectory(outputBaseDir);
 
@@ -186,7 +156,7 @@ export async function reviewCode(
     await handleConsolidatedReview(actualProjectName, projectPath, filesToReview, outputBaseDir, options, target);
   }
 
-  logMessage('info', 'Review completed!', options);
+  logMessage('info', 'Review completed!');
 }
 
 /**

@@ -128,23 +128,33 @@ export async function createDirectory(dirPath: string): Promise<void> {
  * @param outputBaseDir Base directory for output files
  * @param reviewType Type of review (e.g., 'quick-fixes', 'architectural')
  * @param extension File extension (default: .md)
+ * @param aiModel The AI model used for the review (e.g., 'gemini-1.5-pro', 'claude-3-opus')
+ * @param targetName The name of the file or directory being reviewed
  * @returns Promise resolving to the output path with version number if needed
  * @example
- * // Might return '/reviews/project/quick-fixes-2023-04-05.md' if no previous file exists
- * // or '/reviews/project/quick-fixes-2023-04-05-2.md' if a previous version exists
- * const outputPath = await generateVersionedOutputPath('/reviews/project', 'quick-fixes');
+ * // Might return '/reviews/project/gemini-1.5-pro-quick-fixes-index-2023-04-05.md' if no previous file exists
+ * // or '/reviews/project/gemini-1.5-pro-quick-fixes-index-2023-04-05-2.md' if a previous version exists
+ * const outputPath = await generateVersionedOutputPath('/reviews/project', 'quick-fixes', '.md', 'gemini-1.5-pro', 'index');
  */
 export async function generateVersionedOutputPath(
   outputBaseDir: string,
   reviewType: string,
-  extension: string = '.md'
+  extension: string = '.md',
+  aiModel: string = 'unknown',
+  targetName: string = ''
 ): Promise<string> {
   // Format the current date for the filename
   const date = new Date();
   const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
+  // Sanitize the model name to be file-system friendly
+  const sanitizedModel = aiModel.replace(/[\/:*?"<>|]/g, '-');
+
+  // Sanitize the target name to be file-system friendly
+  const sanitizedTarget = targetName ? `-${targetName.replace(/[\/:*?"<>|]/g, '-')}` : '';
+
   // Base filename without version
-  const baseFilename = `${reviewType}-${formattedDate}`;
+  const baseFilename = `${sanitizedModel}-${reviewType}${sanitizedTarget}-${formattedDate}`;
 
   // Check for existing files with the same base name
   const pattern = `${baseFilename}-*${extension}`;

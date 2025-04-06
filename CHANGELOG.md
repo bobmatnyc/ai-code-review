@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2024-04-05
+## [1.0.0] - 2024-04-06
 
 ### Added
 - First stable release of the AI Code Review tool
@@ -18,7 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Memory-optimized processing for large codebases
 - Improved file path handling and error recovery
 - NPM package support for easy installation
-- Standardized environment variable naming with CODE_REVIEW prefix
+- Custom context files support via AI_CODE_REVIEW_CONTEXT environment variable
+
+### Changed
+- Standardized environment variable naming with AI_CODE_REVIEW prefix
+- Changed output directory from ai-code-review/[project-name] to ai-code-review-docs
+- Improved output file naming with AI model and target name in the filename
+- Updated command structure to use `ai-code-review [target]`
 
 ## [0.9.0] - 2024-04-04
 

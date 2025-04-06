@@ -50,20 +50,43 @@ export interface ProjectDocs {
 export async function readProjectDocs(projectPath: string): Promise<ProjectDocs> {
   const docs: ProjectDocs = {};
 
-  // Only include PROJECT.md for context
-  const docFiles = [
-    { name: 'project', path: 'PROJECT.md' }
-  ];
+  // Check for context files specified in environment variable
+  const contextFiles = process.env.AI_CODE_REVIEW_CONTEXT || process.env.CODE_REVIEW_CONTEXT;
 
-  // Read each file if it exists
-  for (const doc of docFiles) {
-    const filePath = path.join(projectPath, doc.path);
+  if (contextFiles) {
+    // Parse comma-separated list of file paths
+    const filePaths = contextFiles.split(',').map(p => p.trim());
+    console.log(`Using custom context files: ${filePaths.join(', ')}`);
+
+    // Read each specified file
+    for (const filePath of filePaths) {
+      const fullPath = path.join(projectPath, filePath);
+      const fileName = path.basename(filePath);
+
+      if (await fileExists(fullPath)) {
+        try {
+          const content = await fs.readFile(fullPath, 'utf-8');
+          // Use the filename as the key (without extension)
+          const key = path.basename(fileName, path.extname(fileName)).toLowerCase();
+          docs[key as keyof ProjectDocs] = content;
+        } catch (error) {
+          console.warn(`Warning: Could not read ${filePath}:`, error);
+        }
+      } else {
+        console.warn(`Warning: Context file ${filePath} does not exist`);
+      }
+    }
+  } else {
+    // Default to PROJECT.md if no context files are specified
+    const defaultFile = { name: 'project', path: 'PROJECT.md' };
+    const filePath = path.join(projectPath, defaultFile.path);
+
     if (await fileExists(filePath)) {
       try {
         const content = await fs.readFile(filePath, 'utf-8');
-        docs[doc.name as keyof ProjectDocs] = content;
+        docs[defaultFile.name as keyof ProjectDocs] = content;
       } catch (error) {
-        console.warn(`Warning: Could not read ${doc.path}:`, error);
+        console.warn(`Warning: Could not read ${defaultFile.path}:`, error);
       }
     }
   }
@@ -79,8 +102,13 @@ export async function readProjectDocs(projectPath: string): Promise<ProjectDocs>
 export function formatProjectDocs(docs: ProjectDocs): string {
   let result = '';
 
-  if (docs.project) {
-    result += `## Project Documentation (PROJECT.md):\n\n${docs.project}\n\n`;
+  // Process each document in the docs object
+  for (const [key, content] of Object.entries(docs)) {
+    if (content) {
+      // Format the section title based on the key
+      const title = key.charAt(0).toUpperCase() + key.slice(1);
+      result += `## ${title} Documentation (${key.toUpperCase()}.md):\n\n${content}\n\n`;
+    }
   }
 
   return result ? `# Project Context\n\n${result}` : '';

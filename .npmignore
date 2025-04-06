@@ -1,12 +1,13 @@
 # Source files
 src/
 tests/
+scripts/
 
 # Keep the prompts directory in the package
 # prompts/
 
 # Development files
-.eslintrc.js
+.eslintrc.json
 .prettierrc
 .github/
 .vscode/
@@ -15,6 +16,13 @@ tests/
 .gitignore
 tsconfig.json
 vitest.config.ts
+jest.config.js
+
+# Package manager files
+.yarn/
+.yarnrc.yml
+yarn.lock
+package-lock.json
 
 # Environment files
 .env
@@ -36,13 +44,22 @@ coverage/
 # Temporary files
 tmp/
 temp/
+temp-dir/
+temp-file.ts
+review-target.ts
 .DS_Store
 
 # Review output
 reviews/
+ai-code-review-docs/
+error-logs/
+eval/
 
 # Documentation files that aren't needed in the package
 CONTRIBUTING.md
+INSTRUCTIONS.md
+PROGRESS.md
+PROJECT.md
 
 # Include these in the package
 # CHANGELOG.md

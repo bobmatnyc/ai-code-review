@@ -24,7 +24,7 @@ dotenv.config({ path: '.env.local' });
  * @returns Promise resolving to a boolean indicating if the connection was successful
  */
 export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
-  const apiKey = process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
+  const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
 
   if (!apiKey) {
     return {
@@ -77,7 +77,7 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
  * @returns Promise resolving to a boolean indicating if the connection was successful
  */
 export async function testOpenRouterConnection(): Promise<{ success: boolean; message: string }> {
-  const apiKey = process.env.CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || process.env.CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
     return {

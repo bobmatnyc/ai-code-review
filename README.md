@@ -1,6 +1,6 @@
 # AI Code Review v1.0.0
 
-A TypeScript-based tool for automated code reviews using Google's Gemini AI models and OpenRouter API.
+A TypeScript-based tool for automated code reviews using Google's Gemini AI models and OpenRouter API (Claude, GPT-4, etc.).
 
 ## Overview
 
@@ -61,10 +61,10 @@ You can get API keys from:
 
 ```bash
 # Global installation
-ai-code-review [file|directory] [options]
+ai-code-review [target] [options]
 
 # Local installation
-npx ai-code-review [file|directory] [options]
+npx ai-code-review [target] [options]
 
 # Note: The tool only works within the current project
 ```
@@ -90,6 +90,15 @@ ai-code-review src/index.ts --output json
 # Disable including project documentation in the context (enabled by default)
 ai-code-review src/index.ts --no-include-project-docs
 
+# Check the version of the tool
+ai-code-review --version
+
+# Run in debug mode for additional logging
+ai-code-review src/utils --debug
+
+# Run in quiet mode to suppress non-essential output
+ai-code-review src/utils -q
+
 # The AI model is configured in .env.local, not via command line
 # See the Configuration section for details on setting up models
 ```
@@ -108,28 +117,31 @@ Options:
   --auto-fix              Automatically implement high priority fixes (default: true)
   --prompt-all            Prompt for confirmation on all fixes (default: false)
   --test-api              Test API connections before running the review (default: false)
+  --debug                 Enable debug mode with additional logging (default: false)
+  -q, --quiet             Suppress non-essential output (default: false)
+  -v, --version           Output the current version
   -h, --help              Display help information
 ```
 
 ## Output
 
-Review results are stored in the `ai-code-review/[project-name]/` directory. For consolidated reviews, the output follows this naming pattern:
+Review results are stored in the `ai-code-review-docs/` directory. For consolidated reviews, the output follows this naming pattern:
 
 ```
-ai-code-review/[project-name]/[review-type]-review-[date].md
+ai-code-review-docs/[ai-model]-[review-type]-[file-or-directory-name]-[date].md
 ```
 
 For example:
 
 ```
-ai-code-review/my-project/quick-fixes-review-2024-04-05.md
-ai-code-review/my-project/architectural-review-2024-04-05.md
+ai-code-review-docs/openai-gpt-4o-quick-fixes-review-src-2024-04-06.md
+ai-code-review-docs/gemini-1.5-pro-architectural-review-src-utils-2024-04-06.md
 ```
 
 If you use the `--individual` flag, each file will have its own review file with a path structure matching the source:
 
 ```
-ai-code-review/my-project/src/components/Button.ts.md
+ai-code-review-docs/[ai-model]-[review-type]-[file-name]-[date].md
 ```
 
 ## Configuration
@@ -151,17 +163,23 @@ Create a `.env.local` file in your project root with your API keys:
 
 ```
 # For Google Gemini models
-CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
+AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
 
 # For OpenRouter models (Claude, GPT-4, etc.)
-CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
+AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Model configuration
 # Specify which model to use for code reviews using the format adapter:model
-CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+
+# Custom context files
+# Comma-separated list of file paths to include as context for the code review
+AI_CODE_REVIEW_CONTEXT=README.md,docs/architecture.md,src/types.ts
 
 # See the Supported Models section below for all available models
 ```
+
+> Note: For backward compatibility, the tool also supports the old `CODE_REVIEW` prefix for environment variables, but the `AI_CODE_REVIEW` prefix is recommended.
 
 ## Supported Models
 

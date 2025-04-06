@@ -2,7 +2,7 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
-## [1.0.0] - 2024-04-05
+## [1.0.0] - 2024-04-06
 
 ### Added
 - First stable release with NPM package support
@@ -14,11 +14,14 @@ This document tracks the version history of the AI Code Review Tool.
 - Prompt-based confirmation for medium and low priority fixes
 - Memory-optimized processing for large codebases
 - Improved file path handling and error recovery
-- Standardized environment variable naming with CODE_REVIEW prefix
+- Custom context files support via AI_CODE_REVIEW_CONTEXT environment variable
 
 ### Changed
 - Renamed to "ai-code-review" for NPM package
-- Updated command structure to use `ai-review [project] [file|directory]`
+- Updated command structure to use `ai-code-review [target]`
+- Changed environment variable prefix from CODE_REVIEW to AI_CODE_REVIEW
+- Changed output directory from ai-code-review/[project-name] to ai-code-review-docs
+- Improved output file naming with AI model and target name in the filename
 - Added model configuration via environment variables
 - Improved documentation for NPM package usage
 - Reorganized prompt templates in the prompts/ directory

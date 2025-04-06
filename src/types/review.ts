@@ -75,6 +75,16 @@ export interface ReviewOptions {
    * Whether to test API connections before running the review
    */
   testApi?: boolean;
+
+  /**
+   * Whether to enable debug mode with additional logging
+   */
+  debug?: boolean;
+
+  /**
+   * Whether to suppress non-essential output
+   */
+  quiet?: boolean;
 }
 
 /**

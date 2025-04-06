@@ -50,11 +50,13 @@ async function getGitignorePatterns(projectPath: string): Promise<string[]> {
  */
 function shouldIgnoreFile(filePath: string, patterns: string[], projectRoot: string): boolean {
   const relativePath = path.relative(projectRoot, filePath);
+  // console.log('DEBUG: Checking if file should be ignored:', { filePath, relativePath, projectRoot });
 
   // Check if file matches any gitignore pattern
   for (const pattern of patterns) {
     // Simple pattern matching (could be enhanced with proper gitignore parsing)
     if (pattern.endsWith('/') && relativePath.startsWith(pattern)) {
+      // console.log('DEBUG: File matches directory pattern:', { relativePath, pattern });
       return true;
     }
 
@@ -64,11 +66,13 @@ function shouldIgnoreFile(filePath: string, patterns: string[], projectRoot: str
         .replace(/\*/g, '.*');
 
       if (new RegExp(`^${regexPattern}$`).test(relativePath)) {
+        // console.log('DEBUG: File matches wildcard pattern:', { relativePath, pattern, regexPattern });
         return true;
       }
     }
 
     if (relativePath === pattern || relativePath.startsWith(`${pattern}/`)) {
+      // console.log('DEBUG: File matches exact pattern:', { relativePath, pattern });
       return true;
     }
   }
@@ -107,31 +111,44 @@ export async function getFilesToReview(
   isFile: boolean,
   includeTests: boolean
 ): Promise<string[]> {
+  // console.log('DEBUG: getFilesToReview called with:', { targetPath, isFile, includeTests });
+
   if (isFile) {
+    // console.log('DEBUG: Target is a file, returning:', [targetPath]);
     return [targetPath];
   }
 
   const projectRoot = path.resolve(targetPath, '..');
+  // console.log('DEBUG: Project root:', projectRoot);
+
   const gitignorePatterns = await getGitignorePatterns(projectRoot);
+  // console.log('DEBUG: Gitignore patterns:', gitignorePatterns);
 
   // Use glob to find all files - only include .js, .ts, .tsx, and .json files
+  // console.log('DEBUG: Running glob in directory:', targetPath);
   const allFiles = await glob('**/*.{ts,tsx,js,jsx,json}', {
     cwd: targetPath,
     absolute: true,
     ignore: ['**/node_modules/**', '**/dist/**', '**/build/**']
   });
+  // console.log('DEBUG: Found files with glob:', allFiles);
 
-  return allFiles.filter(filePath => {
+  const filteredFiles = allFiles.filter(filePath => {
     // Skip files in gitignore
     if (shouldIgnoreFile(filePath, gitignorePatterns, projectRoot)) {
+      // console.log('DEBUG: Ignoring file due to gitignore:', filePath);
       return false;
     }
 
     // Skip test files if not including tests
     if (!includeTests && isTestFile(filePath)) {
+      // console.log('DEBUG: Ignoring test file:', filePath);
       return false;
     }
 
     return true;
   });
+
+  // console.log('DEBUG: Returning filtered files:', filteredFiles);
+  return filteredFiles;
 }

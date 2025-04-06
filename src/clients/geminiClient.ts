@@ -45,10 +45,10 @@ import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
 /**
  * API Key for Google Generative AI.
- * Reads from CODE_REVIEW_GOOGLE_API_KEY or GOOGLE_GENERATIVE_AI_KEY environment variable.
+ * Reads from AI_CODE_REVIEW_GOOGLE_API_KEY, CODE_REVIEW_GOOGLE_API_KEY, or GOOGLE_GENERATIVE_AI_KEY environment variable.
  * @type {string | undefined}
  */
-const apiKey = process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
+const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
 
 /**
  * Flag indicating if the client is operating in mock mode (no API key).
@@ -102,7 +102,7 @@ if (!apiKey) {
 }
 
 // Get the preferred model from environment variables
-const selectedModel = process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 const [adapter, modelName] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
 const preferredModel = adapter === 'gemini' ? modelName : 'gemini-1.5-pro';
 

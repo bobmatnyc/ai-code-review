@@ -105,10 +105,13 @@ import { runApiConnectionTests } from './tests/apiConnectionTest';
 
 const program = new Command();
 
+// Get version from package.json
+const packageJson = require('../package.json');
+
 program
   .name('ai-code-review')
-  .description('AI-powered code review tool using Google Gemini AI models')
-  .version('1.0.0');
+  .description('AI-powered code review tool using Google Gemini AI models and OpenRouter API')
+  .version(packageJson.version, '-v, --version', 'Output the current version');
 
 program
   .command('test-api')
@@ -148,6 +151,9 @@ program
   .option('--auto-fix', 'Automatically implement high priority fixes without confirmation', true)
   .option('--prompt-all', 'Prompt for confirmation on all fixes, including high priority ones', false)
   .option('--test-api', 'Test API connections before running the review', false)
+  .option('--debug', 'Enable debug mode with additional logging', false)
+  .option('-q, --quiet', 'Suppress non-essential output', false)
+  .option('-h, --help', 'Display help information')
   .action(async (target, options) => {
     try {
       await reviewCode(target, options);

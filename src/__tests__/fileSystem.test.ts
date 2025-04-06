@@ -186,12 +186,12 @@ describe('fileSystem', () => {
       const findFiles = require('../utils/fileSystem').findFiles;
       jest.spyOn(require('../utils/fileSystem'), 'findFiles').mockResolvedValue([]);
 
-      const result = await generateVersionedOutputPath('/base/dir', 'file', '.md');
+      const result = await generateVersionedOutputPath('/base/dir', 'file', '.md', 'unknown', 'test');
 
       // The actual implementation uses YYYY-MM-DD format
       // We're not testing the exact date format, just that it includes a date
-      expect(result).toContain('/base/dir/file-');
-      expect(result).toMatch(/file-\d{4}-\d{2}-\d{2}\.md/);
+      expect(result).toContain('/base/dir/unknown-file-test-');
+      expect(result).toMatch(/unknown-file-test-\d{4}-\d{2}-\d{2}\.md/);
     });
 
     // This test is challenging because the implementation uses the current date
