@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2024-04-06
+
+### Fixed
+- Fixed package structure to include tests directory in the published package
+- Updated package.json files field to ensure all necessary files are included
+
+## [1.0.2] - 2024-04-06
+
+### Fixed
+- Fixed module import paths to correctly handle API connection tests
+- Improved error handling for environment variable loading
+
+## [1.0.1] - 2024-04-06
+
+### Fixed
+- Fixed environment variable handling to properly recognize AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY
+- Improved error messages to show all supported environment variable formats
+- Added backward compatibility for legacy environment variable names
+- Updated warning messages to provide clearer guidance on API key configuration
+
 ## [1.0.0] - 2024-04-06
 
 ### Added

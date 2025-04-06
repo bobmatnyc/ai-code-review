@@ -74,11 +74,11 @@ if (envFileExists) {
 }
 
 // Check if we have any API keys after all attempts
-const hasGoogleKey = !!process.env.CODE_REVIEW_GOOGLE_API_KEY || !!process.env.GOOGLE_GENERATIVE_AI_KEY;
-const hasOpenRouterKey = !!process.env.CODE_REVIEW_OPENROUTER_API_KEY || !!process.env.OPENROUTER_API_KEY;
+const hasGoogleKey = !!process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || !!process.env.CODE_REVIEW_GOOGLE_API_KEY || !!process.env.GOOGLE_GENERATIVE_AI_KEY || !!process.env.AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY;
+const hasOpenRouterKey = !!process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || !!process.env.CODE_REVIEW_OPENROUTER_API_KEY || !!process.env.OPENROUTER_API_KEY;
 
 // Check for model configuration
-const selectedModel = process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 const [adapter, model] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
 
 if (adapter === 'gemini' && hasGoogleKey) {
@@ -94,8 +94,11 @@ if (adapter === 'gemini' && hasGoogleKey) {
 if (!hasGoogleKey && !hasOpenRouterKey) {
   console.warn('No API keys are available. The tool will use mock responses.');
   console.warn('Please make sure your .env.local file contains one of:');
-  console.warn('- CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
-  console.warn('- CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
+  console.warn('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
+  console.warn('- AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY=your_google_api_key_here');
+  console.warn('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
+  console.warn('- CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here (legacy)');
+  console.warn('- CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here (legacy)');
 }
 
 // Import other dependencies after environment setup

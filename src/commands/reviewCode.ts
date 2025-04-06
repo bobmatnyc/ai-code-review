@@ -45,7 +45,7 @@ function getApiKeyType(): 'OpenRouter' | 'Google' | null {
   if (process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || process.env.CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY) {
     return 'OpenRouter';
   }
-  if (process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY) {
+  if (process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY || process.env.AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY) {
     return 'Google';
   }
   return null;

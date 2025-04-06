@@ -48,7 +48,7 @@ import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
  * Reads from AI_CODE_REVIEW_GOOGLE_API_KEY, CODE_REVIEW_GOOGLE_API_KEY, or GOOGLE_GENERATIVE_AI_KEY environment variable.
  * @type {string | undefined}
  */
-const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
+const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY || process.env.AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY;
 
 /**
  * Flag indicating if the client is operating in mock mode (no API key).
@@ -83,12 +83,13 @@ let model:
 
 // Initialize the client based on API key availability
 if (!apiKey) {
-  console.warn(
-    'Warning: GOOGLE_GENERATIVE_AI_KEY environment variable is not set.'
-  );
-  console.warn(
-    'Using mock responses for testing. For real reviews, please add your API key to .env.local.'
-  );
+  console.warn('No Google API key found in environment variables.');
+  console.warn('Please add one of the following to your .env.local file:');
+  console.warn('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
+  console.warn('- AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY=your_google_api_key_here');
+  console.warn('- CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
+  console.warn('- GOOGLE_GENERATIVE_AI_KEY=your_google_api_key_here');
+  console.warn('Using mock responses for testing. For real reviews, please add your API key to .env.local.');
   useMockResponses = true;
 } else {
   console.log('API key found. Using real Gemini API responses.');

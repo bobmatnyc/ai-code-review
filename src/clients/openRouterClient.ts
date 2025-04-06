@@ -162,6 +162,10 @@ export async function initializeAnyOpenRouterModel(
   // If no API key is available, use mock responses
   if (!apiKey) {
     console.warn('No OpenRouter API key found. Will use mock responses.');
+    console.warn('Please add one of the following to your .env.local file:');
+    console.warn('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
+    console.warn('- CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here (legacy)');
+    console.warn('- OPENROUTER_API_KEY=your_openrouter_api_key_here (legacy)');
     useMockResponses = true;
     return false;
   }

@@ -1,6 +1,6 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini and OpenRouter",
   "main": "dist/index.js",
   "bin": {
@@ -36,6 +36,17 @@
   ],
   "author": "Robert (Masa) Matsuoka",
   "license": "MIT",
+  "files": [
+    "dist",
+    "prompts",
+    "dist/tests",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "VERSION.md",
+    "INSTALL.md",
+    ".env.example"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bobmatnyc/ai-code-review.git"

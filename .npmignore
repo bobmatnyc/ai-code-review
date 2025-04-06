@@ -1,6 +1,6 @@
 # Source files
 src/
-tests/
+# tests/
 scripts/
 
 # Keep the prompts directory in the package
