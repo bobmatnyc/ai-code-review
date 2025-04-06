@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "A TypeScript-based tool for automated code reviews using Google's Gemini AI models",
   "main": "dist/index.js",
-  "bin": {
-    "ai-code-review": "./dist/index.js"
-  },
+  "bin": "./dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -70,5 +68,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vitest": "^1.0.4"
-  }
+  },
+  "packageManager": "yarn@4.1.1+sha512.ec40d0639bb307441b945d9467139cbb88d14394baac760b52eca038b330d16542d66fef61574271534ace5a200518dabf3b53a85f1f9e4bfa37141b538a9590"
 }
