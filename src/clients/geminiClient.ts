@@ -33,7 +33,7 @@ import {
   ReviewOptions
 } from '../types/review';
 import { StreamHandler } from '../utils/streamHandler';
-import { getCostInfo } from '../utils/tokenCounter';
+import { getCostInfo, getCostInfoFromText } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
 /**
@@ -45,10 +45,10 @@ import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
 /**
  * API Key for Google Generative AI.
- * Reads from GOOGLE_GENERATIVE_AI_KEY environment variable.
+ * Reads from CODE_REVIEW_GOOGLE_API_KEY or GOOGLE_GENERATIVE_AI_KEY environment variable.
  * @type {string | undefined}
  */
-const apiKey = process.env.GOOGLE_GENERATIVE_AI_KEY;
+const apiKey = process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
 
 /**
  * Flag indicating if the client is operating in mock mode (no API key).
@@ -101,15 +101,23 @@ if (!apiKey) {
   }
 }
 
+// Get the preferred model from environment variables
+const preferredModel = process.env.CODE_REVIEW_GEMINI_MODEL || 'gemini-1.5-pro';
+
 // Define available models in order of preference
 const modelOptions = [
-  // Use the experimental version of Gemini 2.5 Pro with v1beta API
+  // First try the user's preferred model
+  {
+    name: preferredModel,
+    displayName: `User Preferred (${preferredModel})`,
+    useV1Beta: preferredModel.includes('2.5') // Use v1beta for 2.5 models
+  },
+  // Fallback models if the preferred one doesn't work
   {
     name: 'gemini-2.5-pro-exp-03-25',
     displayName: 'Gemini 2.5 Pro Experimental',
     useV1Beta: true
   },
-  // Fallback models with v1 API
   { name: 'gemini-2.0-flash', displayName: 'Gemini 2.0 Flash' },
   { name: 'gemini-1.5-pro', displayName: 'Gemini 1.5 Pro' },
   { name: 'gemini-pro', displayName: 'Gemini Pro' },
@@ -118,6 +126,7 @@ const modelOptions = [
 
 // Try models in order until one works
 let modelInitialized = false;
+let currentModel: string | null = null;
 
 if (!useMockResponses) {
   for (const modelOption of modelOptions) {
@@ -189,6 +198,7 @@ if (!useMockResponses) {
 
       console.log(`Successfully initialized ${modelOption.displayName}`);
       modelInitialized = true;
+      currentModel = modelOption.name;
     } catch (error: any) {
       console.warn(
         `Failed to initialize ${modelOption.displayName}: ${error.message || error}`
@@ -272,6 +282,7 @@ export async function generateReview(
     let content: string;
     let cost: ReviewCost | undefined;
     let isMock = false;
+    let modelUsed = currentModel || 'gemini-1.5-pro';
 
     if (useMockResponses) {
       // Generate mock response for testing
@@ -399,7 +410,7 @@ ${codeBlock}`;
       }
 
       // Calculate cost information
-      cost = getCostInfo(prompt, content);
+      cost = getCostInfoFromText(prompt, content, modelUsed);
     }
 
     return {
@@ -790,7 +801,7 @@ ${fileSummaries}`;
       console.log(`Successfully generated review with ${modelUsed}`);
 
       // Calculate cost information
-      cost = getCostInfo(prompt, content);
+      cost = getCostInfoFromText(prompt, content, modelUsed);
     }
 
     // Format the current date for the filename
@@ -822,6 +833,7 @@ export async function generateArchitecturalReview(
     let content: string;
     let cost: ReviewCost | undefined;
     let isMock = false;
+    let modelUsed = currentModel || 'gemini-1.5-pro';
 
     if (useMockResponses) {
       // Generate mock response for testing
@@ -908,7 +920,7 @@ ${fileSummaries}`;
       content = response.text();
 
       // Calculate cost information
-      cost = getCostInfo(prompt, content);
+      cost = getCostInfoFromText(prompt, content, modelUsed);
     }
 
     return {

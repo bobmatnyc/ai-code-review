@@ -23,6 +23,7 @@ import fs from 'fs/promises';
 import { fileExists, directoryExists, createDirectory, generateVersionedOutputPath } from '../utils/fileSystem';
 import { getFilesToReview } from '../utils/fileFilters';
 import { generateReview, generateArchitecturalReview, generateConsolidatedReview } from '../clients/geminiClient';
+import { generateOpenRouterReview, generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
 import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { readProjectDocs } from '../utils/projectDocs';
@@ -175,13 +176,50 @@ async function handleConsolidatedReview(
 
   try {
     // Generate consolidated review
-    const review = await generateConsolidatedReview(
-      fileInfos,
-      project,
-      options.type as ReviewType,
-      projectDocs,
-      options
-    );
+    let review;
+
+    // Check if we should use OpenRouter based on environment variables
+    const hasOpenRouterKey = !!process.env.CODE_REVIEW_OPENROUTER_API_KEY || !!process.env.OPENROUTER_API_KEY;
+    const hasGoogleKey = !!process.env.CODE_REVIEW_GOOGLE_API_KEY || !!process.env.GOOGLE_GENERATIVE_AI_KEY;
+
+    // Prefer OpenRouter if it has an API key, otherwise use Gemini
+    if (hasOpenRouterKey) {
+      const openRouterModel = process.env.CODE_REVIEW_OPENROUTER_MODEL || 'anthropic/claude-3-opus';
+      console.log(`Using OpenRouter model: ${openRouterModel}`);
+
+      // Initialize OpenRouter model if needed
+      await initializeAnyOpenRouterModel();
+
+      review = await generateOpenRouterConsolidatedReview(
+        fileInfos,
+        project,
+        options.type as ReviewType,
+        projectDocs,
+        options
+      );
+    } else if (hasGoogleKey) {
+      // Use Gemini API
+      const geminiModel = process.env.CODE_REVIEW_GEMINI_MODEL || 'gemini-1.5-pro';
+      console.log(`Using Gemini model: ${geminiModel}`);
+
+      review = await generateConsolidatedReview(
+        fileInfos,
+        project,
+        options.type as ReviewType,
+        projectDocs,
+        options
+      );
+    } else {
+      // No API keys available, use mock responses
+      console.warn('No API keys available. Using mock responses.');
+      review = await generateConsolidatedReview(
+        fileInfos,
+        project,
+        options.type as ReviewType,
+        projectDocs,
+        options
+      );
+    }
 
     // Generate a versioned output path
     const extension = options.output === 'json' ? '.json' : '.md';
@@ -291,7 +329,38 @@ async function handleArchitecturalReview(
 
   try {
     // Generate architectural review
-    const review = await generateArchitecturalReview(fileInfos, project, projectDocs, options);
+    let review;
+
+    // Check if we should use OpenRouter based on environment variables
+    const hasOpenRouterKey = !!process.env.CODE_REVIEW_OPENROUTER_API_KEY || !!process.env.OPENROUTER_API_KEY;
+    const hasGoogleKey = !!process.env.CODE_REVIEW_GOOGLE_API_KEY || !!process.env.GOOGLE_GENERATIVE_AI_KEY;
+
+    // Prefer OpenRouter if it has an API key, otherwise use Gemini
+    if (hasOpenRouterKey) {
+      const openRouterModel = process.env.CODE_REVIEW_OPENROUTER_MODEL || 'anthropic/claude-3-opus';
+      console.log(`Using OpenRouter model: ${openRouterModel}`);
+
+      // Initialize OpenRouter model if needed
+      await initializeAnyOpenRouterModel();
+
+      review = await generateOpenRouterConsolidatedReview(
+        fileInfos,
+        project,
+        'architectural' as ReviewType,
+        projectDocs,
+        options
+      );
+    } else if (hasGoogleKey) {
+      // Use Gemini API
+      const geminiModel = process.env.CODE_REVIEW_GEMINI_MODEL || 'gemini-1.5-pro';
+      console.log(`Using Gemini model: ${geminiModel}`);
+
+      review = await generateArchitecturalReview(fileInfos, project, projectDocs, options);
+    } else {
+      // No API keys available, use mock responses
+      console.warn('No API keys available. Using mock responses.');
+      review = await generateArchitecturalReview(fileInfos, project, projectDocs, options);
+    }
 
     // Generate a versioned output path
     const extension = options.output === 'json' ? '.json' : '.md';
@@ -354,13 +423,50 @@ async function handleIndividualFileReviews(
 
       try {
         // Generate review
-        const review = await generateReview(
-          fileContent,
-          filePath,
-          options.type as ReviewType,
-          projectDocs,
-          options
-        );
+        let review;
+
+        // Check if we should use OpenRouter based on environment variables
+        const hasOpenRouterKey = !!process.env.CODE_REVIEW_OPENROUTER_API_KEY || !!process.env.OPENROUTER_API_KEY;
+        const hasGoogleKey = !!process.env.CODE_REVIEW_GOOGLE_API_KEY || !!process.env.GOOGLE_GENERATIVE_AI_KEY;
+
+        // Prefer OpenRouter if it has an API key, otherwise use Gemini
+        if (hasOpenRouterKey) {
+          const openRouterModel = process.env.CODE_REVIEW_OPENROUTER_MODEL || 'anthropic/claude-3-opus';
+          console.log(`Using OpenRouter model: ${openRouterModel}`);
+
+          // Initialize OpenRouter model if needed
+          await initializeAnyOpenRouterModel();
+
+          review = await generateOpenRouterReview(
+            fileContent,
+            filePath,
+            options.type as ReviewType,
+            projectDocs,
+            options
+          );
+        } else if (hasGoogleKey) {
+          // Use Gemini API
+          const geminiModel = process.env.CODE_REVIEW_GEMINI_MODEL || 'gemini-1.5-pro';
+          console.log(`Using Gemini model: ${geminiModel}`);
+
+          review = await generateReview(
+            fileContent,
+            filePath,
+            options.type as ReviewType,
+            projectDocs,
+            options
+          );
+        } else {
+          // No API keys available, use mock responses
+          console.warn('No API keys available. Using mock responses.');
+          review = await generateReview(
+            fileContent,
+            filePath,
+            options.type as ReviewType,
+            projectDocs,
+            options
+          );
+        }
 
         // Create the output directory for this file
         const fileOutputDir = path.join(outputBaseDir, path.dirname(relativePath));

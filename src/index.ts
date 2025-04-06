@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * @fileoverview Main entry point for the code review CLI tool.
+ * @fileoverview Main entry point for the AI Code Review CLI tool.
  *
- * This file serves as the primary entry point for the code review command-line interface.
+ * This file serves as the primary entry point for the AI Code Review command-line interface.
  * It handles environment variable loading, command-line argument parsing, and dispatches
  * to the appropriate command handlers. The tool supports multiple review types including
  * quick fixes, architectural reviews, security reviews, and performance reviews.
@@ -15,7 +15,7 @@
  * - Providing help and usage information
  * - Handling model testing and verification
  *
- * Usage: yarn review [project] [file|directory] [options]
+ * Usage: ai-review [project] [file|directory] [options]
  */
 
 // Load dotenv as early as possible
@@ -73,13 +73,27 @@ if (envFileExists) {
   }
 }
 
-// Check if we have the API key after all attempts
-if (process.env.GOOGLE_GENERATIVE_AI_KEY) {
-  console.log('API key is available in process.env');
-} else {
-  console.warn('API key is NOT available. The tool will use mock responses.');
-  console.warn('Please make sure your .env.local file contains:');
-  console.warn('- GOOGLE_GENERATIVE_AI_KEY=your_api_key_here');
+// Check if we have any API keys after all attempts
+const hasGoogleKey = !!process.env.CODE_REVIEW_GOOGLE_API_KEY || !!process.env.GOOGLE_GENERATIVE_AI_KEY;
+const hasOpenRouterKey = !!process.env.CODE_REVIEW_OPENROUTER_API_KEY || !!process.env.OPENROUTER_API_KEY;
+
+// Check for model configuration
+const geminiModel = process.env.CODE_REVIEW_GEMINI_MODEL || 'gemini-1.5-pro';
+const openRouterModel = process.env.CODE_REVIEW_OPENROUTER_MODEL || 'anthropic/claude-3-opus';
+
+if (hasGoogleKey) {
+  console.log(`Google Generative AI API key is available in process.env (Model: ${geminiModel})`);
+}
+
+if (hasOpenRouterKey) {
+  console.log(`OpenRouter API key is available in process.env (Model: ${openRouterModel})`);
+}
+
+if (!hasGoogleKey && !hasOpenRouterKey) {
+  console.warn('No API keys are available. The tool will use mock responses.');
+  console.warn('Please make sure your .env.local file contains one of:');
+  console.warn('- CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
+  console.warn('- CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
 }
 
 // Import other dependencies after environment setup
@@ -89,12 +103,11 @@ import { reviewCode } from './commands/reviewCode';
 const program = new Command();
 
 program
-  .name('code-review')
-  .description('AI-powered code review tool using Google Gemini 2.5 Max')
-  .version('0.9.0');
+  .name('ai-review')
+  .description('AI-powered code review tool using Google Gemini AI models')
+  .version('1.0.0');
 
 program
-  .command('code-review')
   .description('Review code in a file or directory')
   .argument('<project>', 'Project name (directory name in sibling directory, use "this" for current project)')
   .argument('<target>', 'File or directory to review')

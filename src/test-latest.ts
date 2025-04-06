@@ -27,6 +27,9 @@ async function testModel(modelName: string, apiVersion: string = 'v1'): Promise<
     console.log(`Testing model: ${modelName} with ${apiVersion} API...`);
 
     // Initialize the Google Generative AI client
+    if (!apiKey) {
+      throw new Error('API key is required');
+    }
     const genAI = new GoogleGenerativeAI(apiKey);
 
     // Set the API version using a custom URL if needed
@@ -37,7 +40,6 @@ async function testModel(modelName: string, apiVersion: string = 'v1'): Promise<
     // Get the model
     const model = genAI.getGenerativeModel({
       model: modelName,
-      apiVersion: apiVersion,
       // Use custom baseUrl for v1beta if needed
       ...(baseUrl ? { baseUrl } : {})
     });

@@ -1,8 +1,29 @@
 # Version History
 
-This document tracks the version history of the Code Review Tool.
+This document tracks the version history of the AI Code Review Tool.
 
-## [0.9.0] - 2024-04-05
+## [1.0.0] - 2024-04-05
+
+### Added
+- First stable release with NPM package support
+- Support for OpenRouter API (Claude, GPT-4, and other models) via environment variables
+- Support for reviewing entire directories and implementing fixes automatically
+- Interactive mode for processing review results
+- Automatic implementation of high priority fixes
+- Prompt-based confirmation for medium and low priority fixes
+- Memory-optimized processing for large codebases
+- Improved file path handling and error recovery
+- Standardized environment variable naming with CODE_REVIEW prefix
+
+### Changed
+- Renamed to "ai-code-review" for NPM package
+- Updated command structure to use `ai-review [project] [file|directory]`
+- Added model configuration via environment variables
+- Improved documentation for NPM package usage
+- Reorganized prompt templates in the prompts/ directory
+- Enhanced token counting and cost estimation for multiple AI models
+
+## [0.9.0] - 2024-04-04
 
 ### Added
 - Support for both `GOOGLE_AI_STUDIO_KEY` and `GOOGLE_GENERATIVE_AI_KEY` environment variables (prioritizing GOOGLE_AI_STUDIO_KEY)
