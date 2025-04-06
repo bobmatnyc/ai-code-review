@@ -4,7 +4,7 @@
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini and OpenRouter",
   "main": "dist/index.js",
   "bin": {
-    "ai-code-review": "./dist/index.js"
+    "ai-code-review": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
