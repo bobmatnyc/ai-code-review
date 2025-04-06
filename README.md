@@ -30,13 +30,13 @@ This tool analyzes code from specified files or directories in sibling projects 
 ### Global Installation
 
 ```bash
-npm install -g ai-code-review
+npm install -g @bobmatnyc/ai-code-review
 ```
 
 ### Local Installation
 
 ```bash
-npm install --save-dev ai-code-review
+npm install --save-dev @bobmatnyc/ai-code-review
 ```
 
 ### API Key Setup

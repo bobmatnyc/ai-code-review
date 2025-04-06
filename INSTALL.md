@@ -13,7 +13,7 @@ This guide will help you install and set up the AI Code Review tool.
 ### Global Installation
 
 ```bash
-npm install -g ai-code-review
+npm install -g @bobmatnyc/ai-code-review
 ```
 
 This will install the tool globally, making the `ai-code-review` command available from anywhere.
@@ -21,7 +21,7 @@ This will install the tool globally, making the `ai-code-review` command availab
 ### Local Installation
 
 ```bash
-npm install --save-dev ai-code-review
+npm install --save-dev @bobmatnyc/ai-code-review
 ```
 
 This will install the tool as a development dependency in your project.
