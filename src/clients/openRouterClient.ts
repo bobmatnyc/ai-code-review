@@ -23,9 +23,9 @@ import {
   ReviewCost,
   ReviewOptions
 } from '../types/review';
-import { getCostInfo } from '../utils/tokenCounter';
+import { getCostInfo } from './utils/tokenCounter';
 import { ProjectDocs } from '../utils/projectDocs';
-import { loadPromptTemplate } from '../utils/promptLoader';
+import { loadPromptTemplate } from './utils/promptLoader';
 
 // Import client utilities
 import {
@@ -188,7 +188,7 @@ export async function generateOpenRouterReview(
 
     let content: string;
     let cost: ReviewCost | undefined;
-    const isMock = false;
+    // No mock responses are used
 
     {
       // Load the appropriate prompt template
@@ -283,7 +283,6 @@ export async function generateOpenRouterReview(
       reviewType,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed: currentModel
         ? currentModel.replace('openrouter-', 'openrouter:')
         : undefined
@@ -318,7 +317,7 @@ export async function generateOpenRouterConsolidatedReview(
 
     let content: string;
     let cost: ReviewCost | undefined;
-    let isMock = false;
+    // No mock responses are used
 
     {
       // Load the appropriate prompt template
@@ -430,7 +429,6 @@ export async function generateOpenRouterConsolidatedReview(
       reviewType,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed: currentModel
         ? currentModel.replace('openrouter-', 'openrouter:')
         : undefined

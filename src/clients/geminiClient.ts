@@ -33,10 +33,10 @@ import {
   ReviewOptions
 } from '../types/review';
 import { StreamHandler } from '../utils/streamHandler';
-import { getCostInfo, getCostInfoFromText } from '../utils/tokenCounter';
+import { getCostInfoFromText } from './utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
-import { loadPromptTemplate } from '../utils/promptLoader';
-import { getLanguageFromExtension } from '../utils/languageDetection';
+import { loadPromptTemplate } from './utils/promptLoader';
+import { getLanguageFromExtension } from './utils/languageDetection';
 import { generateDirectoryStructure } from './utils';
 
 /**
@@ -301,7 +301,7 @@ export async function generateReview(
 
     let content: string;
     let cost: ReviewCost | undefined;
-    const isMock = false;
+    // No mock responses are used
     const modelUsed = modelOption.displayName;
 
     // Format the code block with language
@@ -388,7 +388,6 @@ ${codeBlock}`;
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed
     };
   } catch (error) {
@@ -491,7 +490,7 @@ ${fileSummaries}`;
     // Model name is already logged in reviewCode.ts
     let content = '';
     let cost: ReviewCost | undefined;
-    const isMock = false;
+    // No mock responses are used
     let modelUsed = 'unknown';
     let result: any;
 
@@ -643,7 +642,6 @@ ${fileSummaries}`;
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed
     };
   } catch (error) {
@@ -696,7 +694,7 @@ ${fileSummaries}`;
     // Initialize variables
     let content: string;
     let cost: ReviewCost | undefined;
-    const isMock = false;
+    // No mock responses are used
     const modelUsed = modelOption.displayName;
 
     // Call the Gemini API with proper configuration
@@ -726,7 +724,6 @@ ${fileSummaries}`;
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed
     };
   } catch (error) {

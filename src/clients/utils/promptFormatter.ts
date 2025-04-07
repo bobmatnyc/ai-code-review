@@ -6,7 +6,7 @@
  */
 
 import { ProjectDocs, formatProjectDocs } from '../../utils/projectDocs';
-import { getLanguageFromExtension } from '../../utils/languageDetection';
+import { getLanguageFromExtension } from '../utils/languageDetection';
 import path from 'path';
 import { generateDirectoryStructure } from './directoryStructure';
 import { FileInfo } from '../../types/review';

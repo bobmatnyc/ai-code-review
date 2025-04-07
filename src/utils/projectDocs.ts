@@ -47,11 +47,14 @@ export interface ProjectDocs {
  * @param projectPath Path to the project root
  * @returns Promise resolving to an object containing the documentation content
  */
-export async function readProjectDocs(projectPath: string): Promise<ProjectDocs> {
+export async function readProjectDocs(
+  projectPath: string
+): Promise<ProjectDocs> {
   const docs: ProjectDocs = {};
 
   // Check for context files specified in environment variable
-  const contextFiles = process.env.AI_CODE_REVIEW_CONTEXT || process.env.CODE_REVIEW_CONTEXT;
+  const contextFiles =
+    process.env.AI_CODE_REVIEW_CONTEXT || process.env.CODE_REVIEW_CONTEXT;
 
   if (contextFiles) {
     // Parse comma-separated list of file paths
@@ -67,7 +70,9 @@ export async function readProjectDocs(projectPath: string): Promise<ProjectDocs>
         try {
           const content = await fs.readFile(fullPath, 'utf-8');
           // Use the filename as the key (without extension)
-          const key = path.basename(fileName, path.extname(fileName)).toLowerCase();
+          const key = path
+            .basename(fileName, path.extname(fileName))
+            .toLowerCase();
           docs[key as keyof ProjectDocs] = content;
         } catch (error) {
           console.warn(`Warning: Could not read ${filePath}:`, error);

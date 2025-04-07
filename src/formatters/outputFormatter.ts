@@ -41,8 +41,8 @@ export function formatReviewOutput(review: ReviewResult, format: string): string
  */
 function formatAsJson(review: ReviewResult): string {
   // Determine model information
-  let modelInfo = review.isMock ? 'Mock Response' : 'Google Gemini AI';
-  if (review.modelUsed && !review.isMock) {
+  let modelInfo = 'Google Gemini AI';
+  if (review.modelUsed) {
     if (review.modelUsed.startsWith('openrouter:')) {
       modelInfo = `OpenRouter (${review.modelUsed.substring('openrouter:'.length)})`;
     } else {
@@ -73,15 +73,13 @@ function formatAsJson(review: ReviewResult): string {
  * @returns Markdown string
  */
 function formatAsMarkdown(review: ReviewResult): string {
-  const { filePath, reviewType, content, timestamp, cost, isMock } = review;
+  const { filePath, reviewType, content, timestamp, cost } = review;
 
-  // Determine if this is a real or mock response
-  let modelInfo = isMock
-    ? 'Mock Response (No API Key)'
-    : 'Google Gemini AI';
+  // Determine model information
+  let modelInfo = 'Google Gemini AI';
 
   // Add specific model information if available
-  if (review.modelUsed && !isMock) {
+  if (review.modelUsed) {
     if (review.modelUsed.startsWith('openrouter:')) {
       modelInfo = `OpenRouter (${review.modelUsed.substring('openrouter:'.length)})`;
     } else {

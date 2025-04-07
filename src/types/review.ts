@@ -188,11 +188,6 @@ export interface ReviewResult {
   cost?: ReviewCost;
 
   /**
-   * Whether this is a mock response
-   */
-  isMock: boolean;
-
-  /**
    * The model used to generate the review
    */
   modelUsed?: string;

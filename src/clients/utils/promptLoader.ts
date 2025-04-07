@@ -7,9 +7,9 @@
 
 import path from 'path';
 import fs from 'fs/promises';
-import { ReviewType, ReviewOptions } from '../types/review';
-import logger from './logger';
-import { getSchemaInstructions } from '../types/reviewSchema';
+import { ReviewType, ReviewOptions } from '../../types/review';
+import logger from '../../utils/logger';
+import { getSchemaInstructions } from '../../types/reviewSchema';
 
 /**
  * Load a prompt template from the prompts directory
@@ -39,6 +39,7 @@ export async function loadPromptTemplate(
       __dirname,
       '..',
       '..',
+      '..',
       'prompts',
       language,
       `${reviewType}-review.md`
@@ -49,6 +50,7 @@ export async function loadPromptTemplate(
       '..',
       '..',
       '..',
+      '..',
       'prompts',
       language,
       `${reviewType}-review.md`
@@ -56,10 +58,11 @@ export async function loadPromptTemplate(
     // Fallback to the root prompts directory (for local development)
     path.resolve('prompts', `${reviewType}-review.md`),
     // Fallback to the root prompts directory relative to the current file (for npm package)
-    path.resolve(__dirname, '..', '..', 'prompts', `${reviewType}-review.md`),
+    path.resolve(__dirname, '..', '..', '..', 'prompts', `${reviewType}-review.md`),
     // Fallback to the root prompts directory relative to the package root (for global installation)
     path.resolve(
       __dirname,
+      '..',
       '..',
       '..',
       '..',

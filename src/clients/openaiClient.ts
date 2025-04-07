@@ -13,7 +13,7 @@
  * - Support for different review types
  */
 
-import fetch, { Response } from 'node-fetch';
+import fetch from 'node-fetch';
 import { globalRateLimiter } from '../utils/rateLimiter';
 import {
   ReviewType,
@@ -22,9 +22,9 @@ import {
   ReviewCost,
   ReviewOptions
 } from '../types/review';
-import { getCostInfoFromText } from '../utils/tokenCounter';
+import { getCostInfoFromText } from './utils/tokenCounter';
 import { ProjectDocs } from '../utils/projectDocs';
-import { loadPromptTemplate } from '../utils/promptLoader';
+import { loadPromptTemplate } from './utils/promptLoader';
 import { StreamHandler } from '../utils/streamHandler';
 
 // Import client utilities
@@ -178,7 +178,7 @@ export async function generateOpenAIReview(
     // Initialize variables
     let content: string;
     let cost: ReviewCost | undefined;
-    const isMock = false;
+    // No mock responses are used
     let modelUsed = 'unknown';
 
     try {
@@ -307,7 +307,6 @@ export async function generateOpenAIReview(
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed
     };
   } catch (error) {
@@ -361,7 +360,7 @@ export async function generateOpenAIConsolidatedReview(
     // Initialize variables
     let content: string;
     let cost: ReviewCost | undefined;
-    let isMock = false;
+    // No mock responses are used
     let modelUsed = 'unknown';
 
     try {
@@ -496,7 +495,6 @@ export async function generateOpenAIConsolidatedReview(
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed
     };
   } catch (error) {

@@ -5,7 +5,7 @@
  * utilities used for AI API usage, focusing on the exported functions.
  */
 
-import { estimateTokenCount, formatCost } from '../utils/tokenCounter';
+import { estimateTokenCount, formatCost } from '../clients/utils/tokenCounter';
 
 describe('tokenCounter', () => {
   describe('estimateTokenCount', () => {

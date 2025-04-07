@@ -22,9 +22,9 @@ import {
   ReviewCost,
   ReviewOptions
 } from '../types/review';
-import { getCostInfoFromText } from '../utils/tokenCounter';
+import { getCostInfoFromText } from './utils/tokenCounter';
 import { ProjectDocs } from '../utils/projectDocs';
-import { loadPromptTemplate } from '../utils/promptLoader';
+import { loadPromptTemplate } from './utils/promptLoader';
 
 // Import client utilities
 import {
@@ -166,7 +166,7 @@ export async function generateAnthropicReview(
 
     let content: string;
     let cost: ReviewCost | undefined;
-    let isMock = false;
+    // No mock responses are used
 
     {
       // Load the appropriate prompt template
@@ -237,7 +237,6 @@ export async function generateAnthropicReview(
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed: `anthropic:${modelName}`
     };
   } catch (error) {
@@ -270,7 +269,7 @@ export async function generateAnthropicConsolidatedReview(
 
     let content: string;
     let cost: ReviewCost | undefined;
-    let isMock = false;
+    // No mock responses are used
 
     {
       // Load the appropriate prompt template
@@ -350,7 +349,6 @@ export async function generateAnthropicConsolidatedReview(
       content,
       timestamp: new Date().toISOString(),
       cost,
-      isMock,
       modelUsed: `anthropic:${modelName}`
     };
   } catch (error) {

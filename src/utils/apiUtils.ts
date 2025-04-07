@@ -11,17 +11,30 @@ import logger from './logger';
  * Get the available API key type based on the model specified in environment variables
  * @returns The type of API key available ('OpenRouter', 'Google', 'Anthropic', 'OpenAI', or null if none)
  */
-export function getApiKeyType(): 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI' | null {
+export function getApiKeyType():
+  | 'OpenRouter'
+  | 'Google'
+  | 'Anthropic'
+  | 'OpenAI'
+  | null {
   // Get the model adapter from environment variables
-  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL;
-  const adapter = selectedModel ? (selectedModel.includes(':') ? selectedModel.split(':')[0] : 'gemini') : '';
+  const selectedModel =
+    process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL;
+  const adapter = selectedModel
+    ? selectedModel.includes(':')
+      ? selectedModel.split(':')[0]
+      : 'gemini'
+    : '';
 
   // First check if we have a specific adapter specified in AI_CODE_REVIEW_MODEL
   // and if we have the corresponding API key
   if (adapter === 'gemini' && process.env.AI_CODE_REVIEW_GOOGLE_API_KEY) {
     return 'Google';
   }
-  if (adapter === 'openrouter' && process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY) {
+  if (
+    adapter === 'openrouter' &&
+    process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY
+  ) {
     return 'OpenRouter';
   }
   if (adapter === 'anthropic' && process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY) {
@@ -59,15 +72,23 @@ export function getApiKeyType(): 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI
  * @param options Review options that may contain the priority filter
  * @returns The priority filter (h, m, l, or a) or undefined if not specified
  */
-export function getPriorityFilterFromArgs(options?: any): 'h' | 'm' | 'l' | 'a' | undefined {
+export function getPriorityFilterFromArgs(
+  options?: any
+): 'h' | 'm' | 'l' | 'a' | undefined {
   // First check if the interactive option is a string (priority filter)
-  if (options && typeof options.interactive === 'string' && ['h', 'm', 'l', 'a'].includes(options.interactive)) {
+  if (
+    options &&
+    typeof options.interactive === 'string' &&
+    ['h', 'm', 'l', 'a'].includes(options.interactive)
+  ) {
     return options.interactive as 'h' | 'm' | 'l' | 'a';
   }
 
   // Otherwise check if there's a priority filter argument after --interactive
   const args = process.argv;
-  const interactiveIndex = args.findIndex(arg => arg === '--interactive' || arg === '-i');
+  const interactiveIndex = args.findIndex(
+    arg => arg === '--interactive' || arg === '-i'
+  );
 
   if (interactiveIndex !== -1 && interactiveIndex < args.length - 1) {
     const nextArg = args[interactiveIndex + 1];
@@ -85,8 +106,13 @@ export function getPriorityFilterFromArgs(options?: any): 'h' | 'm' | 'l' | 'a' 
  * @returns The model name or an empty string if not found
  */
 export function getModelName(): string {
-  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL;
-  return selectedModel ? (selectedModel.includes(':') ? selectedModel.split(':')[1] : selectedModel) : '';
+  const selectedModel =
+    process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL;
+  return selectedModel
+    ? selectedModel.includes(':')
+      ? selectedModel.split(':')[1]
+      : selectedModel
+    : '';
 }
 
 /**
@@ -94,7 +120,10 @@ export function getModelName(): string {
  * @param apiKeyType The type of API key being used
  * @param modelName The name of the model being used
  */
-export function logModelInfo(apiKeyType: 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI' | null, modelName: string): void {
+export function logModelInfo(
+  apiKeyType: 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI' | null,
+  modelName: string
+): void {
   if (!apiKeyType) {
     logger.warn('No API keys available. Using mock responses.');
     return;
@@ -106,13 +135,17 @@ export function logModelInfo(apiKeyType: 'OpenRouter' | 'Google' | 'Anthropic' |
 
     switch (apiKeyType) {
       case 'OpenRouter':
-        logger.error('Example: AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus');
+        logger.error(
+          'Example: AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus'
+        );
         break;
       case 'Google':
         logger.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
         break;
       case 'Anthropic':
-        logger.error('Example: AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus-20240229');
+        logger.error(
+          'Example: AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus-20240229'
+        );
         break;
       case 'OpenAI':
         logger.error('Example: AI_CODE_REVIEW_MODEL=openai:gpt-4o');
