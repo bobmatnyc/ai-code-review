@@ -2,6 +2,15 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.1.19] - 2024-04-06
+
+### Added
+- Added structured schema for code review output in interactive mode
+- Implemented file-by-file processing for multiple files in interactive mode
+- Added detailed JSON schema instructions in AI prompts
+- Enhanced output formatting with code samples and actionable suggestions
+- Improved parsing and display of structured review results
+
 ## [1.1.18] - 2024-04-06
 
 ### Improved

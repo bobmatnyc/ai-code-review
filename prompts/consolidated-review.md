@@ -55,3 +55,5 @@ Provide a single consolidated review organized by priority (High, Medium, Low). 
 Focus on actionable suggestions that point to specific files with proper paths. Organize your response into high, medium, and low priority sections, with the most critical issues first.
 
 NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.
+
+{{SCHEMA_INSTRUCTIONS}}

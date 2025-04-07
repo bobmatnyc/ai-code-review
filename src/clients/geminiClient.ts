@@ -35,6 +35,7 @@ import {
 import { StreamHandler } from '../utils/streamHandler';
 import { getCostInfo, getCostInfoFromText } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
+import { getSchemaInstructions } from '../types/reviewSchema';
 
 /**
  * @fileoverview Client for interacting with the Google Gemini API.
@@ -250,7 +251,7 @@ if (!useMockResponses) {
  * @param reviewType Type of review to perform
  * @returns Promise resolving to the prompt template
  */
-async function loadPromptTemplate(reviewType: ReviewType): Promise<string> {
+async function loadPromptTemplate(reviewType: ReviewType, options?: ReviewOptions): Promise<string> {
   // Try multiple paths to find the prompt template
   const possiblePaths = [
     // First try the current directory (for local development)
@@ -262,22 +263,36 @@ async function loadPromptTemplate(reviewType: ReviewType): Promise<string> {
   ];
 
   let lastError: any;
+  let promptTemplate = '';
 
   // Try each path in order
   for (const promptPath of possiblePaths) {
     try {
-      return await fs.readFile(promptPath, 'utf-8');
+      promptTemplate = await fs.readFile(promptPath, 'utf-8');
+      break; // Exit the loop if we successfully read the file
     } catch (error) {
       lastError = error;
       // Continue to the next path
     }
   }
 
-  // If we get here, all paths failed
-  console.error(`Error loading prompt template for ${reviewType}:`, lastError);
-  console.error('Tried the following paths:');
-  possiblePaths.forEach(p => console.error(`- ${p}`));
-  throw new Error(`Failed to load prompt template for ${reviewType}`);
+  // If we couldn't read any file, throw an error
+  if (!promptTemplate) {
+    console.error(`Error loading prompt template for ${reviewType}:`, lastError);
+    console.error('Tried the following paths:');
+    possiblePaths.forEach(p => console.error(`- ${p}`));
+    throw new Error(`Failed to load prompt template for ${reviewType}`);
+  }
+
+  // If in interactive mode, include the schema instructions
+  if (options?.interactive) {
+    promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', getSchemaInstructions());
+  } else {
+    // Otherwise, remove the schema instructions placeholder
+    promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', '');
+  }
+
+  return promptTemplate;
 }
 
 /**
@@ -327,7 +342,7 @@ export async function generateReview(
   // Model name is already logged in reviewCode.ts
   try {
     // Load the appropriate prompt template
-    const promptTemplate = await loadPromptTemplate(reviewType);
+    const promptTemplate = await loadPromptTemplate(reviewType, options);
 
     // Get file extension and language
     const fileExtension = path.extname(filePath).slice(1);
@@ -620,7 +635,7 @@ export async function generateConsolidatedReview(
       };
     } else {
       // Load the consolidated review prompt template
-      const promptTemplate = await loadPromptTemplate('consolidated');
+      const promptTemplate = await loadPromptTemplate('consolidated', options);
 
       // Prepare file summaries
       const fileSummaries = files
@@ -882,7 +897,7 @@ export async function generateArchitecturalReview(
       };
     } else {
       // Load the architectural review prompt template
-      const promptTemplate = await loadPromptTemplate('architectural');
+      const promptTemplate = await loadPromptTemplate('architectural', options);
 
       // Prepare file summaries
       const fileSummaries = files

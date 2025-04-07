@@ -15,4 +15,6 @@ Act as a **senior TypeScript developer with expertise in {{SPECIALIZATION}}**. P
 ### 📤 Output Format
 {{OUTPUT_FORMAT}}
 
+{{SCHEMA_INSTRUCTIONS}}
+
 Focus on clarity, accuracy, and developer growth.

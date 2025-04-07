@@ -9,6 +9,7 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { ReviewOptions, ReviewType } from '../types/review';
+import { getSchemaInstructions } from '../types/reviewSchema';
 import { generateReview } from '../clients/geminiClient';
 import { generateOpenRouterReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
 import { generateAnthropicReview, initializeAnthropicClient } from '../clients/anthropicClient';
