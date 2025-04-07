@@ -1,5 +1,93 @@
 # Project Progress Log
 
+## 2024-04-07 - Model Listing, Cost Estimation, and Multi-Provider Support
+
+### Summary
+Today we made significant improvements to the AI Code Review tool by adding support for multiple AI providers (Anthropic, OpenAI, OpenRouter), implementing token and cost estimation, and adding a model listing feature. We also fixed an issue with the Gemini model generating content in Hindi.
+
+### Completed Tasks
+- Added support for Anthropic Claude models via direct API access
+- Added support for OpenAI GPT models via direct API access
+- Implemented provider-specific token and cost estimators
+- Created an estimator factory for selecting the appropriate estimator
+- Added a `--listmodels` flag to display all available models
+- Fixed issue with Gemini 2.5 Pro model generating section headers in Hindi
+- Updated all review prompts to explicitly specify English output
+- Added detailed model information including context window sizes
+- Enhanced environment variable handling for multiple API providers
+- Updated documentation in README.md, .env.example, and VERSION.md
+
+### Implementation Details
+
+#### Multi-Provider Support
+We expanded the tool to support multiple AI providers:
+
+1. Added support for Anthropic Claude models:
+   - Claude 3 Opus
+   - Claude 3 Sonnet
+   - Claude 3 Haiku
+
+2. Added support for OpenAI GPT models:
+   - GPT-4o
+   - GPT-4 Turbo
+   - GPT-4
+   - GPT-3.5 Turbo
+
+3. Enhanced environment variable handling:
+   - Added `AI_CODE_REVIEW_ANTHROPIC_API_KEY` for Anthropic models
+   - Added `AI_CODE_REVIEW_OPENAI_API_KEY` for OpenAI models
+   - Maintained support for `AI_CODE_REVIEW_OPENROUTER_API_KEY` and `AI_CODE_REVIEW_GOOGLE_API_KEY`
+
+#### Token and Cost Estimation
+We implemented provider-specific token and cost estimators:
+
+1. Created abstract estimator base classes:
+   - `TokenEstimator` interface
+   - `AbstractTokenEstimator` base class
+
+2. Implemented provider-specific estimators:
+   - `GeminiTokenEstimator` for Google models
+   - `AnthropicTokenEstimator` for Claude models
+   - `OpenAITokenEstimator` for GPT models
+   - `OpenRouterTokenEstimator` for OpenRouter models
+
+3. Created an estimator factory for selecting the appropriate estimator based on the model
+
+4. Enhanced the `--estimate` flag to provide accurate cost estimates based on the selected model
+
+#### Model Listing Feature
+We implemented a comprehensive model listing feature:
+
+1. Created a model lister utility that displays:
+   - All available models grouped by provider
+   - Model descriptions and context window sizes
+   - API key requirements and availability status
+
+2. Added a `--listmodels` flag to the main command
+
+3. Implemented color-coded output for better readability
+
+#### Fixed Hindi Output Issue
+We fixed an issue with the Gemini 2.5 Pro model generating section headers in Hindi:
+
+1. Updated all review prompts to explicitly specify English output
+2. Added clear instructions to "Use English for all headings and content"
+3. Ensured consistent output format across all review types
+
+### Current Status
+- Support for multiple AI providers (Google, Anthropic, OpenAI, OpenRouter)
+- Accurate token and cost estimation for all supported models
+- Comprehensive model listing feature
+- Fixed Hindi output issue
+- Updated documentation
+
+### Next Steps
+- Implement OpenAI client for direct API access
+- Add support for model-specific prompt templates
+- Enhance error handling for different API providers
+- Implement token usage optimization for large codebases
+- Add support for comparing reviews across different models
+
 ## 2024-04-05 - Project Documentation Context and Model Update
 
 ### Summary
@@ -126,11 +214,17 @@ We implemented structured version numbering following semantic versioning princi
 - Core implementation of code review tool
 
 ## To Do
+- [x] Add support for multiple AI providers (Google, Anthropic, OpenAI, OpenRouter)
+- [x] Implement token and cost estimation for all supported models
+- [x] Add model listing feature
+- [x] Fix language issues in model output
+- [ ] Implement OpenAI client for direct API access
 - [ ] Add ESLint and Prettier configuration
 - [ ] Add unit tests for core functionality
 - [ ] Implement caching mechanism for API responses
-- [ ] Add support for custom prompt templates
+- [ ] Add support for model-specific prompt templates
 - [ ] Create example usage documentation with real examples
 - [ ] Add support for reviewing specific lines or sections of code
 - [ ] Implement rate limiting for API calls
-- [ ] Add support for comparing reviews over time
+- [ ] Add support for comparing reviews across different models
+- [ ] Implement token usage optimization for large codebases
