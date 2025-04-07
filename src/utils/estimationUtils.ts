@@ -44,10 +44,27 @@ export function estimateOutputTokens(inputTokens: number, reviewType: string): n
 
 /**
  * Estimate token usage and cost for a set of files
- * @param files Array of file information objects
- * @param reviewType Type of review
- * @param modelName Name of the model to use
- * @returns Estimated token usage and cost information
+ *
+ * This function calculates the estimated token usage and cost for reviewing a set of files
+ * using a specified AI model. It considers:
+ * - The content of each file (code, comments, etc.)
+ * - The type of review being performed (quick, security, architectural, etc.)
+ * - The specific AI model being used and its pricing structure
+ *
+ * The estimation includes overhead tokens for system prompts and instructions that are
+ * included in every review, in addition to the tokens from the file content itself.
+ *
+ * @param files Array of file information objects containing file content and metadata
+ * @param reviewType Type of review (quick, security, architectural, performance)
+ * @param modelName Name of the model to use (e.g., 'gemini:gemini-1.5-pro')
+ * @returns Estimated token usage and cost information including:
+ *   - inputTokens: Number of tokens in the input (files + prompts)
+ *   - outputTokens: Estimated number of tokens in the AI response
+ *   - totalTokens: Total token usage (input + output)
+ *   - estimatedCost: Estimated cost in USD
+ *   - formattedCost: Cost formatted as a string (e.g., '$0.12 USD')
+ *   - fileCount: Number of files being reviewed
+ *   - totalFileSize: Total size of all files in bytes
  */
 export async function estimateReviewCost(
   files: FileInfo[],
@@ -128,10 +145,20 @@ Note: This is an estimate based on approximate token counts and may vary
 
 /**
  * Estimate token usage and cost for a set of file paths
- * @param filePaths Array of file paths
- * @param reviewType Type of review
- * @param modelName Name of the model to use
- * @returns Estimated token usage and cost information
+ *
+ * This function is a convenience wrapper around estimateReviewCost that takes file paths
+ * instead of FileInfo objects. It reads the content of each file and then calls
+ * estimateReviewCost to calculate the token usage and cost.
+ *
+ * This is particularly useful for the --estimate command line flag, which needs to
+ * estimate costs before actually performing a review.
+ *
+ * @param filePaths Array of file paths to estimate token usage for
+ * @param reviewType Type of review (quick, security, architectural, performance)
+ * @param modelName Name of the model to use (e.g., 'gemini:gemini-1.5-pro')
+ * @returns Estimated token usage and cost information (same as estimateReviewCost)
+ * @throws Error if any file cannot be read
+ * @see estimateReviewCost for details on the return value
  */
 export async function estimateFromFilePaths(
   filePaths: string[],

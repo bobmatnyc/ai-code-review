@@ -10,7 +10,23 @@ import { getConfig } from './config';
 
 /**
  * Get the available API key type based on the model specified in environment variables
+ *
+ * This function determines which AI provider to use based on:
+ * 1. The model adapter specified in the AI_CODE_REVIEW_MODEL environment variable
+ * 2. The availability of API keys for different providers
+ *
+ * The function first checks if a specific adapter is specified in the model name
+ * (e.g., 'gemini:gemini-1.5-pro' or 'anthropic:claude-3-opus'). If so, it checks
+ * if the corresponding API key is available. If not, or if no adapter is specified,
+ * it falls back to checking for any available API key in a specific order.
+ *
  * @returns The type of API key available ('OpenRouter', 'Google', 'Anthropic', 'OpenAI', or null if none)
+ * @example
+ * // If AI_CODE_REVIEW_MODEL='gemini:gemini-1.5-pro' and Google API key is available
+ * getApiKeyType() // Returns 'Google'
+ *
+ * // If no model is specified but Anthropic API key is available
+ * getApiKeyType() // Returns 'Anthropic'
  */
 export function getApiKeyType():
   | 'OpenRouter'
@@ -69,8 +85,25 @@ export function getApiKeyType():
 
 /**
  * Get the priority filter from command line arguments or options
+ *
+ * This function extracts the priority filter from either:
+ * 1. The options object (if the interactive property is a string)
+ * 2. The command line arguments (if --interactive or -i is followed by a priority filter)
+ *
+ * Priority filters determine which issues to display in interactive mode:
+ * - 'h': High priority issues only
+ * - 'm': Medium and high priority issues
+ * - 'l': Low, medium, and high priority issues
+ * - 'a': All issues (including informational)
+ *
  * @param options Review options that may contain the priority filter
  * @returns The priority filter (h, m, l, or a) or undefined if not specified
+ * @example
+ * // If options.interactive === 'h'
+ * getPriorityFilterFromArgs({ interactive: 'h' }) // Returns 'h'
+ *
+ * // If command line includes '--interactive h'
+ * getPriorityFilterFromArgs() // Returns 'h'
  */
 export function getPriorityFilterFromArgs(
   options?: any
@@ -103,7 +136,18 @@ export function getPriorityFilterFromArgs(
 
 /**
  * Get the model name from the configuration
+ *
+ * This function extracts the actual model name from the AI_CODE_REVIEW_MODEL
+ * environment variable. If the model is specified with an adapter prefix
+ * (e.g., 'gemini:gemini-1.5-pro'), it removes the prefix.
+ *
  * @returns The model name or an empty string if not found
+ * @example
+ * // If AI_CODE_REVIEW_MODEL='gemini:gemini-1.5-pro'
+ * getModelName() // Returns 'gemini-1.5-pro'
+ *
+ * // If AI_CODE_REVIEW_MODEL='claude-3-opus'
+ * getModelName() // Returns 'claude-3-opus'
  */
 export function getModelName(): string {
   const config = getConfig();
@@ -116,9 +160,19 @@ export function getModelName(): string {
 }
 
 /**
- * Log model information
- * @param apiKeyType The type of API key being used
+ * Log model information and validate model configuration
+ *
+ * This function logs information about the selected model and API provider.
+ * It also validates that a model name is specified when an API key is available.
+ * If no model is specified but an API key is available, it provides helpful error
+ * messages with examples of how to set the model in environment variables.
+ *
+ * The function will exit the process with an error code if an API key is available
+ * but no model is specified.
+ *
+ * @param apiKeyType The type of API key being used ('OpenRouter', 'Google', 'Anthropic', 'OpenAI', or null)
  * @param modelName The name of the model being used
+ * @throws Exits the process if an API key is available but no model is specified
  */
 export function logModelInfo(
   apiKeyType: 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI' | null,

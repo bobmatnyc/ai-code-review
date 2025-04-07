@@ -22,8 +22,19 @@ import { handleIndividualFileReviews } from '../handlers/individualReviewHandler
 
 /**
  * Orchestrate the code review process
+ *
+ * This function is the main entry point for the code review process. It coordinates
+ * the entire review workflow, including:
+ * - Validating inputs and environment variables
+ * - Selecting the appropriate API client based on available API keys
+ * - Discovering files to review
+ * - Handling different review types (consolidated, individual, architectural)
+ * - Managing output directories and file generation
+ * - Supporting interactive mode for real-time feedback
+ *
  * @param target Path to the file or directory to review
- * @param options Review options
+ * @param options Review options including type, output format, and interactive mode
+ * @throws Error if the review process fails for any reason
  */
 export async function orchestrateReview(
   target: string,
@@ -98,17 +109,21 @@ export async function orchestrateReview(
     }
 
     // Check if interactive mode is appropriate for individual reviews
+    // Interactive mode with individual reviews only makes sense for a single file
+    // because we can't effectively display multiple individual reviews interactively
     if (options.interactive && options.individual && filesToReview.length > 1) {
       logger.warn('Interactive mode with individual reviews is only supported for single file reviews.');
       logger.warn('Switching to consolidated review mode for interactive review of multiple files.');
-      options.individual = false;
+      options.individual = false; // Force consolidated mode for multiple files in interactive mode
     }
 
     // Create output directory for reviews
     const actualProjectName = projectName || 'unknown-project';
 
-    // Handle different review types
+    // Handle different review types based on options
     if (options.type === 'architectural') {
+      // Architectural reviews analyze the entire codebase structure and design patterns
+      // They provide high-level feedback on architecture, modularity, and code organization
       await handleArchitecturalReview(
         actualProjectName,
         projectPath,
@@ -119,6 +134,8 @@ export async function orchestrateReview(
       );
     } else if (options.individual) {
       // Process each file individually if --individual flag is set
+      // This generates separate reviews for each file, which is useful for detailed analysis
+      // of specific files but can be verbose for large codebases
       await handleIndividualFileReviews(
         actualProjectName,
         projectPath,
@@ -128,6 +145,8 @@ export async function orchestrateReview(
       );
     } else {
       // Generate a consolidated review by default
+      // This combines all files into a single review, providing a holistic analysis
+      // while still highlighting specific issues in individual files
       await handleConsolidatedReview(
         actualProjectName,
         projectPath,
