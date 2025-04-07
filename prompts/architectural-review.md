@@ -48,7 +48,9 @@ Act as a **senior software architect with expertise in TypeScript and modern app
 Provide clear, structured feedback grouped by the checklist categories above. Include:
 1. **Strengths**: What architectural aspects are well-implemented
 2. **Areas for Improvement**: Identified architectural issues
-3. **Recommendations**: Specific suggestions with code examples where appropriate
+3. **Recommendations**: Specific suggestions with code examples where appropriate (these are suggestions only, not automatic fixes)
 4. **High-Level Architecture Diagram**: A text-based representation of the current or recommended architecture
 
 Focus on high-level architectural concerns rather than implementation details or code style issues.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

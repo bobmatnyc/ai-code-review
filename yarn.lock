@@ -397,6 +397,42 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bobmatnyc/ai-code-review@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@bobmatnyc/ai-code-review@workspace:."
+  dependencies:
+    "@google/generative-ai": "npm:^0.24.0"
+    "@types/dompurify": "npm:^3.0.5"
+    "@types/jest": "npm:^29.5.14"
+    "@types/jsdom": "npm:^21.1.7"
+    "@types/markdown-it": "npm:^13.0.7"
+    "@types/node": "npm:^20.10.5"
+    "@types/node-fetch": "npm:^2.6.12"
+    "@typescript-eslint/eslint-plugin": "npm:^6.15.0"
+    "@typescript-eslint/parser": "npm:^6.15.0"
+    chalk: "npm:^5.4.1"
+    commander: "npm:^11.1.0"
+    dompurify: "npm:^3.2.5"
+    dotenv: "npm:^16.3.1"
+    eslint: "npm:^8.56.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-prettier: "npm:^5.0.1"
+    glob: "npm:^10.3.10"
+    jest: "npm:^29.7.0"
+    jsdom: "npm:^26.0.0"
+    markdown-it: "npm:^13.0.2"
+    node-fetch: "npm:^2.7.0"
+    prettier: "npm:^3.1.1"
+    ts-jest: "npm:^29.3.1"
+    ts-node: "npm:^10.9.2"
+    tsconfig-paths: "npm:^4.2.0"
+    typescript: "npm:^5.3.3"
+    vitest: "npm:^1.0.4"
+  bin:
+    ai-code-review: dist/index.js
+  languageName: unknown
+  linkType: soft
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -1698,41 +1734,6 @@ __metadata:
   checksum: 10c0/6192b580c5b1d8fb399b9c62bf8343d76654c2dd62afcb9a52b2cf44a8b6ace1e3b704d3fe3547d91555c857d3df02603341ff2cb961b9cfe2b12f9f3c38ee11
   languageName: node
   linkType: hard
-
-"ai-code-review@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "ai-code-review@workspace:."
-  dependencies:
-    "@google/generative-ai": "npm:^0.24.0"
-    "@types/dompurify": "npm:^3.0.5"
-    "@types/jest": "npm:^29.5.14"
-    "@types/jsdom": "npm:^21.1.7"
-    "@types/markdown-it": "npm:^13.0.7"
-    "@types/node": "npm:^20.10.5"
-    "@types/node-fetch": "npm:^2.6.12"
-    "@typescript-eslint/eslint-plugin": "npm:^6.15.0"
-    "@typescript-eslint/parser": "npm:^6.15.0"
-    chalk: "npm:^5.4.1"
-    commander: "npm:^11.1.0"
-    dompurify: "npm:^3.2.5"
-    dotenv: "npm:^16.3.1"
-    eslint: "npm:^8.56.0"
-    eslint-config-prettier: "npm:^9.1.0"
-    eslint-plugin-prettier: "npm:^5.0.1"
-    glob: "npm:^10.3.10"
-    jest: "npm:^29.7.0"
-    jsdom: "npm:^26.0.0"
-    markdown-it: "npm:^13.0.2"
-    node-fetch: "npm:^2.7.0"
-    prettier: "npm:^3.1.1"
-    ts-jest: "npm:^29.3.1"
-    ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.3.3"
-    vitest: "npm:^1.0.4"
-  bin:
-    ai-code-review: ./dist/index.js
-  languageName: unknown
-  linkType: soft
 
 "ajv@npm:^6.12.4":
   version: 6.12.6
@@ -4121,7 +4122,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json5@npm:^2.2.3":
+"json5@npm:^2.2.2, json5@npm:^2.2.3":
   version: 2.2.3
   resolution: "json5@npm:2.2.3"
   bin:
@@ -4415,6 +4416,13 @@ __metadata:
   dependencies:
     brace-expansion: "npm:^2.0.1"
   checksum: 10c0/de96cf5e35bdf0eab3e2c853522f98ffbe9a36c37797778d2665231ec1f20a9447a7e567cb640901f89e4daaa95ae5d70c65a9e8aa2bb0019b6facbc3c0575ed
+  languageName: node
+  linkType: hard
+
+"minimist@npm:^1.2.6":
+  version: 1.2.8
+  resolution: "minimist@npm:1.2.8"
+  checksum: 10c0/19d3fcdca050087b84c2029841a093691a91259a47def2f18222f41e7645a0b7c44ef4b40e88a1e58a40c84d2ef0ee6047c55594d298146d0eb3f6b737c20ce6
   languageName: node
   linkType: hard
 
@@ -5408,6 +5416,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"strip-bom@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "strip-bom@npm:3.0.0"
+  checksum: 10c0/51201f50e021ef16672593d7434ca239441b7b760e905d9f33df6e4f3954ff54ec0e0a06f100d028af0982d6f25c35cd5cda2ce34eaebccd0250b8befb90d8f1
+  languageName: node
+  linkType: hard
+
 "strip-bom@npm:^4.0.0":
   version: 4.0.0
   resolution: "strip-bom@npm:4.0.0"
@@ -5691,6 +5706,17 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 10c0/5f29938489f96982a25ba650b64218e83a3357d76f7bede80195c65ab44ad279c8357264639b7abdd5d7e75fc269a83daa0e9c62fd8637a3def67254ecc9ddc2
+  languageName: node
+  linkType: hard
+
+"tsconfig-paths@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "tsconfig-paths@npm:4.2.0"
+  dependencies:
+    json5: "npm:^2.2.2"
+    minimist: "npm:^1.2.6"
+    strip-bom: "npm:^3.0.0"
+  checksum: 10c0/09a5877402d082bb1134930c10249edeebc0211f36150c35e1c542e5b91f1047b1ccf7da1e59babca1ef1f014c525510f4f870de7c9bda470c73bb4e2721b3ea
   languageName: node
   linkType: hard
 

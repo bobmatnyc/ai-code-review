@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2024-04-06
+
+### Fixed
+- Fixed model selection to respect the adapter specified in AI_CODE_REVIEW_MODEL
+- Updated API key selection logic to prioritize the model adapter specified in environment variables
+- Fixed issue where OpenRouter was always used when both API keys were available
+
+## [1.0.4] - 2024-04-06
+
+### Fixed
+- Fixed model selection to correctly use the preferred model specified in environment variables
+- Fixed inconsistency between displayed model name and actual model used for API calls
+
 ## [1.0.3] - 2024-04-06
 
 ### Fixed

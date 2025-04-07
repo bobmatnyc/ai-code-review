@@ -55,7 +55,9 @@ Provide clear, structured feedback using a standard vulnerability reporting form
 3. **Location**: File and line number(s)
 4. **Description**: Detailed explanation of the vulnerability
 5. **Impact**: What could happen if exploited
-6. **Remediation**: Specific steps to fix the issue with code examples
+6. **Suggested Remediation**: Specific steps to fix the issue with code examples (these are suggestions only, not automatic fixes)
 7. **References**: Links to relevant security standards or documentation
 
 Focus on actionable security findings with clear remediation steps. Prioritize findings by severity.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

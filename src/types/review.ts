@@ -57,9 +57,10 @@ export interface ReviewOptions {
   individual?: boolean;
 
   /**
-   * Whether to process review results interactively, implementing fixes based on priority
+   * Whether to display review results with optional priority filter
+   * Can be a boolean or a string indicating the priority filter (h, m, l, a)
    */
-  interactive?: boolean;
+  interactive?: boolean | string;
 
   /**
    * Whether to automatically implement high priority fixes without confirmation

@@ -1,7 +1,7 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "1.0.3",
-  "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini and OpenRouter",
+  "version": "1.1.18",
+  "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "bin": {
     "ai-code-review": "dist/index.js"
@@ -10,7 +10,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "code-review": "ts-node src/index.ts",
+    "local": "ts-node -r tsconfig-paths/register src/index.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest",
@@ -21,7 +21,9 @@
     "test:latest": "ts-node src/test-latest.ts",
     "test:api": "ts-node src/test-api-connections.ts",
     "prepare-package": "./scripts/prepare-package.sh",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "local-review": "./local-ai-review.sh",
+    "built-review": "./built-ai-review.sh"
   },
   "keywords": [
     "code-review",
@@ -54,6 +56,10 @@
   "engines": {
     "node": ">=16.0.0"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
     "chalk": "^5.4.1",
@@ -64,6 +70,9 @@
     "jsdom": "^26.0.0",
     "markdown-it": "^13.0.2",
     "node-fetch": "^2.7.0"
+  },
+  "peerDependencies": {
+    "react": "*"
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.5",
@@ -81,6 +90,7 @@
     "prettier": "^3.1.1",
     "ts-jest": "^29.3.1",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
     "vitest": "^1.0.4"
   },

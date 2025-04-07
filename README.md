@@ -1,10 +1,10 @@
-# AI Code Review v1.0.0
+# AI Code Review v1.1.0
 
-A TypeScript-based tool for automated code reviews using Google's Gemini AI models and OpenRouter API (Claude, GPT-4, etc.).
+A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, and OpenRouter API (Claude, GPT-4, etc.).
 
 ## Overview
 
-This tool analyzes code from specified files or directories in sibling projects and generates structured code evaluations. It leverages Google's Gemini AI models and OpenRouter API to provide insightful feedback on code quality, best practices, and potential improvements. With support for multiple AI models, you can choose the best model for your specific needs.
+This tool analyzes code from specified files or directories in sibling projects and generates structured code evaluations. It leverages Google's Gemini AI models, Anthropic Claude models, and OpenRouter API to provide insightful feedback on code quality, best practices, and potential improvements. With support for multiple AI models, you can choose the best model for your specific needs.
 
 ## Features
 
@@ -19,7 +19,7 @@ This tool analyzes code from specified files or directories in sibling projects 
 - **Directory Support**: Review entire directories and their subdirectories in one command
 - **Consolidated Reviews**: Generate a single comprehensive review for multiple files
 - **Project Context**: Include project documentation in the review context
-- **Multiple AI Models**: Support for Google's Gemini models and OpenRouter API (Claude, GPT-4, etc.)
+- **Multiple AI Models**: Support for Google's Gemini models, Anthropic Claude models, and OpenRouter API (Claude, GPT-4, etc.)
 - **Customizable**: Configure review types, output formats, and prompt templates
 - **Memory Optimized**: Process large codebases efficiently with optimized memory usage
 - **Error Recovery**: Robust error handling with graceful recovery
@@ -44,16 +44,28 @@ npm install --save-dev @bobmatnyc/ai-code-review
 Create a `.env.local` file in your project root with your API keys:
 
 ```
+# Required: Model selection
+AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+# or
+# AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus
+# or
+# AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus
+
+# Required: API key for the selected model type
 # For Google Gemini models
-CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
+AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
 
 # For OpenRouter models (Claude, GPT-4, etc.)
-CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
+AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# For direct Anthropic Claude models
+AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
 You can get API keys from:
 - [Google AI Studio](https://makersuite.google.com/) for Gemini models
 - [OpenRouter](https://openrouter.ai/) for access to Claude, GPT-4, and other models
+- [Anthropic](https://console.anthropic.com/) for direct access to Claude models
 
 ## Usage
 

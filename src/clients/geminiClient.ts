@@ -45,10 +45,10 @@ import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
 /**
  * API Key for Google Generative AI.
- * Reads from AI_CODE_REVIEW_GOOGLE_API_KEY, CODE_REVIEW_GOOGLE_API_KEY, or GOOGLE_GENERATIVE_AI_KEY environment variable.
+ * Only uses AI_CODE_REVIEW_GOOGLE_API_KEY.
  * @type {string | undefined}
  */
-const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY || process.env.AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY;
+const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
 
 /**
  * Flag indicating if the client is operating in mock mode (no API key).
@@ -81,64 +81,98 @@ let model:
   | CustomModel
   | null = null;
 
-// Initialize the client based on API key availability
-if (!apiKey) {
-  console.warn('No Google API key found in environment variables.');
-  console.warn('Please add one of the following to your .env.local file:');
-  console.warn('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
-  console.warn('- AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY=your_google_api_key_here');
-  console.warn('- CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
-  console.warn('- GOOGLE_GENERATIVE_AI_KEY=your_google_api_key_here');
-  console.warn('Using mock responses for testing. For real reviews, please add your API key to .env.local.');
+// Get the selected adapter from environment variables
+const modelString = process.env.AI_CODE_REVIEW_MODEL || '';
+const [adapterType] = modelString.includes(':') ? modelString.split(':') : ['gemini'];
+
+// Only initialize if this is the selected adapter
+if (adapterType !== 'gemini') {
+  // Skip initialization if another adapter is selected
   useMockResponses = true;
+} else if (!apiKey) {
+  console.error('No Google API key found in environment variables.');
+  console.error('Please add the following to your .env.local file:');
+  console.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
+  process.exit(1);
 } else {
-  console.log('API key found. Using real Gemini API responses.');
+  // Log API key status
+  const isDebugMode = process.argv.includes('--debug');
+  if (isDebugMode) {
+    console.log('Google API key found: AI_CODE_REVIEW_GOOGLE_API_KEY');
+  } else {
+    console.log('API key found. Using real Gemini API responses.');
+  }
+
   try {
     genAI = new GoogleGenerativeAI(apiKey);
   } catch (error) {
     console.error('Error initializing GoogleGenerativeAI client:', error);
-    console.warn('Falling back to mock responses due to initialization error.');
-    useMockResponses = true;
+    console.error('Please check your API key and try again.');
+    process.exit(1);
   }
 }
 
-// Get the preferred model from environment variables
-const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
-const [adapter, modelName] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
-const preferredModel = adapter === 'gemini' ? modelName : 'gemini-1.5-pro';
+// Get the model from environment variables
+const selectedModel = process.env.AI_CODE_REVIEW_MODEL;
+if (!selectedModel) {
+  console.error('No model specified in environment variables.');
+  console.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
+  console.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
+  process.exit(1);
+}
 
-// Define available models in order of preference
-const modelOptions = [
-  // First try the user's preferred model
-  {
-    name: preferredModel,
-    displayName: `User Preferred (${preferredModel})`,
-    useV1Beta: preferredModel.includes('2.5') // Use v1beta for 2.5 models
-  },
-  // Fallback models if the preferred one doesn't work
-  {
-    name: 'gemini-2.5-pro-exp-03-25',
-    displayName: 'Gemini 2.5 Pro Experimental',
-    useV1Beta: true
-  },
-  { name: 'gemini-2.0-flash', displayName: 'Gemini 2.0 Flash' },
-  { name: 'gemini-1.5-pro', displayName: 'Gemini 1.5 Pro' },
-  { name: 'gemini-pro', displayName: 'Gemini Pro' },
-  { name: 'gemini-pro-latest', displayName: 'Gemini Pro Latest' }
-];
+// Parse the model name
+const [adapter, modelName] = selectedModel ? (selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel]) : ['', ''];
 
-// Try models in order until one works
+// Check if the adapter is Gemini
+if (adapter !== 'gemini' && adapter !== '' && !useMockResponses) {
+  console.error(`Invalid model adapter: ${adapter}`);
+  console.error('For Gemini client, the model must start with "gemini:"');
+  console.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
+  process.exit(1);
+}
+
+// Create a model option object
+let formattedModelName = modelName;
+
+// Map model names to their correct API names
+const modelMap: Record<string, string> = {
+  'gemini-2.5-pro': 'gemini-2.5-pro-preview-03-25',
+  'gemini-2.5-pro-preview': 'gemini-2.5-pro-preview-03-25',
+  'gemini-2.5-pro-exp': 'gemini-2.5-pro-exp-03-25',
+  'gemini-2.0-flash': 'gemini-2.0-flash',
+  'gemini-2.0-flash-lite': 'gemini-2.0-flash-lite',
+  'gemini-1.5-flash': 'gemini-1.5-flash',
+  'gemini-1.5-flash-8b': 'gemini-1.5-flash-8b',
+  'gemini-1.5-pro': 'gemini-1.5-pro',
+  'gemini-embedding-exp': 'gemini-embedding-exp'
+};
+
+// Use the model map to get the correct API model name
+if (modelMap[modelName]) {
+  formattedModelName = modelMap[modelName];
+  if (formattedModelName !== modelName) {
+    console.log(`Using ${formattedModelName} for ${modelName}`);
+  }
+}
+
+const modelOption = {
+  name: formattedModelName,
+  displayName: modelName, // Keep the original name for display
+  useV1Beta: modelName.includes('2.5') // Use v1beta for 2.5 models
+};
+
+// Export the current model for use in other modules
+export let currentModelDisplayName: string = modelName;
+
+// Initialize the model
 let modelInitialized = false;
-let currentModel: string | null = null;
 
 if (!useMockResponses) {
-  for (const modelOption of modelOptions) {
-    if (modelInitialized) break;
+  try {
+    console.log(`Initializing model: ${modelOption.displayName}...`);
 
-    try {
-      console.log(`Trying to initialize ${modelOption.displayName}...`);
-
-      if (modelOption.useV1Beta) {
+    if (modelOption.useV1Beta) {
         // For v1beta API, we need to use fetch directly
         // We'll create a custom model object that uses v1beta API without testing it first
         // The actual test will happen when the model is used
@@ -201,19 +235,15 @@ if (!useMockResponses) {
 
       console.log(`Successfully initialized ${modelOption.displayName}`);
       modelInitialized = true;
-      currentModel = modelOption.name;
     } catch (error: any) {
-      console.warn(
-        `Failed to initialize ${modelOption.displayName}: ${error.message || error}`
-      );
+      console.error(`Failed to initialize ${modelOption.displayName}: ${error.message || error}`);
+      console.error('Please check your API key and model name in the environment variables.');
+      console.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
+      process.exit(1);
     }
   }
-}
 
-if (!modelInitialized) {
-  console.error('Failed to initialize any Gemini model. Using mock responses.');
-  useMockResponses = true;
-}
+// If we get here and useMockResponses is false, we should have a working model
 
 /**
  * Load a prompt template from the prompts directory
@@ -221,13 +251,33 @@ if (!modelInitialized) {
  * @returns Promise resolving to the prompt template
  */
 async function loadPromptTemplate(reviewType: ReviewType): Promise<string> {
-  const promptPath = path.resolve('prompts', `${reviewType}-review.md`);
-  try {
-    return await fs.readFile(promptPath, 'utf-8');
-  } catch (error) {
-    console.error(`Error loading prompt template for ${reviewType}:`, error);
-    throw new Error(`Failed to load prompt template for ${reviewType}`);
+  // Try multiple paths to find the prompt template
+  const possiblePaths = [
+    // First try the current directory (for local development)
+    path.resolve('prompts', `${reviewType}-review.md`),
+    // Then try relative to the current file (for npm package)
+    path.resolve(__dirname, '..', '..', 'prompts', `${reviewType}-review.md`),
+    // Then try relative to the package root (for global installation)
+    path.resolve(__dirname, '..', '..', '..', 'prompts', `${reviewType}-review.md`)
+  ];
+
+  let lastError: any;
+
+  // Try each path in order
+  for (const promptPath of possiblePaths) {
+    try {
+      return await fs.readFile(promptPath, 'utf-8');
+    } catch (error) {
+      lastError = error;
+      // Continue to the next path
+    }
   }
+
+  // If we get here, all paths failed
+  console.error(`Error loading prompt template for ${reviewType}:`, lastError);
+  console.error('Tried the following paths:');
+  possiblePaths.forEach(p => console.error(`- ${p}`));
+  throw new Error(`Failed to load prompt template for ${reviewType}`);
 }
 
 /**
@@ -274,6 +324,7 @@ export async function generateReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
+  // Model name is already logged in reviewCode.ts
   try {
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType);
@@ -285,7 +336,7 @@ export async function generateReview(
     let content: string;
     let cost: ReviewCost | undefined;
     let isMock = false;
-    let modelUsed = currentModel || 'gemini-1.5-pro';
+    let modelUsed = modelOption.displayName;
 
     if (useMockResponses) {
       // Generate mock response for testing
@@ -423,7 +474,7 @@ ${codeBlock}`;
       timestamp: new Date().toISOString(),
       cost,
       isMock,
-      modelUsed: currentModel ? `gemini:${currentModel}` : undefined
+      modelUsed
     };
   } catch (error) {
     console.error('Error generating review:', error);
@@ -601,34 +652,12 @@ ${directoryStructure}
 ## File Summaries (truncated for brevity)
 ${fileSummaries}`;
 
-      // Define available models in order of preference
-      const fallbackModels = [
-        // Use the experimental version of Gemini 2.5 Pro with v1beta API
-        {
-          name: 'gemini-2.5-pro-exp-03-25',
-          displayName: 'Gemini 2.5 Pro Experimental',
-          useV1Beta: true
-        },
-        // Fallback models with v1 API
-        { name: 'gemini-2.0-flash', displayName: 'Gemini 2.0 Flash' },
-        { name: 'gemini-1.5-pro', displayName: 'Gemini 1.5 Pro' },
-        { name: 'gemini-pro', displayName: 'Gemini Pro' },
-        { name: 'gemini-pro-latest', displayName: 'Gemini Pro Latest' }
-      ];
-
-      // Try each model in order until one works
-      let success = false;
+      // Model name is already logged in reviewCode.ts
       let result: any;
+      let success = false;
 
-      for (const modelOption of fallbackModels) {
-        if (success) break;
-
-        try {
-          console.log(
-            `Trying to generate review with ${modelOption.displayName}...`
-          );
-
-          if (modelOption.useV1Beta) {
+      try {
+        if (modelOption.useV1Beta) {
             // For v1beta API, use fetch directly
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelOption.name}:generateContent?key=${apiKey}`;
 
@@ -681,6 +710,8 @@ ${fileSummaries}`;
               content = data.candidates[0].content.parts[0].text;
               success = true;
               modelUsed = modelOption.displayName;
+              currentModelDisplayName = modelOption.displayName;
+              console.log(`Successfully generated review with ${modelName}`);
             } else {
               throw new Error(
                 `Invalid response format from ${modelOption.displayName}`
@@ -749,6 +780,8 @@ ${fileSummaries}`;
               content = streamHandler.complete();
               success = true;
               modelUsed = modelOption.displayName;
+              currentModelDisplayName = modelOption.displayName;
+              console.log(`Successfully generated review with ${modelName}`);
             } else {
               // Use regular mode with retry with backoff for rate limit errors
               result = await retryWithBackoff(
@@ -786,23 +819,15 @@ ${fileSummaries}`;
               );
 
               content = result.response.text();
-              success = true;
               modelUsed = modelOption.displayName;
+              console.log(`Successfully generated review with ${modelName}`);
             }
           }
         } catch (error: any) {
-          console.warn(
-            `Failed to generate review with ${modelOption.displayName}: ${error.message || error}`
-          );
-          // Continue to the next model
+          console.error(`Failed to generate review with ${modelOption.displayName}: ${error.message || error}`);
+          console.error('Please check your API key and model name in the environment variables.');
+          throw error;
         }
-      }
-
-      if (!success) {
-        throw new Error('Failed to generate review with any available model');
-      }
-
-      console.log(`Successfully generated review with ${modelUsed}`);
 
       // Calculate cost information
       cost = getCostInfoFromText(prompt, content, modelUsed);
@@ -833,11 +858,12 @@ export async function generateArchitecturalReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
+  // Model name is already logged in reviewCode.ts
   try {
     let content: string;
     let cost: ReviewCost | undefined;
     let isMock = false;
-    let modelUsed = currentModel || 'gemini-1.5-pro';
+    let modelUsed = modelOption.displayName;
 
     if (useMockResponses) {
       // Generate mock response for testing
@@ -934,7 +960,7 @@ ${fileSummaries}`;
       timestamp: new Date().toISOString(),
       cost,
       isMock,
-      modelUsed: currentModel ? `gemini:${currentModel}` : undefined
+      modelUsed
     };
   } catch (error) {
     console.error('Error generating architectural review:', error);

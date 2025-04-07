@@ -137,10 +137,73 @@ export async function extractFixSuggestions(
  * @returns The extracted section or null if not found
  */
 function extractSection(content: string, startMarker: string, endMarker: string): string | null {
-  const startIndex = content.indexOf(startMarker);
+  // Try exact match first
+  let startIndex = content.indexOf(startMarker);
+
+  // If exact match fails, try more flexible matching
+  if (startIndex === -1) {
+    // Try without emoji
+    const startMarkerNoEmoji = startMarker.replace(/🟥|🟧|🟩/g, '').trim();
+    startIndex = content.indexOf(startMarkerNoEmoji);
+
+    // Try with different heading levels (## or # instead of ###)
+    if (startIndex === -1) {
+      const startMarkerAltHeading = startMarker.replace('###', '##');
+      startIndex = content.indexOf(startMarkerAltHeading);
+    }
+
+    if (startIndex === -1) {
+      const startMarkerAltHeading2 = startMarker.replace('###', '#');
+      startIndex = content.indexOf(startMarkerAltHeading2);
+    }
+
+    // Try with case-insensitive match for priority level
+    if (startIndex === -1) {
+      const priorityLevel = startMarker.includes('High') ? 'high' :
+                          startMarker.includes('Medium') ? 'medium' :
+                          startMarker.includes('Low') ? 'low' : '';
+
+      if (priorityLevel) {
+        const regex = new RegExp(`[#]{1,3}\s*(?:🟥|🟧|🟩)?\s*${priorityLevel}\s*priority`, 'i');
+        const match = content.match(regex);
+        if (match && match.index !== undefined) {
+          startIndex = match.index;
+        }
+      }
+    }
+  }
+
   if (startIndex === -1) return null;
 
-  const endIndex = content.indexOf(endMarker, startIndex);
+  // Try exact match for end marker
+  let endIndex = content.indexOf(endMarker, startIndex);
+
+  // If exact match fails, try more flexible matching for end marker
+  if (endIndex === -1) {
+    // Try without emoji
+    const endMarkerNoEmoji = endMarker.replace(/🟥|🟧|🟩/g, '').trim();
+    endIndex = content.indexOf(endMarkerNoEmoji, startIndex);
+
+    // Try with different heading levels
+    if (endIndex === -1) {
+      const endMarkerAltHeading = endMarker.replace('###', '##');
+      endIndex = content.indexOf(endMarkerAltHeading, startIndex);
+    }
+
+    if (endIndex === -1) {
+      const endMarkerAltHeading2 = endMarker.replace('###', '#');
+      endIndex = content.indexOf(endMarkerAltHeading2, startIndex);
+    }
+
+    // If we still can't find the end marker, look for the next heading
+    if (endIndex === -1) {
+      const nextHeadingMatch = content.substring(startIndex).match(/\n[#]{1,3}\s/);
+      if (nextHeadingMatch && nextHeadingMatch.index !== undefined) {
+        endIndex = startIndex + nextHeadingMatch.index;
+      }
+    }
+  }
+
   if (endIndex === -1) return content.substring(startIndex);
 
   return content.substring(startIndex, endIndex);
@@ -161,20 +224,83 @@ async function parseSuggestions(
   const suggestions: FixSuggestion[] = [];
 
   // Split the section into individual issues to reduce memory usage
-  const issueBlocks = sectionContent.split(/(?=\*\*Issue\*\*:)/).filter(block => block.trim().startsWith('**Issue**:'));
+  // Try different patterns to match issue blocks
+  let issueBlocks: string[] = [];
+
+  // Pattern 1: **Issue**: format
+  const pattern1Blocks = sectionContent.split(/(?=\*\*Issue\*\*:)/).filter(block => block.trim().startsWith('**Issue**:'));
+  if (pattern1Blocks.length > 0) {
+    issueBlocks = pattern1Blocks;
+  } else {
+    // Pattern 2: 1. **Issue**: format (numbered list)
+    const pattern2Blocks = sectionContent.split(/(?=\d+\.\s*\*\*Issue\*\*:)/).filter(block => block.trim().match(/^\d+\.\s*\*\*Issue\*\*/));
+    if (pattern2Blocks.length > 0) {
+      issueBlocks = pattern2Blocks;
+    } else {
+      // Pattern 3: ### Issue: format (heading)
+      const pattern3Blocks = sectionContent.split(/(?=[#]{1,3}\s+Issue:)/).filter(block => block.trim().match(/^[#]{1,3}\s+Issue:/));
+      if (pattern3Blocks.length > 0) {
+        issueBlocks = pattern3Blocks;
+      } else {
+        // Pattern 4: **Finding**: format (security reviews)
+        const pattern4Blocks = sectionContent.split(/(?=\*\*Finding\*\*:)/).filter(block => block.trim().startsWith('**Finding**:'));
+        if (pattern4Blocks.length > 0) {
+          issueBlocks = pattern4Blocks;
+        } else {
+          // Pattern 5: **Performance Issue**: format (performance reviews)
+          const pattern5Blocks = sectionContent.split(/(?=\*\*Performance Issue\*\*:)/).filter(block => block.trim().startsWith('**Performance Issue**:'));
+          if (pattern5Blocks.length > 0) {
+            issueBlocks = pattern5Blocks;
+          }
+        }
+      }
+    }
+  }
 
   for (const issueBlock of issueBlocks) {
     try {
-      // Extract issue description
-      const issueMatch = issueBlock.match(/\*\*Issue\*\*:([^\*]+)/);
+      // Extract issue description using multiple patterns
+      let issueDescription = '';
+      let issueMatch = issueBlock.match(/\*\*Issue\*\*:([^\*]+)/);
+      if (!issueMatch) {
+        // Try alternative patterns
+        issueMatch = issueBlock.match(/\d+\.\s*\*\*Issue\*\*:([^\*]+)/);
+      }
+      if (!issueMatch) {
+        issueMatch = issueBlock.match(/[#]{1,3}\s+Issue:([^\n]+)/);
+      }
+      if (!issueMatch) {
+        issueMatch = issueBlock.match(/\*\*Finding\*\*:([^\*]+)/);
+      }
+      if (!issueMatch) {
+        issueMatch = issueBlock.match(/\*\*Performance Issue\*\*:([^\*]+)/);
+      }
       if (!issueMatch) continue;
-      const issueDescription = issueMatch[1].trim();
+      issueDescription = issueMatch[1].trim();
 
-      // Extract file path
-      const fileMatch = issueBlock.match(/\*\*File\*\*:([^\*]+)/);
-      if (!fileMatch) continue;
-
-      const filePath = fileMatch[1].trim();
+      // Extract file path using multiple patterns
+      let filePath = '';
+      let fileMatch = issueBlock.match(/\*\*File\*\*:([^\*]+)/);
+      if (!fileMatch) {
+        fileMatch = issueBlock.match(/\*\*Location\*\*:([^\*]+)/);
+      }
+      if (!fileMatch) {
+        fileMatch = issueBlock.match(/File:([^\n]+)/);
+      }
+      if (!fileMatch) {
+        fileMatch = issueBlock.match(/Path:([^\n]+)/);
+      }
+      if (!fileMatch) {
+        // Try to find any path-like string in the issue block
+        const pathMatch = issueBlock.match(/(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-\.\/_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/);
+        if (pathMatch) {
+          filePath = pathMatch[0].trim();
+        } else {
+          continue; // Skip if we can't find a file path
+        }
+      } else {
+        filePath = fileMatch[1].trim();
+      }
       // Remove any markdown formatting from the file path
       let cleanFilePath = filePath.replace(/`/g, '').replace(/\*/g, '').trim();
 
@@ -200,13 +326,41 @@ async function parseSuggestions(
       const locationMatch = issueBlock.match(/\*\*Location\*\*:([^\*]+)/);
       const location = locationMatch ? locationMatch[1].trim() : '';
 
-      // Extract code blocks
-      const codeBlockMatches = issueBlock.match(/```(?:typescript|javascript|ts|js)?\s*([\s\S]*?)```/g) || [];
-      const codeBlocks = codeBlockMatches.map(block => {
-        // Extract the content inside the code block
-        const content = block.replace(/```(?:typescript|javascript|ts|js)?\s*|```$/g, '');
-        return content.trim();
-      });
+      // Extract code blocks with more flexible pattern matching
+      // Match code blocks with or without language specifier
+      const codeBlockMatches = issueBlock.match(/```(?:[a-zA-Z0-9_\-]*)?\s*([\s\S]*?)```/g) || [];
+
+      // If no code blocks found with triple backticks, try alternative formats
+      let codeBlocks: string[] = [];
+
+      if (codeBlockMatches.length > 0) {
+        codeBlocks = codeBlockMatches.map((block: string) => {
+          // Extract the content inside the code block
+          const content = block.replace(/```(?:[a-zA-Z0-9_\-]*)?\s*|```$/g, '');
+          return content.trim();
+        });
+      } else {
+        // Try to find code blocks with indentation (4 spaces or tab)
+        const indentedCodeBlockMatch = issueBlock.match(/(?:^|\n)(?:    |\t)([^\n]+(?:\n(?:    |\t)[^\n]+)*)/g);
+        if (indentedCodeBlockMatch) {
+          codeBlocks = indentedCodeBlockMatch.map((block: string) => {
+            // Remove the indentation
+            return block.replace(/(?:^|\n)(?:    |\t)/g, '\n').trim();
+          });
+        }
+
+        // Try to find code blocks with 'Current code:' and 'Suggested code:' markers
+        const currentCodeMatch = issueBlock.match(/Current code:([\s\S]*?)(?:Suggested code:|$)/i);
+        const suggestedCodeMatch = issueBlock.match(/Suggested code:([\s\S]*?)(?:Impact:|$)/i);
+
+        if (currentCodeMatch && currentCodeMatch[1].trim()) {
+          codeBlocks.push(currentCodeMatch[1].trim());
+        }
+
+        if (suggestedCodeMatch && suggestedCodeMatch[1].trim()) {
+          codeBlocks.push(suggestedCodeMatch[1].trim());
+        }
+      }
 
       // Create suggestion
       const suggestion: FixSuggestion = {
@@ -243,11 +397,27 @@ async function parseSuggestions(
 }
 
 /**
- * Apply a fix suggestion to a file
+ * This function is a placeholder for future functionality.
+ * Currently, the AI code review tool does not automatically apply fixes.
+ * It only provides suggestions that developers must review and implement manually.
+ *
  * @param suggestion The fix suggestion to apply
- * @returns Boolean indicating if the fix was applied successfully
+ * @returns Always returns false as automatic fixes are not supported
  */
 async function applyFixToFile(suggestion: FixSuggestion): Promise<boolean> {
+  console.log(`\n⚠️ Automatic fixes are not supported.`);
+  console.log(`The AI code review tool only provides suggestions that you must implement manually.`);
+  console.log(`Review the suggested fix and apply it yourself if appropriate.`);
+
+  if (suggestion.suggestedCode) {
+    console.log(`\nSuggested code:`);
+    console.log('```');
+    console.log(suggestion.suggestedCode);
+    console.log('```');
+  }
+
+  return false;
+  /* Original implementation removed as automatic fixes are not supported
   try {
     // Clean up the file path to handle common issues
     let filePath = suggestion.file;
@@ -335,6 +505,166 @@ async function applyFixToFile(suggestion: FixSuggestion): Promise<boolean> {
     console.error(`Error applying fix to ${suggestion.file}:`, error);
     return false;
   }
+  */
+}
+
+/**
+ * Display a concise summary of fix suggestions without prompting for interaction
+ * @param suggestions Array of fix suggestions
+ * @param priority Priority level of the suggestions
+ */
+function displayFixSuggestions(suggestions: FixSuggestion[], priority: FixPriority): void {
+  if (suggestions.length === 0) {
+    return;
+  }
+
+  const priorityColor = {
+    [FixPriority.HIGH]: '\x1b[31m', // Red
+    [FixPriority.MEDIUM]: '\x1b[33m', // Yellow
+    [FixPriority.LOW]: '\x1b[32m' // Green
+  };
+
+  const priorityEmoji = {
+    [FixPriority.HIGH]: '🟥',
+    [FixPriority.MEDIUM]: '🟧',
+    [FixPriority.LOW]: '🟩'
+  };
+
+  const priorityLabel = {
+    [FixPriority.HIGH]: 'HIGH',
+    [FixPriority.MEDIUM]: 'MEDIUM',
+    [FixPriority.LOW]: 'LOW'
+  };
+
+  console.log(`\n${priorityColor[priority]}${priorityEmoji[priority]} ${priorityLabel[priority]} PRIORITY ISSUES (${suggestions.length})\x1b[0m`);
+
+  suggestions.forEach((suggestion, index) => {
+    console.log(`${index + 1}. ${suggestion.description}`);
+    console.log(`   File: ${suggestion.file}`);
+    if (suggestion.lineNumbers) {
+      console.log(`   Lines: ${suggestion.lineNumbers.start}-${suggestion.lineNumbers.end}`);
+    }
+  });
+}
+
+/**
+ * Display detailed information about a specific fix suggestion
+ * @param suggestion The fix suggestion to display
+ * @param index Index of the suggestion in its priority group
+ * @param priority Priority level of the suggestion
+ */
+function displayDetailedFixSuggestion(suggestion: FixSuggestion, index: number, priority: FixPriority): void {
+  const priorityColor = {
+    [FixPriority.HIGH]: '\x1b[31m', // Red
+    [FixPriority.MEDIUM]: '\x1b[33m', // Yellow
+    [FixPriority.LOW]: '\x1b[32m' // Green
+  };
+
+  const priorityEmoji = {
+    [FixPriority.HIGH]: '🟥',
+    [FixPriority.MEDIUM]: '🟧',
+    [FixPriority.LOW]: '🟩'
+  };
+
+  const priorityLabel = {
+    [FixPriority.HIGH]: 'HIGH',
+    [FixPriority.MEDIUM]: 'MEDIUM',
+    [FixPriority.LOW]: 'LOW'
+  };
+
+  console.log(`\n${priorityColor[priority]}${priorityEmoji[priority]} ${priorityLabel[priority]} PRIORITY ISSUE #${index + 1}\x1b[0m`);
+  console.log(`Description: ${suggestion.description}`);
+  console.log(`File: ${suggestion.file}`);
+  if (suggestion.lineNumbers) {
+    console.log(`Lines: ${suggestion.lineNumbers.start}-${suggestion.lineNumbers.end}`);
+  }
+
+  if (suggestion.currentCode && suggestion.suggestedCode) {
+    console.log('\nCurrent code:');
+    console.log('```');
+    console.log(suggestion.currentCode);
+    console.log('```');
+
+    console.log('\nSuggested code:');
+    console.log('```');
+    console.log(suggestion.suggestedCode);
+    console.log('```');
+  }
+}
+
+/**
+ * Process review results in non-interactive mode, just displaying recommendations
+ * @param reviewContent Content of the review
+ * @param projectPath Base path of the project
+ * @param priorityFilter Optional filter to show only specific priority issues (h, m, l, or a for all)
+ * @returns Summary of suggestions found
+ */
+export async function displayReviewResults(
+  reviewContent: string,
+  projectPath: string,
+  priorityFilter?: 'h' | 'm' | 'l' | 'a'
+): Promise<{
+  highPrioritySuggestions: FixSuggestion[];
+  mediumPrioritySuggestions: FixSuggestion[];
+  lowPrioritySuggestions: FixSuggestion[];
+  totalSuggestions: number;
+}> {
+  // Extract all suggestions
+  const highPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.HIGH);
+  const mediumPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.MEDIUM);
+  const lowPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.LOW);
+
+  const totalSuggestions = highPrioritySuggestions.length + mediumPrioritySuggestions.length + lowPrioritySuggestions.length;
+
+  // Display summary of all suggestions
+  console.log('\n=== CODE REVIEW RECOMMENDATIONS ===');
+  console.log(`Total issues found: ${totalSuggestions}`);
+  console.log(`🟥 High priority: ${highPrioritySuggestions.length}`);
+  console.log(`🟧 Medium priority: ${mediumPrioritySuggestions.length}`);
+  console.log(`🟩 Low priority: ${lowPrioritySuggestions.length}`);
+
+  // Display instructions for interactive mode
+  console.log('\nShowing ALL issues by default. To filter by priority, use these options:');
+  console.log('  (h) High priority issues only');
+  console.log('  (m) Medium priority issues only');
+  console.log('  (l) Low priority issues only');
+  console.log('  (a) All issues (default)');
+  console.log('\nExample: ai-code-review src --interactive h');
+
+  // Display suggestions based on priority filter
+  // If no filter is provided, show all issues by default
+  if (!priorityFilter || priorityFilter.toLowerCase() === 'a') {
+    // Show all issues
+    displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
+    displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
+    displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
+  } else {
+    // Show issues based on the specified filter
+    switch (priorityFilter.toLowerCase()) {
+      case 'h':
+        displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
+        break;
+      case 'm':
+        displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
+        break;
+      case 'l':
+        displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
+        break;
+      default:
+        console.log('Invalid priority filter. Use h, m, l, or a.');
+        // Show all issues if the filter is invalid
+        displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
+        displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
+        displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
+    }
+  }
+
+  return {
+    highPrioritySuggestions,
+    mediumPrioritySuggestions,
+    lowPrioritySuggestions,
+    totalSuggestions
+  };
 }
 
 /**

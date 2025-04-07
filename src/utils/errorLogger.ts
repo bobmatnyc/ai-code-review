@@ -19,6 +19,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { createDirectory } from './fileSystem';
+import logger from './logger';
 
 /**
  * Log an error to a file
@@ -47,10 +48,10 @@ export async function logError(error: any, context: Record<string, any> = {}): P
     // Write error to file
     await fs.writeFile(errorLogPath, JSON.stringify(errorObj, null, 2));
 
-    console.error(`Error logged to: ${errorLogPath}`);
+    logger.error(`Error logged to: ${errorLogPath}`);
     return errorLogPath;
   } catch (logError) {
-    console.error('Failed to log error:', logError);
+    logger.error('Failed to log error:', logError);
     return '';
   }
 }

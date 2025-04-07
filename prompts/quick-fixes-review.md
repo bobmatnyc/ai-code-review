@@ -43,7 +43,9 @@ Provide clear, structured feedback grouped by priority (High/Medium/Low). For ea
 
 1. **Issue**: Brief description of the problem
 2. **Location**: File and line number(s)
-3. **Fix**: Simple code snippet showing the solution
+3. **Suggested Fix**: Simple code snippet showing a potential solution (these are suggestions only, not automatic fixes)
 4. **Impact**: Brief explanation of the benefit of fixing this issue
 
 Focus on changes that can be implemented quickly with high impact. Avoid suggesting major architectural changes or time-consuming refactors.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

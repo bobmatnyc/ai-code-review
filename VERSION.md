@@ -2,6 +2,161 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.1.18] - 2024-04-06
+
+### Improved
+- Enhanced interactive mode to show ALL issues by default
+- Removed the need to specify a priority filter in interactive mode
+- Improved user experience by making all suggestions visible immediately
+- Added better default behavior for interactive review sessions
+
+## [1.1.17] - 2024-04-06
+
+### Fixed
+- Removed incorrect model validation warning in Anthropic client
+- Fixed model validation to only check models against their respective providers
+- Improved model validation logic to prevent misleading warnings
+- Enhanced adapter-specific model validation
+
+## [1.1.16] - 2024-04-06
+
+### Fixed
+- Removed incorrect preference for OpenRouter over other API providers
+- Updated model selection logic to be truly model-agnostic
+- Fixed misleading comments about API provider preferences
+- Ensured consistent model selection based on environment variables
+
+## [1.1.15] - 2024-04-06
+
+### Improved
+- Refactored review handlers into separate files for better code organization
+- Created dedicated modules for each review type (consolidated, architectural, individual)
+- Improved code maintainability by reducing file sizes and separating concerns
+- Enhanced module structure for better testability and future extensions
+
+## [1.1.14] - 2024-04-06
+
+### Added
+- Added centralized logging system with support for different log levels
+- Added environment variable control for log level (AI_CODE_REVIEW_LOG_LEVEL)
+- Added colored and formatted log output with timestamps
+- Added support for module-specific loggers with prefixes
+
+## [1.1.13] - 2024-04-06
+
+### Fixed
+- Added missing Anthropic API key check in getApiKeyType function
+- Ensured consistent API key type detection across the codebase
+- Fixed return type of getApiKeyType function to include 'Anthropic'
+
+## [1.1.12] - 2024-04-06
+
+### Fixed
+- Improved issue extraction in interactive mode to handle different AI response formats
+- Added more flexible section detection for priority levels
+- Enhanced parsing of issue blocks to better identify file paths and code snippets
+
+## [1.1.11] - 2024-04-06
+
+### Fixed
+- Fixed inconsistent model name display in console output
+- Ensured the same model name is displayed in all messages
+- Removed misleading "Trying to generate review with..." message
+
+## [1.1.10] - 2024-04-06
+
+### Fixed
+- Removed misleading auto-fix functionality that attempted to automatically implement AI suggestions
+- Updated prompt templates to clarify that the tool provides suggestions only, not automatic fixes
+- Added clear messaging that the tool is not agentic and cannot automatically apply changes
+- Improved documentation to set correct expectations about the tool's capabilities
+
+## [1.1.9] - 2024-04-06
+
+### Fixed
+- Fixed inconsistent model name display in console output
+- Added unit tests for model name display
+- Ensured user-friendly model names are used in all output messages
+
+## [1.1.8] - 2024-04-06
+
+### Fixed
+- Updated Gemini model names to use the correct API model names
+- Added support for all current Gemini models (2.5, 2.0, and 1.5 series)
+- Fixed model mapping to ensure compatibility with the Google AI API
+- Updated documentation with accurate model names and descriptions
+
+## [1.1.7] - 2024-04-06
+
+### Fixed
+- Fixed incorrect model name for Gemini Flash (restored to gemini-2.0-flash)
+- Updated model name validation to support the correct Gemini models
+
+## [1.1.6] - 2024-04-06
+
+### Fixed
+- Fixed model name format for Gemini 2.5 Pro
+- Updated model name validation to support the latest Gemini models
+- Improved error handling for model API calls
+
+## [1.1.5] - 2024-04-06
+
+### Fixed
+- Fixed model adapter detection in Anthropic client
+- Prevented Anthropic client from initializing when using other model types
+- Improved error handling for model selection
+
+## [1.1.4] - 2024-04-06
+
+### Fixed
+- Fixed bug where prompt templates were not found when installed as an npm package
+- Updated path resolution to use the package directory instead of the current working directory
+
+## [1.1.3] - 2024-04-06
+
+### Changed
+- Explicitly configured package to publish to npm registry
+- Fixed installation issues in projects with React dependencies
+
+## [1.1.2] - 2024-04-06
+
+### Changed
+- Published to npm registry for better compatibility
+- Fixed installation issues in projects with React dependencies
+
+## [1.1.1] - 2024-04-06
+
+### Changed
+- Added wildcard peer dependency for React to improve compatibility with React projects
+- Fixed installation issues in projects with React dependencies
+
+## [1.1.0] - 2024-04-06
+
+### Added
+- Direct Anthropic API support for Claude models
+- New environment variable AI_CODE_REVIEW_ANTHROPIC_API_KEY for Anthropic API access
+- Support for anthropic:claude-3-opus-20240229, anthropic:claude-3-sonnet-20240229, and anthropic:claude-3-haiku-20240307 models
+- Updated documentation with Anthropic API information
+
+### Changed
+- Standardized on AI_CODE_REVIEW_* prefix for all environment variables
+- Improved error handling for missing API keys
+- Enhanced model selection logic to support multiple clients
+- Updated .env.example with Anthropic models and API key information
+
+## [1.0.5] - 2024-04-06
+
+### Fixed
+- Fixed model selection to respect the adapter specified in AI_CODE_REVIEW_MODEL
+- Updated API key selection logic to prioritize the model adapter specified in environment variables
+- Fixed issue where OpenRouter was always used when both API keys were available
+
+## [1.0.4] - 2024-04-06
+
+### Fixed
+- Fixed model selection to correctly use the preferred model specified in environment variables
+- Fixed inconsistency between displayed model name and actual model used for API calls
+
 ## [1.0.3] - 2024-04-06
 
 ### Fixed

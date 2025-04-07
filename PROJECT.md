@@ -40,19 +40,48 @@ Responsible for:
 #### 3. Gemini API Client
 // Updated: 2023-07-25
 // Updated: 2024-04-05
+// Updated: 2024-04-06
 Responsible for:
 - Authenticating with the Google AI Studio API
-- Sending properly formatted prompts to the Gemini 2.5 Max model
+- Sending properly formatted prompts to the Gemini models
 - Processing and structuring the API responses
 - Handling different review types with specialized prompts
-- Supporting both GOOGLE_GENERATIVE_AI_KEY and GOOGLE_AI_STUDIO_KEY for backward compatibility
-- Including project documentation (README.md, PROJECT.md, PROGRESS.md) in the AI context
+- Using AI_CODE_REVIEW_GOOGLE_API_KEY as the only supported environment variable for API keys
+- Using AI_CODE_REVIEW_MODEL for model selection
+- Including project documentation (README.md, PROJECT.md) in the AI context
+
+#### 3.1. OpenRouter API Client
+// Added: 2024-04-06
+Responsible for:
+- Authenticating with the OpenRouter API
+- Sending properly formatted prompts to various models (Claude, GPT-4, etc.)
+- Processing and structuring the API responses
+- Handling different review types with specialized prompts
+- Using AI_CODE_REVIEW_OPENROUTER_API_KEY as the only supported environment variable for API keys
+- Using AI_CODE_REVIEW_MODEL for model selection
+- Including project documentation in the AI context
+
+#### 3.2. Anthropic API Client
+// Added: 2024-04-06
+Responsible for:
+- Authenticating with the Anthropic API
+- Sending properly formatted prompts to Claude models
+- Processing and structuring the API responses
+- Handling different review types with specialized prompts
+- Using AI_CODE_REVIEW_ANTHROPIC_API_KEY as the only supported environment variable for API keys
+- Using AI_CODE_REVIEW_MODEL for model selection
+- Including project documentation in the AI context
 
 #### 4. Review Orchestrator
 // Updated: 2023-07-25
+// Updated: 2024-04-06
 Responsible for:
 - Coordinating the overall review process
 - Managing the flow between components
+- Selecting the appropriate API client based on the model type
+- Handling file filtering and processing
+- Generating output files and directories
+- Supporting interactive mode and priority filtering
 - Handling command-line arguments and configuration
 - Implementing specialized review strategies for different review types
 

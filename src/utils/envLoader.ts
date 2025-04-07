@@ -1,10 +1,10 @@
 /**
  * @fileoverview Environment variable loading and validation utilities.
- * 
+ *
  * This module provides utilities for loading, validating, and accessing environment
  * variables used by the code review tool. It handles loading from .env.local files,
  * provides clear error messages for missing variables, and manages API key precedence.
- * 
+ *
  * Key responsibilities:
  * - Loading environment variables from .env.local
  * - Validating required environment variables
@@ -30,7 +30,7 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
   try {
     // Default to .env.local in current working directory
     const envLocalPath = envFilePath || path.resolve(process.cwd(), '.env.local');
-    
+
     // Check if the file exists
     try {
       await fs.access(envLocalPath);
@@ -40,11 +40,21 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
         message: `Environment file not found: ${envLocalPath}. Please create this file with your API keys.`
       };
     }
-    
+
+    // Check if debug mode is enabled
+    const isDebugMode = process.argv.includes('--debug');
+
+    // Helper function for debug logging
+    function debugLog(message: string): void {
+      if (isDebugMode) {
+        console.log(`\x1b[36m[DEBUG]\x1b[0m ${message}`);
+      }
+    }
+
     // Load environment variables
-    console.log(`Attempting to load environment variables from: ${envLocalPath}`);
+    debugLog(`Attempting to load environment variables from: ${envLocalPath}`);
     const result = dotenv.config({ path: envLocalPath });
-    
+
     if (result.error) {
       return {
         success: false,
@@ -52,19 +62,19 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
         envFile: envLocalPath
       };
     }
-    
+
     // Log success without exposing values
-    console.log(`Successfully loaded environment variables from ${envLocalPath}`);
-    
+    debugLog(`Successfully loaded environment variables from ${envLocalPath}`);
+
     // Log which variables were found (names only, not values)
     const envVarNames = Object.keys(result.parsed || {});
-    if (envVarNames.length > 0) {
-      console.log('Variables found in .env.local (names only):');
-      envVarNames.forEach(name => console.log(name));
-    } else {
-      console.log('No variables found in .env.local');
+    if (envVarNames.length > 0 && isDebugMode) {
+      debugLog('Variables found in .env.local (names only):');
+      debugLog(envVarNames.join(', '));
+    } else if (isDebugMode) {
+      debugLog('No variables found in .env.local');
     }
-    
+
     return {
       success: true,
       message: `Successfully loaded environment variables from ${envLocalPath}`,
@@ -79,48 +89,142 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
 }
 
 /**
- * Get the API key with proper precedence handling
+ * Get the Google API key with proper precedence handling
  * @returns Object containing the API key and information about which key was used
  */
-export function getApiKey(): { 
-  apiKey: string | undefined; 
-  source: 'GOOGLE_GENERATIVE_AI_KEY' | 'GOOGLE_AI_STUDIO_KEY' | 'none';
+export function getGoogleApiKey(): {
+  apiKey: string | undefined;
+  source: string;
   message: string;
 } {
+  // Check if debug mode is enabled
+  const isDebugMode = process.argv.includes('--debug');
+
+  // Helper function for debug logging
+  function debugLog(message: string): void {
+    if (isDebugMode) {
+      console.log(`\x1b[36m[DEBUG]\x1b[0m ${message}`);
+    }
+  }
+
+  // Check for API keys in order of preference
+  const apiKeyNew = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
+  const apiKeyLegacy = process.env.CODE_REVIEW_GOOGLE_API_KEY;
   const apiKeyGenAI = process.env.GOOGLE_GENERATIVE_AI_KEY;
   const apiKeyStudio = process.env.GOOGLE_AI_STUDIO_KEY;
-  
-  // Check if GOOGLE_GENERATIVE_AI_KEY is available
+
+  // Preferred key: AI_CODE_REVIEW_GOOGLE_API_KEY
+  if (apiKeyNew) {
+    debugLog('Google API key found: AI_CODE_REVIEW_GOOGLE_API_KEY');
+    return {
+      apiKey: apiKeyNew,
+      source: 'AI_CODE_REVIEW_GOOGLE_API_KEY',
+      message: 'Using AI_CODE_REVIEW_GOOGLE_API_KEY'
+    };
+  }
+
+  // Legacy key: CODE_REVIEW_GOOGLE_API_KEY
+  if (apiKeyLegacy) {
+    console.warn('Warning: Using deprecated environment variable CODE_REVIEW_GOOGLE_API_KEY. Please switch to AI_CODE_REVIEW_GOOGLE_API_KEY.');
+    debugLog('Google API key found: CODE_REVIEW_GOOGLE_API_KEY (deprecated)');
+    return {
+      apiKey: apiKeyLegacy,
+      source: 'CODE_REVIEW_GOOGLE_API_KEY',
+      message: 'Using deprecated CODE_REVIEW_GOOGLE_API_KEY'
+    };
+  }
+
+  // Fallback to GOOGLE_GENERATIVE_AI_KEY
   if (apiKeyGenAI) {
-    // If both are available, log a warning about precedence
-    if (apiKeyStudio) {
-      console.warn('Both GOOGLE_GENERATIVE_AI_KEY and GOOGLE_AI_STUDIO_KEY are set. Using GOOGLE_GENERATIVE_AI_KEY.');
-    }
-    
-    console.log('API key is available in process.env');
+    console.warn('Warning: Using generic environment variable GOOGLE_GENERATIVE_AI_KEY. Consider using AI_CODE_REVIEW_GOOGLE_API_KEY for better isolation.');
+    debugLog('Google API key found: GOOGLE_GENERATIVE_AI_KEY');
     return {
       apiKey: apiKeyGenAI,
       source: 'GOOGLE_GENERATIVE_AI_KEY',
       message: 'Using GOOGLE_GENERATIVE_AI_KEY'
     };
   }
-  
-  // Fall back to GOOGLE_AI_STUDIO_KEY if available
+
+  // Last resort: GOOGLE_AI_STUDIO_KEY
   if (apiKeyStudio) {
-    console.log('API key is available in process.env');
-    console.warn('Using deprecated GOOGLE_AI_STUDIO_KEY. Consider switching to GOOGLE_GENERATIVE_AI_KEY.');
+    console.warn('Warning: Using deprecated environment variable GOOGLE_AI_STUDIO_KEY. Please switch to AI_CODE_REVIEW_GOOGLE_API_KEY.');
+    debugLog('Google API key found: GOOGLE_AI_STUDIO_KEY (deprecated)');
     return {
       apiKey: apiKeyStudio,
       source: 'GOOGLE_AI_STUDIO_KEY',
       message: 'Using deprecated GOOGLE_AI_STUDIO_KEY'
     };
   }
-  
+
   // No API key found
   return {
     apiKey: undefined,
     source: 'none',
-    message: 'No API key found. Please set GOOGLE_GENERATIVE_AI_KEY or GOOGLE_AI_STUDIO_KEY in your .env.local file.'
+    message: 'No Google API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in your .env.local file.'
+  };
+}
+
+/**
+ * Get the OpenRouter API key with proper precedence handling
+ * @returns Object containing the API key and information about which key was used
+ */
+export function getOpenRouterApiKey(): {
+  apiKey: string | undefined;
+  source: string;
+  message: string;
+} {
+  // Check if debug mode is enabled
+  const isDebugMode = process.argv.includes('--debug');
+
+  // Helper function for debug logging
+  function debugLog(message: string): void {
+    if (isDebugMode) {
+      console.log(`\x1b[36m[DEBUG]\x1b[0m ${message}`);
+    }
+  }
+
+  // Check for API keys in order of preference
+  const apiKeyNew = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
+  const apiKeyLegacy = process.env.CODE_REVIEW_OPENROUTER_API_KEY;
+  const apiKeyGeneric = process.env.OPENROUTER_API_KEY;
+
+  // Preferred key: AI_CODE_REVIEW_OPENROUTER_API_KEY
+  if (apiKeyNew) {
+    debugLog('OpenRouter API key found: AI_CODE_REVIEW_OPENROUTER_API_KEY');
+    return {
+      apiKey: apiKeyNew,
+      source: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+      message: 'Using AI_CODE_REVIEW_OPENROUTER_API_KEY'
+    };
+  }
+
+  // Legacy key: CODE_REVIEW_OPENROUTER_API_KEY
+  if (apiKeyLegacy) {
+    console.warn('Warning: Using deprecated environment variable CODE_REVIEW_OPENROUTER_API_KEY. Please switch to AI_CODE_REVIEW_OPENROUTER_API_KEY.');
+    debugLog('OpenRouter API key found: CODE_REVIEW_OPENROUTER_API_KEY (deprecated)');
+    return {
+      apiKey: apiKeyLegacy,
+      source: 'CODE_REVIEW_OPENROUTER_API_KEY',
+      message: 'Using deprecated CODE_REVIEW_OPENROUTER_API_KEY'
+    };
+  }
+
+  // Fallback to OPENROUTER_API_KEY
+  if (apiKeyGeneric) {
+    console.warn('Warning: Using generic environment variable OPENROUTER_API_KEY. Consider using AI_CODE_REVIEW_OPENROUTER_API_KEY for better isolation.');
+    debugLog('OpenRouter API key found: OPENROUTER_API_KEY');
+    return {
+      apiKey: apiKeyGeneric,
+      source: 'OPENROUTER_API_KEY',
+      message: 'Using OPENROUTER_API_KEY'
+    };
+  }
+
+  // No API key found
+  return {
+    apiKey: undefined,
+    source: 'none',
+    message: 'No OpenRouter API key found. Please set AI_CODE_REVIEW_OPENROUTER_API_KEY in your .env.local file.'
   };
 }
 
@@ -128,21 +232,26 @@ export function getApiKey(): {
  * Validate that required environment variables are present
  * @returns Object containing validation result and error message if applicable
  */
-export function validateRequiredEnvVars(): { 
-  valid: boolean; 
+export function validateRequiredEnvVars(): {
+  valid: boolean;
   message: string;
 } {
-  const { apiKey, message } = getApiKey();
-  
-  if (!apiKey) {
+  // Check for Google API key
+  const googleApiKey = getGoogleApiKey();
+  // Check for OpenRouter API key
+  const openRouterApiKey = getOpenRouterApiKey();
+
+  // If we have at least one API key, we're good to go
+  if (googleApiKey.apiKey || openRouterApiKey.apiKey) {
     return {
-      valid: false,
-      message
+      valid: true,
+      message: 'At least one API key is available'
     };
   }
-  
+
+  // No API keys found
   return {
-    valid: true,
-    message: 'All required environment variables are present'
+    valid: false,
+    message: 'No API keys found. Please set either AI_CODE_REVIEW_GOOGLE_API_KEY or AI_CODE_REVIEW_OPENROUTER_API_KEY in your .env.local file.'
   };
 }

@@ -52,8 +52,10 @@ Provide clear, structured feedback grouped by impact level (High/Medium/Low). Fo
 1. **Performance Issue**: Description of the performance problem
 2. **Location**: File and line number(s)
 3. **Current Impact**: Estimated performance cost (with reasoning)
-4. **Optimization**: Code example showing the optimized solution
+4. **Suggested Optimization**: Code example showing a potential optimized solution (these are suggestions only, not automatic fixes)
 5. **Expected Improvement**: Estimated performance gain
 6. **Measurement Strategy**: How to verify the improvement
 
 Focus on practical optimizations with significant impact. Include both quick wins and more substantial optimizations. Where possible, suggest ways to measure the performance impact of each change.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

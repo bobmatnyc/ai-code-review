@@ -21,10 +21,19 @@ import { StreamHandler } from '../utils/streamHandler';
 import { getCostInfo } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 
-// Get the preferred model from environment variables
-const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
-const [adapter, modelName] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
-const preferredModel = adapter === 'openrouter' ? modelName : 'anthropic/claude-3-opus';
+// Get the model from environment variables
+const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
+
+// Parse the model name
+const [adapter, modelName] = selectedModel.includes(':') ? selectedModel.split(':') : ['openrouter', selectedModel];
+
+// Skip initialization if this is not the selected adapter
+if (adapter !== 'openrouter') {
+  // We'll handle this in the reviewCode.ts file
+  // This allows multiple clients to coexist without errors
+}
+
+const preferredModel = modelName;
 
 // Default OpenRouter models to try in order of preference
 const DEFAULT_OPENROUTER_MODELS = [
@@ -45,7 +54,7 @@ let currentModel: string | null = null;
 let useMockResponses = false;
 
 // Get API key from environment variables
-const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || process.env.CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
 
 /**
  * Get the language name from a file extension
@@ -91,9 +100,10 @@ function getLanguageFromExtension(extension: string): string {
  */
 async function initializeOpenRouterModel(modelName: string): Promise<boolean> {
   if (!apiKey) {
-    console.warn('No OpenRouter API key found. Will use mock responses.');
-    useMockResponses = true;
-    return false;
+    console.error('No OpenRouter API key found.');
+    console.error('Please add the following to your .env.local file:');
+    console.error('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
+    process.exit(1);
   }
 
   try {
@@ -159,15 +169,18 @@ export async function initializeAnyOpenRouterModel(
     return true;
   }
 
-  // If no API key is available, use mock responses
+  // If no API key is available, exit with error
   if (!apiKey) {
-    console.warn('No OpenRouter API key found. Will use mock responses.');
-    console.warn('Please add one of the following to your .env.local file:');
-    console.warn('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
-    console.warn('- CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here (legacy)');
-    console.warn('- OPENROUTER_API_KEY=your_openrouter_api_key_here (legacy)');
-    useMockResponses = true;
-    return false;
+    console.error('No OpenRouter API key found.');
+    console.error('Please add the following to your .env.local file:');
+    console.error('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
+    process.exit(1);
+  }
+
+  // Log API key status
+  const isDebugMode = process.argv.includes('--debug');
+  if (isDebugMode) {
+    console.log('OpenRouter API key found: AI_CODE_REVIEW_OPENROUTER_API_KEY');
   }
 
   // Try each model in order until one works
