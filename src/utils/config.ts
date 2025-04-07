@@ -8,6 +8,8 @@
 
 import { getGoogleApiKey, getOpenRouterApiKey, getAnthropicApiKey, getOpenAIApiKey } from './envLoader';
 import logger from './logger';
+import path from 'path';
+import fs from 'fs';
 
 /**
  * Application configuration interface
@@ -18,10 +20,10 @@ export interface AppConfig {
   openRouterApiKey?: string;
   anthropicApiKey?: string;
   openAIApiKey?: string;
-  
+
   // Model configuration
   selectedModel: string;
-  
+
   // Other configuration
   debug: boolean;
   contextPaths?: string[];
@@ -41,17 +43,17 @@ function loadConfig(): AppConfig {
   const openRouterApiKeyResult = getOpenRouterApiKey();
   const anthropicApiKeyResult = getAnthropicApiKey();
   const openAIApiKeyResult = getOpenAIApiKey();
-  
+
   // Get selected model
   const selectedModel = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
-  
+
   // Get debug mode
   const debug = process.env.AI_CODE_REVIEW_DEBUG === 'true' || process.argv.includes('--debug');
-  
+
   // Get context paths
   const contextPathsStr = process.env.AI_CODE_REVIEW_CONTEXT;
   const contextPaths = contextPathsStr ? contextPathsStr.split(',').map(p => p.trim()) : undefined;
-  
+
   return {
     googleApiKey: googleApiKeyResult.apiKey,
     openRouterApiKey: openRouterApiKeyResult.apiKey,
@@ -76,7 +78,7 @@ export function getConfig(): AppConfig {
       throw error;
     }
   }
-  
+
   return config;
 }
 
@@ -96,7 +98,7 @@ export function hasAnyApiKey(): boolean {
  */
 export function getApiKeyForProvider(provider: string): string | undefined {
   const config = getConfig();
-  
+
   switch (provider.toLowerCase()) {
     case 'gemini':
       return config.googleApiKey;
@@ -116,4 +118,29 @@ export function getApiKeyForProvider(provider: string): string | undefined {
  */
 export function resetConfig(): void {
   config = null;
+}
+
+/**
+ * Get the path to the prompts directory
+ * @returns Path to the prompts directory
+ */
+export function getPromptsPath(): string {
+  // Try different paths to find the prompts directory
+  const possiblePaths = [
+    // For local development
+    path.resolve('prompts'),
+    // For npm package
+    path.resolve(__dirname, '..', '..', 'prompts'),
+    // For global installation
+    path.resolve(__dirname, '..', '..', '..', 'prompts')
+  ];
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+
+  // Fallback to the first path if none exist
+  return possiblePaths[0];
 }

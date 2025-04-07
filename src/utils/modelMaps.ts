@@ -29,7 +29,7 @@ export interface ModelMapping {
 export const MODEL_MAP: Record<string, ModelMapping> = {
   // Gemini models
   'gemini:gemini-2.5-pro': {
-    apiName: 'gemini-2.5-pro-preview-03-25',
+    apiName: 'gemini-2.5-pro',
     displayName: 'Gemini 2.5 Pro',
     provider: 'gemini',
     useV1Beta: true,
@@ -38,7 +38,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
   },
   'gemini:gemini-2.5-pro-preview': {
-    apiName: 'gemini-2.5-pro-preview-03-25',
+    apiName: 'gemini-2.5-pro-preview',
     displayName: 'Gemini 2.5 Pro Preview',
     provider: 'gemini',
     useV1Beta: true,
@@ -47,7 +47,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
   },
   'gemini:gemini-2.5-pro-exp': {
-    apiName: 'gemini-2.5-pro-exp-03-25',
+    apiName: 'gemini-2.5-pro-exp',
     displayName: 'Gemini 2.5 Pro Experimental',
     provider: 'gemini',
     useV1Beta: true,
@@ -154,28 +154,28 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
   },
 
   // OpenRouter models
-  'openrouter:anthropic/claude-3-opus': {
-    apiName: 'anthropic/claude-3-opus',
+  'openrouter:anthropic/claude-3-opus-20240229': {
+    apiName: 'anthropic/claude-3-opus-20240229',
     displayName: 'Claude 3 Opus (via OpenRouter)',
     provider: 'openrouter',
     contextWindow: 200000,
     description: "Anthropic's most powerful model via OpenRouter",
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
-  'openrouter:anthropic/claude-3-sonnet': {
-    apiName: 'anthropic/claude-3-sonnet',
+  'openrouter:anthropic/claude-3-sonnet-20240229': {
+    apiName: 'anthropic/claude-3-sonnet-20240229',
     displayName: 'Claude 3 Sonnet (via OpenRouter)',
     provider: 'openrouter',
     contextWindow: 200000,
     description: 'Balanced performance and quality via OpenRouter',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
-  'openrouter:openai/gpt-4-turbo': {
-    apiName: 'openai/gpt-4-turbo',
-    displayName: 'GPT-4 Turbo (via OpenRouter)',
+  'openrouter:anthropic/claude-3-haiku-20240307': {
+    apiName: 'anthropic/claude-3-haiku-20240307',
+    displayName: 'Claude 3 Haiku (via OpenRouter)',
     provider: 'openrouter',
-    contextWindow: 128000,
-    description: 'Strong performance on complex code via OpenRouter',
+    contextWindow: 200000,
+    description: 'Fast and efficient model via OpenRouter',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
   'openrouter:openai/gpt-4o': {
@@ -186,20 +186,20 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     description: "OpenAI's most capable model via OpenRouter",
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
-  'openrouter:anthropic/claude-2.1': {
-    apiName: 'anthropic/claude-2.1',
-    displayName: 'Claude 2.1 (via OpenRouter)',
+  'openrouter:openai/gpt-4-turbo': {
+    apiName: 'openai/gpt-4-turbo',
+    displayName: 'GPT-4 Turbo (via OpenRouter)',
     provider: 'openrouter',
-    contextWindow: 100000,
-    description: 'Reliable performance via OpenRouter',
+    contextWindow: 128000,
+    description: 'Strong performance on complex code via OpenRouter',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
-  'openrouter:google/gemini-pro': {
-    apiName: 'google/gemini-pro',
-    displayName: 'Gemini Pro (via OpenRouter)',
+  'openrouter:google/gemini-1.5-pro': {
+    apiName: 'google/gemini-1.5-pro',
+    displayName: 'Gemini 1.5 Pro (via OpenRouter)',
     provider: 'openrouter',
-    contextWindow: 32000,
-    description: "Google's model via OpenRouter",
+    contextWindow: 1000000,
+    description: "Google's most capable model via OpenRouter",
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   }
 };
@@ -225,12 +225,12 @@ export const MODELS: Record<Provider, string[]> = {
   ],
   openai: ['openai:gpt-4o', 'openai:gpt-4-turbo', 'openai:gpt-3.5-turbo'],
   openrouter: [
-    'openrouter:anthropic/claude-3-opus',
-    'openrouter:anthropic/claude-3-sonnet',
-    'openrouter:openai/gpt-4-turbo',
+    'openrouter:anthropic/claude-3-opus-20240229',
+    'openrouter:anthropic/claude-3-sonnet-20240229',
+    'openrouter:anthropic/claude-3-haiku-20240307',
     'openrouter:openai/gpt-4o',
-    'openrouter:anthropic/claude-2.1',
-    'openrouter:google/gemini-pro'
+    'openrouter:openai/gpt-4-turbo',
+    'openrouter:google/gemini-1.5-pro'
   ]
 };
 
@@ -283,7 +283,9 @@ export function parseModelString(modelString: string): {
   modelName: string;
 } {
   if (!modelString) {
-    throw new Error('Model string is required. Please specify a model using the AI_CODE_REVIEW_MODEL environment variable.');
+    throw new Error(
+      'Model string is required. Please specify a model using the AI_CODE_REVIEW_MODEL environment variable.'
+    );
   }
 
   const [provider, modelName] = modelString.includes(':')

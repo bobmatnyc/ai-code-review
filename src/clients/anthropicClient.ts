@@ -25,6 +25,8 @@ import {
 import { getCostInfoFromText } from './utils/tokenCounter';
 import { ProjectDocs } from '../utils/projectDocs';
 import { loadPromptTemplate } from './utils/promptLoader';
+import { ApiError, logApiError, handleFetchResponse, safeJsonParse } from '../utils/apiErrorHandler';
+import logger from '../utils/logger';
 
 // Import client utilities
 import {
@@ -186,48 +188,60 @@ export async function generateAnthropicReview(
       try {
         console.log(`Generating review with Anthropic ${modelName}...`);
 
-        // Make the API request
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey || '',
-            'anthropic-version': '2023-06-01'
-          },
-          body: JSON.stringify({
-            model: modelName,
-            system: systemPrompt,
-            messages: [{ role: 'user', content: userPrompt }],
-            temperature: 0.2,
-            max_tokens: 4000
-          })
-        });
+        try {
+          // Make the API request
+          const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey || '',
+              'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+              model: modelName,
+              system: systemPrompt,
+              messages: [{ role: 'user', content: userPrompt }],
+              temperature: 0.2,
+              max_tokens: 4000
+            })
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(`Anthropic API error: ${JSON.stringify(errorData)}`);
-        }
+          // Handle response errors
+          await handleFetchResponse(response, 'Anthropic');
 
-        const data = (await response.json()) as any;
-        if (data.content && data.content.length > 0) {
-          content = data.content[0].text;
-          console.log(
-            `Successfully generated review with Anthropic ${modelName}`
-          );
-        } else {
-          throw new Error(
-            `Invalid response format from Anthropic ${modelName}`
-          );
+          // Parse the response safely
+          interface AnthropicResponse {
+            content: Array<{text: string}>;
+          }
+
+          const data = await safeJsonParse<AnthropicResponse>(response, 'Anthropic');
+
+          if (data.content && data.content.length > 0) {
+            content = data.content[0].text;
+            logger.info(`Successfully generated review with Anthropic ${modelName}`);
+          } else {
+            throw new ApiError(`Invalid response format from Anthropic ${modelName}`);
+          }
+        } catch (apiError) {
+          logApiError(apiError, {
+            operation: 'generateReview',
+            apiName: 'Anthropic',
+          });
+          throw apiError;
         }
 
         // Calculate cost information
         cost = getCostInfoFromText(userPrompt, content, modelName);
       } catch (error) {
-        console.error(
-          `Error generating review with Anthropic ${modelName}:`,
-          error
+        logger.error(
+          `Error generating review with Anthropic ${modelName}: ${error instanceof Error ? error.message : String(error)}`
         );
-        throw error;
+
+        if (error instanceof ApiError) {
+          throw error; // Already has context
+        } else {
+          throw new ApiError(`Failed to generate review with Anthropic ${modelName}: ${error instanceof Error ? error.message : String(error)}`);
+        }
       }
     }
 
@@ -240,8 +254,13 @@ export async function generateAnthropicReview(
       modelUsed: `anthropic:${modelName}`
     };
   } catch (error) {
-    console.error('Error generating review:', error);
-    throw new Error(`Failed to generate review for ${filePath}`);
+    logger.error(`Error generating review for ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+
+    if (error instanceof ApiError) {
+      throw error; // Already has context
+    } else {
+      throw new ApiError(`Failed to generate review for ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 }
 

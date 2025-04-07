@@ -102,6 +102,8 @@ const hasAnthropicKey = !!process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
 const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 const [adapter, model] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
 
+// We can't use t() here because i18n hasn't been initialized yet
+// These messages will always be in English
 if (adapter === 'gemini' && hasGoogleKey) {
   console.log(`Using Gemini API with model: ${model}`);
 } else if (adapter === 'openrouter' && hasOpenRouterKey) {
@@ -135,6 +137,7 @@ if (!hasGoogleKey && !hasOpenRouterKey && !hasAnthropicKey) {
 import { reviewCode } from './commands/reviewCode';
 import { runApiConnectionTests } from './tests/apiConnectionTest';
 import { getCommandLineArguments } from './cli/argumentParser';
+import { initI18n, t } from './utils/i18n';
 
 // Get version from package.json
 const packageJson = require('../package.json');
@@ -145,9 +148,22 @@ async function main() {
     // Parse command-line arguments
     const args = await getCommandLineArguments();
 
+    // Initialize i18n with the selected UI language
+    await initI18n(args.uiLanguage);
+
+    // Log the selected language
+    if (args.uiLanguage && args.uiLanguage !== 'en') {
+      const languageName = args.uiLanguage === 'es' ? 'Español' :
+                          args.uiLanguage === 'fr' ? 'Français' :
+                          args.uiLanguage === 'de' ? 'Deutsch' :
+                          args.uiLanguage === 'ja' ? '日本語' :
+                          args.uiLanguage;
+      logger.info(t('app.language_selected', { language: languageName }));
+    }
+
     // Check for version flag
     if (args.version) {
-      console.log(`AI Code Review Tool v${packageJson.version}`);
+      console.log(packageJson.version);
       return;
     }
 
@@ -161,14 +177,14 @@ async function main() {
         }
       } catch (error) {
         // Format the error message for better readability
-        logger.error(`Error testing API connections: ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(t('errors.api_test_failed', { message: error instanceof Error ? error.message : String(error) }));
 
         // Add a helpful message about common API issues
-        logger.info('\nCommon solutions:');
-        logger.info('- Check that your API keys are correctly set in .env.local');
-        logger.info('- Verify that your internet connection is working');
-        logger.info('- Ensure that the API services are available and not experiencing downtime');
-        logger.info('- Check for any rate limiting issues with the API providers');
+        logger.info('\n' + t('errors.common_solutions.title'));
+        logger.info(t('errors.common_solutions.check_api_keys'));
+        logger.info(t('errors.common_solutions.check_internet'));
+        logger.info(t('errors.common_solutions.check_services'));
+        logger.info(t('errors.common_solutions.check_rate_limits'));
 
         process.exit(1);
       }
@@ -178,13 +194,13 @@ async function main() {
     await reviewCode(args.target, args);
   } catch (error) {
     // Format the error message for better readability
-    logger.error(`Error during code review: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(t('errors.review_failed', { message: error instanceof Error ? error.message : String(error) }));
 
     // Add a helpful message about common issues
-    logger.info('\nCommon solutions:');
-    logger.info('- Make sure you are running the command from the correct directory');
-    logger.info('- Check that the target path exists and is within the current directory');
-    logger.info('- For API issues, run with --test-api to verify your API connections');
+    logger.info('\n' + t('errors.common_solutions.title'));
+    logger.info(t('errors.common_solutions.check_directory'));
+    logger.info(t('errors.common_solutions.check_target_path'));
+    logger.info(t('errors.common_solutions.run_test_api'));
 
     process.exit(1);
   }
@@ -192,6 +208,6 @@ async function main() {
 
 // Run the main function
 main().catch(error => {
-  logger.error(`Unhandled error: ${error instanceof Error ? error.message : String(error)}`);
+  logger.error(t('errors.unhandled', { message: error instanceof Error ? error.message : String(error) }));
   process.exit(1);
 });

@@ -9,11 +9,14 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { ReviewOptions, ReviewType } from '../types/review';
+import { OutputFormat, ProgrammingLanguage, VALID_LANGUAGES, VALID_OUTPUT_FORMATS, VALID_REVIEW_TYPES, VALID_PRIORITY_FILTERS } from '../types/common';
+import { SUPPORTED_LANGUAGES } from '../utils/i18n';
 
 // Extended review options including CLI-specific options
 export interface CliOptions extends ReviewOptions {
   target: string;
   version?: boolean;
+  uiLanguage?: string;
 }
 import logger from '../utils/logger';
 
@@ -38,14 +41,14 @@ export async function parseArguments(): Promise<CliOptions> {
       })
       .option('type', {
         alias: 't',
-        choices: ['architectural', 'quick-fixes', 'security', 'performance'] as const,
+        choices: VALID_REVIEW_TYPES.filter(type => type !== 'consolidated') as readonly ReviewType[],
         default: 'quick-fixes' as ReviewType,
         describe: 'Type of review to perform',
       })
       .option('output', {
         alias: 'o',
-        choices: ['markdown', 'json'] as const,
-        default: 'markdown',
+        choices: VALID_OUTPUT_FORMATS as readonly OutputFormat[],
+        default: 'markdown' as OutputFormat,
         describe: 'Output format for the review',
       })
       .option('interactive', {
@@ -102,14 +105,19 @@ export async function parseArguments(): Promise<CliOptions> {
       })
       .option('language', {
         alias: 'l',
-        type: 'string',
-        default: 'typescript',
-        describe: 'Programming language for the code review (currently only typescript is supported)',
+        choices: VALID_LANGUAGES as readonly ProgrammingLanguage[],
+        default: 'typescript' as ProgrammingLanguage,
+        describe: 'Programming language for the code review',
       })
       .option('listmodels', {
         type: 'boolean',
         default: false,
         describe: 'List all available models based on configured API keys',
+      })
+      .option('ui-language', {
+        choices: SUPPORTED_LANGUAGES,
+        default: 'en',
+        describe: 'Language for the user interface',
       })
       .strict() // Report errors for unknown options
       .help()
@@ -135,19 +143,38 @@ export function validateArguments(options: CliOptions): CliOptions {
   }
 
   // Validate review type
-  const validReviewTypes = ['architectural', 'quick-fixes', 'security', 'performance'];
-  if (!validReviewTypes.includes(options.type)) {
+  const validReviewTypes = VALID_REVIEW_TYPES.filter(type => type !== 'consolidated') as Array<Exclude<ReviewType, 'consolidated'>>;
+  if (!validReviewTypes.includes(options.type as Exclude<ReviewType, 'consolidated'>)) {
     logger.error(`Invalid review type: ${options.type}`);
     logger.error(`Valid types are: ${validReviewTypes.join(', ')}`);
     process.exit(1);
   }
 
   // Validate output format
-  const validOutputFormats = ['markdown', 'json'];
-  if (!validOutputFormats.includes(options.output)) {
+  if (!VALID_OUTPUT_FORMATS.includes(options.output as OutputFormat)) {
     logger.error(`Invalid output format: ${options.output}`);
-    logger.error(`Valid formats are: ${validOutputFormats.join(', ')}`);
+    logger.error(`Valid formats are: ${VALID_OUTPUT_FORMATS.join(', ')}`);
     process.exit(1);
+  }
+
+  // Validate programming language
+  if (options.language && !VALID_LANGUAGES.includes(options.language as ProgrammingLanguage)) {
+    logger.error(`Invalid programming language: ${options.language}`);
+    logger.error(`Valid languages are: ${VALID_LANGUAGES.join(', ')}`);
+    process.exit(1);
+  }
+
+  // Validate UI language
+  if (options.uiLanguage && !SUPPORTED_LANGUAGES.includes(options.uiLanguage)) {
+    logger.error(`Invalid UI language: ${options.uiLanguage}`);
+    logger.error(`Valid UI languages are: ${SUPPORTED_LANGUAGES.join(', ')}`);
+    process.exit(1);
+  }
+
+  // Map ui-language option to uiLanguage property
+  if ((options as any)['ui-language']) {
+    options.uiLanguage = (options as any)['ui-language'];
+    delete (options as any)['ui-language'];
   }
 
   return options;

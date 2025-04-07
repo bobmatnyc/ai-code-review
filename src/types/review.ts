@@ -17,6 +17,8 @@
  * providing clear documentation of the data structures used throughout the system.
  */
 
+import { OutputFormat, ProgrammingLanguage, PriorityFilter } from './common';
+
 /**
  * Types of code reviews supported by the tool
  */
@@ -34,7 +36,7 @@ export interface ReviewOptions {
   /**
    * Type of review to perform
    */
-  type: string;
+  type: ReviewType;
 
   /**
    * Whether to include test files in the review
@@ -44,7 +46,7 @@ export interface ReviewOptions {
   /**
    * Output format (markdown or json)
    */
-  output: string;
+  output: OutputFormat;
 
   /**
    * Whether to include project documentation in the context
@@ -63,9 +65,9 @@ export interface ReviewOptions {
 
   /**
    * Whether to display review results with optional priority filter
-   * Can be a boolean or a string indicating the priority filter (h, m, l, a)
+   * Can be a boolean or a priority filter indicating which issues to show
    */
-  interactive?: boolean | string;
+  interactive?: boolean | PriorityFilter;
 
   /**
    * Whether to automatically implement high priority fixes without confirmation
@@ -100,7 +102,7 @@ export interface ReviewOptions {
   /**
    * Programming language for the code review
    */
-  language?: string;
+  language?: ProgrammingLanguage;
 
   /**
    * Whether to list available models based on configured API keys

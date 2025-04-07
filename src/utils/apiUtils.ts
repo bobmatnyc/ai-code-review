@@ -6,6 +6,7 @@
  */
 
 import logger from './logger';
+import { getConfig } from './config';
 
 /**
  * Get the available API key type based on the model specified in environment variables
@@ -17,30 +18,29 @@ export function getApiKeyType():
   | 'Anthropic'
   | 'OpenAI'
   | null {
-  // Get the model adapter from environment variables
-  const selectedModel =
-    process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL;
+  // Get configuration from the centralized config module
+  const config = getConfig();
+
+  // Get the model adapter from the configuration
+  const selectedModel = config.selectedModel;
   const adapter = selectedModel
     ? selectedModel.includes(':')
       ? selectedModel.split(':')[0]
       : 'gemini'
     : '';
 
-  // First check if we have a specific adapter specified in AI_CODE_REVIEW_MODEL
+  // First check if we have a specific adapter specified in the model
   // and if we have the corresponding API key
-  if (adapter === 'gemini' && process.env.AI_CODE_REVIEW_GOOGLE_API_KEY) {
+  if (adapter === 'gemini' && config.googleApiKey) {
     return 'Google';
   }
-  if (
-    adapter === 'openrouter' &&
-    process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY
-  ) {
+  if (adapter === 'openrouter' && config.openRouterApiKey) {
     return 'OpenRouter';
   }
-  if (adapter === 'anthropic' && process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY) {
+  if (adapter === 'anthropic' && config.anthropicApiKey) {
     return 'Anthropic';
   }
-  if (adapter === 'openai' && process.env.AI_CODE_REVIEW_OPENAI_API_KEY) {
+  if (adapter === 'openai' && config.openAIApiKey) {
     return 'OpenAI';
   }
 
@@ -49,16 +49,16 @@ export function getApiKeyType():
   // Note: We don't have any preference for which API to use - we'll use whatever is available
   if (adapter === '' || !selectedModel) {
     // Check for any available API keys
-    if (process.env.AI_CODE_REVIEW_GOOGLE_API_KEY) {
+    if (config.googleApiKey) {
       return 'Google';
     }
-    if (process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY) {
+    if (config.openRouterApiKey) {
       return 'OpenRouter';
     }
-    if (process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY) {
+    if (config.anthropicApiKey) {
       return 'Anthropic';
     }
-    if (process.env.AI_CODE_REVIEW_OPENAI_API_KEY) {
+    if (config.openAIApiKey) {
       return 'OpenAI';
     }
   }
@@ -102,12 +102,12 @@ export function getPriorityFilterFromArgs(
 }
 
 /**
- * Get the model name from environment variables
+ * Get the model name from the configuration
  * @returns The model name or an empty string if not found
  */
 export function getModelName(): string {
-  const selectedModel =
-    process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL;
+  const config = getConfig();
+  const selectedModel = config.selectedModel;
   return selectedModel
     ? selectedModel.includes(':')
       ? selectedModel.split(':')[1]

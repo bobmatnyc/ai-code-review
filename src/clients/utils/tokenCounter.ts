@@ -3,11 +3,11 @@
  *
  * This module provides utilities for estimating token usage and associated costs
  * when using various AI APIs including Google's Gemini and OpenRouter models.
- * It implements approximation methods for token counting and maintains current
- * pricing information for different AI models.
+ * It implements accurate token counting using model-specific tokenizers and maintains
+ * current pricing information for different AI models.
  *
  * Key responsibilities:
- * - Estimating token counts for input and output text
+ * - Counting tokens for input and output text using model-specific tokenizers
  * - Calculating approximate API costs based on token usage and model
  * - Tracking different pricing tiers for various AI models
  * - Providing cost information for review outputs
@@ -17,19 +17,20 @@
  * with their code reviews, enabling better planning and resource allocation.
  */
 
+import { countTokens } from '../../tokenizers';
+
 /**
  * Utility functions for estimating token counts and costs for AI API calls
  */
 
 /**
- * Rough estimate of tokens based on character count
- * This is a simple approximation - actual token count depends on the tokenizer
+ * Count tokens in a text using the appropriate tokenizer for a model
  * @param text Text to count tokens for
- * @returns Estimated token count
+ * @param modelName Name of the model (optional)
+ * @returns Token count
  */
-export function estimateTokenCount(text: string): number {
-  // A rough approximation: 1 token ≈ 4 characters for English text
-  return Math.ceil(text.length / 4);
+export function estimateTokenCount(text: string, modelName?: string): number {
+  return countTokens(text, modelName || 'fallback');
 }
 
 /**
@@ -335,8 +336,8 @@ export function getCostInfoFromText(
   outputText: string,
   modelName: string = 'gemini-1.5-pro'
 ): CostInfo {
-  const inputTokens = estimateTokenCount(inputText);
-  const outputTokens = estimateTokenCount(outputText);
+  const inputTokens = estimateTokenCount(inputText, modelName);
+  const outputTokens = estimateTokenCount(outputText, modelName);
   const totalTokens = inputTokens + outputTokens;
   const estimatedCost = calculateCost(inputTokens, outputTokens, modelName);
 

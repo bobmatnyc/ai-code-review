@@ -23,8 +23,9 @@ import {
   HarmBlockThreshold
 } from '@google/generative-ai';
 import { globalRateLimiter } from '../utils/rateLimiter';
-import fs from 'fs/promises';
 import path from 'path';
+import { ApiError, logApiError } from '../utils/apiErrorHandler';
+import logger from '../utils/logger';
 import {
   ReviewType,
   ReviewResult,
@@ -68,12 +69,8 @@ const DEFAULT_SAFETY_SETTINGS = [
  * Supports mock responses when API key is not available.
  */
 
-/**
- * API Key for Google Generative AI.
- * Only uses AI_CODE_REVIEW_GOOGLE_API_KEY.
- * @type {string | undefined}
- */
-const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
+// API Key for Google Generative AI
+const apiKey: string | undefined = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
 
 // No mock responses are used in this client
 
@@ -175,8 +172,10 @@ let formattedModelName = modelName;
 if (modelMapping) {
   formattedModelName = modelMapping.apiName;
   if (formattedModelName !== modelName) {
-    console.log(`Using ${formattedModelName} for ${modelName}`);
+    logger.info(`Using API model name ${formattedModelName} for ${modelName}`);
   }
+} else {
+  logger.warn(`No model mapping found for ${fullModelKey}. Using model name directly.`);
 }
 
 const modelOption = {
@@ -189,10 +188,8 @@ const modelOption = {
 export let currentModelDisplayName: string = modelName;
 
 // Initialize the model
-let modelInitialized = false;
-
 try {
-  console.log(`Initializing model: ${modelOption.displayName}...`);
+  logger.info(`Initializing model: ${modelOption.displayName} (API name: ${modelOption.name})...`);
 
   if (modelOption.useV1Beta) {
     // For v1beta API, we need to use fetch directly
@@ -257,19 +254,13 @@ try {
     throw new Error('Google Generative AI client is not initialized');
   }
 
-  console.log(`Successfully initialized ${modelOption.displayName}`);
-  modelInitialized = true;
+  logger.info(`Successfully initialized ${modelOption.displayName}`);
 } catch (error: any) {
-  console.error(
-    `Failed to initialize ${modelOption.displayName}: ${error.message || error}`
-  );
-  console.error(
-    'Please check your API key and model name in the environment variables.'
-  );
-  console.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
-  throw new Error(
-    `Failed to initialize Gemini model: ${error.message || error}`
-  );
+  const errorMessage = `Failed to initialize ${modelOption.displayName}: ${error.message || error}`;
+  logger.error(errorMessage);
+  logger.error('Please check your API key and model name in the environment variables.');
+  logger.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
+  throw new Error(`Failed to initialize Gemini model: ${error.message || error}`);
 }
 
 // If we get here, we should have a working model
@@ -322,77 +313,103 @@ ${codeBlock}`;
     // Check if we should use streaming mode
     const isInteractive = options?.interactive === true;
 
-    // Acquire a token from the rate limiter before making the request
-    await globalRateLimiter.acquireToken();
+    try {
+      // Acquire a token from the rate limiter before making the request
+      await globalRateLimiter.acquireToken();
 
-    if (isInteractive) {
-      // Create a stream handler
-      const streamHandler = new StreamHandler(reviewType, 'Google Gemini AI');
+      if (isInteractive) {
+        // Create a stream handler
+        const streamHandler = new StreamHandler(reviewType, 'Google Gemini AI');
 
-      // Use streaming mode
-      if (!model) {
-        throw new Error('Model is not initialized');
+        // Use streaming mode
+        if (!model) {
+          throw new Error('Model is not initialized');
+        }
+
+        // Check if the model supports streaming
+        if (!('generateContentStream' in model)) {
+          throw new Error('Model does not support streaming');
+        }
+
+        try {
+          // Now TypeScript knows generateContentStream exists
+          const streamResult = await (model as any).generateContentStream({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.2, // Lower temperature for more focused code reviews
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 8192 // Allow for detailed reviews
+            },
+            safetySettings: DEFAULT_SAFETY_SETTINGS
+          });
+
+          // Process the stream
+          for await (const chunk of streamResult.stream) {
+            const chunkText = chunk.text();
+            streamHandler.handleChunk(chunkText);
+          }
+
+          // Complete the stream and get the full content
+          content = streamHandler.complete();
+        } catch (streamError) {
+          logger.error(`Error in Gemini stream processing: ${streamError instanceof Error ? streamError.message : String(streamError)}`);
+          throw new ApiError(`Gemini streaming error: ${streamError instanceof Error ? streamError.message : String(streamError)}`);
+        }
+      } else {
+        // Call the Gemini API with proper configuration
+        if (!model) {
+          throw new Error('Model is not initialized');
+        }
+
+        try {
+          const result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.2, // Lower temperature for more focused code reviews
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 8192 // Allow for detailed reviews
+            },
+            safetySettings: DEFAULT_SAFETY_SETTINGS
+          });
+
+          const response = result.response;
+          content = response.text();
+        } catch (apiError) {
+          logger.error(`Gemini API error: ${apiError instanceof Error ? apiError.message : String(apiError)}`);
+          throw new ApiError(`Gemini API error: ${apiError instanceof Error ? apiError.message : String(apiError)}`);
+        }
       }
 
-      // Check if the model supports streaming
-      if (!('generateContentStream' in model)) {
-        throw new Error('Model does not support streaming');
-      }
+      // Calculate cost information
+      cost = getCostInfoFromText(prompt, content, modelUsed);
 
-      // Now TypeScript knows generateContentStream exists
-      const streamResult = await (model as any).generateContentStream({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2, // Lower temperature for more focused code reviews
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192 // Allow for detailed reviews
-        },
-        safetySettings: DEFAULT_SAFETY_SETTINGS
+      return {
+        filePath: path.basename(filePath),
+        reviewType,
+        content,
+        timestamp: new Date().toISOString(),
+        cost,
+        modelUsed
+      };
+    } catch (apiError) {
+      // Log the API error with context
+      logApiError(apiError, {
+        operation: 'generateReview',
+        apiName: 'Gemini',
       });
 
-      // Process the stream
-      for await (const chunk of streamResult.stream) {
-        const chunkText = chunk.text();
-        streamHandler.handleChunk(chunkText);
+      // Rethrow with more context
+      if (apiError instanceof ApiError) {
+        throw apiError; // Already has context
+      } else {
+        throw new ApiError(`Failed to generate review for ${filePath} using Gemini API: ${apiError instanceof Error ? apiError.message : String(apiError)}`);
       }
-
-      // Complete the stream and get the full content
-      content = streamHandler.complete();
-    } else {
-      // Call the Gemini API with proper configuration
-      if (!model) {
-        throw new Error('Model is not initialized');
-      }
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2, // Lower temperature for more focused code reviews
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192 // Allow for detailed reviews
-        },
-        safetySettings: DEFAULT_SAFETY_SETTINGS
-      });
-
-      const response = result.response;
-      content = response.text();
     }
-
-    // Calculate cost information
-    cost = getCostInfoFromText(prompt, content, modelUsed);
-
-    return {
-      filePath: path.basename(filePath),
-      reviewType,
-      content,
-      timestamp: new Date().toISOString(),
-      cost,
-      modelUsed
-    };
   } catch (error) {
-    console.error('Error generating review:', error);
-    throw new Error(`Failed to generate review for ${filePath}`);
+    logger.error(`Error generating review for ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Failed to generate review for ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

@@ -1,0 +1,139 @@
+{
+  "app": {
+    "name": "Revisión de Código IA",
+    "description": "Herramienta de revisión de código impulsada por IA",
+    "version_info": "Herramienta de Revisión de Código IA v{version}",
+    "language_selected": "Usando idioma: {language}"
+  },
+  "cli": {
+    "target": {
+      "description": "Ruta al archivo o directorio a revisar",
+      "default": "."
+    },
+    "version": {
+      "description": "Mostrar información de versión"
+    },
+    "type": {
+      "description": "Tipo de revisión a realizar",
+      "choices": {
+        "architectural": "Revisión arquitectónica",
+        "quick-fixes": "Revisión de correcciones rápidas",
+        "security": "Revisión de seguridad",
+        "performance": "Revisión de rendimiento"
+      },
+      "default": "quick-fixes"
+    },
+    "output": {
+      "description": "Formato de salida para la revisión",
+      "choices": {
+        "markdown": "Formato Markdown",
+        "json": "Formato JSON"
+      },
+      "default": "markdown"
+    },
+    "interactive": {
+      "description": "Ejecutar en modo interactivo con retroalimentación en tiempo real",
+      "default": "false"
+    },
+    "individual": {
+      "description": "Procesar cada archivo individualmente en lugar de una revisión consolidada",
+      "default": "false"
+    },
+    "include-tests": {
+      "description": "Incluir archivos de prueba en la revisión",
+      "default": "false"
+    },
+    "include-project-docs": {
+      "description": "Incluir documentación del proyecto en el contexto de revisión",
+      "default": "false"
+    },
+    "debug": {
+      "description": "Habilitar registro de depuración",
+      "default": "false"
+    },
+    "test-api": {
+      "description": "Probar conexiones API antes de iniciar la revisión",
+      "default": "false"
+    },
+    "auto-fix": {
+      "description": "Implementar automáticamente correcciones sugeridas en modo interactivo",
+      "default": "false"
+    },
+    "prompt-all": {
+      "description": "Solicitar confirmación para todas las correcciones, incluidas las de alta prioridad",
+      "default": "false"
+    },
+    "estimate": {
+      "description": "Estimar el uso de tokens y el costo sin realizar la revisión",
+      "default": "false"
+    },
+    "language": {
+      "description": "Lenguaje de programación para la revisión de código",
+      "default": "typescript"
+    },
+    "ui-language": {
+      "description": "Idioma para la interfaz de usuario",
+      "default": "en"
+    },
+    "listmodels": {
+      "description": "Listar todos los modelos disponibles según las claves API configuradas",
+      "default": "false"
+    },
+    "help": {
+      "description": "Mostrar ayuda"
+    }
+  },
+  "review": {
+    "starting": "Iniciando revisión de código...",
+    "completed": "Revisión de código completada",
+    "file_processing": "Procesando archivo: {{file}}",
+    "no_files_found": "No se encontraron archivos para revisar",
+    "error": "Error durante la revisión de código: {{message}}",
+    "cost_estimate": {
+      "title": "Estimación de Costo",
+      "input_tokens": "Tokens de entrada: {{count}}",
+      "output_tokens": "Tokens de salida: {{count}}",
+      "total_tokens": "Tokens totales: {{count}}",
+      "estimated_cost": "Costo estimado: {{cost}}"
+    }
+  },
+  "models": {
+    "initializing": "Inicializando modelo: {{model}}...",
+    "initialized": "Modelo {{model}} inicializado con éxito",
+    "failed": "Error al inicializar {{model}}: {{error}}",
+    "using": "Usando {{model}}",
+    "not_found": "No se encontró clave API de {{provider}} en las variables de entorno",
+    "available": "Modelos disponibles:"
+  },
+  "output": {
+    "review_title": "Revisión de Código: {{file}}",
+    "review_type": "Tipo de Revisión",
+    "generated": "Generado",
+    "cost_information": "Información de Costo",
+    "generated_by": "Generado por la Herramienta de Revisión de Código usando {{model}}"
+  },
+  "errors": {
+    "api_key_missing": "No se encontró clave API de {{provider}}. Por favor, añada lo siguiente a su archivo .env:",
+    "model_missing": "No se especificó modelo de {{provider}} en las variables de entorno.",
+    "model_env_var": "Por favor, configure AI_CODE_REVIEW_MODEL en su archivo .env.local.",
+    "model_example": "Ejemplo: AI_CODE_REVIEW_MODEL={{example}}",
+    "file_not_found": "Archivo no encontrado: {{file}}",
+    "directory_not_found": "Directorio no encontrado: {{directory}}",
+    "invalid_file_type": "Tipo de archivo inválido: {{file}}",
+    "api_error": "Error de API: {{message}}",
+    "rate_limit": "Límite de tasa excedido. Reintentando en {{seconds}} segundos...",
+    "api_test_failed": "Error al probar las conexiones API: {{message}}",
+    "review_failed": "Error durante la revisión de código: {{message}}",
+    "unhandled": "Error no controlado: {{message}}",
+    "common_solutions": {
+      "title": "Soluciones comunes:",
+      "check_api_keys": "- Compruebe que sus claves API están correctamente configuradas en .env.local",
+      "check_internet": "- Verifique que su conexión a internet está funcionando",
+      "check_services": "- Asegúrese de que los servicios API están disponibles y no experimentan tiempo de inactividad",
+      "check_rate_limits": "- Compruebe si hay problemas de límite de tasa con los proveedores de API",
+      "check_directory": "- Asegúrese de estar ejecutando el comando desde el directorio correcto",
+      "check_target_path": "- Compruebe que la ruta de destino existe y está dentro del directorio actual",
+      "run_test_api": "- Para problemas de API, ejecute con --test-api para verificar sus conexiones API"
+    }
+  }
+}
