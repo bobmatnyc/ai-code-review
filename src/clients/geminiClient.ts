@@ -421,10 +421,32 @@ ${codeBlock}`;
  */
 /**
  * Retry a function with exponential backoff
- * @param fn Function to retry
- * @param maxRetries Maximum number of retries
- * @param initialDelay Initial delay in milliseconds
- * @returns Promise resolving to the result of the function
+ *
+ * This utility function implements a retry mechanism with exponential backoff
+ * for handling transient errors, particularly rate limiting. When a function fails
+ * with a rate limit error, this function will wait for an increasing amount of time
+ * before retrying, up to a maximum number of attempts.
+ *
+ * The delay between retries follows an exponential pattern:
+ * - First retry: initialDelay ms
+ * - Second retry: initialDelay * 2 ms
+ * - Third retry: initialDelay * 4 ms
+ * And so on...
+ *
+ * @param fn Function to retry - should return a Promise
+ * @param maxRetries Maximum number of retry attempts (default: 3)
+ * @param initialDelay Initial delay in milliseconds before the first retry (default: 1000)
+ * @returns Promise resolving to the result of the function if successful
+ * @throws The last error encountered if all retries fail
+ * @example
+ * const result = await retryWithBackoff(
+ *   async () => {
+ *     // Function that might fail with rate limiting
+ *     return await makeApiRequest();
+ *   },
+ *   3,    // Try up to 3 times
+ *   1000  // Start with a 1 second delay
+ * );
  */
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
@@ -463,6 +485,30 @@ async function retryWithBackoff<T>(
   throw lastError;
 }
 
+/**
+ * Generate a consolidated review for multiple files
+ *
+ * This function analyzes multiple files together to provide a consolidated review
+ * that considers the relationships between files and provides a holistic analysis.
+ * It supports different review types (quick, security, performance) and can include
+ * project documentation for additional context.
+ *
+ * The function:
+ * 1. Loads the appropriate prompt template based on the review type
+ * 2. Prepares file content with proper language formatting
+ * 3. Creates a directory structure summary
+ * 4. Formats any available project documentation
+ * 5. Sends the combined information to the Gemini API
+ * 6. Processes and returns the response with cost information
+ *
+ * @param files Array of file information objects containing content and metadata
+ * @param projectName Name of the project being reviewed
+ * @param reviewType Type of review to perform (quick, security, performance)
+ * @param projectDocs Optional project documentation to include in the review context
+ * @param options Review options including interactive mode and output format
+ * @returns Promise resolving to the review result
+ * @throws Error if the review generation fails
+ */
 export async function generateConsolidatedReview(
   files: FileInfo[],
   projectName: string,
@@ -667,6 +713,28 @@ ${fileSummaries}`;
   }
 }
 
+/**
+ * Generate an architectural review for a project
+ *
+ * This function analyzes multiple files to provide a high-level architectural review
+ * of a project. It focuses on code organization, design patterns, modularity,
+ * and overall architecture rather than individual file issues.
+ *
+ * The function:
+ * 1. Loads the architectural review prompt template
+ * 2. Prepares file summaries (truncated to avoid token limits)
+ * 3. Creates a directory structure summary
+ * 4. Formats any available project documentation
+ * 5. Sends the combined information to the Gemini API
+ * 6. Processes and returns the response
+ *
+ * @param files Array of file information objects containing content and metadata
+ * @param projectName Name of the project being reviewed
+ * @param projectDocs Optional project documentation to include in the review context
+ * @param options Review options including interactive mode and output format
+ * @returns Promise resolving to the review result
+ * @throws Error if the review generation fails
+ */
 export async function generateArchitecturalReview(
   files: FileInfo[],
   projectName: string,

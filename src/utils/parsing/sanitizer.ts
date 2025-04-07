@@ -4,7 +4,8 @@
  * This module provides sanitization functions to clean user-generated or AI-generated
  * content before rendering or storing it. It uses DOMPurify to remove potentially
  * malicious HTML, JavaScript, and other harmful content while preserving legitimate
- * formatting elements.
+ * formatting elements. It also includes utilities for sanitizing filenames to ensure
+ * they are safe for use in file systems.
  */
 
 import { JSDOM } from 'jsdom';
@@ -46,7 +47,7 @@ export function sanitizeHtml(content: string): string {
         'javascript:', 'data:', 'vbscript:'
       ]
     });
-    
+
     return sanitized;
   } catch (error) {
     logger.error('Error sanitizing HTML content:', error);
@@ -80,7 +81,7 @@ export function sanitizeMarkdown(content: string): string {
       .replace(/data\s*:/gi, 'removed:')
       // Remove vbscript: URLs
       .replace(/vbscript\s*:/gi, 'removed:');
-    
+
     return sanitized;
   } catch (error) {
     logger.error('Error sanitizing Markdown content:', error);
@@ -128,4 +129,26 @@ export function sanitizeContent(
       // For plain text, just remove control characters
       return content.replace(/[\x00-\x1F\x7F]/g, '');
   }
+}
+
+/**
+ * Sanitize a filename to ensure it's safe for use in file systems
+ *
+ * This function removes or replaces characters that are not safe for use in filenames
+ * across different operating systems. It handles null/undefined inputs and preserves
+ * spaces and non-ASCII characters that are generally safe for modern file systems.
+ *
+ * @param filename The filename to sanitize
+ * @returns A sanitized filename safe for use in file systems
+ */
+export function sanitizeFilename(filename: string | null | undefined): string {
+  // Handle null or undefined
+  if (filename === null || filename === undefined) {
+    return '';
+  }
+
+  // Replace invalid characters with underscores
+  // This regex matches characters that are generally unsafe in filenames across platforms:
+  // / \ : * ? " < > | and control characters
+  return filename.replace(/[\/\\:\*\?"<>\|\x00-\x1F\x7F]/g, '_');
 }
