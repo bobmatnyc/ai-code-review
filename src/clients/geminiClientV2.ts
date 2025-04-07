@@ -52,6 +52,7 @@ export class GeminiClient extends BaseAiClient {
   private readonly DEFAULT_MODELS = [
     'gemini-1.5-pro',
     'gemini-1.5-flash',
+    'gemini-1.5-flash-8b',
     'gemini-1.0-pro'
   ];
 
@@ -138,17 +139,13 @@ export class GeminiClient extends BaseAiClient {
   }
 
   /**
-   * Try to initialize with any available model
+   * Initialize with the specified model only, no fallbacks
+   * @param modelName The model name to initialize
    * @returns True if initialization was successful
    */
-  public async initializeAnyModel(): Promise<boolean> {
-    for (const modelName of this.DEFAULT_MODELS) {
-      const success = await this.initialize(modelName);
-      if (success) {
-        return true;
-      }
-    }
-    return false;
+  public async initializeAnyModel(modelName: string = 'gemini-1.5-pro'): Promise<boolean> {
+    // Only try the specified model, no fallbacks
+    return await this.initialize(modelName);
   }
 
   /**
@@ -165,7 +162,22 @@ export class GeminiClient extends BaseAiClient {
   ): Promise<ReviewResult> {
     // Initialize if not already initialized
     if (!this.isInitialized()) {
-      await this.initializeAnyModel();
+      // Extract model name from the full model string (e.g., 'gemini:gemini-1.5-pro' -> 'gemini-1.5-pro')
+      const modelParts = this.config.selectedModel.split(':');
+      const modelName = modelParts.length > 1 ? modelParts[1] : modelParts[0];
+
+      const success = await this.initializeAnyModel(modelName);
+
+      if (!success) {
+        return {
+          filePath: fileInfo.path,
+          reviewType: options.type as ReviewType,
+          content: `Error: Failed to initialize model ${modelName}. Please check if the model is available and your API key is valid.`,
+          timestamp: new Date().toISOString(),
+          isMock: false,
+          modelUsed: modelName
+        };
+      }
     }
 
     // Set up stream handler if streaming is enabled
@@ -287,7 +299,25 @@ export class GeminiClient extends BaseAiClient {
   ): Promise<ReviewResult> {
     // Initialize if not already initialized
     if (!this.isInitialized()) {
-      await this.initializeAnyModel();
+      // Extract model name from the full model string (e.g., 'gemini:gemini-1.5-pro' -> 'gemini-1.5-pro')
+      const modelParts = this.config.selectedModel.split(':');
+      const modelName = modelParts.length > 1 ? modelParts[1] : modelParts[0];
+
+      const success = await this.initializeAnyModel(modelName);
+
+      // Use the first file's path as the filePath or a default if no files
+      const filePath = files.length > 0 ? files[0].path : 'consolidated-review';
+
+      if (!success) {
+        return {
+          filePath,
+          reviewType: options.type as ReviewType,
+          content: `Error: Failed to initialize model ${modelName}. Please check if the model is available and your API key is valid.`,
+          timestamp: new Date().toISOString(),
+          isMock: false,
+          modelUsed: modelName
+        };
+      }
     }
 
     // Set up stream handler if streaming is enabled
