@@ -49,17 +49,17 @@ export function isTestFile(filePath: string): boolean {
 export function shouldExcludeFile(filePath: string, gitignorePatterns: string[]): boolean {
   // Convert Windows paths to Unix-style for consistent pattern matching
   const normalizedPath = filePath.replace(/\\/g, '/');
-  
+
   for (const pattern of gitignorePatterns) {
     // Skip empty lines and comments
     if (!pattern || pattern.startsWith('#')) {
       continue;
     }
-    
+
     // Handle negation patterns (those starting with !)
     const isNegation = pattern.startsWith('!');
     const actualPattern = isNegation ? pattern.slice(1) : pattern;
-    
+
     // Convert glob pattern to regex
     let regexPattern = actualPattern
       // Escape special regex characters
@@ -70,18 +70,18 @@ export function shouldExcludeFile(filePath: string, gitignorePatterns: string[])
       .replace(/\*/g, '[^/]*')
       // Convert glob ? to regex
       .replace(/\?/g, '[^/]');
-    
+
     // Handle directory-specific patterns (those ending with /)
     if (regexPattern.endsWith('/')) {
       regexPattern = `${regexPattern}.*`;
     }
-    
+
     // Create the regex
     const regex = new RegExp(`^${regexPattern}$|^${regexPattern}/|/${regexPattern}$|/${regexPattern}/`);
-    
+
     // Check if the path matches the pattern
     const matches = regex.test(normalizedPath);
-    
+
     if (matches) {
       // If it's a negation pattern and matches, don't exclude
       if (isNegation) {
@@ -91,7 +91,7 @@ export function shouldExcludeFile(filePath: string, gitignorePatterns: string[])
       return true;
     }
   }
-  
+
   // If no patterns matched, don't exclude
   return false;
 }
@@ -103,7 +103,7 @@ export function shouldExcludeFile(filePath: string, gitignorePatterns: string[])
  */
 export function getLanguageForFile(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
-  
+
   switch (ext) {
     case '.ts':
     case '.tsx':
@@ -151,30 +151,30 @@ export async function discoverFiles(
     maxDepth = 10,
     currentDepth = 0
   } = options;
-  
+
   // Check max depth
   if (currentDepth > maxDepth) {
     return [];
   }
-  
+
   try {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
     const files: string[] = [];
-    
+
     for (const entry of entries) {
       const entryPath = path.join(dirPath, entry.name);
-      
+
       // Skip excluded files
       if (shouldExcludeFile(entryPath, excludePatterns)) {
         continue;
       }
-      
+
       if (entry.isDirectory()) {
         // Skip node_modules and .git directories
         if (entry.name === 'node_modules' || entry.name === '.git') {
           continue;
         }
-        
+
         // Recursively discover files in subdirectories
         const subFiles = await discoverFiles(entryPath, {
           excludePatterns,
@@ -182,23 +182,23 @@ export async function discoverFiles(
           maxDepth,
           currentDepth: currentDepth + 1
         });
-        
+
         files.push(...subFiles);
       } else if (entry.isFile()) {
         // Skip test files if not including tests
         if (!includeTests && isTestFile(entryPath)) {
           continue;
         }
-        
+
         // Skip unsupported files
         if (!isSupportedFile(entryPath)) {
           continue;
         }
-        
+
         files.push(entryPath);
       }
     }
-    
+
     return files;
   } catch (error) {
     logger.error(`Error discovering files in ${dirPath}:`, error);
@@ -215,11 +215,11 @@ export async function readFileInfo(filePath: string): Promise<FileInfo> {
   try {
     const content = await fs.readFile(filePath, 'utf-8');
     const language = getLanguageForFile(filePath);
-    
+
     return {
-      filePath,
-      content,
-      language
+      path: filePath,
+      relativePath: filePath,
+      content
     };
   } catch (error) {
     logger.error(`Error reading file ${filePath}:`, error);

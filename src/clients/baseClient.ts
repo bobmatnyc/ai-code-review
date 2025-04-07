@@ -5,7 +5,7 @@
  * to reduce code duplication and standardize the API across different providers.
  */
 
-import { ReviewOptions, ReviewResult, FileInfo, ReviewCost } from '../types/review';
+import { ReviewOptions, ReviewResult, FileInfo, ReviewCost, ReviewType } from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
 import { StreamHandler } from '../utils/streamHandler';
 import { globalRateLimiter } from '../utils/rateLimiter';
@@ -110,12 +110,8 @@ export abstract class BaseAiClient implements IAiClient {
    * @returns StreamHandler instance or undefined
    */
   protected setupStreamHandler(options: ReviewOptions): StreamHandler | undefined {
-    if (options.stream) {
-      return new StreamHandler({
-        onToken: options.onToken,
-        onComplete: options.onComplete,
-        onError: options.onError
-      });
+    if (options.interactive) {
+      return new StreamHandler(options.type as ReviewType, this.config.selectedModel);
     }
     return undefined;
   }

@@ -9,7 +9,7 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { ReviewOptions, ReviewType, FileInfo } from '../types/review';
-import { generateConsolidatedReview } from '../clients/geminiClient';
+import { GeminiClient } from '../clients/geminiClientNew';
 import { generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
 import { generateAnthropicConsolidatedReview, initializeAnthropicClient } from '../clients/anthropicClient';
 import { formatReviewOutput } from '../formatters/outputFormatter';
@@ -112,12 +112,16 @@ export async function handleConsolidatedReview(
 
       logger.info(`Using Gemini API with model: ${modelName}`);
 
-      review = await generateConsolidatedReview(
+      const geminiClient = GeminiClient.getInstance();
+      await geminiClient.initialize(modelName);
+
+      review = await geminiClient.generateConsolidatedReview(
         fileInfos,
-        project,
-        options.type as ReviewType,
-        projectDocs,
-        options
+        {
+          ...options,
+          type: options.type
+        },
+        projectDocs || undefined
       );
     } else if (apiKeyType === 'Anthropic') {
       // Check if we have a valid model name
@@ -143,12 +147,15 @@ export async function handleConsolidatedReview(
     } else {
       // No API keys available, use mock responses
       logger.warn('No API keys available. Using mock responses.');
-      review = await generateConsolidatedReview(
+      const geminiClient = GeminiClient.getInstance();
+
+      review = await geminiClient.generateConsolidatedReview(
         fileInfos,
-        project,
-        options.type as ReviewType,
-        projectDocs,
-        options
+        {
+          ...options,
+          type: options.type
+        },
+        projectDocs || undefined
       );
     }
 

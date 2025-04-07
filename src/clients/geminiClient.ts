@@ -22,6 +22,7 @@ import {
   HarmCategory,
   HarmBlockThreshold
 } from '@google/generative-ai';
+import { globalRateLimiter } from '../utils/rateLimiter';
 import fs from 'fs/promises';
 import path from 'path';
 import {
@@ -31,39 +32,37 @@ import {
   ReviewCost,
   ReviewOptions
 } from '../types/review';
+import { StreamHandler } from '../utils/streamHandler';
 import { getCostInfo, getCostInfoFromText } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 import { loadPromptTemplate } from '../utils/promptLoader';
-import { BaseAiClient } from './baseClient';
-import { getApiKeyForProvider } from '../utils/config';
 
 /**
- * Client for interacting with the Google Gemini API.
- * Extends the BaseAiClient to provide Gemini-specific functionality.
+ * @fileoverview Client for interacting with the Google Gemini API.
+ * Handles API key management, request formatting, response processing,
+ * rate limiting, and cost estimation for code reviews.
+ * Supports mock responses when API key is not available.
  */
-export class GeminiClient extends BaseAiClient {
-  private static instance: GeminiClient;
-  private genAI: GoogleGenerativeAI | null = null;
-  private currentModel: string = '';
 
-  /**
-   * Get the singleton instance of the client
-   * @returns GeminiClient instance
-   */
-  public static getInstance(): GeminiClient {
-    if (!GeminiClient.instance) {
-      GeminiClient.instance = new GeminiClient();
-    }
-    return GeminiClient.instance;
-  }
+/**
+ * API Key for Google Generative AI.
+ * Only uses AI_CODE_REVIEW_GOOGLE_API_KEY.
+ * @type {string | undefined}
+ */
+const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
 
-  /**
-   * Private constructor to enforce singleton pattern
-   */
-  private constructor() {
-    super();
-    this.useMockResponses = !getApiKeyForProvider('gemini');
-  }
+/**
+ * Flag indicating if the client is operating in mock mode (no API key).
+ * @type {boolean}
+ */
+let useMockResponses = false;
+
+/**
+ * Instance of the GoogleGenerativeAI client.
+ * Initialized only if an API key is found and valid.
+ * @type {GoogleGenerativeAI | null}
+ */
+let genAI: GoogleGenerativeAI | null = null;
 
 /**
  * The Gemini model instance to use for generating content.

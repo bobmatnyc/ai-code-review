@@ -1,6 +1,6 @@
 /**
  * @fileoverview Utilities for loading prompt templates.
- * 
+ *
  * This module provides functions for loading prompt templates from the file system,
  * supporting language-specific templates and fallbacks to default templates.
  */
@@ -18,12 +18,18 @@ import { getSchemaInstructions } from '../types/reviewSchema';
  * @returns Promise resolving to the prompt template
  */
 export async function loadPromptTemplate(
-  reviewType: ReviewType, 
-  options?: ReviewOptions
+  reviewType: ReviewType,
+  languageOrOptions?: string | ReviewOptions
 ): Promise<string> {
   // Get the language from options or default to typescript
-  const language = options?.language?.toLowerCase() || 'typescript';
-  
+  let language = 'typescript';
+
+  if (typeof languageOrOptions === 'string') {
+    language = languageOrOptions.toLowerCase();
+  } else if (languageOrOptions?.language) {
+    language = languageOrOptions.language.toLowerCase();
+  }
+
   // Try multiple paths to find the prompt template
   const possiblePaths = [
     // First try the language-specific directory (for local development)
@@ -64,7 +70,7 @@ export async function loadPromptTemplate(
   }
 
   // Process the template
-  promptTemplate = processPromptTemplate(promptTemplate, options);
+  promptTemplate = processPromptTemplate(promptTemplate, typeof languageOrOptions === 'object' ? languageOrOptions : undefined);
 
   return promptTemplate;
 }
@@ -90,7 +96,7 @@ export function processPromptTemplate(
   // Add language-specific instructions if available
   if (options?.language) {
     promptTemplate = promptTemplate.replace(
-      '{{LANGUAGE_INSTRUCTIONS}}', 
+      '{{LANGUAGE_INSTRUCTIONS}}',
       `This code is written in ${options.language.toUpperCase()}. Please provide language-specific advice.`
     );
   } else {
