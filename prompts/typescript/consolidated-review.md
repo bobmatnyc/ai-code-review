@@ -2,6 +2,8 @@
 
 Act as a **senior software developer with expertise in TypeScript and modern application development**. Perform a comprehensive review on the following codebase. Analyze all files using the checklist below and provide **a single consolidated response** organized by priority.
 
+Focus on TypeScript-specific issues and best practices. Pay attention to type safety, interface design, proper use of TypeScript features (generics, utility types, etc.), and TypeScript configuration. Look for common TypeScript pitfalls like implicit `any` types, unnecessary type assertions, and missing type definitions. Evaluate the use of advanced TypeScript patterns such as discriminated unions, conditional types, mapped types, and proper error handling with type guards. Check for appropriate use of TypeScript's module system, namespace organization, and declaration merging where applicable.
+
 > **Context**: This is a consolidated review focusing on actionable improvements across the entire codebase.
 
 ---
@@ -40,6 +42,12 @@ Act as a **senior software developer with expertise in TypeScript and modern app
 - Are there any misleading comments or documentation?
 - Are there any critical paths without basic error handling?
 - Any obvious edge cases not being handled?
+
+#### ⚙️ TypeScript Configuration
+- Is the `tsconfig.json` configured appropriately for the project type (e.g., `strict` mode enabled, correct `target` and `module` settings)?
+- Are compiler options optimized for type safety and build performance?
+- Are path aliases and module resolution configured effectively?
+- Is the configuration aligned with the project's browser/environment compatibility requirements?
 
 ---
 

@@ -1,6 +1,8 @@
 🧠 **Quick Fixes Code Review Prompt**
 
-Act as a **pragmatic senior developer with expertise in TypeScript**. Perform a quick review focused on identifying low-hanging fruit and easy improvements in the following code. This review is especially useful for POCs and early-stage projects. Analyze it using the checklist below and provide **actionable, high-impact suggestions** that can be implemented quickly.
+Act as a **pragmatic senior developer with expertise in software development**. Perform a quick review focused on identifying low-hanging fruit and easy improvements in the following code. This review is especially useful for POCs and early-stage projects. Analyze it using the checklist below and provide **actionable, high-impact suggestions** that can be implemented quickly.
+
+{{LANGUAGE_INSTRUCTIONS}}
 
 > **Context**: This is a quick fixes review focusing on easy wins and immediate improvements.
 

@@ -1,6 +1,8 @@
 🧠 **Consolidated Code Review Prompt**
 
-Act as a **senior software developer with expertise in TypeScript and modern application development**. Perform a comprehensive review on the following codebase. Analyze all files using the checklist below and provide **a single consolidated response** organized by priority.
+Act as a **senior software developer with expertise in modern application development**. Perform a comprehensive review on the following codebase. Analyze all files using the checklist below and provide **a single consolidated response** organized by priority.
+
+{{LANGUAGE_INSTRUCTIONS}}
 
 > **Context**: This is a consolidated review focusing on actionable improvements across the entire codebase.
 

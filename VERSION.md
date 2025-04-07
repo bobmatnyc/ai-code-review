@@ -2,6 +2,77 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.1.30] - 2024-04-07
+
+### Fixed
+- Fixed issue with Gemini 2.5 Pro model generating section headers in Hindi
+- Updated all review prompts to explicitly specify English output
+- Added language specification to ensure consistent output format
+- Improved prompt clarity for all review types
+
+## [1.1.29] - 2024-04-07
+
+### Added
+- Added `--listmodels` flag to display all available models
+- Implemented comprehensive model listing utility
+- Added detailed information about model availability based on API keys
+- Included context window sizes and descriptions for all models
+- Grouped models by provider for better organization
+
+## [1.1.28] - 2024-04-07
+
+### Added
+- Added OpenAI API key configuration to .env.example
+- Added direct OpenAI models to the model structure
+- Updated API utilities to support OpenAI as a provider
+- Added detailed documentation for OpenAI models
+- Improved model selection with OpenAI support
+
+## [1.1.27] - 2024-04-07
+
+### Added
+- Implemented provider-specific token and cost estimators
+- Added separate estimators for Gemini, Anthropic, OpenAI, and OpenRouter
+- Created an estimator factory for selecting the appropriate estimator
+- Updated pricing information based on official sources
+- Enhanced estimation output with provider information
+- Improved model name handling with provider prefixes
+
+## [1.1.26] - 2024-04-07
+
+### Improved
+- Added explicit check for `tsconfig.json` configuration in review prompts
+- Enhanced TypeScript-specific features references with concrete examples
+- Added comprehensive guidance on using the base prompt template
+- Made checklist items more action-oriented for clearer guidance
+- Improved context clarity with specific examples
+- Implemented fixes based on AI code review feedback
+
+## [1.1.25] - 2024-04-07
+
+### Added
+- Added support for Markdown (.md) files in code reviews
+- Expanded file filtering to include documentation files
+- Improved documentation file handling in the review process
+
+## [1.1.24] - 2024-04-07
+
+### Updated
+- Made base prompts language-agnostic to support multiple programming languages
+- Updated TypeScript-specific prompts with TypeScript-focused instructions
+- Improved language-specific prompt organization
+- Enhanced prompt loading to support language-specific directories
+- Added TypeScript-specific best practices and patterns to prompts
+
+## [1.1.23] - 2024-04-07
+
+### Updated
+- Updated token cost estimation with latest pricing from official sources
+- Added support for new Gemini 2.5 models
+- Added tiered pricing for models with context-dependent pricing
+- Improved cost estimation accuracy for all supported models
+- Enhanced model pricing documentation with source references
+
 ## [1.1.22] - 2024-04-06
 
 ### Added

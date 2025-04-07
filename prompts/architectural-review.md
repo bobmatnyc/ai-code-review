@@ -1,6 +1,8 @@
 🧠 **Architectural Code Review Prompt**
 
-Act as a **senior software architect with expertise in TypeScript and modern application development**. Perform an architectural review on the following code. Analyze it using the checklist below. Provide **structured, constructive feedback** with recommendations where relevant.
+Act as a **senior software architect with expertise in modern application development**. Perform an architectural review on the following code. Analyze it using the checklist below. Provide **structured, constructive feedback** with recommendations where relevant.
+
+{{LANGUAGE_INSTRUCTIONS}}
 
 > **Context**: This is an architectural review focusing on code structure, API design, and package organization.
 

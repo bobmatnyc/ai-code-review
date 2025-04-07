@@ -229,6 +229,136 @@ export function getOpenRouterApiKey(): {
 }
 
 /**
+ * Get the Anthropic API key with proper precedence handling
+ * @returns Object containing the API key and information about which key was used
+ */
+export function getAnthropicApiKey(): {
+  apiKey: string | undefined;
+  source: string;
+  message: string;
+} {
+  // Check if debug mode is enabled
+  const isDebugMode = process.argv.includes('--debug');
+
+  // Helper function for debug logging
+  function debugLog(message: string): void {
+    if (isDebugMode) {
+      console.log(`\x1b[36m[DEBUG]\x1b[0m ${message}`);
+    }
+  }
+
+  // Check for API keys in order of preference
+  const apiKeyNew = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
+  const apiKeyLegacy = process.env.CODE_REVIEW_ANTHROPIC_API_KEY;
+  const apiKeyGeneric = process.env.ANTHROPIC_API_KEY;
+
+  // Preferred key: AI_CODE_REVIEW_ANTHROPIC_API_KEY
+  if (apiKeyNew) {
+    debugLog('Anthropic API key found: AI_CODE_REVIEW_ANTHROPIC_API_KEY');
+    return {
+      apiKey: apiKeyNew,
+      source: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
+      message: 'Using AI_CODE_REVIEW_ANTHROPIC_API_KEY'
+    };
+  }
+
+  // Legacy key: CODE_REVIEW_ANTHROPIC_API_KEY
+  if (apiKeyLegacy) {
+    console.warn('Warning: Using deprecated environment variable CODE_REVIEW_ANTHROPIC_API_KEY. Please switch to AI_CODE_REVIEW_ANTHROPIC_API_KEY.');
+    debugLog('Anthropic API key found: CODE_REVIEW_ANTHROPIC_API_KEY (deprecated)');
+    return {
+      apiKey: apiKeyLegacy,
+      source: 'CODE_REVIEW_ANTHROPIC_API_KEY',
+      message: 'Using deprecated CODE_REVIEW_ANTHROPIC_API_KEY'
+    };
+  }
+
+  // Fallback to ANTHROPIC_API_KEY
+  if (apiKeyGeneric) {
+    console.warn('Warning: Using generic environment variable ANTHROPIC_API_KEY. Consider using AI_CODE_REVIEW_ANTHROPIC_API_KEY for better isolation.');
+    debugLog('Anthropic API key found: ANTHROPIC_API_KEY');
+    return {
+      apiKey: apiKeyGeneric,
+      source: 'ANTHROPIC_API_KEY',
+      message: 'Using ANTHROPIC_API_KEY'
+    };
+  }
+
+  // No API key found
+  return {
+    apiKey: undefined,
+    source: 'none',
+    message: 'No Anthropic API key found. Please set AI_CODE_REVIEW_ANTHROPIC_API_KEY in your .env.local file.'
+  };
+}
+
+/**
+ * Get the OpenAI API key with proper precedence handling
+ * @returns Object containing the API key and information about which key was used
+ */
+export function getOpenAIApiKey(): {
+  apiKey: string | undefined;
+  source: string;
+  message: string;
+} {
+  // Check if debug mode is enabled
+  const isDebugMode = process.argv.includes('--debug');
+
+  // Helper function for debug logging
+  function debugLog(message: string): void {
+    if (isDebugMode) {
+      console.log(`\x1b[36m[DEBUG]\x1b[0m ${message}`);
+    }
+  }
+
+  // Check for API keys in order of preference
+  const apiKeyNew = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
+  const apiKeyLegacy = process.env.CODE_REVIEW_OPENAI_API_KEY;
+  const apiKeyGeneric = process.env.OPENAI_API_KEY;
+
+  // Preferred key: AI_CODE_REVIEW_OPENAI_API_KEY
+  if (apiKeyNew) {
+    debugLog('OpenAI API key found: AI_CODE_REVIEW_OPENAI_API_KEY');
+    return {
+      apiKey: apiKeyNew,
+      source: 'AI_CODE_REVIEW_OPENAI_API_KEY',
+      message: 'Using AI_CODE_REVIEW_OPENAI_API_KEY'
+    };
+  }
+
+  // Legacy key: CODE_REVIEW_OPENAI_API_KEY
+  if (apiKeyLegacy) {
+    console.warn('Warning: Using deprecated environment variable CODE_REVIEW_OPENAI_API_KEY. Please switch to AI_CODE_REVIEW_OPENAI_API_KEY.');
+    debugLog('OpenAI API key found: CODE_REVIEW_OPENAI_API_KEY (deprecated)');
+    return {
+      apiKey: apiKeyLegacy,
+      source: 'CODE_REVIEW_OPENAI_API_KEY',
+      message: 'Using deprecated CODE_REVIEW_OPENAI_API_KEY'
+    };
+  }
+
+  // Fallback to OPENAI_API_KEY
+  if (apiKeyGeneric) {
+    console.warn('Warning: Using generic environment variable OPENAI_API_KEY. Consider using AI_CODE_REVIEW_OPENAI_API_KEY for better isolation.');
+    debugLog('OpenAI API key found: OPENAI_API_KEY');
+    return {
+      apiKey: apiKeyGeneric,
+      source: 'OPENAI_API_KEY',
+      message: 'Using OPENAI_API_KEY'
+    };
+  }
+
+  // No API key found
+  return {
+    apiKey: undefined,
+    source: 'none',
+    message: 'No OpenAI API key found. Please set AI_CODE_REVIEW_OPENAI_API_KEY in your .env.local file.'
+  };
+}
+
+
+
+/**
  * Validate that required environment variables are present
  * @returns Object containing validation result and error message if applicable
  */
@@ -240,9 +370,13 @@ export function validateRequiredEnvVars(): {
   const googleApiKey = getGoogleApiKey();
   // Check for OpenRouter API key
   const openRouterApiKey = getOpenRouterApiKey();
+  // Check for Anthropic API key
+  const anthropicApiKey = getAnthropicApiKey();
+  // Check for OpenAI API key
+  const openaiApiKey = getOpenAIApiKey();
 
   // If we have at least one API key, we're good to go
-  if (googleApiKey.apiKey || openRouterApiKey.apiKey) {
+  if (googleApiKey.apiKey || openRouterApiKey.apiKey || anthropicApiKey.apiKey || openaiApiKey.apiKey) {
     return {
       valid: true,
       message: 'At least one API key is available'

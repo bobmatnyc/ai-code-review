@@ -13,6 +13,7 @@ import logger from '../utils/logger';
 import { getApiKeyType } from '../utils/apiUtils';
 import { runApiConnectionTests } from '../tests/apiConnectionTest';
 import { estimateFromFilePaths, formatEstimation } from '../utils/estimationUtils';
+import { listModels, printCurrentModel } from '../utils/modelLister';
 
 // Import review handlers
 import { handleConsolidatedReview } from '../handlers/consolidatedReviewHandler';
@@ -35,6 +36,13 @@ export async function orchestrateReview(
       logger.debug(`Target path: ${target}`);
       logger.debug(`Selected model: ${process.env.AI_CODE_REVIEW_MODEL || 'not set'}`);
       logger.debug(`API key type: ${getApiKeyType() || 'None'}`);
+    }
+
+    // If listmodels flag is set, list available models and exit
+    if (options.listmodels) {
+      logger.info('Listing available models based on configured API keys...');
+      listModels(false); // Show all models, not just available ones
+      return; // Exit after listing models
     }
 
     // Test API connections if requested
@@ -77,7 +85,7 @@ export async function orchestrateReview(
       logger.info('Calculating token usage and cost estimates...');
 
       // Get the model name from environment variables
-      const modelName = process.env.AI_CODE_REVIEW_MODEL?.split(':')[1] || 'gemini-1.5-pro';
+      const modelName = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 
       // Estimate token usage and cost
       const estimation = await estimateFromFilePaths(filesToReview, options.type, modelName);

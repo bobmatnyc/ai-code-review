@@ -1,6 +1,6 @@
 /**
  * @fileoverview Utilities for estimating token usage and costs for code reviews.
- * 
+ *
  * This module provides functions for estimating token usage and costs for code reviews
  * based on file content and model selection. It uses the tokenCounter utilities for
  * basic token counting and cost calculation, and adds specialized functions for
@@ -9,7 +9,7 @@
 
 import path from 'path';
 import fs from 'fs/promises';
-import { estimateTokenCount, calculateCost, formatCost, getCostInfo } from './tokenCounter';
+import { estimateTokenCount, calculateCost, formatCost, getCostInfo, EstimatorFactory } from '../estimators';
 import logger from './logger';
 import { FileInfo } from '../types/review';
 
@@ -52,7 +52,7 @@ export function estimateOutputTokens(inputTokens: number, reviewType: string): n
 export async function estimateReviewCost(
   files: FileInfo[],
   reviewType: string,
-  modelName: string = process.env.AI_CODE_REVIEW_MODEL?.split(':')[1] || 'gemini-1.5-pro'
+  modelName: string = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro'
 ): Promise<{
   inputTokens: number;
   outputTokens: number;
@@ -65,19 +65,19 @@ export async function estimateReviewCost(
   // Calculate total input tokens from all files
   let totalInputTokens = REVIEW_OVERHEAD_TOKENS; // Start with overhead tokens
   let totalFileSize = 0;
-  
+
   for (const file of files) {
     const fileTokens = estimateTokenCount(file.content);
     totalInputTokens += fileTokens;
     totalFileSize += file.content.length;
   }
-  
+
   // Estimate output tokens based on input tokens and review type
   const estimatedOutputTokens = estimateOutputTokens(totalInputTokens, reviewType);
-  
+
   // Calculate cost information
   const costInfo = getCostInfo(totalInputTokens, estimatedOutputTokens, modelName);
-  
+
   return {
     ...costInfo,
     fileCount: files.length,
@@ -97,16 +97,21 @@ export function formatEstimation(
   reviewType: string,
   modelName: string
 ): string {
+  // Extract provider and model if available
+  const [provider, model] = modelName.includes(':') ? modelName.split(':') : [undefined, modelName];
+  const displayModel = model || modelName;
+  const displayProvider = provider ? `${provider.charAt(0).toUpperCase() + provider.slice(1)}` : 'Unknown';
   const fileSizeInKB = (estimation.totalFileSize / 1024).toFixed(2);
-  const averageFileSize = estimation.fileCount > 0 
-    ? ((estimation.totalFileSize / estimation.fileCount) / 1024).toFixed(2) 
+  const averageFileSize = estimation.fileCount > 0
+    ? ((estimation.totalFileSize / estimation.fileCount) / 1024).toFixed(2)
     : '0.00';
-  
+
   return `
 === Token Usage and Cost Estimation ===
 
 Review Type: ${reviewType}
-Model: ${modelName}
+Provider: ${displayProvider}
+Model: ${displayModel}
 Files: ${estimation.fileCount} (${fileSizeInKB} KB total, ${averageFileSize} KB average)
 
 Token Usage:
@@ -131,11 +136,11 @@ Note: This is an estimate based on approximate token counts and may vary
 export async function estimateFromFilePaths(
   filePaths: string[],
   reviewType: string,
-  modelName: string = process.env.AI_CODE_REVIEW_MODEL?.split(':')[1] || 'gemini-1.5-pro'
+  modelName: string = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro'
 ): Promise<ReturnType<typeof estimateReviewCost> extends Promise<infer T> ? T : never> {
   // Read file contents
   const files: FileInfo[] = [];
-  
+
   for (const filePath of filePaths) {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
@@ -148,7 +153,7 @@ export async function estimateFromFilePaths(
       logger.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  
+
   // Estimate cost
   return await estimateReviewCost(files, reviewType, modelName);
 }

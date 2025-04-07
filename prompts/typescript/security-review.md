@@ -2,6 +2,8 @@
 
 Act as a **security engineer with expertise in application security and TypeScript**. Perform a comprehensive security review on the following code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
 
+Focus on TypeScript-specific security considerations. Pay attention to type safety issues that could lead to security vulnerabilities, proper use of TypeScript to prevent common security issues, and TypeScript-specific patterns for secure coding. Consider how TypeScript's type system can be leveraged to enhance security through techniques like tagged unions for state validation, strict null checking, and proper typing of user input. Look for security issues related to type assertions (`as` casts), `any` types that bypass type checking, and improper use of `@ts-ignore` or `@ts-nocheck` comments that might hide security vulnerabilities. Evaluate the use of TypeScript's strict mode settings for preventing common security issues.
+
 > **Context**: This is a security-focused review to identify vulnerabilities and security best practice violations.
 
 ---
@@ -48,7 +50,7 @@ Act as a **security engineer with expertise in application security and TypeScri
 ---
 
 ### 📤 Output Format
-Provide clear, structured feedback using a standard vulnerability reporting format:
+Provide clear, structured feedback in English, using a standard vulnerability reporting format. Use English for all headings and content:
 
 1. **Finding**: Title of the security issue
 2. **Severity**: Critical/High/Medium/Low/Informational

@@ -1,6 +1,8 @@
 🧠 **Security Code Review Prompt**
 
-Act as a **security engineer with expertise in application security and TypeScript**. Perform a comprehensive security review on the following code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
+Act as a **security engineer with expertise in application security**. Perform a comprehensive security review on the following code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
+
+{{LANGUAGE_INSTRUCTIONS}}
 
 > **Context**: This is a security-focused review to identify vulnerabilities and security best practice violations.
 

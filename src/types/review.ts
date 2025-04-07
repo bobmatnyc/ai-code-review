@@ -101,6 +101,11 @@ export interface ReviewOptions {
    * Programming language for the code review
    */
   language?: string;
+
+  /**
+   * Whether to list available models based on configured API keys
+   */
+  listmodels?: boolean;
 }
 
 /**

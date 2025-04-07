@@ -9,9 +9,9 @@ import logger from './logger';
 
 /**
  * Get the available API key type based on the model specified in environment variables
- * @returns The type of API key available ('OpenRouter', 'Google', 'Anthropic', or null if none)
+ * @returns The type of API key available ('OpenRouter', 'Google', 'Anthropic', 'OpenAI', or null if none)
  */
-export function getApiKeyType(): 'OpenRouter' | 'Google' | 'Anthropic' | null {
+export function getApiKeyType(): 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI' | null {
   // Get the model adapter from environment variables
   const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL;
   const adapter = selectedModel ? (selectedModel.includes(':') ? selectedModel.split(':')[0] : 'gemini') : '';
@@ -27,6 +27,9 @@ export function getApiKeyType(): 'OpenRouter' | 'Google' | 'Anthropic' | null {
   if (adapter === 'anthropic' && process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY) {
     return 'Anthropic';
   }
+  if (adapter === 'openai' && process.env.AI_CODE_REVIEW_OPENAI_API_KEY) {
+    return 'OpenAI';
+  }
 
   // If no specific adapter is specified or the preferred adapter doesn't have an API key,
   // check if any API keys are available
@@ -41,6 +44,9 @@ export function getApiKeyType(): 'OpenRouter' | 'Google' | 'Anthropic' | null {
     }
     if (process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY) {
       return 'Anthropic';
+    }
+    if (process.env.AI_CODE_REVIEW_OPENAI_API_KEY) {
+      return 'OpenAI';
     }
   }
 
@@ -88,7 +94,7 @@ export function getModelName(): string {
  * @param apiKeyType The type of API key being used
  * @param modelName The name of the model being used
  */
-export function logModelInfo(apiKeyType: 'OpenRouter' | 'Google' | 'Anthropic' | null, modelName: string): void {
+export function logModelInfo(apiKeyType: 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI' | null, modelName: string): void {
   if (!apiKeyType) {
     logger.warn('No API keys available. Using mock responses.');
     return;
@@ -106,7 +112,10 @@ export function logModelInfo(apiKeyType: 'OpenRouter' | 'Google' | 'Anthropic' |
         logger.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
         break;
       case 'Anthropic':
-        logger.error('Example: AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus');
+        logger.error('Example: AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus-20240229');
+        break;
+      case 'OpenAI':
+        logger.error('Example: AI_CODE_REVIEW_MODEL=openai:gpt-4o');
         break;
     }
 

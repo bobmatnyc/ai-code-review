@@ -35,55 +35,176 @@ export function estimateTokenCount(text: string): number {
 /**
  * Current pricing for various AI models (as of April 2024)
  * Sources:
- * - https://ai.google.dev/pricing
- * - https://openrouter.ai/docs#models
+ * - https://ai.google.dev/gemini-api/docs/pricing
+ * - https://openrouter.ai/models
  */
-const MODEL_PRICING: Record<string, { inputTokenCost: number; outputTokenCost: number }> = {
-  // Gemini models
-  'gemini-1.5-pro': {
-    inputTokenCost: 0.00025,  // Cost per 1K input tokens in USD
-    outputTokenCost: 0.0005,  // Cost per 1K output tokens in USD
+
+/**
+ * Interface for model pricing with standard per-token costs
+ */
+interface StandardPricing {
+  inputTokenCost: number;  // Cost per 1K input tokens in USD
+  outputTokenCost: number; // Cost per 1K output tokens in USD
+  type: 'standard';
+}
+
+/**
+ * Interface for model pricing with tiered costs based on token count
+ */
+interface TieredPricing {
+  type: 'tiered';
+  tiers: {
+    threshold: number;      // Token threshold for this tier
+    inputTokenCost: number;  // Cost per 1K input tokens in USD for this tier
+    outputTokenCost: number; // Cost per 1K output tokens in USD for this tier
+  }[];
+}
+
+/**
+ * Union type for different pricing models
+ */
+type ModelPricing = StandardPricing | TieredPricing;
+
+/**
+ * Pricing information for various AI models
+ */
+const MODEL_PRICING: Record<string, ModelPricing> = {
+  // Gemini 2.5 models
+  'gemini-2.5-pro': {
+    type: 'tiered',
+    tiers: [
+      {
+        threshold: 0,
+        inputTokenCost: 0.00125,  // $1.25 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01,     // $10.00 per 1M tokens (≤200k tokens)
+      },
+      {
+        threshold: 200000,
+        inputTokenCost: 0.0025,    // $2.50 per 1M tokens (>200k tokens)
+        outputTokenCost: 0.015,    // $15.00 per 1M tokens (>200k tokens)
+      }
+    ]
   },
-  'gemini-1.5-flash': {
-    inputTokenCost: 0.000125,
-    outputTokenCost: 0.000375,
+  'gemini-2.5-pro-preview': {
+    type: 'tiered',
+    tiers: [
+      {
+        threshold: 0,
+        inputTokenCost: 0.00125,  // $1.25 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01,     // $10.00 per 1M tokens (≤200k tokens)
+      },
+      {
+        threshold: 200000,
+        inputTokenCost: 0.0025,    // $2.50 per 1M tokens (>200k tokens)
+        outputTokenCost: 0.015,    // $15.00 per 1M tokens (>200k tokens)
+      }
+    ]
   },
-  'gemini-1.0-pro': {
-    inputTokenCost: 0.000125,
-    outputTokenCost: 0.000375,
+  'gemini-2.5-pro-exp': {
+    type: 'tiered',
+    tiers: [
+      {
+        threshold: 0,
+        inputTokenCost: 0.00125,  // $1.25 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01,     // $10.00 per 1M tokens (≤200k tokens)
+      },
+      {
+        threshold: 200000,
+        inputTokenCost: 0.0025,    // $2.50 per 1M tokens (>200k tokens)
+        outputTokenCost: 0.015,    // $15.00 per 1M tokens (>200k tokens)
+      }
+    ]
+  },
+  'gemini-2.0-flash': {
+    type: 'standard',
+    inputTokenCost: 0.0001,      // $0.10 per 1M tokens
+    outputTokenCost: 0.0004,     // $0.40 per 1M tokens
+  },
+  'gemini-2.0-flash-lite': {
+    type: 'standard',
+    inputTokenCost: 0.000075,    // $0.075 per 1M tokens
+    outputTokenCost: 0.0003,     // $0.30 per 1M tokens
   },
 
-  // OpenRouter models (approximate costs)
+  // Gemini 1.5 models
+  'gemini-1.5-pro': {
+    type: 'tiered',
+    tiers: [
+      {
+        threshold: 0,
+        inputTokenCost: 0.00125,  // $1.25 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.005,   // $5.00 per 1M tokens (≤128k tokens)
+      },
+      {
+        threshold: 128000,
+        inputTokenCost: 0.0025,   // $2.50 per 1M tokens (>128k tokens)
+        outputTokenCost: 0.01,    // $10.00 per 1M tokens (>128k tokens)
+      }
+    ]
+  },
+  'gemini-1.5-flash': {
+    type: 'tiered',
+    tiers: [
+      {
+        threshold: 0,
+        inputTokenCost: 0.000075, // $0.075 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.0003,  // $0.30 per 1M tokens (≤128k tokens)
+      },
+      {
+        threshold: 128000,
+        inputTokenCost: 0.00015,  // $0.15 per 1M tokens (>128k tokens)
+        outputTokenCost: 0.0006,  // $0.60 per 1M tokens (>128k tokens)
+      }
+    ]
+  },
+  'gemini-1.5-flash-8b': {
+    type: 'tiered',
+    tiers: [
+      {
+        threshold: 0,
+        inputTokenCost: 0.0000375, // $0.0375 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.00015,  // $0.15 per 1M tokens (≤128k tokens)
+      },
+      {
+        threshold: 128000,
+        inputTokenCost: 0.000075,  // $0.075 per 1M tokens (>128k tokens)
+        outputTokenCost: 0.0003,   // $0.30 per 1M tokens (>128k tokens)
+      }
+    ]
+  },
+
+  // OpenRouter models
   'anthropic/claude-3-opus': {
-    inputTokenCost: 0.015,
-    outputTokenCost: 0.075,
+    type: 'standard',
+    inputTokenCost: 0.015,       // $15.00 per 1M tokens
+    outputTokenCost: 0.075,      // $75.00 per 1M tokens
   },
   'anthropic/claude-3-sonnet': {
-    inputTokenCost: 0.003,
-    outputTokenCost: 0.015,
+    type: 'standard',
+    inputTokenCost: 0.003,       // $3.00 per 1M tokens
+    outputTokenCost: 0.015,      // $15.00 per 1M tokens
   },
   'openai/gpt-4-turbo': {
-    inputTokenCost: 0.01,
-    outputTokenCost: 0.03,
+    type: 'standard',
+    inputTokenCost: 0.01,        // $10.00 per 1M tokens
+    outputTokenCost: 0.03,       // $30.00 per 1M tokens
   },
   'openai/gpt-4o': {
-    inputTokenCost: 0.005,
-    outputTokenCost: 0.015,
+    type: 'standard',
+    inputTokenCost: 0.0025,      // $2.50 per 1M tokens
+    outputTokenCost: 0.01,       // $10.00 per 1M tokens
   },
-  // Removed invalid model: deepseek/deepseek-v3
   'anthropic/claude-2.1': {
-    inputTokenCost: 0.0008,
-    outputTokenCost: 0.0024,
-  },
-  'google/gemini-pro': {
-    inputTokenCost: 0.0005,
-    outputTokenCost: 0.0015,
+    type: 'standard',
+    inputTokenCost: 0.008,       // $8.00 per 1M tokens
+    outputTokenCost: 0.024,      // $24.00 per 1M tokens
   },
 
   // Default fallback pricing
   'default': {
-    inputTokenCost: 0.001,
-    outputTokenCost: 0.002,
+    type: 'standard',
+    inputTokenCost: 0.001,       // $1.00 per 1M tokens
+    outputTokenCost: 0.002,      // $2.00 per 1M tokens
   },
 };
 
@@ -92,7 +213,7 @@ const MODEL_PRICING: Record<string, { inputTokenCost: number; outputTokenCost: n
  * @param modelName Name of the model
  * @returns Pricing information for the model
  */
-function getModelPricing(modelName: string): { inputTokenCost: number; outputTokenCost: number } {
+function getModelPricing(modelName: string): ModelPricing {
   // Handle OpenRouter model names (remove the 'openrouter-' prefix)
   if (modelName.startsWith('openrouter-')) {
     const actualModelName = modelName.substring('openrouter-'.length);
@@ -101,6 +222,29 @@ function getModelPricing(modelName: string): { inputTokenCost: number; outputTok
 
   // Handle Gemini model names
   return MODEL_PRICING[modelName] || MODEL_PRICING['default'];
+}
+
+/**
+ * Calculate the cost for a specific tier
+ * @param tokens Number of tokens
+ * @param tokenCost Cost per 1K tokens
+ * @param tierStart Start of the tier
+ * @param tierEnd End of the tier (or undefined for no upper limit)
+ * @returns Cost for this tier
+ */
+function calculateTierCost(
+  tokens: number,
+  tokenCost: number,
+  tierStart: number,
+  tierEnd?: number
+): number {
+  // Calculate how many tokens fall within this tier
+  const tierTokens = tierEnd
+    ? Math.min(Math.max(0, tokens - tierStart), tierEnd - tierStart)
+    : Math.max(0, tokens - tierStart);
+
+  // Calculate the cost for this tier
+  return (tierTokens / 1000) * tokenCost;
 }
 
 /**
@@ -116,8 +260,45 @@ export function calculateCost(
   modelName: string = 'gemini-1.5-pro'
 ): number {
   const pricing = getModelPricing(modelName);
-  const inputCost = (inputTokens / 1000) * pricing.inputTokenCost;
-  const outputCost = (outputTokens / 1000) * pricing.outputTokenCost;
+
+  let inputCost = 0;
+  let outputCost = 0;
+
+  if (pricing.type === 'standard') {
+    // Standard pricing is simple - just multiply by the cost per token
+    inputCost = (inputTokens / 1000) * pricing.inputTokenCost;
+    outputCost = (outputTokens / 1000) * pricing.outputTokenCost;
+  } else if (pricing.type === 'tiered') {
+    // Tiered pricing requires calculating costs for each tier
+    const tiers = pricing.tiers;
+
+    // Calculate input token cost across tiers
+    for (let i = 0; i < tiers.length; i++) {
+      const tierStart = tiers[i].threshold;
+      const tierEnd = i < tiers.length - 1 ? tiers[i + 1].threshold : undefined;
+
+      inputCost += calculateTierCost(
+        inputTokens,
+        tiers[i].inputTokenCost,
+        tierStart,
+        tierEnd
+      );
+    }
+
+    // Calculate output token cost across tiers
+    for (let i = 0; i < tiers.length; i++) {
+      const tierStart = tiers[i].threshold;
+      const tierEnd = i < tiers.length - 1 ? tiers[i + 1].threshold : undefined;
+
+      outputCost += calculateTierCost(
+        outputTokens,
+        tiers[i].outputTokenCost,
+        tierStart,
+        tierEnd
+      );
+    }
+  }
+
   return inputCost + outputCost;
 }
 

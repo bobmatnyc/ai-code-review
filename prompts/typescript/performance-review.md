@@ -2,6 +2,8 @@
 
 Act as a **performance optimization expert with deep knowledge of TypeScript and runtime optimization**. Perform a detailed performance review on the following code. Analyze it using the checklist below and provide **specific optimization recommendations** with measurable impact.
 
+Focus on TypeScript-specific performance considerations. Pay attention to type system overhead, compilation settings that affect performance (`noUnusedLocals`, `noUnusedParameters`, `removeComments`, etc.), and TypeScript-specific optimizations. Consider how TypeScript features like generics, decorators, and advanced types might impact runtime performance. Evaluate the impact of TypeScript's type erasure, the use of interfaces vs. types for performance, and the potential overhead of complex type operations. Check for proper use of TypeScript's `readonly` arrays and tuples for immutability without runtime overhead.
+
 > **Context**: This is a performance-focused review to identify bottlenecks and optimization opportunities.
 
 ---
@@ -47,7 +49,7 @@ Act as a **performance optimization expert with deep knowledge of TypeScript and
 ---
 
 ### 📤 Output Format
-Provide clear, structured feedback grouped by impact level (High/Medium/Low). For each issue:
+Provide clear, structured feedback in English, grouped by impact level (High/Medium/Low). Use English for all headings and content. For each issue:
 
 1. **Performance Issue**: Description of the performance problem
 2. **Location**: File and line number(s)

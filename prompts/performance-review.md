@@ -1,6 +1,8 @@
 🧠 **Performance Code Review Prompt**
 
-Act as a **performance optimization expert with deep knowledge of TypeScript and runtime optimization**. Perform a detailed performance review on the following code. Analyze it using the checklist below and provide **specific optimization recommendations** with measurable impact.
+Act as a **performance optimization expert with deep knowledge of runtime optimization**. Perform a detailed performance review on the following code. Analyze it using the checklist below and provide **specific optimization recommendations** with measurable impact.
+
+{{LANGUAGE_INSTRUCTIONS}}
 
 > **Context**: This is a performance-focused review to identify bottlenecks and optimization opportunities.
 

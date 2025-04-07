@@ -2,6 +2,8 @@
 
 Act as a **senior software architect with expertise in TypeScript and modern application development**. Perform an architectural review on the following code. Analyze it using the checklist below. Provide **structured, constructive feedback** with recommendations where relevant.
 
+Focus on TypeScript-specific architectural patterns and best practices. Pay attention to module organization (ES Modules vs. namespaces), interface design (`interface` vs. `type`), type definitions, and TypeScript configuration (`tsconfig.json`). Consider how TypeScript features like namespaces, modules, decorators, mapped types, conditional types, and advanced types are being used to structure the codebase. Evaluate the use of TypeScript's module resolution strategies, path aliases, and declaration merging.
+
 > **Context**: This is an architectural review focusing on code structure, API design, and package organization.
 
 ---
@@ -42,10 +44,16 @@ Act as a **senior software architect with expertise in TypeScript and modern app
 - Are there appropriate data transformation layers?
 - Is there a consistent approach to data validation?
 
+#### ⚙️ TypeScript Configuration
+- Is the `tsconfig.json` configured appropriately for the project type (e.g., `strict` mode enabled, correct `target` and `module` settings)?
+- Are compiler options optimized for type safety and build performance?
+- Are path aliases and module resolution configured effectively?
+- Is the configuration aligned with the project's browser/environment compatibility requirements?
+
 ---
 
 ### 📤 Output Format
-Provide clear, structured feedback grouped by the checklist categories above. Include:
+Provide clear, structured feedback in English, grouped by the checklist categories above. Use English for all headings and content. Include:
 1. **Strengths**: What architectural aspects are well-implemented
 2. **Areas for Improvement**: Identified architectural issues
 3. **Recommendations**: Specific suggestions with code examples where appropriate (these are suggestions only, not automatic fixes)

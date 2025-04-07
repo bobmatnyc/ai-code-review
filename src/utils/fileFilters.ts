@@ -4,6 +4,7 @@
  * This module provides functions for identifying, filtering, and selecting files
  * for code review based on various criteria. It handles file discovery, gitignore
  * pattern matching, file extension filtering, and test file identification.
+ * Supported file types include TypeScript, JavaScript, JSON, and Markdown.
  *
  * Key responsibilities:
  * - Discovering files in directories recursively
@@ -124,9 +125,9 @@ export async function getFilesToReview(
   const gitignorePatterns = await getGitignorePatterns(projectRoot);
   // console.log('DEBUG: Gitignore patterns:', gitignorePatterns);
 
-  // Use glob to find all files - only include .js, .ts, .tsx, and .json files
+  // Use glob to find all files - include code and documentation files
   // console.log('DEBUG: Running glob in directory:', targetPath);
-  const allFiles = await glob('**/*.{ts,tsx,js,jsx,json}', {
+  const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md}', {
     cwd: targetPath,
     absolute: true,
     ignore: ['**/node_modules/**', '**/dist/**', '**/build/**']

@@ -2,6 +2,8 @@
 
 Act as a **pragmatic senior developer with expertise in TypeScript**. Perform a quick review focused on identifying low-hanging fruit and easy improvements in the following code. This review is especially useful for POCs and early-stage projects. Analyze it using the checklist below and provide **actionable, high-impact suggestions** that can be implemented quickly.
 
+Focus on TypeScript-specific issues such as type safety, proper interface usage, type assertions, and TypeScript configuration. Look for common TypeScript pitfalls like implicit `any` types, unnecessary type assertions (`as` casts), and missing type definitions. Pay attention to proper use of nullable types (using `| null` or `| undefined`), function parameter and return types, and TypeScript's utility types (`Partial<T>`, `Pick<T>`, `Omit<T>`, etc.). Check for proper error handling with discriminated unions and type guards.
+
 > **Context**: This is a quick fixes review focusing on easy wins and immediate improvements.
 
 ---
@@ -9,37 +11,42 @@ Act as a **pragmatic senior developer with expertise in TypeScript**. Perform a 
 ### ✅ Quick Fixes Evaluation Checklist
 
 #### 🐛 Common Bugs & Issues
-- Are there any obvious bugs or logic errors?
-- Any potential null/undefined issues or type coercion problems?
-- Are there any off-by-one errors or boundary condition issues?
-- Any missing error handling for common failure scenarios?
+- Identify any obvious bugs or logic errors in the code
+- Find potential null/undefined issues or type coercion problems
+- Spot any off-by-one errors or boundary condition issues
+- Highlight missing error handling for common failure scenarios
 
 #### 🧹 Simple Code Improvements
-- Are there any unnecessarily complex code blocks that could be simplified?
-- Any redundant or duplicate code that could be consolidated?
-- Are there obvious performance bottlenecks with simple solutions?
-- Any hardcoded values that should be constants or configuration?
+- Simplify unnecessarily complex code blocks
+- Consolidate redundant or duplicate code
+- Optimize obvious performance bottlenecks with simple solutions
+- Extract hardcoded values into constants or configuration
 
 #### 🔒 Basic Security Concerns
-- Any plaintext secrets or credentials?
-- Simple input validation issues?
-- Basic XSS vulnerabilities in frontend code?
-- Obvious SQL injection or similar issues?
+- Identify any plaintext secrets or credentials
+- Find simple input validation issues
+- Detect basic XSS vulnerabilities in frontend code
+- Spot obvious SQL injection or similar issues
 
 #### 📝 Documentation Quick Wins
-- Are there functions/components missing basic JSDoc comments?
-- Are there complex algorithms without explanatory comments?
-- Are there any misleading comments or documentation?
+- Add basic JSDoc comments to functions/components that lack them
+- Document complex algorithms with explanatory comments
+- Correct any misleading comments or documentation
 
 #### 🧪 Simple Testing Opportunities
-- Are there any critical paths without basic error handling?
-- Any obvious edge cases not being handled?
-- Simple assertions or validations that could be added?
+- Implement basic error handling for critical paths
+- Address obvious edge cases that aren't being handled
+- Add simple assertions or validations to improve code robustness
+
+#### ⚙️ TypeScript Configuration Quick Wins
+- Implement simple improvements to `tsconfig.json` to enhance type safety (e.g., enabling `strict` mode)
+- Adjust compiler options for better error detection
+- Configure path aliases correctly to simplify imports
 
 ---
 
 ### 📤 Output Format
-Provide clear, structured feedback grouped by priority (High/Medium/Low). For each issue:
+Provide clear, structured feedback in English, grouped by priority (High/Medium/Low). Use English for all headings and content. For each issue:
 
 1. **Issue**: Brief description of the problem
 2. **Location**: File and line number(s)

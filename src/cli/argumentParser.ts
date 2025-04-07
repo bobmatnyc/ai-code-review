@@ -106,6 +106,11 @@ export async function parseArguments(): Promise<CliOptions> {
         default: 'typescript',
         describe: 'Programming language for the code review (currently only typescript is supported)',
       })
+      .option('listmodels', {
+        type: 'boolean',
+        default: false,
+        describe: 'List all available models based on configured API keys',
+      })
       .strict() // Report errors for unknown options
       .help()
       .parseAsync();
