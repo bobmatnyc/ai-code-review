@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import path from 'path';
 
-import fetch from 'node-fetch';
+// Using native fetch API (Node.js 18+)
 
 // Load environment variables before running tests
 beforeAll(() => {

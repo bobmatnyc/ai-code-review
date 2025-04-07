@@ -122,12 +122,22 @@ export interface FileInfo {
   /**
    * Relative path from the project root
    */
-  relativePath: string;
+  relativePath?: string;
 
   /**
    * Content of the file
    */
   content: string;
+
+  /**
+   * File extension (without the dot)
+   */
+  extension?: string;
+
+  /**
+   * Filename without path
+   */
+  filename?: string;
 }
 
 /**

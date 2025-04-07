@@ -1,6 +1,6 @@
 /**
  * @fileoverview Utility for generating directory structure representations.
- * 
+ *
  * This module provides functions for generating directory structure
  * representations from file paths, which is useful for providing context
  * in code reviews.
@@ -18,6 +18,9 @@ export function generateDirectoryStructure(files: FileInfo[]): string {
 
   // Build tree structure
   for (const file of files) {
+    // Skip files without relativePath
+    if (!file.relativePath) continue;
+
     const parts = file.relativePath.split('/');
     let current = structure;
 

@@ -13,7 +13,7 @@
  * - Support for different review types
  */
 
-import fetch from 'node-fetch';
+// Using native fetch API (Node.js 18+)
 import { globalRateLimiter } from '../utils/rateLimiter';
 import {
   ReviewType,
@@ -230,8 +230,7 @@ export async function generateOpenAIReview(
           throw new Error('Response body is null');
         }
 
-        // Process the stream using a simpler approach with async iterators
-        let buffer = '';
+        // Process the stream using a simpler approach
 
         // Convert the response to text and process it line by line
         const text = await response.text();
@@ -416,8 +415,7 @@ export async function generateOpenAIConsolidatedReview(
           throw new Error('Response body is null');
         }
 
-        // Process the stream using a simpler approach with async iterators
-        let buffer = '';
+        // Process the stream using a simpler approach
 
         // Convert the response to text and process it line by line
         const text = await response.text();

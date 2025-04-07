@@ -14,7 +14,7 @@
  * - Support for different review types
  */
 
-import fetch from 'node-fetch';
+// Using native fetch API (Node.js 18+)
 import { globalRateLimiter } from '../utils/rateLimiter';
 import {
   ReviewType,

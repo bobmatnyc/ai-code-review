@@ -1,13 +1,13 @@
 /**
  * @fileoverview File discovery and filtering module.
- * 
+ *
  * This module is responsible for finding, filtering, and reading files for review.
  * It handles gitignore patterns, test exclusions, and file system operations.
  */
 
 import path from 'path';
 import fs from 'fs/promises';
-import { fileExists, directoryExists, validatePath } from '../utils/fileSystem';
+import { pathExists, isDirectory, isPathWithinCwd } from '../utils/fileSystem';
 import { getFilesToReview as getFilteredFiles } from '../utils/fileFilters';
 import logger from '../utils/logger';
 
@@ -34,29 +34,36 @@ export async function discoverFiles(
 ): Promise<string[]> {
   try {
     // Validate the target path
-    const targetPath = validatePath(target, projectPath);
-    
+    const resolvedTarget = path.resolve(projectPath, target);
+
+    // Check if the path is within the project directory
+    if (!isPathWithinCwd(resolvedTarget)) {
+      throw new Error(`Target must be within the project directory: ${projectPath}`);
+    }
+
+    const targetPath = resolvedTarget;
+
     // Check if the target exists
-    const isFile = await fileExists(targetPath);
-    const isDirectory = await directoryExists(targetPath);
-    
-    if (!isFile && !isDirectory) {
+    const isFileTarget = await pathExists(targetPath) && !(await isDirectory(targetPath));
+    const isDirectoryTarget = await isDirectory(targetPath);
+
+    if (!isFileTarget && !isDirectoryTarget) {
       throw new Error(`Target not found: ${target}`);
     }
-    
+
     // Get files to review using the existing filter utility
     const filesToReview = await getFilteredFiles(
       targetPath,
-      isFile,
+      isFileTarget,
       includeTests
     );
-    
+
     if (filesToReview.length === 0) {
       logger.info('No files found to review.');
     } else {
       logger.info(`Found ${filesToReview.length} files to review.`);
     }
-    
+
     return filesToReview;
   } catch (error) {
     logger.error(`Error discovering files: ${error instanceof Error ? error.message : String(error)}`);
@@ -75,15 +82,15 @@ export async function readFilesContent(
   projectPath: string
 ): Promise<FileInfo[]> {
   const fileInfos: FileInfo[] = [];
-  
+
   for (const filePath of filePaths) {
     try {
       // Read file content
       const fileContent = await fs.readFile(filePath, 'utf-8');
-      
+
       // Get relative path from project root
       const relativePath = path.relative(projectPath, filePath);
-      
+
       // Add to file infos
       fileInfos.push({
         path: filePath,
@@ -95,6 +102,6 @@ export async function readFilesContent(
       // Continue with other files instead of failing completely
     }
   }
-  
+
   return fileInfos;
 }

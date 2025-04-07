@@ -11,13 +11,28 @@
  * - PathGenerator: For generating output paths
  */
 
-// Re-export from PathValidator
-export { 
-  validatePath,
-  fileExists as pathExists,
-  directoryExists as isDirectory,
-  fileExists as isFile
+// Import from PathValidator for aliases
+import {
+  validateTargetPath,
+  pathExists,
+  isDirectory,
+  isFile,
+  isPathWithinCwd
 } from './PathValidator';
+
+// Re-export from PathValidator
+export {
+  validateTargetPath,
+  pathExists,
+  isDirectory,
+  isFile,
+  isPathWithinCwd
+};
+
+// Aliases for backward compatibility
+export const fileExists = pathExists;
+export const directoryExists = isDirectory;
+export const validatePath = validateTargetPath;
 
 // Re-export from FileReader
 export {
@@ -27,12 +42,22 @@ export {
   readFilesInDirectory as findFilesInDirectory
 } from './FileReader';
 
+// Import from FileWriter for aliases
+import {
+  ensureDirectoryExists,
+  writeFile as writeFileImpl,
+  appendFile as appendFileImpl
+} from './FileWriter';
+
 // Re-export from FileWriter
 export {
-  createDirectory as ensureDirectoryExists,
-  writeFile,
-  appendFile
-} from './FileWriter';
+  ensureDirectoryExists,
+  writeFileImpl as writeFile,
+  appendFileImpl as appendFile
+};
+
+// Alias for backward compatibility
+export const createDirectory = ensureDirectoryExists;
 
 // Re-export from PathGenerator
 export {

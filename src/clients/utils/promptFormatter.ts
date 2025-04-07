@@ -67,7 +67,7 @@ Please review this code and provide feedback according to the instructions.`;
 export function formatConsolidatedReviewPrompt(
   promptTemplate: string,
   projectName: string,
-  files: Array<{ relativePath: string; content: string; sizeInBytes: number }>,
+  files: Array<{ relativePath?: string; content: string; sizeInBytes: number }>,
   projectDocs?: ProjectDocs | null
 ): string {
   // Format project documentation if available
@@ -75,7 +75,7 @@ export function formatConsolidatedReviewPrompt(
 
   // Convert the file array to FileInfo format for the directory structure generator
   const fileInfos: FileInfo[] = files.map(file => ({
-    path: file.relativePath,
+    path: file.relativePath || file.sizeInBytes.toString(), // Use sizeInBytes as fallback for path
     relativePath: file.relativePath,
     content: file.content
   }));
@@ -85,7 +85,7 @@ export function formatConsolidatedReviewPrompt(
 
   // Prepare file summaries
   const fileSummaries = files
-    .map(file => `- ${file.relativePath} (${file.sizeInBytes} bytes)`)
+    .map(file => `- ${file.relativePath || 'unnamed file'} (${file.sizeInBytes} bytes)`)
     .join('\n');
 
   // Prepare the user prompt
