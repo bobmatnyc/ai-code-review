@@ -7,7 +7,11 @@
  */
 
 import { z } from 'zod';
-import { ReviewSchema, IssuePriority, reviewSchema } from '../types/reviewSchema';
+import {
+  ReviewSchema,
+  IssuePriority,
+  reviewSchema
+} from '../types/reviewSchema';
 import logger from './logger';
 
 /**
@@ -18,9 +22,10 @@ import logger from './logger';
 export function parseReviewJson(jsonString: string): ReviewSchema | null {
   try {
     // Try to extract JSON from the response
-    const jsonMatch = jsonString.match(/```json\s*({[\s\S]*?})\s*```/) ||
-                      jsonString.match(/({[\s\S]*?"review"[\s\S]*?})\s*$/) ||
-                      jsonString.match(/({[\s\S]*})\s*$/);
+    const jsonMatch =
+      jsonString.match(/```json\s*({[\s\S]*?})\s*```/) ||
+      jsonString.match(/({[\s\S]*?"review"[\s\S]*?})\s*$/) ||
+      jsonString.match(/({[\s\S]*})\s*$/);
 
     const jsonContent = jsonMatch ? jsonMatch[1] : jsonString;
 
@@ -33,7 +38,10 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
     if (validationResult.success) {
       return validationResult.data;
     } else {
-      logger.warn('Failed to validate review JSON schema:', validationResult.error.errors);
+      logger.warn(
+        'Failed to validate review JSON schema:',
+        validationResult.error.errors
+      );
 
       // Fallback to basic validation if the schema doesn't match exactly
       // This helps with backward compatibility
@@ -75,14 +83,19 @@ export function extractReviewContent(content: string): string {
  * @param issueIndex The index of the issue
  * @returns The formatted issue string
  */
-export function formatIssueForDisplay(issue: any, fileIndex: number, issueIndex: number): string {
+export function formatIssueForDisplay(
+  issue: any,
+  fileIndex: number,
+  issueIndex: number
+): string {
   const priorityColors = {
     [IssuePriority.HIGH]: '\x1b[31m', // Red
     [IssuePriority.MEDIUM]: '\x1b[33m', // Yellow
-    [IssuePriority.LOW]: '\x1b[32m', // Green
+    [IssuePriority.LOW]: '\x1b[32m' // Green
   };
 
-  const priorityColor = priorityColors[issue.priority as IssuePriority] || '\x1b[37m'; // Default to white
+  const priorityColor =
+    priorityColors[issue.priority as IssuePriority] || '\x1b[37m'; // Default to white
   const reset = '\x1b[0m';
   const bold = '\x1b[1m';
 
@@ -128,7 +141,11 @@ export function displayStructuredReview(parsedReview: ReviewSchema): void {
 
     // Display issues for this file
     file.issues.forEach((issue, issueIndex) => {
-      const formattedIssue = formatIssueForDisplay(issue, fileIndex, issueIndex);
+      const formattedIssue = formatIssueForDisplay(
+        issue,
+        fileIndex,
+        issueIndex
+      );
       logger.info(formattedIssue);
     });
   });

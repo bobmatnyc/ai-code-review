@@ -13,6 +13,7 @@ import { getSchemaInstructions } from '../types/reviewSchema';
 import { generateReview } from '../clients/geminiClient';
 import { generateOpenRouterReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
 import { generateAnthropicReview, initializeAnthropicClient } from '../clients/anthropicClient';
+import { generateOpenAIReview, initializeAnyOpenAIModel } from '../clients/openaiClient';
 import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { readProjectDocs } from '../utils/projectDocs';
@@ -118,6 +119,27 @@ export async function handleIndividualFileReviews(
           await initializeAnthropicClient();
 
           review = await generateAnthropicReview(
+            fileContent,
+            filePath,
+            options.type as ReviewType,
+            projectDocs,
+            options
+          );
+        } else if (apiKeyType === 'OpenAI') {
+          // Check if we have a valid model name
+          if (!modelName) {
+            logger.error('No OpenAI model specified in environment variables.');
+            logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
+            logger.error('Example: AI_CODE_REVIEW_MODEL=openai:gpt-4o');
+            process.exit(1);
+          }
+
+          logger.info(`Using OpenAI API with model: ${modelName}`);
+
+          // Initialize OpenAI model if needed
+          await initializeAnyOpenAIModel();
+
+          review = await generateOpenAIReview(
             fileContent,
             filePath,
             options.type as ReviewType,

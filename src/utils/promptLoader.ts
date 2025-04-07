@@ -35,15 +35,37 @@ export async function loadPromptTemplate(
     // First try the language-specific directory (for local development)
     path.resolve('prompts', language, `${reviewType}-review.md`),
     // Then try the language-specific directory relative to the current file (for npm package)
-    path.resolve(__dirname, '..', '..', 'prompts', language, `${reviewType}-review.md`),
+    path.resolve(
+      __dirname,
+      '..',
+      '..',
+      'prompts',
+      language,
+      `${reviewType}-review.md`
+    ),
     // Then try the language-specific directory relative to the package root (for global installation)
-    path.resolve(__dirname, '..', '..', '..', 'prompts', language, `${reviewType}-review.md`),
+    path.resolve(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'prompts',
+      language,
+      `${reviewType}-review.md`
+    ),
     // Fallback to the root prompts directory (for local development)
     path.resolve('prompts', `${reviewType}-review.md`),
     // Fallback to the root prompts directory relative to the current file (for npm package)
     path.resolve(__dirname, '..', '..', 'prompts', `${reviewType}-review.md`),
     // Fallback to the root prompts directory relative to the package root (for global installation)
-    path.resolve(__dirname, '..', '..', '..', 'prompts', `${reviewType}-review.md`)
+    path.resolve(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'prompts',
+      `${reviewType}-review.md`
+    )
   ];
 
   let lastError: any;
@@ -63,14 +85,22 @@ export async function loadPromptTemplate(
 
   // If we couldn't read any file, throw an error
   if (!promptTemplate) {
-    logger.error(`Error loading prompt template for ${reviewType} (language: ${language}):`, lastError);
+    logger.error(
+      `Error loading prompt template for ${reviewType} (language: ${language}):`,
+      lastError
+    );
     logger.error('Tried the following paths:');
     possiblePaths.forEach(p => logger.error(`- ${p}`));
-    throw new Error(`Failed to load prompt template for ${reviewType} (language: ${language})`);
+    throw new Error(
+      `Failed to load prompt template for ${reviewType} (language: ${language})`
+    );
   }
 
   // Process the template
-  promptTemplate = processPromptTemplate(promptTemplate, typeof languageOrOptions === 'object' ? languageOrOptions : undefined);
+  promptTemplate = processPromptTemplate(
+    promptTemplate,
+    typeof languageOrOptions === 'object' ? languageOrOptions : undefined
+  );
 
   return promptTemplate;
 }
@@ -87,7 +117,10 @@ export function processPromptTemplate(
 ): string {
   // If in interactive mode, include the schema instructions
   if (options?.interactive) {
-    promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', getSchemaInstructions());
+    promptTemplate = promptTemplate.replace(
+      '{{SCHEMA_INSTRUCTIONS}}',
+      getSchemaInstructions()
+    );
   } else {
     // Otherwise, remove the schema instructions placeholder
     promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', '');

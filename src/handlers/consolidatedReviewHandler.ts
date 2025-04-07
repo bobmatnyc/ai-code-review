@@ -9,9 +9,10 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { ReviewOptions, ReviewType, FileInfo } from '../types/review';
-import { GeminiClient } from '../clients/geminiClientNew';
+import { generateConsolidatedReview } from '../clients/geminiClient';
 import { generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
 import { generateAnthropicConsolidatedReview, initializeAnthropicClient } from '../clients/anthropicClient';
+import { generateOpenAIConsolidatedReview, initializeAnyOpenAIModel } from '../clients/openaiClient';
 import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { readProjectDocs } from '../utils/projectDocs';
@@ -112,16 +113,12 @@ export async function handleConsolidatedReview(
 
       logger.info(`Using Gemini API with model: ${modelName}`);
 
-      const geminiClient = GeminiClient.getInstance();
-      await geminiClient.initialize(modelName);
-
-      review = await geminiClient.generateConsolidatedReview(
+      review = await generateConsolidatedReview(
         fileInfos,
-        {
-          ...options,
-          type: options.type
-        },
-        projectDocs || undefined
+        project,
+        options.type as ReviewType,
+        projectDocs,
+        options
       );
     } else if (apiKeyType === 'Anthropic') {
       // Check if we have a valid model name
@@ -144,18 +141,36 @@ export async function handleConsolidatedReview(
         projectDocs,
         options
       );
+    } else if (apiKeyType === 'OpenAI') {
+      // Check if we have a valid model name
+      if (!modelName) {
+        logger.error('No OpenAI model specified in environment variables.');
+        logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
+        logger.error('Example: AI_CODE_REVIEW_MODEL=openai:gpt-4o');
+        process.exit(1);
+      }
+
+      logger.info(`Using OpenAI API with model: ${modelName}`);
+
+      // Initialize OpenAI model if needed
+      await initializeAnyOpenAIModel();
+
+      review = await generateOpenAIConsolidatedReview(
+        fileInfos,
+        project,
+        options.type as ReviewType,
+        projectDocs,
+        options
+      );
     } else {
       // No API keys available, use mock responses
       logger.warn('No API keys available. Using mock responses.');
-      const geminiClient = GeminiClient.getInstance();
-
-      review = await geminiClient.generateConsolidatedReview(
+      review = await generateConsolidatedReview(
         fileInfos,
-        {
-          ...options,
-          type: options.type
-        },
-        projectDocs || undefined
+        project,
+        options.type as ReviewType,
+        projectDocs,
+        options
       );
     }
 
