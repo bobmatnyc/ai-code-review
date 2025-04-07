@@ -10,6 +10,13 @@ import logger from './logger';
 
 /**
  * Base class for API errors
+ *
+ * This class extends the standard Error class to provide additional context
+ * for API-related errors. It includes properties for the HTTP status code
+ * and additional error details from the API response.
+ *
+ * All specific API error types (like AuthenticationError, RateLimitError, etc.)
+ * extend this base class to provide a consistent error handling interface.
  */
 export class ApiError extends Error {
   constructor(
@@ -79,10 +86,33 @@ export class InvalidResponseError extends ApiError {
 
 /**
  * Handle a fetch response and throw appropriate errors if needed
- * @param response The fetch response object
- * @param apiName The name of the API being called (for logging)
- * @returns The response if it's ok
- * @throws ApiError if the response is not ok
+ *
+ * This function processes a fetch response and throws appropriate error types
+ * based on the HTTP status code and response body. It handles common API error
+ * scenarios like authentication failures, rate limiting, and resource not found.
+ *
+ * The function attempts to parse the response body as JSON if possible, or falls
+ * back to text if not. It then constructs an appropriate error object with
+ * detailed information about what went wrong.
+ *
+ * @param response The fetch response object from an API call
+ * @param apiName The name of the API being called (for logging and error messages)
+ * @returns The original response object if the response is ok (status 200-299)
+ * @throws AuthenticationError for 401/403 status codes (authentication/authorization issues)
+ * @throws NotFoundError for 404 status codes (resource not found)
+ * @throws RateLimitError for 429 status codes (rate limit exceeded)
+ * @throws ApiError for all other error status codes
+ * @example
+ * try {
+ *   const response = await fetch('https://api.example.com/data');
+ *   await handleFetchResponse(response, 'ExampleAPI');
+ *   // Process successful response
+ * } catch (error) {
+ *   // Error is already logged and has the appropriate type
+ *   if (error instanceof RateLimitError) {
+ *     // Handle rate limiting specifically
+ *   }
+ * }
  */
 export async function handleFetchResponse(
   response: Response | any,
@@ -171,9 +201,35 @@ export async function safeJsonParse<T>(
 }
 
 /**
- * Log an API error with context information
- * @param error The error that occurred
- * @param context Additional context information
+ * Log an API error with appropriate context and formatting
+ *
+ * This function logs API errors with rich context information to help with debugging
+ * and troubleshooting. It detects the specific type of error and formats the log
+ * message accordingly, providing different information based on the error type.
+ *
+ * The function handles various error types including:
+ * - Rate limit errors (with retry information)
+ * - Authentication errors
+ * - Resource not found errors
+ * - Invalid response errors
+ * - General API errors
+ * - Unexpected errors
+ *
+ * @param error The error object that was thrown
+ * @param context Object containing context information:
+ *   - apiName: The name of the API service (e.g., 'OpenAI', 'Anthropic')
+ *   - operation: The operation being performed (e.g., 'generating review')
+ *   - url: Optional URL for the request that failed
+ * @example
+ * try {
+ *   // API call that might fail
+ * } catch (error) {
+ *   logApiError(error, {
+ *     apiName: 'OpenAI',
+ *     operation: 'generating code review',
+ *     url: 'https://api.openai.com/v1/chat/completions'
+ *   });
+ * }
  */
 export function logApiError(
   error: unknown,

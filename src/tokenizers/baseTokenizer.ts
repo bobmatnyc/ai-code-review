@@ -7,6 +7,13 @@
 
 /**
  * Base interface for tokenizers
+ *
+ * This interface defines the common methods that all tokenizer implementations
+ * must provide. Tokenizers are responsible for counting the number of tokens
+ * in a text string according to the tokenization rules of a specific AI model.
+ *
+ * Different AI models use different tokenization algorithms, so we need separate
+ * implementations for each model family (e.g., GPT, Claude, Gemini).
  */
 export interface Tokenizer {
   /**
@@ -118,19 +125,36 @@ export function getTokenizer(modelName: string): Tokenizer {
     return TokenizerRegistry.getAllTokenizers().find(t => t.getModelName() === 'claude') || new FallbackTokenizer();
   }
 
+  // Check for Gemini models
   if (modelNameLower.includes('gemini')) {
     return TokenizerRegistry.getAllTokenizers().find(t => t.getModelName() === 'gemini') || new FallbackTokenizer();
   }
 
   // If no specific tokenizer matches, fall back to the fallback tokenizer
+  // This ensures we always return a tokenizer even if we don't have a specific
+  // implementation for the requested model
   return new FallbackTokenizer();
 }
 
 /**
  * Count tokens in a text using the appropriate tokenizer for a model
+ *
+ * This function is the main entry point for token counting. It selects the
+ * appropriate tokenizer based on the model name and uses it to count tokens
+ * in the provided text.
+ *
+ * The function handles model name normalization and tokenizer selection,
+ * so callers don't need to worry about which specific tokenizer to use.
+ *
  * @param text Text to count tokens for
- * @param modelName Name of the model
- * @returns Token count
+ * @param modelName Name of the model (e.g., 'gpt-4', 'claude-3-opus', 'gemini-1.5-pro')
+ * @returns Token count as determined by the model's tokenization rules
+ * @example
+ * // Count tokens for a GPT-4 model
+ * const tokens = countTokens('Hello, world!', 'gpt-4');
+ *
+ * // Count tokens for a Claude model
+ * const tokens = countTokens('Hello, world!', 'claude-3-opus');
  */
 export function countTokens(text: string, modelName: string): number {
   const tokenizer = getTokenizer(modelName);

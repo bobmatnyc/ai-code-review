@@ -103,11 +103,31 @@ export async function estimateReviewCost(
 }
 
 /**
- * Format the estimation results for display
- * @param estimation Estimation results
- * @param reviewType Type of review
- * @param modelName Name of the model
- * @returns Formatted estimation string
+ * Format estimation results as a human-readable string
+ *
+ * This function takes the estimation results from estimateReviewCost or estimateFromFilePaths
+ * and formats them into a user-friendly string that can be displayed to the user.
+ *
+ * The formatted string includes:
+ * - Number of files being reviewed
+ * - Total file size
+ * - Input token count
+ * - Estimated output token count
+ * - Total token usage
+ * - Estimated cost in USD
+ *
+ * @param estimation Estimation results from estimateReviewCost or estimateFromFilePaths
+ * @param reviewType Type of review (quick, security, architectural, performance)
+ * @param modelName Name of the model being used
+ * @returns Formatted estimation string ready for display
+ * @example
+ * // Example output:
+ * // Estimation for 5 files (25.5 KB) using gemini-1.5-pro:
+ * // - Review type: quick
+ * // - Input tokens: 5,000
+ * // - Output tokens: 2,500 (estimated)
+ * // - Total tokens: 7,500
+ * // - Estimated Cost: $0.015 USD
  */
 export function formatEstimation(
   estimation: ReturnType<typeof estimateReviewCost> extends Promise<infer T> ? T : never,
