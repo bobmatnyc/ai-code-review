@@ -1,10 +1,12 @@
 /**
  * @fileoverview Type definitions for the structured code review schema.
- * 
- * This module defines the TypeScript interfaces for the structured code review schema
+ *
+ * This module defines the TypeScript interfaces and Zod schemas for the structured code review schema
  * used in interactive mode. The schema is designed to be both human-readable and
  * machine-parseable, making it easy for AI tools to process and act on the review results.
  */
+
+import { z } from 'zod';
 
 /**
  * Priority level for code review issues
@@ -15,6 +17,9 @@ export enum IssuePriority {
   LOW = 'LOW'
 }
 
+// Zod schema for issue priority
+export const issuePrioritySchema = z.nativeEnum(IssuePriority);
+
 /**
  * Location of an issue in the code
  */
@@ -22,6 +27,12 @@ export interface IssueLocation {
   startLine: number;
   endLine: number;
 }
+
+// Zod schema for issue location
+export const issueLocationSchema = z.object({
+  startLine: z.number(),
+  endLine: z.number()
+});
 
 /**
  * A single issue identified in the code review
@@ -36,6 +47,17 @@ export interface ReviewIssue {
   explanation: string;
 }
 
+// Zod schema for review issue
+export const reviewIssueSchema = z.object({
+  id: z.string(),
+  priority: issuePrioritySchema,
+  description: z.string(),
+  location: issueLocationSchema,
+  currentCode: z.string(),
+  suggestedCode: z.string(),
+  explanation: z.string()
+});
+
 /**
  * Review results for a single file
  */
@@ -43,6 +65,12 @@ export interface FileReview {
   filePath: string;
   issues: ReviewIssue[];
 }
+
+// Zod schema for file review
+export const fileReviewSchema = z.object({
+  filePath: z.string(),
+  issues: z.array(reviewIssueSchema)
+});
 
 /**
  * Summary statistics for the code review
@@ -54,6 +82,14 @@ export interface ReviewSummary {
   totalIssues: number;
 }
 
+// Zod schema for review summary
+export const reviewSummarySchema = z.object({
+  highPriorityIssues: z.number(),
+  mediumPriorityIssues: z.number(),
+  lowPriorityIssues: z.number(),
+  totalIssues: z.number()
+});
+
 /**
  * Complete code review results
  */
@@ -64,12 +100,25 @@ export interface CodeReview {
   summary: ReviewSummary;
 }
 
+// Zod schema for code review
+export const codeReviewSchema = z.object({
+  version: z.string(),
+  timestamp: z.string(),
+  files: z.array(fileReviewSchema),
+  summary: reviewSummarySchema
+});
+
 /**
  * Root object for the code review schema
  */
 export interface ReviewSchema {
   review: CodeReview;
 }
+
+// Zod schema for review schema
+export const reviewSchema = z.object({
+  review: codeReviewSchema
+});
 
 /**
  * Get the schema as a string for inclusion in prompts

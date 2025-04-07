@@ -430,6 +430,7 @@ __metadata:
     typescript: "npm:^5.3.3"
     vitest: "npm:^1.0.4"
     yargs: "npm:^17.7.2"
+    zod: "npm:^3.24.2"
   peerDependencies:
     react: "*"
   bin:
@@ -6228,5 +6229,12 @@ __metadata:
   version: 1.2.1
   resolution: "yocto-queue@npm:1.2.1"
   checksum: 10c0/5762caa3d0b421f4bdb7a1926b2ae2189fc6e4a14469258f183600028eb16db3e9e0306f46e8ebf5a52ff4b81a881f22637afefbef5399d6ad440824e9b27f9f
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.24.2":
+  version: 3.24.2
+  resolution: "zod@npm:3.24.2"
+  checksum: 10c0/c638c7220150847f13ad90635b3e7d0321b36cce36f3fc6050ed960689594c949c326dfe2c6fa87c14b126ee5d370ccdebd6efb304f41ef5557a4aaca2824565
   languageName: node
   linkType: hard
