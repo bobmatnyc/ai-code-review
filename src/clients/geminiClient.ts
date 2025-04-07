@@ -146,7 +146,7 @@ import {
   parseModelString,
   getModelMapping,
   getFullModelKey
-} from '../utils/modelMaps';
+} from './utils/modelMaps';
 
 // Parse the model name
 const { provider, modelName } = parseModelString(selectedModel || '');

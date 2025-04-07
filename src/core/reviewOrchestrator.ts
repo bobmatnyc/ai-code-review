@@ -13,7 +13,7 @@ import logger from '../utils/logger';
 import { getApiKeyType } from '../utils/apiUtils';
 import { runApiConnectionTests } from '../tests/apiConnectionTest';
 import { estimateFromFilePaths, formatEstimation } from '../utils/estimationUtils';
-import { listModels, printCurrentModel } from '../utils/modelLister';
+import { listModels, printCurrentModel } from '../clients/utils/modelLister';
 
 // Import review handlers
 import { handleConsolidatedReview } from '../handlers/consolidatedReviewHandler';

@@ -2,7 +2,11 @@
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold
+} from '@google/generative-ai';
 
 // Load environment variables from .env.local
 const envLocalPath = path.resolve(process.cwd(), '.env.local');
@@ -10,10 +14,13 @@ console.log(`Loading environment variables from: ${envLocalPath}`);
 dotenv.config({ path: envLocalPath });
 
 // Get API key
-const apiKey = process.env.GOOGLE_AI_STUDIO_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
+const apiKey =
+  process.env.GOOGLE_AI_STUDIO_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
 
 if (!apiKey) {
-  console.error('No API key found. Please set GOOGLE_AI_STUDIO_KEY or GOOGLE_GENERATIVE_AI_KEY in .env.local');
+  console.error(
+    'No API key found. Please set GOOGLE_AI_STUDIO_KEY or GOOGLE_GENERATIVE_AI_KEY in .env.local'
+  );
   process.exit(1);
 }
 
@@ -22,7 +29,10 @@ if (!apiKey) {
  * @param modelName Name of the model to test
  * @param apiVersion API version to use (v1 or v1beta)
  */
-async function testModel(modelName: string, apiVersion: string = 'v1'): Promise<boolean> {
+async function testModel(
+  modelName: string,
+  apiVersion: string = 'v1'
+): Promise<boolean> {
   try {
     console.log(`Testing model: ${modelName} with ${apiVersion} API...`);
 
@@ -33,9 +43,10 @@ async function testModel(modelName: string, apiVersion: string = 'v1'): Promise<
     const genAI = new GoogleGenerativeAI(apiKey);
 
     // Set the API version using a custom URL if needed
-    const baseUrl = apiVersion === 'v1beta'
-      ? 'https://generativelanguage.googleapis.com/v1beta'
-      : undefined; // Use default for v1
+    const baseUrl =
+      apiVersion === 'v1beta'
+        ? 'https://generativelanguage.googleapis.com/v1beta'
+        : undefined; // Use default for v1
 
     // Get the model
     const model = genAI.getGenerativeModel({
@@ -46,10 +57,12 @@ async function testModel(modelName: string, apiVersion: string = 'v1'): Promise<
 
     // Try a simple generation to verify the model works
     const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: 'Hello, are you available?' }] }],
+      contents: [
+        { role: 'user', parts: [{ text: 'Hello, are you available?' }] }
+      ],
       generationConfig: {
         temperature: 0.2,
-        maxOutputTokens: 100,
+        maxOutputTokens: 100
       },
       safetySettings: [
         {
@@ -74,10 +87,14 @@ async function testModel(modelName: string, apiVersion: string = 'v1'): Promise<
     const response = result.response;
     const text = response.text();
 
-    console.log(`✅ Model ${modelName} is available with ${apiVersion} API. Response: "${text.substring(0, 50)}..."`);
+    console.log(
+      `✅ Model ${modelName} is available with ${apiVersion} API. Response: "${text.substring(0, 50)}..."`
+    );
     return true;
   } catch (error: any) {
-    console.error(`❌ Error testing model ${modelName} with ${apiVersion} API: ${error.message || error}`);
+    console.error(
+      `❌ Error testing model ${modelName} with ${apiVersion} API: ${error.message || error}`
+    );
     return false;
   }
 }
@@ -93,10 +110,7 @@ async function runTest() {
   ];
 
   // Different models to try with v1 API
-  const v1Models = [
-    'gemini-2.0-flash',
-    'gemini-1.5-pro'
-  ];
+  const v1Models = ['gemini-2.0-flash', 'gemini-1.5-pro'];
 
   console.log('\nTesting with v1beta API:');
   console.log('----------------------');

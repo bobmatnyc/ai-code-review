@@ -11,3 +11,6 @@ export * from './directoryStructure';
 export * from './promptLoader';
 export * from './tokenCounter';
 export * from './languageDetection';
+export * from './modelMaps';
+export * from './modelLister';
+export * from './modelTester';

@@ -29,7 +29,7 @@ export interface ModelMapping {
 export const MODEL_MAP: Record<string, ModelMapping> = {
   // Gemini models
   'gemini:gemini-2.5-pro': {
-    apiName: 'gemini-2.5-pro',
+    apiName: 'gemini-2.5-pro-preview-03-25',
     displayName: 'Gemini 2.5 Pro',
     provider: 'gemini',
     useV1Beta: true,
@@ -38,7 +38,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
   },
   'gemini:gemini-2.5-pro-preview': {
-    apiName: 'gemini-2.5-pro-preview',
+    apiName: 'gemini-2.5-pro-preview-03-25',
     displayName: 'Gemini 2.5 Pro Preview',
     provider: 'gemini',
     useV1Beta: true,
@@ -47,7 +47,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
   },
   'gemini:gemini-2.5-pro-exp': {
-    apiName: 'gemini-2.5-pro-exp',
+    apiName: 'gemini-2.5-pro-exp-03-25',
     displayName: 'Gemini 2.5 Pro Experimental',
     provider: 'gemini',
     useV1Beta: true,
@@ -239,7 +239,7 @@ export const MODELS: Record<Provider, string[]> = {
  * @param modelKey The full model key (e.g., 'gemini:gemini-1.5-pro')
  * @returns The API name for the model, or the original model name if not found
  */
-export function getApiModelName(modelKey: string): string {
+export function getApiNameFromKey(modelKey: string): string {
   return MODEL_MAP[modelKey]?.apiName || modelKey.split(':')[1] || modelKey;
 }
 

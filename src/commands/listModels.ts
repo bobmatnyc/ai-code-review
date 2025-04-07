@@ -2,7 +2,7 @@
 
 /**
  * @fileoverview Command to list all available models.
- * 
+ *
  * This module provides a command-line interface for listing all available models
  * based on configured API keys.
  */
@@ -10,7 +10,7 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { loadEnvVariables } from '../utils/envLoader';
-import { listModels, printCurrentModel } from '../utils/modelLister';
+import { listModels, printCurrentModel } from '../clients/utils/modelLister';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
@@ -21,7 +21,7 @@ async function main() {
   // Load environment variables
   const envLocalPath = path.resolve(process.cwd(), '.env.local');
   await loadEnvVariables(envLocalPath);
-  
+
   // Parse command line arguments
   const argv = await yargs(hideBin(process.argv))
     .option('available', {
@@ -38,7 +38,7 @@ async function main() {
     })
     .help()
     .parse();
-  
+
   // Print models
   if (argv.current) {
     printCurrentModel();
