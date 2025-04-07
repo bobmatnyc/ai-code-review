@@ -18,7 +18,7 @@
  */
 
 import { ReviewResult } from '../types/review';
-import { sanitizeContent } from '../utils/sanitizer';
+import { sanitizeContent } from '../utils/parsing/sanitizer';
 
 /**
  * Format the review output based on the specified format
