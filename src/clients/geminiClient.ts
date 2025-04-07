@@ -35,7 +35,7 @@ import {
 import { StreamHandler } from '../utils/streamHandler';
 import { getCostInfo, getCostInfoFromText } from '../utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
-import { getSchemaInstructions } from '../types/reviewSchema';
+import { loadPromptTemplate } from '../utils/promptLoader';
 
 /**
  * @fileoverview Client for interacting with the Google Gemini API.
@@ -246,54 +246,7 @@ if (!useMockResponses) {
 
 // If we get here and useMockResponses is false, we should have a working model
 
-/**
- * Load a prompt template from the prompts directory
- * @param reviewType Type of review to perform
- * @returns Promise resolving to the prompt template
- */
-async function loadPromptTemplate(reviewType: ReviewType, options?: ReviewOptions): Promise<string> {
-  // Try multiple paths to find the prompt template
-  const possiblePaths = [
-    // First try the current directory (for local development)
-    path.resolve('prompts', `${reviewType}-review.md`),
-    // Then try relative to the current file (for npm package)
-    path.resolve(__dirname, '..', '..', 'prompts', `${reviewType}-review.md`),
-    // Then try relative to the package root (for global installation)
-    path.resolve(__dirname, '..', '..', '..', 'prompts', `${reviewType}-review.md`)
-  ];
-
-  let lastError: any;
-  let promptTemplate = '';
-
-  // Try each path in order
-  for (const promptPath of possiblePaths) {
-    try {
-      promptTemplate = await fs.readFile(promptPath, 'utf-8');
-      break; // Exit the loop if we successfully read the file
-    } catch (error) {
-      lastError = error;
-      // Continue to the next path
-    }
-  }
-
-  // If we couldn't read any file, throw an error
-  if (!promptTemplate) {
-    console.error(`Error loading prompt template for ${reviewType}:`, lastError);
-    console.error('Tried the following paths:');
-    possiblePaths.forEach(p => console.error(`- ${p}`));
-    throw new Error(`Failed to load prompt template for ${reviewType}`);
-  }
-
-  // If in interactive mode, include the schema instructions
-  if (options?.interactive) {
-    promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', getSchemaInstructions());
-  } else {
-    // Otherwise, remove the schema instructions placeholder
-    promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', '');
-  }
-
-  return promptTemplate;
-}
+// The loadPromptTemplate function has been moved to src/utils/promptLoader.ts
 
 /**
  * Generate a mock response for testing

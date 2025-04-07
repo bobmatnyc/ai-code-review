@@ -1,6 +1,6 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "1.1.19",
+  "version": "1.1.22",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "bin": {
@@ -69,7 +69,8 @@
     "glob": "^10.3.10",
     "jsdom": "^26.0.0",
     "markdown-it": "^13.0.2",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "yargs": "^17.7.2"
   },
   "peerDependencies": {
     "react": "*"
@@ -81,6 +82,7 @@
     "@types/markdown-it": "^13.0.7",
     "@types/node": "^20.10.5",
     "@types/node-fetch": "^2.6.12",
+    "@types/yargs": "^17.0.33",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",

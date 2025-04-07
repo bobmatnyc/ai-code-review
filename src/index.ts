@@ -132,80 +132,66 @@ if (!hasGoogleKey && !hasOpenRouterKey && !hasAnthropicKey) {
 }
 
 // Import other dependencies after environment setup
-import { Command } from 'commander';
 import { reviewCode } from './commands/reviewCode';
 import { runApiConnectionTests } from './tests/apiConnectionTest';
-
-const program = new Command();
+import { getCommandLineArguments } from './cli/argumentParser';
 
 // Get version from package.json
 const packageJson = require('../package.json');
 
-program
-  .name('ai-code-review')
-  .description('AI-powered code review tool using Google Gemini AI models and OpenRouter API')
-  .version(packageJson.version, '-v, --version', 'Output the current version');
+// Main function to run the application
+async function main() {
+  try {
+    // Parse command-line arguments
+    const args = await getCommandLineArguments();
 
-program
-  .command('test-api')
-  .description('Test API connections to verify API keys')
-  .action(async () => {
-    try {
-      await runApiConnectionTests();
-    } catch (error) {
-      // Format the error message for better readability
-      if (error instanceof Error) {
-        console.error('\x1b[31mError testing API connections:\x1b[0m', error.message);
-      } else {
-        console.error('\x1b[31mError testing API connections:\x1b[0m', error);
-      }
-
-      // Add a helpful message about common API issues
-      console.error('\n\x1b[33mCommon solutions:\x1b[0m');
-      console.error('- Check that your API keys are correctly set in .env.local');
-      console.error('- Verify that your internet connection is working');
-      console.error('- Ensure that the API services are available and not experiencing downtime');
-      console.error('- Check for any rate limiting issues with the API providers');
-
-      process.exit(1);
+    // Check for version flag
+    if (args.version) {
+      console.log(`AI Code Review Tool v${packageJson.version}`);
+      return;
     }
-  });
 
-program
-  .description('Review code in a file or directory within the current project')
-  .argument('<target>', 'File or directory to review (relative to the current directory)')
-  .option('-t, --type <type>', 'Type of review (architectural, quick-fixes, security, performance)', 'quick-fixes')
-  .option('--include-tests', 'Include test files in the review', false)
-  .option('-o, --output <format>', 'Output format (markdown, json)', 'markdown')
-  .option('-d, --include-project-docs', 'Include project documentation (PROJECT.md only) in the context', true)
-  .option('-c, --consolidated', 'Generate a single consolidated review instead of individual file reviews (default: true)', true)
-  .option('--individual', 'Generate individual file reviews instead of a consolidated review', false)
-  .option('-i, --interactive [filter]', 'Display review results with optional priority filter (h=high, m=medium, l=low, a=all)', false)
-  .option('--auto-fix', 'Automatically implement high priority fixes without confirmation', true)
-  .option('--prompt-all', 'Prompt for confirmation on all fixes, including high priority ones', false)
-  .option('--test-api', 'Test API connections before running the review', false)
-  .option('--debug', 'Enable debug mode with additional logging', false)
-  .option('-q, --quiet', 'Suppress non-essential output', false)
-  .option('-h, --help', 'Display help information')
-  .action(async (target, options) => {
-    try {
-      await reviewCode(target, options);
-    } catch (error) {
-      // Format the error message for better readability
-      if (error instanceof Error) {
-        console.error('\x1b[31mError during code review:\x1b[0m', error.message);
-      } else {
-        console.error('\x1b[31mError during code review:\x1b[0m', error);
+    // Check for test-api command
+    if (args.testApi) {
+      try {
+        await runApiConnectionTests();
+        // If we're only testing the API, exit after the test
+        if (args.target === '.') {
+          return;
+        }
+      } catch (error) {
+        // Format the error message for better readability
+        logger.error(`Error testing API connections: ${error instanceof Error ? error.message : String(error)}`);
+
+        // Add a helpful message about common API issues
+        logger.info('\nCommon solutions:');
+        logger.info('- Check that your API keys are correctly set in .env.local');
+        logger.info('- Verify that your internet connection is working');
+        logger.info('- Ensure that the API services are available and not experiencing downtime');
+        logger.info('- Check for any rate limiting issues with the API providers');
+
+        process.exit(1);
       }
-
-      // Add a helpful message about common issues
-      console.error('\n\x1b[33mCommon solutions:\x1b[0m');
-      console.error('- Make sure you are running the command from the correct directory');
-      console.error('- Check that the target path exists and is within the current directory');
-      console.error('- For API issues, run with --test-api to verify your API connections');
-
-      process.exit(1);
     }
-  });
 
-program.parse(process.argv);
+    // Run the code review
+    await reviewCode(args.target, args);
+  } catch (error) {
+    // Format the error message for better readability
+    logger.error(`Error during code review: ${error instanceof Error ? error.message : String(error)}`);
+
+    // Add a helpful message about common issues
+    logger.info('\nCommon solutions:');
+    logger.info('- Make sure you are running the command from the correct directory');
+    logger.info('- Check that the target path exists and is within the current directory');
+    logger.info('- For API issues, run with --test-api to verify your API connections');
+
+    process.exit(1);
+  }
+}
+
+// Run the main function
+main().catch(error => {
+  logger.error(`Unhandled error: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+});

@@ -2,6 +2,35 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.1.22] - 2024-04-06
+
+### Added
+- Added `--language` flag to specify the programming language for code reviews
+- Created language-specific prompt directory structure
+- Moved existing prompts to the TypeScript directory
+- Added centralized prompt loading utility
+- Improved prompt loading with language-specific paths and fallbacks
+- Added language-specific instructions in prompts
+
+## [1.1.21] - 2024-04-06
+
+### Added
+- Added `--estimate` flag to calculate token usage and cost estimates without performing a review
+- Created new utility module for token estimation and pricing
+- Implemented estimation logic based on file content and review type
+- Added detailed output for token usage and cost estimates
+- Improved token counting with review-specific overhead calculations
+
+## [1.1.20] - 2024-04-06
+
+### Improved
+- Refactored code structure for better organization and maintainability
+- Created dedicated modules for CLI argument parsing, file discovery, and review orchestration
+- Simplified the main reviewCode.ts file to follow the Single Responsibility Principle
+- Updated PROJECT.md with accurate environment variable documentation
+- Added yargs for more robust command-line argument parsing
+- Improved error handling and logging throughout the codebase
+
 ## [1.1.19] - 2024-04-06
 
 ### Added

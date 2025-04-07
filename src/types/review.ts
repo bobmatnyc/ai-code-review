@@ -20,7 +20,12 @@
 /**
  * Types of code reviews supported by the tool
  */
-export type ReviewType = 'architectural' | 'quick-fixes' | 'security' | 'performance' | 'consolidated';
+export type ReviewType =
+  | 'architectural'
+  | 'quick-fixes'
+  | 'security'
+  | 'performance'
+  | 'consolidated';
 
 /**
  * Options for the review command
@@ -86,6 +91,16 @@ export interface ReviewOptions {
    * Whether to suppress non-essential output
    */
   quiet?: boolean;
+
+  /**
+   * Whether to estimate token usage and cost without performing the review
+   */
+  estimate?: boolean;
+
+  /**
+   * Programming language for the code review
+   */
+  language?: string;
 }
 
 /**

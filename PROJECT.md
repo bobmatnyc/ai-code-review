@@ -170,10 +170,17 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
 ### Environment Variables
 // Updated: 2023-07-25
 // Updated: 2024-04-05
-- `.env.local` for local development
-- Required variables (either one is sufficient):
-  - `GOOGLE_GENERATIVE_AI_KEY`: API key for Google Generative AI
-  - `GOOGLE_AI_STUDIO_KEY`: Alternative name for the API key (supported for backward compatibility)
+// Updated: 2024-04-06
+- `.env.local` for local development is required.
+- Required variables (use the `AI_CODE_REVIEW_` prefix):
+  - `AI_CODE_REVIEW_GOOGLE_API_KEY`: API key for Google Gemini models.
+  - `AI_CODE_REVIEW_OPENROUTER_API_KEY`: API key for OpenRouter models.
+  - `AI_CODE_REVIEW_ANTHROPIC_API_KEY`: API key for Anthropic models.
+- Model Selection:
+  - `AI_CODE_REVIEW_MODEL`: Specifies the model adapter and name (e.g., `gemini:gemini-1.5-pro`).
+
+> Note: Older variable names like `GOOGLE_GENERATIVE_AI_KEY` or `CODE_REVIEW_*` might still be supported for backward compatibility but are deprecated. Please update to the `AI_CODE_REVIEW_` prefix.
+
 - Improved error handling for missing environment variables
 - Detailed debugging information when environment variables can't be loaded
 
