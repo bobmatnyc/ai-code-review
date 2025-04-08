@@ -1,5 +1,79 @@
 # Project Progress Log
 
+## 2024-04-08 - Version 1.2.0 Release
+
+### Summary
+Today we released version 1.2.0 of the AI Code Review tool, which includes support for multiple AI providers, comprehensive token and cost estimation, model listing, improved code organization, and detailed documentation. This release marks a significant milestone in the project's development, with a focus on multi-provider support, better developer experience, and improved code quality.
+
+### Completed Tasks
+- Released version 1.2.0 to npm
+- Added support for multiple AI providers (Google, Anthropic, OpenAI, OpenRouter)
+- Implemented comprehensive token and cost estimation for all supported models
+- Added model listing feature with `--listmodels` flag
+- Reorganized utility modules to reduce duplication and improve maintainability
+- Added detailed JSDoc comments to key functions and classes
+- Fixed various bugs and improved error handling
+
+### Implementation Details
+
+#### Multi-Provider Support
+The tool now supports multiple AI providers:
+
+1. Google Gemini models:
+   - gemini-2.5-pro
+   - gemini-2.0-flash
+   - gemini-1.5-pro
+   - And more
+
+2. Anthropic Claude models:
+   - claude-3-opus
+   - claude-3-sonnet
+   - claude-3-haiku
+
+3. OpenAI GPT models (via OpenRouter):
+   - gpt-4o
+   - gpt-4-turbo
+   - gpt-3.5-turbo
+
+4. Enhanced environment variable handling:
+   - AI_CODE_REVIEW_GOOGLE_API_KEY
+   - AI_CODE_REVIEW_ANTHROPIC_API_KEY
+   - AI_CODE_REVIEW_OPENAI_API_KEY
+   - AI_CODE_REVIEW_OPENROUTER_API_KEY
+
+#### Token and Cost Estimation
+Implemented provider-specific token and cost estimators:
+
+1. Created abstract estimator base classes
+2. Implemented provider-specific estimators for each AI provider
+3. Created an estimator factory for selecting the appropriate estimator
+4. Enhanced the `--estimate` flag to provide accurate cost estimates
+
+#### Code Organization and Documentation
+1. Reorganized utility modules:
+   - Consolidated model-related utilities in `src/clients/utils/`
+   - Consolidated API utilities in `src/utils/api/`
+   - Consolidated sanitization utilities in `src/utils/parsing/`
+
+2. Added comprehensive JSDoc comments to key functions and classes
+
+3. Fixed bugs and improved error handling
+
+### Current Status
+- Version 1.2.0 released to npm
+- Support for multiple AI providers
+- Comprehensive token and cost estimation
+- Model listing feature
+- Improved code organization and documentation
+- All tests passing
+
+### Next Steps
+- Implement OpenAI client for direct API access
+- Add support for model-specific prompt templates
+- Enhance error handling for different API providers
+- Implement token usage optimization for large codebases
+- Add support for comparing reviews across different models
+
 ## 2024-04-08 - Code Organization, Documentation, and Bug Fixes
 
 ### Summary
@@ -286,12 +360,13 @@ We implemented structured version numbering following semantic versioning princi
 - Core implementation of code review tool
 
 ## To Do
-- [x] Add support for multiple AI providers (Google, Anthropic, OpenAI, OpenRouter)
-- [x] Implement token and cost estimation for all supported models
-- [x] Add model listing feature
-- [x] Fix language issues in model output
-- [x] Improve code organization and reduce duplication
-- [x] Add comprehensive JSDoc comments to key functions
+- [x] Add support for multiple AI providers (Google, Anthropic, OpenAI, OpenRouter) - v1.2.0
+- [x] Implement token and cost estimation for all supported models - v1.2.0
+- [x] Add model listing feature - v1.2.0
+- [x] Fix language issues in model output - v1.2.0
+- [x] Improve code organization and reduce duplication - v1.2.0
+- [x] Add comprehensive JSDoc comments to key functions - v1.2.0
+- [x] Release version 1.2.0 to npm - v1.2.0
 - [ ] Implement OpenAI client for direct API access
 - [ ] Add ESLint and Prettier configuration
 - [ ] Add unit tests for core functionality

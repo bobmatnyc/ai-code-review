@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-04-08
+
+### Added
+- Added support for multiple AI providers (Google, Anthropic, OpenAI, OpenRouter)
+- Added comprehensive token and cost estimation for all supported models
+- Added model listing feature with `--listmodels` flag
+- Added detailed JSDoc comments to key functions and classes
+- Added support for Markdown (.md) files in code reviews
+
+### Changed
+- Reorganized utility modules to reduce duplication and improve maintainability
+- Consolidated model-related utilities in `src/clients/utils/`
+- Consolidated API utilities in `src/utils/api/`
+- Consolidated sanitization utilities in `src/utils/parsing/`
+- Created clear directory structure with appropriate subdirectories
+- Made base prompts language-agnostic to support multiple programming languages
+- Enhanced interactive mode to show ALL issues by default
+
+### Fixed
+- Fixed issue with Gemini 2.5 Pro model generating section headers in Hindi
+- Fixed failing tests in the sanitizer module
+- Fixed import paths to match the new directory structure
+- Fixed model validation to only check models against their respective providers
+- Fixed incorrect preference for OpenRouter over other API providers
+
+## [1.1.0] - 2024-04-07
+
+### Added
+- Direct Anthropic API support for Claude models
+- New environment variable AI_CODE_REVIEW_ANTHROPIC_API_KEY for Anthropic API access
+- Support for anthropic:claude-3-opus-20240229, anthropic:claude-3-sonnet-20240229, and anthropic:claude-3-haiku-20240307 models
+- Updated documentation with Anthropic API information
+
+### Changed
+- Standardized on AI_CODE_REVIEW_* prefix for all environment variables
+- Improved error handling for missing API keys
+- Enhanced model selection logic to support multiple clients
+- Updated .env.example with Anthropic models and API key information
+
 ## [1.0.5] - 2024-04-06
 
 ### Fixed

@@ -2,6 +2,31 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.2.0] - 2024-04-08
+
+### Added
+- Added support for multiple AI providers (Google, Anthropic, OpenAI, OpenRouter)
+- Added comprehensive token and cost estimation for all supported models
+- Added model listing feature with `--listmodels` flag
+- Added detailed JSDoc comments to key functions and classes
+- Added support for Markdown (.md) files in code reviews
+
+### Changed
+- Reorganized utility modules to reduce duplication and improve maintainability
+- Consolidated model-related utilities in `src/clients/utils/`
+- Consolidated API utilities in `src/utils/api/`
+- Consolidated sanitization utilities in `src/utils/parsing/`
+- Created clear directory structure with appropriate subdirectories
+- Made base prompts language-agnostic to support multiple programming languages
+- Enhanced interactive mode to show ALL issues by default
+
+### Fixed
+- Fixed issue with Gemini 2.5 Pro model generating section headers in Hindi
+- Fixed failing tests in the sanitizer module
+- Fixed import paths to match the new directory structure
+- Fixed model validation to only check models against their respective providers
+- Fixed incorrect preference for OpenRouter over other API providers
+
 ## [1.1.31] - 2024-04-08
 
 ### Added

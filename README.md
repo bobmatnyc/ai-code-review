@@ -1,6 +1,15 @@
-# AI Code Review v1.1.0
+# AI Code Review v1.2.0
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, and OpenRouter API (Claude, GPT-4, etc.).
+
+## What's New in v1.2.0
+
+- **Multi-Provider Support**: Added support for multiple AI providers (Google, Anthropic, OpenAI, OpenRouter)
+- **Token and Cost Estimation**: Implemented comprehensive token and cost estimation for all supported models
+- **Model Listing**: Added `--listmodels` flag to display all available models
+- **Improved Code Organization**: Reorganized utility modules to reduce duplication and improve maintainability
+- **Enhanced Documentation**: Added detailed JSDoc comments to key functions and classes
+- **Bug Fixes**: Fixed various issues including language output problems and failing tests
 
 ## Overview
 
@@ -20,10 +29,11 @@ This tool analyzes code from specified files or directories in sibling projects 
 - **Consolidated Reviews**: Generate a single comprehensive review for multiple files
 - **Project Context**: Include project documentation in the review context
 - **Multiple AI Models**: Support for Google's Gemini models, Anthropic Claude models, and OpenRouter API (Claude, GPT-4, etc.)
+- **Model Listing**: List all available models with the `--listmodels` flag
+- **Token and Cost Estimation**: Estimate token usage and cost with the `--estimate` flag
 - **Customizable**: Configure review types, output formats, and prompt templates
 - **Memory Optimized**: Process large codebases efficiently with optimized memory usage
 - **Error Recovery**: Robust error handling with graceful recovery
-- **Cost Estimation**: Track API usage with token and cost estimates
 
 ## Installation
 
@@ -101,6 +111,12 @@ ai-code-review src/index.ts --output json
 
 # Disable including project documentation in the context (enabled by default)
 ai-code-review src/index.ts --no-include-project-docs
+
+# List all available models
+ai-code-review --listmodels
+
+# Estimate token usage and cost without performing a review
+ai-code-review src/utils --estimate
 
 # Check the version of the tool
 ai-code-review --version
@@ -199,24 +215,32 @@ AI_CODE_REVIEW_CONTEXT=README.md,docs/architecture.md,src/types.ts
 
 | Model Name | Description | API Key Required |
 |------------|-------------|------------------|
-| `gemini:gemini-1.5-pro` | Recommended for most code reviews | `CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-1.5-flash` | Faster but less detailed reviews | `CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-2.5-pro` | Latest model with improved capabilities | `CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-2.0-flash` | Balanced performance and quality | `CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-pro` | Legacy model | `CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-pro-latest` | Latest version of legacy model | `CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-1.5-pro` | Recommended for most code reviews | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-1.5-flash` | Faster but less detailed reviews | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-2.5-pro` | Latest model with improved capabilities | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-2.0-flash` | Balanced performance and quality | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-pro` | Legacy model | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-pro-latest` | Latest version of legacy model | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
 
 ### OpenRouter Models
 
 | Model Name | Description | API Key Required |
 |------------|-------------|------------------|
-| `openrouter:anthropic/claude-3-opus` | Highest quality, most detailed reviews | `CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:anthropic/claude-3-sonnet` | Good balance of quality and speed | `CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:openai/gpt-4-turbo` | Strong performance on complex code | `CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:openai/gpt-4o` | Latest OpenAI model | `CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:deepseek/deepseek-v3` | Excellent for code analysis and refactoring | `CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:anthropic/claude-2.1` | Reliable performance | `CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:google/gemini-pro` | Google's model via OpenRouter | `CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:anthropic/claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:anthropic/claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:openai/gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:openai/gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:deepseek/deepseek-v3` | Excellent for code analysis and refactoring | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:anthropic/claude-2.1` | Reliable performance | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:google/gemini-pro` | Google's model via OpenRouter | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+
+### Anthropic Models (Direct API)
+
+| Model Name | Description | API Key Required |
+|------------|-------------|------------------|
+| `anthropic:claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| `anthropic:claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| `anthropic:claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
 
 ## Testing API Connections
 
