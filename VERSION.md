@@ -2,6 +2,27 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.1.31] - 2024-04-08
+
+### Added
+- Added comprehensive JSDoc comments to key functions and classes
+- Added detailed documentation for core modules and complex logic
+- Added examples and parameter descriptions to important functions
+- Added missing `sanitizeFilename` function implementation
+
+### Changed
+- Reorganized utility modules to reduce duplication and improve maintainability
+- Consolidated model-related utilities in `src/clients/utils/`
+- Consolidated API utilities in `src/utils/api/`
+- Consolidated sanitization utilities in `src/utils/parsing/`
+- Created clear directory structure with appropriate subdirectories
+- Added index files for easy importing of utility modules
+
+### Fixed
+- Fixed failing tests in the sanitizer module
+- Fixed import paths to match the new directory structure
+- Updated test files to work with the new module organization
+
 ## [1.1.30] - 2024-04-07
 
 ### Fixed
