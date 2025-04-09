@@ -38,6 +38,7 @@ import { getLanguageFromExtension } from './utils/languageDetection';
 import { generateDirectoryStructure } from './utils';
 import { getModelMapping } from './utils/modelMaps';
 import { formatSingleFileReviewPrompt, formatConsolidatedReviewPrompt } from './utils/promptFormatter';
+import { getConfig, getApiKeyForProvider } from '../utils/config';
 
 /**
  * Default safety settings for Gemini API calls
@@ -62,9 +63,6 @@ const DEFAULT_SAFETY_SETTINGS = [
 ];
 
 const MAX_OUTPUT_TOKENS = 8192;
-
-// API Key for Google Generative AI
-const apiKey: string | undefined = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
 
 // No mock responses are used in this client
 
@@ -96,8 +94,9 @@ function isGeminiModel(): {
   adapter: string;
   modelName: string;
 } {
-  // Get the model from environment variables
-  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
+  // Get the model from configuration
+  const config = getConfig();
+  const selectedModel = config.selectedModel || '';
 
   // Parse the model name
   const [adapter, modelName] = selectedModel.includes(':')
@@ -127,17 +126,20 @@ function initializeGeminiClient(): void {
     return;
   }
 
+  // Get the API key from the config
+  const apiKey = getApiKeyForProvider('gemini');
+
   // Check if we have an API key
   if (!apiKey) {
-    logger.error('No Google API key found in environment variables.');
+    logger.error('No Google API key found in configuration.');
     logger.error('Please add the following to your .env.local file:');
     logger.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
     process.exit(1);
   }
 
   // Log API key status
-  const isDebugMode = process.argv.includes('--debug');
-  if (isDebugMode) {
+  const config = getConfig();
+  if (config.debug) {
     logger.info('Using real Gemini API responses.');
   } else {
     logger.info('API key found. Using real Gemini API responses.');

@@ -93,47 +93,9 @@ if (envFileExists) {
   }
 }
 
-// Check if we have any API keys after all attempts
-const hasGoogleKey = !!process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
-const hasOpenRouterKey = !!process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
-const hasAnthropicKey = !!process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
-
-// Check for model configuration
-const selectedModel = process.env.AI_CODE_REVIEW_MODEL || process.env.CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
-const [adapter, model] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini', selectedModel];
-
-// We can't use t() here because i18n hasn't been initialized yet
-// These messages will always be in English
-if (adapter === 'gemini' && hasGoogleKey) {
-  console.log(`Using Gemini API with model: ${model}`);
-} else if (adapter === 'openrouter' && hasOpenRouterKey) {
-  console.log(`Using OpenRouter API with model: ${model}`);
-} else if (adapter === 'anthropic' && hasAnthropicKey) {
-  console.log(`Using Anthropic API with model: ${model}`);
-} else if (adapter === 'gemini' && !hasGoogleKey) {
-  console.error(`Gemini API key not found but Gemini model selected (${model}).`);
-  console.error('Please add AI_CODE_REVIEW_GOOGLE_API_KEY to your .env.local file.');
-  process.exit(1);
-} else if (adapter === 'openrouter' && !hasOpenRouterKey) {
-  console.error(`OpenRouter API key not found but OpenRouter model selected (${model}).`);
-  console.error('Please add AI_CODE_REVIEW_OPENROUTER_API_KEY to your .env.local file.');
-  process.exit(1);
-} else if (adapter === 'anthropic' && !hasAnthropicKey) {
-  console.error(`Anthropic API key not found but Anthropic model selected (${model}).`);
-  console.error('Please add AI_CODE_REVIEW_ANTHROPIC_API_KEY to your .env.local file.');
-  process.exit(1);
-}
-
-if (!hasGoogleKey && !hasOpenRouterKey && !hasAnthropicKey) {
-  console.error('No API keys are available. Please add at least one API key.');
-  console.error('Please make sure your .env.local file contains one of:');
-  console.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
-  console.error('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
-  console.error('- AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here');
-  process.exit(1);
-}
-
 // Import other dependencies after environment setup
+import { getConfig, validateConfigForSelectedModel, hasAnyApiKey } from './utils/config';
+
 import { reviewCode } from './commands/reviewCode';
 import { runApiConnectionTests } from './tests/apiConnectionTest';
 import { getCommandLineArguments } from './cli/argumentParser';
@@ -148,6 +110,35 @@ async function main() {
   try {
     // Parse command-line arguments
     const args = await getCommandLineArguments();
+
+    // Load and validate configuration with CLI overrides
+    const config = getConfig(args);
+
+    // Check if we have any API keys
+    if (!hasAnyApiKey()) {
+      console.error('No API keys are available. Please add at least one API key.');
+      console.error('Please make sure your .env.local file contains one of:');
+      console.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
+      console.error('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
+      console.error('- AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here');
+      console.error('Or provide an API key via command-line flags:');
+      console.error('- --google-api-key=your_google_api_key_here');
+      console.error('- --openrouter-api-key=your_openrouter_api_key_here');
+      console.error('- --anthropic-api-key=your_anthropic_api_key_here');
+      console.error('- --openai-api-key=your_openai_api_key_here');
+      process.exit(1);
+    }
+
+    // Validate that we have the required API key for the selected model
+    const validationResult = validateConfigForSelectedModel();
+    if (!validationResult.valid) {
+      console.error(validationResult.message);
+      process.exit(1);
+    }
+
+    // Log the selected model
+    const [provider, model] = config.selectedModel.split(':');
+    console.log(`Using ${provider} API with model: ${model}`);
 
     // Initialize i18n with the selected UI language
     await initI18n(args.uiLanguage);

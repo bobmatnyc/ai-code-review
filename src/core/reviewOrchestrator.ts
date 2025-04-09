@@ -15,10 +15,12 @@ import { runApiConnectionTests } from '../tests/apiConnectionTest';
 import { estimateFromFilePaths, formatEstimation } from '../utils/estimationUtils';
 import { listModels, printCurrentModel } from '../clients/utils/modelLister';
 
-// Import review handlers
-import { handleConsolidatedReview } from '../handlers/consolidatedReviewHandler';
-import { handleArchitecturalReview } from '../handlers/architecturalReviewHandler';
-import { handleIndividualFileReviews } from '../handlers/individualReviewHandler';
+// Import strategy-related modules
+import { StrategyFactory } from '../strategies/StrategyFactory';
+import { selectApiClient } from './ApiClientSelector';
+import { readProjectDocs } from '../utils/projectDocs';
+import { saveReviewOutput } from '../core/OutputManager';
+import { displayReviewInteractively } from '../core/InteractiveDisplayManager';
 
 /**
  * Orchestrate the code review process
@@ -120,41 +122,48 @@ export async function orchestrateReview(
     // Create output directory for reviews
     const actualProjectName = projectName || 'unknown-project';
 
-    // Handle different review types based on options
-    if (options.type === 'architectural') {
-      // Architectural reviews analyze the entire codebase structure and design patterns
-      // They provide high-level feedback on architecture, modularity, and code organization
-      await handleArchitecturalReview(
-        actualProjectName,
-        projectPath,
-        filesToReview,
-        outputBaseDir,
-        options,
-        target
-      );
-    } else if (options.individual) {
-      // Process each file individually if --individual flag is set
-      // This generates separate reviews for each file, which is useful for detailed analysis
-      // of specific files but can be verbose for large codebases
-      await handleIndividualFileReviews(
-        actualProjectName,
-        projectPath,
-        filesToReview,
-        outputBaseDir,
-        options
-      );
-    } else {
-      // Generate a consolidated review by default
-      // This combines all files into a single review, providing a holistic analysis
-      // while still highlighting specific issues in individual files
-      await handleConsolidatedReview(
-        actualProjectName,
-        projectPath,
-        filesToReview,
-        outputBaseDir,
-        options,
-        target
-      );
+    // Read file contents
+    const fileInfos = await readFilesContent(filesToReview, projectPath);
+
+    // Read project documentation if enabled
+    let projectDocs = null;
+    if (options.includeProjectDocs) {
+      logger.info('Reading project documentation...');
+      projectDocs = await readProjectDocs(projectPath);
+    }
+
+    // Create and execute the appropriate strategy based on review options
+    logger.info(`Creating ${options.type} review strategy...`);
+    const strategy = StrategyFactory.createStrategy(options);
+
+    // Select the appropriate API client
+    const apiClientConfig = await selectApiClient();
+
+    // Execute the strategy
+    logger.info(`Executing review strategy...`);
+    const review = await strategy.execute(
+      fileInfos,
+      actualProjectName,
+      projectDocs,
+      options,
+      apiClientConfig
+    );
+
+    // Get the target name (last part of the path)
+    const targetName = path.basename(target || 'unknown');
+
+    // Save the review output
+    const outputPath = await saveReviewOutput(
+      review,
+      options,
+      outputBaseDir,
+      apiClientConfig.modelName,
+      targetName
+    );
+
+    // If interactive mode is enabled, display the review results
+    if (options.interactive) {
+      await displayReviewInteractively(outputPath, projectPath, options);
     }
 
     logger.info('Review completed!');

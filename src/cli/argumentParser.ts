@@ -11,12 +11,22 @@ import { hideBin } from 'yargs/helpers';
 import { ReviewOptions, ReviewType } from '../types/review';
 import { OutputFormat, ProgrammingLanguage, VALID_LANGUAGES, VALID_OUTPUT_FORMATS, VALID_REVIEW_TYPES, VALID_PRIORITY_FILTERS } from '../types/common';
 import { SUPPORTED_LANGUAGES } from '../utils/i18n';
+import { LogLevel } from '../utils/logger';
 
 // Extended review options including CLI-specific options
 export interface CliOptions extends ReviewOptions {
   target: string;
   version?: boolean;
   uiLanguage?: string;
+  model?: string;
+  outputDir?: string;
+  logLevel?: string;
+  apiKey?: {
+    google?: string;
+    openrouter?: string;
+    anthropic?: string;
+    openai?: string;
+  };
 }
 import logger from '../utils/logger';
 
@@ -119,9 +129,54 @@ export async function parseArguments(): Promise<CliOptions> {
         default: 'en',
         describe: 'Language for the user interface',
       })
+      .option('model', {
+        alias: 'm',
+        type: 'string',
+        describe: 'Override the model to use (format: provider:model-name)',
+      })
+      .option('output-dir', {
+        type: 'string',
+        describe: 'Override the output directory for review results',
+      })
+      .option('log-level', {
+        choices: ['debug', 'info', 'warn', 'error', 'none'],
+        describe: 'Set the logging level',
+      })
+      .option('google-api-key', {
+        type: 'string',
+        describe: 'Override the Google API key',
+      })
+      .option('openrouter-api-key', {
+        type: 'string',
+        describe: 'Override the OpenRouter API key',
+      })
+      .option('anthropic-api-key', {
+        type: 'string',
+        describe: 'Override the Anthropic API key',
+      })
+      .option('openai-api-key', {
+        type: 'string',
+        describe: 'Override the OpenAI API key',
+      })
       .strict() // Report errors for unknown options
       .help()
       .parseAsync();
+
+    // Process API key overrides
+    const apiKey: CliOptions['apiKey'] = {};
+    if (argv['google-api-key']) apiKey.google = argv['google-api-key'] as string;
+    if (argv['openrouter-api-key']) apiKey.openrouter = argv['openrouter-api-key'] as string;
+    if (argv['anthropic-api-key']) apiKey.anthropic = argv['anthropic-api-key'] as string;
+    if (argv['openai-api-key']) apiKey.openai = argv['openai-api-key'] as string;
+
+    // Add API key overrides to the options
+    if (Object.keys(apiKey).length > 0) {
+      argv.apiKey = apiKey;
+    }
+
+    // Process other config overrides
+    if (argv['output-dir']) argv.outputDir = argv['output-dir'] as string;
+    if (argv['log-level']) argv.logLevel = argv['log-level'] as string;
 
     return argv as CliOptions;
   } catch (error) {
