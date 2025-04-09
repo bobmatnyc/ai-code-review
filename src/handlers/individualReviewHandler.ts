@@ -9,20 +9,24 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { ReviewOptions, ReviewType } from '../types/review';
-import { getSchemaInstructions } from '../types/reviewSchema';
+// Import only the Gemini client by default
 import { generateReview } from '../clients/geminiClient';
-import { generateOpenRouterReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
-import { generateAnthropicReview, initializeAnthropicClient } from '../clients/anthropicClient';
-import { generateOpenAIReview, initializeAnyOpenAIModel } from '../clients/openaiClient';
+
+// Other clients will be dynamically imported based on the selected model
 import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { readProjectDocs } from '../utils/projectDocs';
-import { createDirectory, generateVersionedOutputPath } from '../utils/fileSystem';
+import {
+  createDirectory,
+  generateVersionedOutputPath
+} from '../utils/fileSystem';
 import { displayReviewResults } from '../utils/reviewActionHandler';
 import logger from '../utils/logger';
 
-// Import the getApiKeyType function from a shared utilities file
+// Import utility functions
 import { getApiKeyType } from '../utils/apiUtils';
+import { getPriorityFilterFromArgs } from '../utils/priorityFilter';
+// These clients will be dynamically imported when needed
 
 /**
  * Handle individual file reviews
@@ -68,13 +72,22 @@ export async function handleIndividualFileReviews(
         if (apiKeyType === 'OpenRouter') {
           // Check if we have a valid model name
           if (!modelName) {
-            logger.error('No OpenRouter model specified in environment variables.');
-            logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
-            logger.error('Example: AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus');
+            logger.error(
+              'No OpenRouter model specified in environment variables.'
+            );
+            logger.error(
+              'Please set AI_CODE_REVIEW_MODEL in your .env.local file.'
+            );
+            logger.error(
+              'Example: AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus'
+            );
             process.exit(1);
           }
 
           logger.info(`Using OpenRouter model: ${modelName}`);
+
+          // Dynamically import the OpenRouter client to avoid loading it unnecessarily
+          const { generateOpenRouterReview, initializeAnyOpenRouterModel } = await import('../clients/openRouterClient.js');
 
           // Initialize OpenRouter model if needed
           await initializeAnyOpenRouterModel();
@@ -90,7 +103,9 @@ export async function handleIndividualFileReviews(
           // Check if we have a valid model name
           if (!modelName) {
             logger.error('No Gemini model specified in environment variables.');
-            logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
+            logger.error(
+              'Please set AI_CODE_REVIEW_MODEL in your .env.local file.'
+            );
             logger.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
             process.exit(1);
           }
@@ -107,13 +122,22 @@ export async function handleIndividualFileReviews(
         } else if (apiKeyType === 'Anthropic') {
           // Check if we have a valid model name
           if (!modelName) {
-            logger.error('No Anthropic model specified in environment variables.');
-            logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
-            logger.error('Example: AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus');
+            logger.error(
+              'No Anthropic model specified in environment variables.'
+            );
+            logger.error(
+              'Please set AI_CODE_REVIEW_MODEL in your .env.local file.'
+            );
+            logger.error(
+              'Example: AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus'
+            );
             process.exit(1);
           }
 
           logger.info(`Using Anthropic API with model: ${modelName}`);
+
+          // Dynamically import the Anthropic client to avoid loading it unnecessarily
+          const { generateAnthropicReview, initializeAnthropicClient } = await import('../clients/anthropicClient.js');
 
           // Initialize Anthropic model if needed
           await initializeAnthropicClient();
@@ -129,12 +153,17 @@ export async function handleIndividualFileReviews(
           // Check if we have a valid model name
           if (!modelName) {
             logger.error('No OpenAI model specified in environment variables.');
-            logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
+            logger.error(
+              'Please set AI_CODE_REVIEW_MODEL in your .env.local file.'
+            );
             logger.error('Example: AI_CODE_REVIEW_MODEL=openai:gpt-4o');
             process.exit(1);
           }
 
           logger.info(`Using OpenAI API with model: ${modelName}`);
+
+          // Dynamically import the OpenAI client to avoid loading it unnecessarily
+          const { generateOpenAIReview, initializeAnyOpenAIModel } = await import('../clients/openaiClient.js');
 
           // Initialize OpenAI model if needed
           await initializeAnyOpenAIModel();
@@ -159,12 +188,18 @@ export async function handleIndividualFileReviews(
         }
 
         // Create the output directory for this file
-        const fileOutputDir = path.join(outputBaseDir, path.dirname(relativePath));
+        const fileOutputDir = path.join(
+          outputBaseDir,
+          path.dirname(relativePath)
+        );
         await createDirectory(fileOutputDir);
 
         // Generate a versioned output path for this file
         const extension = options.output === 'json' ? '.json' : '.md';
-        const baseName = path.basename(relativePath, path.extname(relativePath));
+        const baseName = path.basename(
+          relativePath,
+          path.extname(relativePath)
+        );
 
         const outputPath = await generateVersionedOutputPath(
           fileOutputDir,
@@ -201,9 +236,15 @@ export async function handleIndividualFileReviews(
             // Print summary
             logger.info('\n--- Review Summary ---');
             logger.info(`Total issues found: ${results.totalSuggestions}`);
-            logger.info(`High priority issues: ${results.highPrioritySuggestions.length}`);
-            logger.info(`Medium priority issues: ${results.mediumPrioritySuggestions.length}`);
-            logger.info(`Low priority issues: ${results.lowPrioritySuggestions.length}`);
+            logger.info(
+              `High priority issues: ${results.highPrioritySuggestions.length}`
+            );
+            logger.info(
+              `Medium priority issues: ${results.mediumPrioritySuggestions.length}`
+            );
+            logger.info(
+              `Low priority issues: ${results.lowPrioritySuggestions.length}`
+            );
             logger.info('----------------------');
           }
         } catch (error: unknown) {
@@ -231,51 +272,36 @@ export async function handleIndividualFileReviews(
           });
 
           // Check if it's a rate limit error
-          if (apiError.message && apiError.message.includes('Rate limit exceeded')) {
-            logger.error('Rate limit exceeded. The review will continue with a fallback model.');
+          if (
+            apiError.message &&
+            apiError.message.includes('Rate limit exceeded')
+          ) {
+            logger.error(
+              'Rate limit exceeded. The review will continue with a fallback model.'
+            );
             logger.error(`Error details logged to: ${errorLogPath}`);
-            logger.error('You can try again later or reduce the number of files being reviewed.');
+            logger.error(
+              'You can try again later or reduce the number of files being reviewed.'
+            );
           } else {
             logger.error(`Error generating review for ${filePath}:`);
             logger.error(`  Message: ${apiError.message}`);
             logger.error(`  Error details logged to: ${errorLogPath}`);
           }
         } else {
-          logger.error(`Unknown error generating review for ${filePath}: ${String(apiError)}`);
+          logger.error(
+            `Unknown error generating review for ${filePath}: ${String(apiError)}`
+          );
         }
       }
     } catch (fileError: unknown) {
       if (fileError instanceof Error) {
         logger.error(`Error processing file ${filePath}: ${fileError.message}`);
       } else {
-        logger.error(`Unknown error processing file ${filePath}: ${String(fileError)}`);
+        logger.error(
+          `Unknown error processing file ${filePath}: ${String(fileError)}`
+        );
       }
     }
   }
-}
-
-/**
- * Get the priority filter from command line arguments or options
- * @param options Review options that may contain the priority filter
- * @returns The priority filter (h, m, l, or a) or undefined if not specified
- */
-function getPriorityFilterFromArgs(options?: ReviewOptions): 'h' | 'm' | 'l' | 'a' | undefined {
-  // First check if the interactive option is a string (priority filter)
-  if (options && typeof options.interactive === 'string' && ['h', 'm', 'l', 'a'].includes(options.interactive)) {
-    return options.interactive as 'h' | 'm' | 'l' | 'a';
-  }
-
-  // Otherwise check if there's a priority filter argument after --interactive
-  const args = process.argv;
-  const interactiveIndex = args.findIndex(arg => arg === '--interactive' || arg === '-i');
-
-  if (interactiveIndex !== -1 && interactiveIndex < args.length - 1) {
-    const nextArg = args[interactiveIndex + 1];
-    // Check if the next argument is a priority filter and not another option
-    if (['h', 'm', 'l', 'a'].includes(nextArg) && !nextArg.startsWith('-')) {
-      return nextArg as 'h' | 'm' | 'l' | 'a';
-    }
-  }
-
-  return undefined;
 }

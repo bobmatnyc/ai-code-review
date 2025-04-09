@@ -23,22 +23,21 @@ import {
   HarmBlockThreshold
 } from '@google/generative-ai';
 import { globalRateLimiter } from '../utils/rateLimiter';
-import path from 'path';
-import { ApiError, logApiError } from '../utils/apiErrorHandler';
+import { ApiError } from '../utils/apiErrorHandler';
 import logger from '../utils/logger';
 import {
   ReviewType,
   ReviewResult,
   FileInfo,
-  ReviewCost,
   ReviewOptions
 } from '../types/review';
-import { StreamHandler } from '../utils/streamHandler';
 import { getCostInfoFromText } from './utils/tokenCounter';
 import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 import { loadPromptTemplate } from './utils/promptLoader';
 import { getLanguageFromExtension } from './utils/languageDetection';
 import { generateDirectoryStructure } from './utils';
+import { getModelMapping } from './utils/modelMaps';
+import { formatSingleFileReviewPrompt, formatConsolidatedReviewPrompt } from './utils/promptFormatter';
 
 /**
  * Default safety settings for Gemini API calls
@@ -62,12 +61,7 @@ const DEFAULT_SAFETY_SETTINGS = [
   }
 ];
 
-/**
- * @fileoverview Client for interacting with the Google Gemini API.
- * Handles API key management, request formatting, response processing,
- * rate limiting, and cost estimation for code reviews.
- * Supports mock responses when API key is not available.
- */
+const MAX_OUTPUT_TOKENS = 8192;
 
 // API Key for Google Generative AI
 const apiKey: string | undefined = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
@@ -88,190 +82,104 @@ interface CustomModel {
   name: string;
   displayName: string;
   useV1Beta?: boolean;
-  generateContent: (
-    params: any
-  ) => Promise<{ response: { text: () => string } }>;
-  generateContentStream?: (params: any) => Promise<any>;
 }
 
-let model:
-  | ReturnType<GoogleGenerativeAI['getGenerativeModel']>
-  | CustomModel
-  | null = null;
+/**
+ * The model to use for generating content.
+ * @type {CustomModel | null}
+ */
+let selectedGeminiModel: CustomModel | null = null;
 
-// Get the selected adapter from environment variables
-const modelString = process.env.AI_CODE_REVIEW_MODEL || '';
-const [adapterType] = modelString.includes(':')
-  ? modelString.split(':')
-  : ['gemini'];
+// Helper function to check if this is the correct client for the selected model
+function isGeminiModel(): {
+  isCorrect: boolean;
+  adapter: string;
+  modelName: string;
+} {
+  // Get the model from environment variables
+  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
 
-// Only initialize if this is the selected adapter
-if (adapterType !== 'gemini') {
-  // Skip initialization if another adapter is selected
-  // No action needed
-} else if (!apiKey) {
-  console.error('No Google API key found in environment variables.');
-  console.error('Please add the following to your .env.local file:');
-  console.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
-  process.exit(1);
-} else {
+  // Parse the model name
+  const [adapter, modelName] = selectedModel.includes(':')
+    ? selectedModel.split(':')
+    : ['gemini', selectedModel];
+
+  return {
+    isCorrect: adapter === 'gemini',
+    adapter,
+    modelName
+  };
+}
+
+// This function was removed as it's no longer needed with the improved client selection logic
+
+// Initialize the client if needed
+function initializeGeminiClient(): void {
+  const { isCorrect, modelName } = isGeminiModel();
+
+  // If this is not a Gemini model, just return
+  if (!isCorrect) {
+    return;
+  }
+
+  // If we've already initialized, return
+  if (genAI !== null && selectedGeminiModel !== null) {
+    return;
+  }
+
+  // Check if we have an API key
+  if (!apiKey) {
+    logger.error('No Google API key found in environment variables.');
+    logger.error('Please add the following to your .env.local file:');
+    logger.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
+    process.exit(1);
+  }
+
   // Log API key status
   const isDebugMode = process.argv.includes('--debug');
   if (isDebugMode) {
-    console.log('Google API key found: AI_CODE_REVIEW_GOOGLE_API_KEY');
+    logger.info('Using real Gemini API responses.');
   } else {
-    console.log('API key found. Using real Gemini API responses.');
+    logger.info('API key found. Using real Gemini API responses.');
   }
 
-  try {
-    genAI = new GoogleGenerativeAI(apiKey);
-  } catch (error) {
-    console.error('Error initializing GoogleGenerativeAI client:', error);
-    console.error('Please check your API key and try again.');
-    process.exit(1);
+  // Initialize the client
+  genAI = new GoogleGenerativeAI(apiKey);
+
+  // Set the model to use
+  if (!modelName) {
+    throw new Error(
+      'No Gemini model specified. Set AI_CODE_REVIEW_MODEL=gemini:<model_name>.'
+    );
   }
-}
+  const modelToUse = modelName;
+  logger.info(`Initializing Gemini model: ${modelToUse}...`);
 
-// Get the model from environment variables
-const selectedModel = process.env.AI_CODE_REVIEW_MODEL;
-if (!selectedModel) {
-  console.error('No model specified in environment variables.');
-  console.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
-  console.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
-  process.exit(1);
-}
+  // Get the model mapping from the model map
+  const modelKey = `gemini:${modelToUse}`;
+  const modelMapping = getModelMapping(modelKey);
 
-// Import the model maps
-import {
-  parseModelString,
-  getModelMapping,
-  getFullModelKey
-} from './utils/modelMaps';
-
-// Parse the model name
-const { provider, modelName } = parseModelString(selectedModel || '');
-
-// Check if the adapter is Gemini
-if (provider !== 'gemini') {
-  console.error(`Invalid model adapter: ${provider}`);
-  console.error('For Gemini client, the model must start with "gemini:"');
-  console.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
-  process.exit(1);
-}
-
-// Get the full model key
-const fullModelKey = getFullModelKey('gemini', modelName);
-
-// Get the model mapping
-const modelMapping = getModelMapping(fullModelKey);
-
-// Create a model option object
-let formattedModelName = modelName;
-
-// Use the model mapping to get the correct API model name
-if (modelMapping) {
-  formattedModelName = modelMapping.apiName;
-  if (formattedModelName !== modelName) {
-    logger.info(`Using API model name ${formattedModelName} for ${modelName}`);
-  }
-} else {
-  logger.warn(`No model mapping found for ${fullModelKey}. Using model name directly.`);
-}
-
-const modelOption = {
-  name: formattedModelName,
-  displayName: modelName, // Keep the original name for display
-  useV1Beta: modelMapping?.useV1Beta || modelName.includes('2.5') // Use v1beta for 2.5 models
-};
-
-// Export the current model for use in other modules
-export let currentModelDisplayName: string = modelName;
-
-// Initialize the model
-try {
-  logger.info(`Initializing model: ${modelOption.displayName} (API name: ${modelOption.name})...`);
-
-  if (modelOption.useV1Beta) {
-    // For v1beta API, we need to use fetch directly
-    // We'll create a custom model object that uses v1beta API without testing it first
-    // The actual test will happen when the model is used
-
-    // Create a custom model object that uses v1beta API
-    model = {
-      name: modelOption.name,
-      displayName: modelOption.displayName,
-      useV1Beta: true,
-      generateContent: async (params: any) => {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelOption.name}:generateContent?key=${apiKey}`;
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(params)
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          // Check if it's a rate limit error (429)
-          if (response.status === 429) {
-            console.warn(`Rate limit exceeded for ${modelOption.displayName}.`);
-            throw new Error(
-              `Rate limit exceeded for ${modelOption.displayName}`
-            );
-          } else if (response.status === 404) {
-            const error = `Model ${modelOption.name} not found. Please check if the model name is correct.`
-            console.error(error);
-            throw new Error(error);
-          } else {
-            throw new Error(
-              `HTTP error! status: ${response.status}, response: ${errorText}`
-            );
-          }
-        }
-
-        const data = await response.json();
-        return {
-          response: {
-            text: (): string => {
-              if (
-                data.candidates &&
-                data.candidates[0] &&
-                data.candidates[0].content &&
-                data.candidates[0].content.parts &&
-                data.candidates[0].content.parts[0]
-              ) {
-                return data.candidates[0].content.parts[0].text;
-              }
-              return '';
-            }
-          }
-        };
-      }
-    };
-  } else if (genAI) {
-    // For v1 API, use the SDK
-    model = genAI.getGenerativeModel({ model: modelOption.name });
-  } else {
-    throw new Error('Google Generative AI client is not initialized');
+  if (!modelMapping) {
+    throw new Error(`Model ${modelToUse} not found in model map. Please check the model name.`);
   }
 
-  logger.info(`Successfully initialized ${modelOption.displayName}`);
-} catch (error: any) {
-  const errorMessage = `Failed to initialize ${modelOption.displayName}: ${error.message || error}`;
-  logger.error(errorMessage);
-  logger.error('Please check your API key and model name in the environment variables.');
-  logger.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
-  throw new Error(`Failed to initialize Gemini model: ${error.message || error}`);
+  // Set the selected model
+  selectedGeminiModel = {
+    name: modelMapping.apiName,
+    displayName: modelMapping.displayName,
+    useV1Beta: modelMapping.useV1Beta
+  };
+
+  logger.info(`Successfully initialized Gemini model: ${modelToUse} (API name: ${selectedGeminiModel.name})`);
 }
-
-// If we get here, we should have a working model
-
-// The loadPromptTemplate function has been moved to src/utils/promptLoader.ts
 
 /**
  * Generate a code review using the Gemini API
  * @param fileContent Content of the file to review
  * @param filePath Path to the file
  * @param reviewType Type of review to perform
+ * @param projectDocs Optional project documentation
+ * @param options Review options
  * @returns Promise resolving to the review result
  */
 export async function generateReview(
@@ -281,233 +189,98 @@ export async function generateReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
-  // Model name is already logged in reviewCode.ts
+  const { isCorrect, adapter, modelName } = isGeminiModel();
+
+  // With the improved client selection logic, this function should only be called
+  // with Gemini models. If not, something went wrong with the client selection.
+  if (!isCorrect) {
+    throw new Error(
+      `Gemini client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
+      `This is likely a bug in the client selection logic.`
+    );
+  }
+
+  // Initialize the client if needed
+  initializeGeminiClient();
+
+  // The rest of the function remains the same
   try {
+    // Apply rate limiting
+    await globalRateLimiter.acquire();
+
+    // Get the language from the file extension
+    const language = getLanguageFromExtension(filePath);
+
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType, options);
 
-    // Get file extension and language
-    const fileExtension = path.extname(filePath).slice(1);
-    const language = getLanguageFromExtension(fileExtension);
+    // Format the prompt
+    const prompt = formatSingleFileReviewPrompt(
+      promptTemplate,
+      fileContent,
+      filePath,
+      projectDocs
+    );
 
-    let content: string;
-    let cost: ReviewCost | undefined;
-    // No mock responses are used
-    const modelUsed = modelOption.displayName;
+    // Generate the review
+    const response = await generateGeminiResponse(prompt, options);
 
-    // Format the code block with language
-    const codeBlock = `\`\`\`${language}
-${fileContent}
-\`\`\``;
+    // Calculate cost information
+    const cost = getCostInfoFromText(
+      prompt,
+      response,
+      `gemini:${selectedGeminiModel?.name}`
+    );
 
-    // Format project documentation if available
-    const projectContext = projectDocs ? formatProjectDocs(projectDocs) : '';
-
-    // Prepare the prompt with the code and project context
-    const prompt = `${promptTemplate}
-
-${projectContext ? projectContext + '\n\n' : ''}## File: ${filePath}
-
-${codeBlock}`;
-
-    // Check if we should use streaming mode
-    const isInteractive = options?.interactive === true;
-
+    // Try to parse the response as JSON
+    let structuredData = null;
     try {
-      // Acquire a token from the rate limiter before making the request
-      await globalRateLimiter.acquireToken();
+      // First, check if the response is wrapped in a code block
+      const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      const jsonContent = jsonMatch ? jsonMatch[1] : response;
 
-      if (isInteractive) {
-        // Create a stream handler
-        const streamHandler = new StreamHandler(reviewType, 'Google Gemini AI');
+      // Check if the content is valid JSON
+      structuredData = JSON.parse(jsonContent);
 
-        // Use streaming mode
-        if (!model) {
-          throw new Error('Model is not initialized');
-        }
-
-        // Check if the model supports streaming
-        if (!('generateContentStream' in model)) {
-          throw new Error('Model does not support streaming');
-        }
-
-        try {
-          // Now TypeScript knows generateContentStream exists
-          const streamResult = await (model as any).generateContentStream({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2, // Lower temperature for more focused code reviews
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 8192 // Allow for detailed reviews
-            },
-            safetySettings: DEFAULT_SAFETY_SETTINGS
-          });
-
-          // Process the stream
-          for await (const chunk of streamResult.stream) {
-            const chunkText = chunk.text();
-            streamHandler.handleChunk(chunkText);
-          }
-
-          // Complete the stream and get the full content
-          content = streamHandler.complete();
-        } catch (streamError) {
-          logger.error(`Error in Gemini stream processing: ${streamError instanceof Error ? streamError.message : String(streamError)}`);
-          throw new ApiError(`Gemini streaming error: ${streamError instanceof Error ? streamError.message : String(streamError)}`);
-        }
-      } else {
-        // Call the Gemini API with proper configuration
-        if (!model) {
-          throw new Error('Model is not initialized');
-        }
-
-        try {
-          const result = await model.generateContent({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2, // Lower temperature for more focused code reviews
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 8192 // Allow for detailed reviews
-            },
-            safetySettings: DEFAULT_SAFETY_SETTINGS
-          });
-
-          const response = result.response;
-          content = response.text();
-        } catch (apiError) {
-          logger.error(`Gemini API error: ${apiError instanceof Error ? apiError.message : String(apiError)}`);
-          throw new ApiError(`Gemini API error: ${apiError instanceof Error ? apiError.message : String(apiError)}`);
-        }
+      // Validate that it has the expected structure
+      if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
+        logger.warn('Response is valid JSON but does not have the expected structure');
       }
-
-      // Calculate cost information
-      cost = getCostInfoFromText(prompt, content, modelUsed);
-
-      return {
-        filePath: path.basename(filePath),
-        reviewType,
-        content,
-        timestamp: new Date().toISOString(),
-        cost,
-        modelUsed
-      };
-    } catch (apiError) {
-      // Log the API error with context
-      logApiError(apiError, {
-        operation: 'generateReview',
-        apiName: 'Gemini',
-      });
-
-      // Rethrow with more context
-      if (apiError instanceof ApiError) {
-        throw apiError; // Already has context
-      } else {
-        throw new ApiError(`Failed to generate review for ${filePath} using Gemini API: ${apiError instanceof Error ? apiError.message : String(apiError)}`);
-      }
-    }
-  } catch (error) {
-    logger.error(`Error generating review for ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
-    throw new Error(`Failed to generate review for ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-/**
- * Generate an architectural review for multiple files
- * @param files Array of file information objects
- * @param projectName Name of the project being reviewed
- * @returns Promise resolving to the review result
- */
-/**
- * Retry a function with exponential backoff
- *
- * This utility function implements a retry mechanism with exponential backoff
- * for handling transient errors, particularly rate limiting. When a function fails
- * with a rate limit error, this function will wait for an increasing amount of time
- * before retrying, up to a maximum number of attempts.
- *
- * The delay between retries follows an exponential pattern:
- * - First retry: initialDelay ms
- * - Second retry: initialDelay * 2 ms
- * - Third retry: initialDelay * 4 ms
- * And so on...
- *
- * @param fn Function to retry - should return a Promise
- * @param maxRetries Maximum number of retry attempts (default: 3)
- * @param initialDelay Initial delay in milliseconds before the first retry (default: 1000)
- * @returns Promise resolving to the result of the function if successful
- * @throws The last error encountered if all retries fail
- * @example
- * const result = await retryWithBackoff(
- *   async () => {
- *     // Function that might fail with rate limiting
- *     return await makeApiRequest();
- *   },
- *   3,    // Try up to 3 times
- *   1000  // Start with a 1 second delay
- * );
- */
-async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  initialDelay: number = 1000
-): Promise<T> {
-  let lastError: any;
-
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      // Acquire a token from the rate limiter before making the request
-      await globalRateLimiter.acquireToken();
-
-      // Make the request
-      return await fn();
-    } catch (error: any) {
-      lastError = error;
-
-      // Only retry on rate limit errors
-      if (!error.message || !error.message.includes('Rate limit exceeded')) {
-        throw error;
-      }
-
-      // Calculate delay with exponential backoff
-      const delay = initialDelay * Math.pow(2, attempt);
-      console.log(
-        `Rate limit exceeded. Retrying in ${delay / 1000} seconds...`
+    } catch (parseError) {
+      logger.warn(
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
       );
-
-      // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // Keep the original response as content
     }
-  }
 
-  // If we've exhausted all retries, throw the last error
-  throw lastError;
+    // Return the review result
+    return {
+      content: response,
+      cost,
+      modelUsed: `gemini:${selectedGeminiModel?.name}`,
+      filePath,
+      reviewType,
+      timestamp: new Date().toISOString(),
+      structuredData
+    };
+  } catch (error) {
+    logger.error(
+      `Error generating review for ${filePath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    throw error;
+  }
 }
 
 /**
  * Generate a consolidated review for multiple files
- *
- * This function analyzes multiple files together to provide a consolidated review
- * that considers the relationships between files and provides a holistic analysis.
- * It supports different review types (quick, security, performance) and can include
- * project documentation for additional context.
- *
- * The function:
- * 1. Loads the appropriate prompt template based on the review type
- * 2. Prepares file content with proper language formatting
- * 3. Creates a directory structure summary
- * 4. Formats any available project documentation
- * 5. Sends the combined information to the Gemini API
- * 6. Processes and returns the response with cost information
- *
- * @param files Array of file information objects containing content and metadata
- * @param projectName Name of the project being reviewed
- * @param reviewType Type of review to perform (quick, security, performance)
- * @param projectDocs Optional project documentation to include in the review context
- * @param options Review options including interactive mode and output format
+ * @param files Array of file information objects
+ * @param projectName Name of the project
+ * @param reviewType Type of review to perform
+ * @param projectDocs Optional project documentation
+ * @param options Review options
  * @returns Promise resolving to the review result
- * @throws Error if the review generation fails
  */
 export async function generateConsolidatedReview(
   files: FileInfo[],
@@ -516,224 +289,98 @@ export async function generateConsolidatedReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
+  const { isCorrect, adapter, modelName } = isGeminiModel();
+
+  // With the improved client selection logic, this function should only be called
+  // with Gemini models. If not, something went wrong with the client selection.
+  if (!isCorrect) {
+    throw new Error(
+      `Gemini client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
+      `This is likely a bug in the client selection logic.`
+    );
+  }
+
+  // Initialize the client if needed
+  initializeGeminiClient();
+
+  // The rest of the function remains the same
   try {
-    // Load the consolidated review prompt template
-    const promptTemplate = await loadPromptTemplate('consolidated', options);
+    // Apply rate limiting
+    await globalRateLimiter.acquire();
 
-    // Prepare file summaries
-    const fileSummaries = files
-      .map(file => {
-        const fileExtension = path.extname(file.path).slice(1);
-        const language = getLanguageFromExtension(fileExtension);
+    // Load the appropriate prompt template
+    const promptTemplate = await loadPromptTemplate(reviewType, options);
 
-        return `## File: ${file.relativePath}
+    // Format the prompt
+    const prompt = formatConsolidatedReviewPrompt(
+      promptTemplate,
+      projectName,
+      files.map(file => ({
+        relativePath: file.relativePath || '',
+        content: file.content,
+        sizeInBytes: file.content.length
+      })),
+      projectDocs
+    );
 
-\`\`\`${language}
-${file.content.substring(0, 1000)}${file.content.length > 1000 ? '\n... (truncated)' : ''}\n\`\`\`\n`;
-      })
-      .join('\n');
-
-    // Create a project structure summary
-    const directoryStructure = generateDirectoryStructure(files);
-
-    // Format project documentation if available
-    const projectContext = projectDocs ? formatProjectDocs(projectDocs) : '';
-
-    // Prepare the prompt with the code and project context
-    const prompt = `${promptTemplate}
-
-${projectContext ? projectContext + '\n\n' : ''}# Project: ${projectName}
-
-## Directory Structure
-${directoryStructure}
-
-## File Summaries (truncated for brevity)
-${fileSummaries}`;
-
-    // Model name is already logged in reviewCode.ts
-    let content = '';
-    let cost: ReviewCost | undefined;
-    // No mock responses are used
-    let modelUsed = 'unknown';
-    let result: any;
-
-    try {
-      if (modelOption.useV1Beta) {
-        // For v1beta API, use fetch directly
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelOption.name}:generateContent?key=${apiKey}`;
-
-        // Use retry with backoff for rate limit errors
-        const response = await retryWithBackoff(
-          async () => {
-            const res = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                generationConfig: {
-                  temperature: 0.2,
-                  topK: 40,
-                  topP: 0.95,
-                  maxOutputTokens: 8192
-                }
-              })
-            });
-
-            if (!res.ok) {
-              const errorText = await res.text();
-              // Check if it's a rate limit error (429)
-              if (res.status === 429) {
-                throw new Error(
-                  `Rate limit exceeded for ${modelOption.displayName}`
-                );
-              } else {
-                throw new Error(
-                  `HTTP error! status: ${res.status}, response: ${errorText}`
-                );
-              }
-            }
-
-            return res;
-          },
-          3,
-          2000
-        );
-
-        const data = await response.json();
-
-        if (
-          data.candidates &&
-          data.candidates[0] &&
-          data.candidates[0].content &&
-          data.candidates[0].content.parts &&
-          data.candidates[0].content.parts[0]
-        ) {
-          content = data.candidates[0].content.parts[0].text;
-          modelUsed = modelOption.displayName;
-          currentModelDisplayName = modelOption.displayName;
-          console.log(`Successfully generated review with ${modelName}`);
-        } else {
-          throw new Error(
-            `Invalid response format from ${modelOption.displayName}`
-          );
-        }
-      } else {
-        // For v1 API, use the SDK
-        const genModel = genAI?.getGenerativeModel({
-          model: modelOption.name
-        });
-
-        if (!genModel) {
-          throw new Error(`Failed to initialize ${modelOption.displayName}`);
-        }
-
-        // Check if we should use streaming mode
-        const isInteractive = options?.interactive === true;
-
-        if (isInteractive) {
-          // Create a stream handler
-          const streamHandler = new StreamHandler(
-            reviewType,
-            modelOption.displayName
-          );
-
-          // Use streaming mode
-          await globalRateLimiter.acquireToken();
-
-          const streamResult = await genModel.generateContentStream({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 8192
-            },
-            safetySettings: DEFAULT_SAFETY_SETTINGS
-          });
-
-          // Process the stream
-          for await (const chunk of streamResult.stream) {
-            const chunkText = chunk.text();
-            streamHandler.handleChunk(chunkText);
-          }
-
-          // Complete the stream and get the full content
-          content = streamHandler.complete();
-          modelUsed = modelOption.displayName;
-          currentModelDisplayName = modelOption.displayName;
-          console.log(`Successfully generated review with ${modelName}`);
-        } else {
-          // Use regular mode with retry with backoff for rate limit errors
-          result = await retryWithBackoff(
-            async () => {
-              return genModel.generateContent({
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                generationConfig: {
-                  temperature: 0.2,
-                  topK: 40,
-                  topP: 0.95,
-                  maxOutputTokens: 8192
-                },
-                safetySettings: DEFAULT_SAFETY_SETTINGS
-              });
-            },
-            3,
-            2000
-          );
-
-          content = result.response.text();
-          modelUsed = modelOption.displayName;
-          console.log(`Successfully generated review with ${modelName}`);
-        }
-      }
-    } catch (error: any) {
-      console.error(
-        `Failed to generate review with ${modelOption.displayName}: ${error.message || error}`
-      );
-      console.error(
-        'Please check your API key and model name in the environment variables.'
-      );
-      throw error;
-    }
+    // Generate the review
+    const response = await generateGeminiResponse(prompt, options);
 
     // Calculate cost information
-    cost = getCostInfoFromText(prompt, content, modelUsed);
+    const cost = getCostInfoFromText(
+      prompt,
+      response,
+      `gemini:${selectedGeminiModel?.name}`
+    );
 
+    // Try to parse the response as JSON
+    let structuredData = null;
+    try {
+      // First, check if the response is wrapped in a code block
+      const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      const jsonContent = jsonMatch ? jsonMatch[1] : response;
+
+      // Check if the content is valid JSON
+      structuredData = JSON.parse(jsonContent);
+
+      // Validate that it has the expected structure
+      if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
+        logger.warn('Response is valid JSON but does not have the expected structure');
+      }
+    } catch (parseError) {
+      logger.warn(
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+      );
+      // Keep the original response as content
+    }
+
+    // Return the review result
     return {
+      content: response,
+      cost,
+      modelUsed: `gemini:${selectedGeminiModel?.name}`,
       filePath: `${reviewType}`,
       reviewType,
-      content,
       timestamp: new Date().toISOString(),
-      cost,
-      modelUsed
+      structuredData
     };
   } catch (error) {
-    console.error('Error generating consolidated review:', error);
+    logger.error(
+      `Error generating consolidated review: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
     throw error;
   }
 }
 
 /**
  * Generate an architectural review for a project
- *
- * This function analyzes multiple files to provide a high-level architectural review
- * of a project. It focuses on code organization, design patterns, modularity,
- * and overall architecture rather than individual file issues.
- *
- * The function:
- * 1. Loads the architectural review prompt template
- * 2. Prepares file summaries (truncated to avoid token limits)
- * 3. Creates a directory structure summary
- * 4. Formats any available project documentation
- * 5. Sends the combined information to the Gemini API
- * 6. Processes and returns the response
- *
- * @param files Array of file information objects containing content and metadata
- * @param projectName Name of the project being reviewed
- * @param projectDocs Optional project documentation to include in the review context
- * @param options Review options including interactive mode and output format
+ * @param files Array of file information objects
+ * @param projectName Name of the project
+ * @param projectDocs Optional project documentation
+ * @param options Review options
  * @returns Promise resolving to the review result
- * @throws Error if the review generation fails
  */
 export async function generateArchitecturalReview(
   files: FileInfo[],
@@ -741,80 +388,126 @@ export async function generateArchitecturalReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
-  // Model name is already logged in reviewCode.ts
-  try {
-    // Load the architectural review prompt template
-    const promptTemplate = await loadPromptTemplate('architectural', options);
+  // Architectural reviews are just consolidated reviews with the architectural review type
+  return generateConsolidatedReview(
+    files,
+    projectName,
+    'architectural',
+    projectDocs,
+    options
+  );
+}
 
-    // Prepare file summaries
-    const fileSummaries = files
-      .map(file => {
-        const fileExtension = path.extname(file.path).slice(1);
-        const language = getLanguageFromExtension(fileExtension);
+// The formatPrompt function has been replaced with formatSingleFileReviewPrompt from promptFormatter.ts
 
-        return `## File: ${file.relativePath}
+// The formatConsolidatedPrompt function has been replaced with formatConsolidatedReviewPrompt from promptFormatter.ts
 
-\`\`\`${language}
-${file.content.substring(0, 1000)}${file.content.length > 1000 ? '\n... (truncated)' : ''}\n\`\`\`\n`;
-      })
-      .join('\n');
-
-    // Create a project structure summary
-    const directoryStructure = generateDirectoryStructure(files);
-
-    // Format project documentation if available
-    const projectContext = projectDocs ? formatProjectDocs(projectDocs) : '';
-
-    // Prepare the prompt with the code and project context
-    const prompt = `${promptTemplate}
-
-${projectContext ? projectContext + '\n\n' : ''}# Project: ${projectName}
-
-## Directory Structure
-${directoryStructure}
-
-## File Summaries (truncated for brevity)
-${fileSummaries}`;
-
-    // Initialize variables
-    let content: string;
-    let cost: ReviewCost | undefined;
-    // No mock responses are used
-    const modelUsed = modelOption.displayName;
-
-    // Call the Gemini API with proper configuration
-    if (!model) {
-      throw new Error('Model is not initialized');
+async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (e: unknown) {
+      // Type assertion for error with status property
+      const err = e as { status?: number };
+      if ((err.status === 429 || (err.status && err.status >= 500)) && i < retries - 1) {
+        await new Promise(res => setTimeout(res, 1000 * (i + 1)));
+      } else {
+        throw e;
+      }
     }
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2, // Lower temperature for more focused architectural reviews
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 8192 // Allow for detailed reviews
-      },
-      safetySettings: DEFAULT_SAFETY_SETTINGS
-    });
+  }
+  throw new Error('Exceeded retry attempts');
+}
 
-    const response = result.response;
-    content = response.text();
+/**
+ * Generate a response from the Gemini API
+ * @param prompt The prompt to send to the API
+ * @param options Review options
+ * @returns Promise resolving to the response text
+ */
+async function generateGeminiResponse(
+  prompt: string,
+  _options?: ReviewOptions // Unused parameter, prefixed with underscore
+): Promise<string> {
+  if (!genAI || !selectedGeminiModel) {
+    throw new Error('Gemini client not initialized');
+  }
 
-    // Calculate cost information
-    cost = getCostInfoFromText(prompt, content, modelUsed);
-
-    return {
-      filePath: 'architectural',
-      reviewType: 'architectural',
-      content,
-      timestamp: new Date().toISOString(),
-      cost,
-      modelUsed
+  try {
+    // Create a model instance
+    const modelOptions = {
+      model: selectedGeminiModel.name,
+      safetySettings: DEFAULT_SAFETY_SETTINGS,
+      apiVersion: selectedGeminiModel.useV1Beta ? 'v1beta' : undefined
     };
-  } catch (error) {
-    console.error('Error generating architectural review:', error);
-    throw new Error(
-      `Failed to generate architectural review for ${projectName}`
+
+    const model = genAI.getGenerativeModel(modelOptions);
+
+    // Generate content
+    // Add a prefix to the prompt to instruct the model not to repeat the instructions and to provide structured output
+    const structuredOutputInstructions = `
+You are a helpful AI assistant that provides code reviews. Focus on providing actionable feedback. Do not repeat the instructions in your response.
+
+IMPORTANT: Your response MUST be in the following JSON format:
+
+{
+  "summary": "A brief summary of the code review",
+  "issues": [
+    {
+      "title": "Issue title",
+      "priority": "high|medium|low",
+      "type": "bug|security|performance|maintainability|readability|architecture|best-practice|documentation|testing|other",
+      "filePath": "Path to the file",
+      "lineNumbers": "Line number or range (e.g., 10 or 10-15)",
+      "description": "Detailed description of the issue",
+      "codeSnippet": "Relevant code snippet",
+      "suggestedFix": "Suggested code fix",
+      "impact": "Impact of the issue"
+    }
+  ],
+  "recommendations": [
+    "General recommendation 1",
+    "General recommendation 2"
+  ],
+  "positiveAspects": [
+    "Positive aspect 1",
+    "Positive aspect 2"
+  ]
+}
+
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.
+`;
+
+    const modifiedPrompt = structuredOutputInstructions + '\n\n' + prompt;
+
+    const result = await withRetry(() =>
+      model.generateContent({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: modifiedPrompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          topP: 0.8,
+          topK: 40,
+          maxOutputTokens: MAX_OUTPUT_TOKENS
+        }
+      })
     );
+
+    // Extract the response text
+    const response = result.response;
+    const text = response.text();
+
+    return text;
+  } catch (error) {
+    // Handle API errors
+    if (error instanceof Error) {
+      throw new ApiError(`Gemini API error: ${error.message}`);
+    } else {
+      throw new ApiError(`Unknown Gemini API error: ${String(error)}`);
+    }
   }
 }

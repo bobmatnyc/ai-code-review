@@ -1,0 +1,34 @@
+2f372bea53ceee6b4e93f1a2267b372a8361bea0 1743825686 initialize project with TypeScript setup, ESLint, Prettier, and error logging functionality
+4ebc4e2e8877930d664d7d0c347285e403aaee80 1743874089 Enhance environment variable handling and update documentation
+3270a86efcfc817271548670391a891715d59607 1743874249 Update version to 0.9.0, create VERSION.md for version history, and enhance documentation
+b3837de461095163f55df16d0818b90a6b0cf141 1743881823 feat: Add consolidated code review prompt and various model testing scripts
+af7230cf3448bd4d5b533e86b4901c92a0e0ed68 1743886689 feat: Implement rate limiter, content sanitizer, and stream handler
+ea687373ea5f0a82c4d1dfed7d6ddbe58cf9758f 1743888218 feat: Enhance documentation and remove deprecated test files
+458b172bd844b7d12ba0759e9654305657b5ef39 1743889891 feat: Add environment variable management and review result processing utilities
+df84130dfbcacba7477888f8d2d792744bdd19da 1743907447 feat: Enhance AI Code Review Tool with OpenRouter support and improved model handling
+d64afd7ba3ecd4eef597c23d562401107b1e5441 1743912181 Add Jest tests for API connections, file system utilities, rate limiting, content sanitization, token counting, and path validation
+49a966919e2859d8386aaa435a37a357ce7a7e74 1743912458 chore: add .yarnrc.yml configuration for nodeLinker
+f441b430681e8760ffd0686a85fa1cb84ce786d5 1743915857 Refactor code review functionality and remove deprecated model
+4a914fbe6cc5de6f2ea290acdf99e49cdd3b06da 1743915920 fix: correct command name in installation guide and update API key setup instructions
+5928f940d520b5317c25287d1ac9570cf9b8aa69 1743916248 Implement code changes to enhance functionality and improve performance
+919d5bdec5cfb24813c718ceaf7d847f02e35a80 1743916439 fix: update bin path for ai-code-review command in package.json
+ba4859557984034c01ff53908f852419d54080a5 1743917307 fix: update environment variable handling and improve API key warnings
+90361d1cf6273b2b4406d1b8c5f792fb58edc504 1743989562 feat: Implement architectural, consolidated, and individual review handlers
+96e447fa6d89f1edaad98dcf39822f833826a1df 1743995463 feat: Enhance interactive mode with structured review schema and detailed output formatting
+b0b4082fce6c86abc6aaed4129a8b066e66cd17e 1743998742 feat: Add comprehensive code review prompts and utilities for TypeScript
+6cfaaee99ccb1c51c5d75403c6e7429928890349 1744002964 feat: Implement token and cost estimators for multiple AI providers
+cdfd6268655829f23f601697d191d8aaf4b702e9 1744003312 feat: Enhance AI Code Review tool with multi-provider support, token and cost estimation, and model listing feature
+6dcaa0880267b05c76be0cd35e0fec64c24c342d 1744034232 feat: Add utilities for testing AI model availability and capabilities
+dc03a06ffb25bd0482918360515fdf7112dac826 1744035383 feat: Refactor Gemini client structure and enhance review generation options
+a2b3640cdb882bd5a1a7981bbbf9fa73f53411b2 1744035708 feat: Update Gemini client to initialize with specified model only, removing fallback behavior
+3c54f3556bf4e1a0dfb8eb9efaec686fc943da0c 1744043606 feat: Implement OpenAI client for code reviews with model initialization and API key validation
+6ce140b0e72d9247dc5601b6eed532b3f3338faf 1744044872 Refactor API utility functions for improved readability and maintainability
+eb892610045949d675b28f98fb14dbdff774708c 1744050554 feat: Implement interactive display manager for review results
+c65f3128963f51d508d9b6c2950766bee707c0e4 1744065912 feat: Upgrade Node.js requirement to 18 and remove node-fetch dependency
+22873fe7606cc37dbe4b9278d72436219fc177fd 1744069152 Add model mapping, listing, and testing utilities for AI providers
+4ea1adebe37d262efa23ae27cb433584d0bb89f7 1744069526 refactor: reorganize sanitizer and model testing utilities, update imports and remove deprecated files
+c6018a2f542edf9552620fee7f5c4c502fa56193 1744069886 docs: Enhance function documentation for review orchestration and API utilities, adding detailed descriptions and examples
+4d13d96db37954c92b453e1fc708457e4b962c68 1744070015 docs: Improve documentation for tokenizer interface and API error handling, adding detailed descriptions and examples for clarity
+f0042da6fc9189bf3477fb73c3bddbb9c503e002 1744070338 docs: Enhance documentation for retryWithBackoff and review generation functions, adding detailed descriptions and examples for clarity
+089c455de177cb9ffe572e1ea8edfac5408a7433 1744070855 docs: Update version to 1.1.31, enhance documentation, and improve code organization
+32e8a231d5388f0e7e1bbe000791a1c799de3e99 1744071487 chore: release version 1.2.0 with multi-provider support, token estimation, model listing, and improved documentation

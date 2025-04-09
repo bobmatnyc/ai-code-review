@@ -3,11 +3,12 @@
  *
  * This module provides tests to verify that the API keys provided in the
  * environment variables are valid and working correctly. It tests connections
- * to both Google Gemini API and OpenRouter API.
+ * to various AI APIs including Google Gemini, OpenRouter, and Anthropic.
  *
  * Key features:
  * - Tests connection to Google Gemini API
  * - Tests connection to OpenRouter API
+ * - Tests connection to Anthropic API
  * - Provides detailed error messages for failed connections
  * - Can be run on startup to verify API keys
  */
@@ -15,6 +16,7 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 // Using native fetch API (Node.js 18+)
 import dotenv from 'dotenv';
+import logger from '../utils/logger';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -68,6 +70,67 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
     return {
       success: false,
       message: `Failed to connect to Google Gemini API: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
+}
+
+/**
+ * Test connection to Anthropic API
+ * @returns Promise resolving to a boolean indicating if the connection was successful
+ */
+export async function testAnthropicConnection(): Promise<{ success: boolean; message: string }> {
+  const apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || process.env.CODE_REVIEW_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
+
+  if (!apiKey) {
+    return {
+      success: false,
+      message: 'No Anthropic API key found in environment variables'
+    };
+  }
+
+  try {
+    // Make a simple request to the Anthropic API
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-haiku-20240307',
+        messages: [
+          { role: 'user', content: 'Hello, are you working?' }
+        ],
+        max_tokens: 10
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        message: `Anthropic API returned error: ${JSON.stringify(errorData)}`
+      };
+    }
+
+    const data = await response.json() as any;
+
+    if (data && data.content && data.content.length > 0) {
+      return {
+        success: true,
+        message: `Successfully connected to Anthropic API with model: claude-3-haiku-20240307`
+      };
+    } else {
+      return {
+        success: false,
+        message: 'Connected to Anthropic API but received invalid response'
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: `Failed to connect to Anthropic API: ${error instanceof Error ? error.message : String(error)}`
     };
   }
 }
@@ -137,20 +200,71 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
 }
 
 /**
- * Run all API connection tests
+ * Helper function to determine which API to test based on the model
+ */
+function getSelectedApiType(): 'gemini' | 'openrouter' | 'anthropic' | 'openai' | 'all' {
+  // Get the model from environment variables
+  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
+
+  // If no model is specified, test all APIs
+  if (!selectedModel) {
+    return 'all';
+  }
+
+  // Parse the model name
+  const [adapter] = selectedModel.includes(':') ? selectedModel.split(':') : ['gemini'];
+
+  // Return the appropriate API type
+  switch (adapter.toLowerCase()) {
+    case 'gemini':
+      return 'gemini';
+    case 'openrouter':
+      return 'openrouter';
+    case 'anthropic':
+      return 'anthropic';
+    case 'openai':
+      return 'openai';
+    default:
+      return 'all';
+  }
+}
+
+/**
+ * Run API connection tests
  */
 export async function runApiConnectionTests(): Promise<void> {
   console.log('Testing API connections...');
 
-  // Test Google Gemini API connection
-  const geminiResult = await testGeminiConnection();
-  console.log(`Google Gemini API: ${geminiResult.success ? '✅ CONNECTED' : '❌ FAILED'}`);
-  console.log(`  ${geminiResult.message}`);
+  // Determine which API to test
+  const apiType = getSelectedApiType();
 
-  // Test OpenRouter API connection
-  const openRouterResult = await testOpenRouterConnection();
-  console.log(`OpenRouter API: ${openRouterResult.success ? '✅ CONNECTED' : '❌ FAILED'}`);
-  console.log(`  ${openRouterResult.message}`);
+  // Test Google Gemini API connection if needed
+  if (apiType === 'gemini' || apiType === 'all') {
+    const geminiResult = await testGeminiConnection();
+    console.log(`Google Gemini API: ${geminiResult.success ? '✅ CONNECTED' : '❌ FAILED'}`);
+    console.log(`  ${geminiResult.message}`);
+  }
+
+  // Test OpenRouter API connection if needed
+  if (apiType === 'openrouter' || apiType === 'all') {
+    const openRouterResult = await testOpenRouterConnection();
+    console.log(`OpenRouter API: ${openRouterResult.success ? '✅ CONNECTED' : '❌ FAILED'}`);
+    console.log(`  ${openRouterResult.message}`);
+  }
+
+  // Test Anthropic API connection if needed
+  if (apiType === 'anthropic' || apiType === 'all') {
+    const anthropicResult = await testAnthropicConnection();
+    console.log(`Anthropic API: ${anthropicResult.success ? '✅ CONNECTED' : '❌ FAILED'}`);
+    console.log(`  ${anthropicResult.message}`);
+  }
+
+  // Test OpenAI API connection if needed (not implemented yet)
+  if (apiType === 'openai' || apiType === 'all') {
+    // For now, just log a message
+    console.log(`OpenAI API: ⚠️ TEST NOT IMPLEMENTED`);
+    console.log(`  OpenAI API test not implemented yet`);
+  }
 
   console.log('API connection tests completed.');
 }

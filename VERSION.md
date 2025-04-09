@@ -2,6 +2,76 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.5.2] - 2024-04-09
+
+### Fixed
+- Fixed issue with --version flag not working in globally installed package
+- Hardcoded version number in source code to ensure correct version is displayed
+- Improved reliability of version reporting regardless of npm installation issues
+
+## [1.5.1] - 2024-04-09
+
+### Fixed
+- Fixed issue with --version flag not working in globally installed package
+- Updated package.json to ensure correct version is displayed when using --version flag
+
+## [1.5.0] - 2024-04-08
+
+### Added
+- Implemented structured output with a well-defined schema for code reviews
+- Enhanced interactive mode to display all issue details in structured format with code samples
+- Improved support for all model providers (Anthropic, OpenAI, Gemini, and OpenRouter)
+
+### Fixed
+- Fixed bug in API client selection where dynamic imports were failing in development mode
+- Updated imports in anthropicClient.ts to use direct imports instead of dynamic imports
+- Added --transpile-only flag to ts-node for faster development builds
+
+## [1.3.3] - 2024-04-08
+
+### Fixed
+- Fixed bug in API client selection where dynamic imports were failing in development mode
+- Updated imports in anthropicClient.ts to use direct imports instead of dynamic imports
+- Added --transpile-only flag to ts-node for faster development builds
+
+## [1.3.2] - 2024-04-08
+
+### Fixed
+- Fixed bug in API client selection where dynamic imports were failing
+- Fixed Anthropic API version to use the correct version (2023-06-01)
+
+## [1.3.1] - 2024-04-08
+
+### Changed
+- Simplified model names in OpenRouter models to remove version-specific details
+- Derived MODELS constant from MODEL_MAP instead of maintaining it separately
+- Deprecated getModels() in favor of getModelsByProvider()
+
+## [1.3.0] - 2024-04-08
+
+### Added
+- Added structured output format for code reviews
+- Added support for parsing JSON responses wrapped in code blocks
+- Added new structured review type definitions
+- Added formatStructuredReviewAsMarkdown function to format structured reviews
+
+## [1.2.2] - 2024-04-08
+
+### Fixed
+- Fixed "Invalid model adapter: gemini" error when using Gemini models
+- Updated Gemini client to use the correct API name from the model map
+- Added proper API version handling for Gemini models that require v1beta API
+- Improved error messages for model adapter validation
+- Updated prompts to explicitly instruct AI models not to repeat instructions
+- Added stronger system prompts to all AI clients to prevent instruction repetition
+- Fixed import path in apiKeyValidator.ts
+- Updated all clients to use the formatSingleFileReviewPrompt and formatConsolidatedReviewPrompt functions from promptFormatter.ts
+- Fixed issue where AI models were not receiving the file content to review
+- Updated OpenAI client to use the formatSingleFileReviewPrompt and formatConsolidatedReviewPrompt functions
+- Added debug logging to the Anthropic client to help diagnose API issues
+- Fixed Anthropic client to use the correct model name from the model map
+- Fixed Anthropic API version to use the correct version (2023-06-01)
+
 ## [1.2.0] - 2024-04-08
 
 ### Added

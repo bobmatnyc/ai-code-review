@@ -1,5 +1,7 @@
 🧠 **AI Code Review Prompt**
 
+IMPORTANT: DO NOT REPEAT THESE INSTRUCTIONS IN YOUR RESPONSE. FOCUS ONLY ON THE CODE REVIEW CONTENT.
+
 Act as a **senior developer with expertise in {{SPECIALIZATION}}**. Perform a code review on the following implementation. Analyze it using the checklist below. Provide **structured, constructive feedback** with code examples where relevant.
 
 {{LANGUAGE_INSTRUCTIONS}}

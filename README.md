@@ -1,6 +1,39 @@
-# AI Code Review v1.2.0
+# AI Code Review v1.5.0
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, and OpenRouter API (Claude, GPT-4, etc.).
+
+## What's New in v1.5.0
+
+### Major Features
+
+- **Structured Output**: Implemented a well-defined schema for code review output that can be easily parsed and rendered procedurally
+- **Enhanced Interactive Mode**: Interactive mode now displays all issue details in a structured format with code samples
+- **Improved Model Support**: Better support for all model providers including Anthropic, OpenAI, Gemini, and OpenRouter
+
+### Other Improvements
+
+- **Fixed Development Mode**: Fixed bug in API client selection where dynamic imports were failing in development mode
+- **Improved Imports**: Updated imports in anthropicClient.ts to use direct imports instead of dynamic imports
+- **Faster Development**: Added --transpile-only flag to ts-node for faster development builds
+
+## What's New in v1.3.2
+
+- **Fixed API Client Selection**: Fixed bug in dynamic imports for API clients
+- **Fixed Anthropic API Version**: Updated Anthropic API version to use the correct version
+
+## What's New in v1.3.1
+
+- **Simplified Model Names**: Removed version-specific details from model names for better usability
+- **Improved Model Management**: Derived model lists from a single source of truth
+- **Structured Output**: Added structured JSON output format for code reviews
+- **Enhanced Formatting**: Improved formatting of review results with priority-based grouping
+
+## What's New in v1.3.0
+
+- **Structured Output Format**: Added structured JSON output for code reviews
+- **JSON Parsing**: Added support for parsing JSON responses wrapped in code blocks
+- **New Type Definitions**: Added structured review type definitions
+- **Improved Formatting**: Added formatStructuredReviewAsMarkdown function
 
 ## What's New in v1.2.0
 
@@ -228,11 +261,10 @@ AI_CODE_REVIEW_CONTEXT=README.md,docs/architecture.md,src/types.ts
 |------------|-------------|------------------|
 | `openrouter:anthropic/claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
 | `openrouter:anthropic/claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:anthropic/claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
 | `openrouter:openai/gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
 | `openrouter:openai/gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:deepseek/deepseek-v3` | Excellent for code analysis and refactoring | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:anthropic/claude-2.1` | Reliable performance | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:google/gemini-pro` | Google's model via OpenRouter | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:google/gemini-1.5-pro` | Google's model via OpenRouter | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
 
 ### Anthropic Models (Direct API)
 

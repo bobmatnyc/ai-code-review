@@ -1,21 +1,19 @@
 /**
  * @fileoverview Client for interacting with the OpenRouter API.
  *
- * This module provides a client for interacting with OpenRouter's AI models.
- * It handles API key management, request formatting, response processing,
- * rate limiting, error handling, and cost estimation for code reviews.
+ * This module provides a client for interacting with OpenRouter's API, which gives
+ * access to a variety of AI models from different providers. It handles API key
+ * management, request formatting, response processing, rate limiting, error handling,
+ * and cost estimation for code reviews.
  *
  * Key features:
- * - Support for various OpenRouter models
+ * - Support for various models through OpenRouter (Claude, GPT-4, etc.)
  * - Streaming and non-streaming responses
  * - Robust error handling and rate limit management
- * - Mock response generation for testing without an API key
  * - Cost estimation for API usage
  * - Support for different review types
  */
 
-// Using native fetch API (Node.js 18+)
-import { globalRateLimiter } from '../utils/rateLimiter';
 import {
   ReviewType,
   ReviewResult,
@@ -23,145 +21,75 @@ import {
   ReviewCost,
   ReviewOptions
 } from '../types/review';
-import { getCostInfo } from './utils/tokenCounter';
-import { ProjectDocs } from '../utils/projectDocs';
+import { ProjectDocs, addProjectDocsToPrompt } from '../utils/projectDocs';
+import logger from '../utils/logger';
+import { generateDirectoryStructure, validateOpenRouterApiKey, isDebugMode } from './utils';
+import { getCostInfoFromText } from './utils/tokenCounter';
 import { loadPromptTemplate } from './utils/promptLoader';
-
-// Import client utilities
-import {
-  validateOpenRouterApiKey,
-  isDebugMode,
-  formatSingleFileReviewPrompt,
-  formatConsolidatedReviewPrompt
-} from './utils';
-
-// No need to import model maps as we're using a single model
-
-// Get the model from environment variables
-const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
-
-// Parse the model name
-const [adapter, modelName] = selectedModel.includes(':')
-  ? selectedModel.split(':')
-  : ['openrouter', selectedModel];
-
-// Skip initialization if this is not the selected adapter
-if (adapter !== 'openrouter') {
-  // We'll handle this in the reviewCode.ts file
-  // This allows multiple clients to coexist without errors
-}
-
-const preferredModel = modelName;
-
-// Use only the specified model without fallbacks
-const DEFAULT_OPENROUTER_MODEL = `openrouter-${preferredModel}`;
+import { ApiError } from '../utils/apiErrorHandler';
+import { getLanguageFromExtension } from './utils/languageDetection';
+import { formatSingleFileReviewPrompt, formatConsolidatedReviewPrompt } from './utils/promptFormatter';
 
 // Track if we've initialized a model successfully
 let modelInitialized = false;
-let currentModel: string | null = null;
 
-// Get API key from environment variables
-const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
+// Helper function to check if this is the correct client for the selected model
+function isOpenRouterModel(): { isCorrect: boolean; adapter: string; modelName: string } {
+  // Get the model from environment variables
+  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
 
-/**
- * Initialize the OpenRouter client with the specified model
- * @param modelName Name of the model to use
- * @returns Promise resolving to a boolean indicating if initialization was successful
- */
-async function initializeOpenRouterModel(modelName: string): Promise<boolean> {
-  if (!apiKey) {
-    console.error('No OpenRouter API key found.');
-    console.error('Please add the following to your .env.local file:');
-    console.error(
-      '- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here'
-    );
-    process.exit(1);
-  }
+  // Parse the model name
+  const [adapter, modelName] = selectedModel.includes(':')
+    ? selectedModel.split(':')
+    : ['openrouter', selectedModel];
 
-  try {
-    console.log(`Trying to initialize ${modelName}...`);
-
-    // Extract the actual model name from the openrouter- prefix
-    const actualModelName = modelName.startsWith('openrouter-')
-      ? modelName.substring('openrouter-'.length)
-      : modelName;
-
-    // Make a simple test request to verify the model works
-    const response = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
-          'X-Title': 'AI Code Review Tool'
-        },
-        body: JSON.stringify({
-          model: actualModelName,
-          messages: [
-            {
-              role: 'user',
-              content: 'Hello, are you available for a code review task?'
-            }
-          ],
-          max_tokens: 50,
-          temperature: 0.2,
-          stream: false
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error(`Error initializing ${modelName}:`, errorData);
-      return false;
-    }
-
-    const data = (await response.json()) as any;
-    if (data.choices && data.choices.length > 0) {
-      console.log(`Successfully initialized ${modelName}`);
-      currentModel = modelName;
-      modelInitialized = true;
-      return true;
-    }
-
-    console.error(`Unexpected response format from ${modelName}`);
-    return false;
-  } catch (error) {
-    console.error(`Error initializing ${modelName}:`, error);
-    return false;
-  }
+  return {
+    isCorrect: adapter === 'openrouter',
+    adapter,
+    modelName
+  };
 }
 
+// This function was removed as it's no longer needed with the improved client selection logic
+
 /**
- * Try to initialize any available OpenRouter model
- * @param preferredModels Array of model names to try in order of preference
- * @returns Promise resolving to a boolean indicating if any model was initialized
+ * Initialize the OpenRouter client
+ * @returns Promise resolving to a boolean indicating if initialization was successful
  */
-export async function initializeAnyOpenRouterModel(
-  preferredModel: string = DEFAULT_OPENROUTER_MODEL
-): Promise<boolean> {
-  // If we've already initialized a model, return true
-  if (modelInitialized && currentModel) {
+export async function initializeAnyOpenRouterModel(): Promise<boolean> {
+  const { isCorrect, adapter, modelName } = isOpenRouterModel();
+
+  // If this is not an OpenRouter model, just return true without initializing
+  if (!isCorrect) {
     return true;
   }
+
+  // If we've already initialized, return true
+  if (modelInitialized) {
+    return true;
+  }
+
+  // Use the imported dependencies
+
+  // Get API key from environment variables
+  const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
 
   // Validate the API key
   if (!validateOpenRouterApiKey(apiKey, isDebugMode())) {
     process.exit(1);
   }
 
-  // Try to initialize the specified model
-  const success = await initializeOpenRouterModel(preferredModel);
-  if (success) {
-    return true;
-  }
+  try {
+    console.log(`Initializing OpenRouter model: ${modelName}...`);
 
-  console.error('Failed to initialize any OpenRouter model.');
-  throw new Error(
-    'No OpenRouter model could be initialized. Please check your API key and try again.'
-  );
+    // Mark as initialized
+    modelInitialized = true;
+    console.log(`Successfully initialized OpenRouter model: ${modelName}`);
+    return true;
+  } catch (error) {
+    console.error(`Error initializing OpenRouter model ${modelName}:`, error);
+    return false;
+  }
 }
 
 /**
@@ -180,122 +108,178 @@ export async function generateOpenRouterReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
+  const { isCorrect, adapter, modelName } = isOpenRouterModel();
+
+  // With the improved client selection logic, this function should only be called
+  // with OpenRouter models. If not, something went wrong with the client selection.
+  if (!isCorrect) {
+    throw new Error(
+      `OpenRouter client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
+      `This is likely a bug in the client selection logic.`
+    );
+  }
+
   try {
-    // Initialize a model if we haven't already
+    // Initialize the model if we haven't already
     if (!modelInitialized) {
       await initializeAnyOpenRouterModel();
     }
 
+    // Use the imported dependencies
+
+    // Get API key from environment variables
+    const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
+
     let content: string;
     let cost: ReviewCost | undefined;
-    // No mock responses are used
 
+    // Get the language from the file extension
+    const language = getLanguageFromExtension(filePath);
+
+    // Load the appropriate prompt template
+    const promptTemplate = await loadPromptTemplate(reviewType, options);
+
+    // Format the prompt
+    const prompt = formatSingleFileReviewPrompt(
+      promptTemplate,
+      fileContent,
+      filePath,
+      projectDocs
+    );
+
+    try {
+      console.log(`Generating review with OpenRouter ${modelName}...`);
+
+      // Make the API request
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
+          'X-Title': 'AI Code Review'
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+
+IMPORTANT: Your response MUST be in the following JSON format:
+
+{
+  "summary": "A brief summary of the code review",
+  "issues": [
     {
-      // Load the appropriate prompt template
-      const promptTemplate = await loadPromptTemplate(reviewType, options);
+      "title": "Issue title",
+      "priority": "high|medium|low",
+      "type": "bug|security|performance|maintainability|readability|architecture|best-practice|documentation|testing|other",
+      "filePath": "Path to the file",
+      "lineNumbers": "Line number or range (e.g., 10 or 10-15)",
+      "description": "Detailed description of the issue",
+      "codeSnippet": "Relevant code snippet",
+      "suggestedFix": "Suggested code fix",
+      "impact": "Impact of the issue"
+    }
+  ],
+  "recommendations": [
+    "General recommendation 1",
+    "General recommendation 2"
+  ],
+  "positiveAspects": [
+    "Positive aspect 1",
+    "Positive aspect 2"
+  ]
+}
 
-      // Prepare the system prompt
-      const systemPrompt = `You are an expert code reviewer.`;
-
-      // Format the user prompt using the utility function
-      const userPrompt = formatSingleFileReviewPrompt(
-        promptTemplate,
-        fileContent,
-        filePath,
-        projectDocs
-      );
-
-      // Use rate limiter to avoid hitting API limits
-      await globalRateLimiter.acquire();
-
-      try {
-        // Extract the actual model name from the openrouter- prefix
-        const actualModelName =
-          currentModel && currentModel.startsWith('openrouter-')
-            ? currentModel.substring('openrouter-'.length)
-            : currentModel ||
-              DEFAULT_OPENROUTER_MODEL.substring('openrouter-'.length);
-
-        // Make the API request
-        const response = await fetch(
-          'https://openrouter.ai/api/v1/chat/completions',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${apiKey}`,
-              'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
-              'X-Title': 'AI Code Review Tool'
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
             },
-            body: JSON.stringify({
-              model: actualModelName,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-              ],
-              temperature: 0.2,
-              stream: false
-            })
-          }
-        );
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 4000
+        })
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
-        }
-
-        const data = (await response.json()) as any;
-
-        // Extract the response content
-        content = data.choices[0].message.content;
-
-        // Calculate cost information
-        const promptTokens = data.usage?.prompt_tokens || 0;
-        const completionTokens = data.usage?.completion_tokens || 0;
-        const totalTokens = data.usage?.total_tokens || 0;
-
-        // Estimate cost (this is approximate and depends on the model)
-        const estimatedCost = getCostInfo(
-          promptTokens,
-          completionTokens,
-          actualModelName
-        );
-        cost = {
-          inputTokens: promptTokens,
-          outputTokens: completionTokens,
-          totalTokens: totalTokens,
-          estimatedCost: estimatedCost.cost,
-          formattedCost: estimatedCost.formattedCost
-        };
-
-        // Add model information to the content
-        content += `\n\n*Generated by Code Review Tool using OpenRouter (${actualModelName})*`;
-      } finally {
-        // Release the rate limiter
-        globalRateLimiter.release();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
       }
+
+      const data = await response.json();
+      if (data.choices && data.choices.length > 0) {
+        content = data.choices[0].message.content;
+        console.log(`Successfully generated review with OpenRouter ${modelName}`);
+      } else {
+        throw new Error(`Invalid response format from OpenRouter ${modelName}`);
+      }
+
+      // Calculate cost information
+      try {
+        cost = getCostInfoFromText(prompt + content, `openrouter:${modelName}`);
+      } catch (error) {
+        logger.warn(
+          `Failed to calculate cost information: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    } catch (error) {
+      throw new ApiError(
+        `Failed to generate review with OpenRouter ${modelName}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+
+    // Try to parse the response as JSON
+    let structuredData = null;
+    try {
+      // First, check if the response is wrapped in a code block
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      const jsonContent = jsonMatch ? jsonMatch[1] : content;
+
+      // Check if the content is valid JSON
+      structuredData = JSON.parse(jsonContent);
+
+      // Validate that it has the expected structure
+      if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
+        logger.warn('Response is valid JSON but does not have the expected structure');
+      }
+    } catch (parseError) {
+      logger.warn(
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+      );
+      // Keep the original response as content
     }
 
     // Return the review result
     return {
       content,
+      cost,
+      modelUsed: `openrouter:${modelName}`,
       filePath,
       reviewType,
       timestamp: new Date().toISOString(),
-      cost,
-      modelUsed: currentModel
-        ? currentModel.replace('openrouter-', 'openrouter:')
-        : undefined
+      structuredData
     };
   } catch (error) {
-    console.error('Error generating review with OpenRouter:', error);
+    logger.error(
+      `Error generating review for ${filePath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
     throw error;
   }
 }
 
 /**
- * Generate a consolidated review for multiple files using OpenRouter
- * @param files Array of file information
+ * Generate a consolidated review for multiple files
+ * @param files Array of file information objects
  * @param projectName Name of the project
  * @param reviewType Type of review to perform
  * @param projectDocs Optional project documentation
@@ -309,134 +293,171 @@ export async function generateOpenRouterConsolidatedReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
+  const { isCorrect, adapter, modelName } = isOpenRouterModel();
+
+  // With the improved client selection logic, this function should only be called
+  // with OpenRouter models. If not, something went wrong with the client selection.
+  if (!isCorrect) {
+    throw new Error(
+      `OpenRouter client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
+      `This is likely a bug in the client selection logic.`
+    );
+  }
+
   try {
-    // Initialize a model if we haven't already
+    // Initialize the model if we haven't already
     if (!modelInitialized) {
       await initializeAnyOpenRouterModel();
     }
 
+    // Use the imported dependencies
+
+    // Get API key from environment variables
+    const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
+
     let content: string;
     let cost: ReviewCost | undefined;
-    // No mock responses are used
 
-    {
-      // Load the appropriate prompt template
-      const promptTemplate = await loadPromptTemplate(reviewType, options);
+    // Load the appropriate prompt template
+    const promptTemplate = await loadPromptTemplate(reviewType, options);
 
-      // Prepare the system prompt
-      const systemPrompt = `You are an expert code reviewer.`;
-
-      // Prepare file summaries for the consolidated review
-      const fileInfos = files.map(file => ({
-        relativePath: file.relativePath,
-        content:
-          file.content.substring(0, 1000) +
-          (file.content.length > 1000 ? '\n... (truncated)' : ''),
+    // Format the prompt
+    const prompt = formatConsolidatedReviewPrompt(
+      promptTemplate,
+      projectName,
+      files.map(file => ({
+        relativePath: file.relativePath || '',
+        content: file.content,
         sizeInBytes: file.content.length
-      }));
+      })),
+      projectDocs
+    );
 
-      // Format the user prompt using the utility function
-      const userPrompt = formatConsolidatedReviewPrompt(
-        promptTemplate,
-        projectName,
-        fileInfos,
-        projectDocs
-      );
+    try {
+      console.log(`Generating consolidated review with OpenRouter ${modelName}...`);
 
-      // Use rate limiter to avoid hitting API limits
-      await globalRateLimiter.acquire();
+      // Make the API request
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
+          'X-Title': 'AI Code Review'
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
 
-      try {
-        // Extract the actual model name from the openrouter- prefix
-        const actualModelName =
-          currentModel && currentModel.startsWith('openrouter-')
-            ? currentModel.substring('openrouter-'.length)
-            : currentModel ||
-              DEFAULT_OPENROUTER_MODEL.substring('openrouter-'.length);
+IMPORTANT: Your response MUST be in the following JSON format:
 
-        console.log(
-          `Trying to generate consolidated review with ${actualModelName}...`
-        );
+{
+  "summary": "A brief summary of the code review",
+  "issues": [
+    {
+      "title": "Issue title",
+      "priority": "high|medium|low",
+      "type": "bug|security|performance|maintainability|readability|architecture|best-practice|documentation|testing|other",
+      "filePath": "Path to the file",
+      "lineNumbers": "Line number or range (e.g., 10 or 10-15)",
+      "description": "Detailed description of the issue",
+      "codeSnippet": "Relevant code snippet",
+      "suggestedFix": "Suggested code fix",
+      "impact": "Impact of the issue"
+    }
+  ],
+  "recommendations": [
+    "General recommendation 1",
+    "General recommendation 2"
+  ],
+  "positiveAspects": [
+    "Positive aspect 1",
+    "Positive aspect 2"
+  ]
+}
 
-        // Make the API request
-        const response = await fetch(
-          'https://openrouter.ai/api/v1/chat/completions',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${apiKey}`,
-              'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
-              'X-Title': 'AI Code Review Tool'
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
             },
-            body: JSON.stringify({
-              model: actualModelName,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-              ],
-              temperature: 0.2,
-              stream: false
-            })
-          }
-        );
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 4000
+        })
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
-        }
-
-        const data = (await response.json()) as any;
-
-        // Extract the response content
-        content = data.choices[0].message.content;
-
-        // Calculate cost information
-        const promptTokens = data.usage?.prompt_tokens || 0;
-        const completionTokens = data.usage?.completion_tokens || 0;
-        const totalTokens = data.usage?.total_tokens || 0;
-
-        // Estimate cost (this is approximate and depends on the model)
-        const estimatedCost = getCostInfo(
-          promptTokens,
-          completionTokens,
-          actualModelName
-        );
-        cost = {
-          inputTokens: promptTokens,
-          outputTokens: completionTokens,
-          totalTokens: totalTokens,
-          estimatedCost: estimatedCost.cost,
-          formattedCost: estimatedCost.formattedCost
-        };
-
-        console.log(
-          `Successfully generated consolidated review with ${actualModelName}`
-        );
-
-        // Add model information to the content
-        content += `\n\n*Generated by Code Review Tool using OpenRouter (${actualModelName})*`;
-      } finally {
-        // Release the rate limiter
-        globalRateLimiter.release();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
       }
+
+      const data = await response.json();
+      if (data.choices && data.choices.length > 0) {
+        content = data.choices[0].message.content;
+        console.log(`Successfully generated review with OpenRouter ${modelName}`);
+      } else {
+        throw new Error(`Invalid response format from OpenRouter ${modelName}`);
+      }
+
+      // Calculate cost information
+      try {
+        cost = getCostInfoFromText(prompt + content, `openrouter:${modelName}`);
+      } catch (error) {
+        logger.warn(
+          `Failed to calculate cost information: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    } catch (error) {
+      throw new ApiError(
+        `Failed to generate consolidated review with OpenRouter ${modelName}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+
+    // Try to parse the response as JSON
+    let structuredData = null;
+    try {
+      // First, check if the response is wrapped in a code block
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      const jsonContent = jsonMatch ? jsonMatch[1] : content;
+
+      // Check if the content is valid JSON
+      structuredData = JSON.parse(jsonContent);
+
+      // Validate that it has the expected structure
+      if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
+        logger.warn('Response is valid JSON but does not have the expected structure');
+      }
+    } catch (parseError) {
+      logger.warn(
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+      );
+      // Keep the original response as content
     }
 
     // Return the review result
     return {
       content,
-      filePath: `${projectName} (${files.length} files)`,
+      cost,
+      modelUsed: `openrouter:${modelName}`,
+      filePath: 'consolidated',
       reviewType,
       timestamp: new Date().toISOString(),
-      cost,
-      modelUsed: currentModel
-        ? currentModel.replace('openrouter-', 'openrouter:')
-        : undefined
+      structuredData
     };
   } catch (error) {
-    console.error(
-      'Error generating consolidated review with OpenRouter:',
-      error
+    logger.error(
+      `Error generating consolidated review: ${
+        error instanceof Error ? error.message : String(error)
+      }`
     );
     throw error;
   }

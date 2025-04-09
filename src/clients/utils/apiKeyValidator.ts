@@ -4,6 +4,7 @@
  * This module provides functions for validating API keys for different AI providers,
  * including Anthropic, Google, OpenAI, and OpenRouter.
  */
+import logger from '../../utils/logger';
 
 /**
  * Validate the Anthropic API key
@@ -11,16 +12,21 @@
  * @param isDebugMode Whether debug mode is enabled
  * @returns True if the API key is valid, false otherwise
  */
-export function validateAnthropicApiKey(apiKey: string | undefined, isDebugMode: boolean = false): boolean {
+export function validateAnthropicApiKey(
+  apiKey: string | undefined,
+  isDebugMode: boolean = false
+): boolean {
   if (!apiKey) {
-    console.error('No Anthropic API key found.');
-    console.error('Please add the following to your .env file:');
-    console.error('- AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here');
+    logger.error('No Anthropic API key found.');
+    logger.error('Please add the following to your .env file:');
+    logger.error(
+      '- AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here'
+    );
     return false;
   }
 
   if (isDebugMode) {
-    console.log('Anthropic API key found: AI_CODE_REVIEW_ANTHROPIC_API_KEY');
+    logger.info('Anthropic API key found: AI_CODE_REVIEW_ANTHROPIC_API_KEY');
   }
 
   return true;
@@ -32,16 +38,21 @@ export function validateAnthropicApiKey(apiKey: string | undefined, isDebugMode:
  * @param isDebugMode Whether debug mode is enabled
  * @returns True if the API key is valid, false otherwise
  */
-export function validateGoogleApiKey(apiKey: string | undefined, isDebugMode: boolean = false): boolean {
+export function validateGoogleApiKey(
+  apiKey: string | undefined,
+  isDebugMode: boolean = false
+): boolean {
   if (!apiKey) {
-    console.error('No Google API key found.');
-    console.error('Please add the following to your .env file:');
-    console.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
+    logger.error('No Google API key found.');
+    logger.error('Please add the following to your .env file:');
+    logger.error(
+      '- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here'
+    );
     return false;
   }
 
   if (isDebugMode) {
-    console.log('Google API key found: AI_CODE_REVIEW_GOOGLE_API_KEY');
+    logger.info('Google API key found: AI_CODE_REVIEW_GOOGLE_API_KEY');
   }
 
   return true;
@@ -53,16 +64,21 @@ export function validateGoogleApiKey(apiKey: string | undefined, isDebugMode: bo
  * @param isDebugMode Whether debug mode is enabled
  * @returns True if the API key is valid, false otherwise
  */
-export function validateOpenRouterApiKey(apiKey: string | undefined, isDebugMode: boolean = false): boolean {
+export function validateOpenRouterApiKey(
+  apiKey: string | undefined,
+  isDebugMode: boolean = false
+): boolean {
   if (!apiKey) {
-    console.error('No OpenRouter API key found.');
-    console.error('Please add the following to your .env file:');
-    console.error('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
+    logger.error('No OpenRouter API key found.');
+    logger.error('Please add the following to your .env file:');
+    logger.error(
+      '- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here'
+    );
     return false;
   }
 
   if (isDebugMode) {
-    console.log('OpenRouter API key found: AI_CODE_REVIEW_OPENROUTER_API_KEY');
+    logger.info('OpenRouter API key found: AI_CODE_REVIEW_OPENROUTER_API_KEY');
   }
 
   return true;
@@ -74,16 +90,19 @@ export function validateOpenRouterApiKey(apiKey: string | undefined, isDebugMode
  * @param isDebugMode Whether debug mode is enabled
  * @returns True if the API key is valid, false otherwise
  */
-export function validateOpenAIApiKey(apiKey: string | undefined, isDebugMode: boolean = false): boolean {
+export function validateOpenAIApiKey(
+  apiKey: string | undefined,
+  isDebugMode: boolean = false
+): boolean {
   if (!apiKey) {
-    console.error('No OpenAI API key found.');
-    console.error('Please add the following to your .env file:');
-    console.error('- AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here');
+    logger.error('No OpenAI API key found.');
+    logger.error('Please add the following to your .env file:');
+    logger.error('- AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here');
     return false;
   }
 
   if (isDebugMode) {
-    console.log('OpenAI API key found: AI_CODE_REVIEW_OPENAI_API_KEY');
+    logger.info('OpenAI API key found: AI_CODE_REVIEW_OPENAI_API_KEY');
   }
 
   return true;

@@ -53,7 +53,7 @@ ${projectContext ? `## Project Context\n${projectContext}\n\n` : ''}## File to R
 
 ${codeBlock}
 
-Please review this code and provide feedback according to the instructions.`;
+Please review this code and provide feedback according to the instructions. DO NOT REPEAT THE INSTRUCTIONS. DO NOT ASK FOR CODE TO REVIEW. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.`;
 }
 
 /**
@@ -101,5 +101,5 @@ ${directoryStructure}
 ## File Summaries
 ${fileSummaries}
 
-Please review this codebase and provide feedback according to the instructions.`;
+Please review this codebase and provide feedback according to the instructions. DO NOT REPEAT THE INSTRUCTIONS. DO NOT ASK FOR CODE TO REVIEW. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.`;
 }

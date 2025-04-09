@@ -122,15 +122,29 @@ export async function handleFetchResponse(
     // Try to get the error body
     let errorBody: string | object = 'Unknown error';
     try {
+      // Clone the response so we can read it multiple times if needed
+      const clonedResponse = response.clone();
+
+      // Log all headers for debugging
+      console.log(`[DEBUG] ${apiName} API response headers:`);
+      response.headers.forEach((value: string, name: string) => {
+        console.log(`[DEBUG] ${name}: ${value}`);
+      });
+
       // Try to parse as JSON first
       const contentType = response.headers.get('content-type');
+      console.log(`[DEBUG] Content-Type: ${contentType}`);
+
       if (contentType && contentType.includes('application/json')) {
         errorBody = await response.json();
+        console.log(`[DEBUG] JSON error body: ${JSON.stringify(errorBody)}`);
       } else {
         errorBody = await response.text();
+        console.log(`[DEBUG] Text error body: ${errorBody}`);
       }
     } catch (e) {
-      // Ignore body read errors
+      // Log body read errors
+      console.log(`[DEBUG] Failed to read error body: ${e instanceof Error ? e.message : String(e)}`);
       logger.debug(`Failed to read error body: ${e instanceof Error ? e.message : String(e)}`);
     }
 

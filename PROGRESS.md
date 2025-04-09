@@ -1,5 +1,27 @@
 # Project Progress Log
 
+## 2024-04-08 - Version 1.3.1 Release
+
+### Summary
+Today we released version 1.3.1 of the AI Code Review tool, which includes simplified model names, improved model management, and structured output for code reviews. This release focuses on making the tool more user-friendly and maintainable.
+
+### Completed Tasks
+- Simplified model names to remove version-specific details
+- Derived MODELS constant from MODEL_MAP to eliminate redundancy
+- Deprecated getModels() in favor of getModelsByProvider()
+- Updated documentation to reflect simplified model names
+
+## 2024-04-08 - Version 1.3.0 Release
+
+### Summary
+Today we released version 1.3.0 of the AI Code Review tool, which adds structured output format for code reviews. This release improves the output format and makes it easier to parse and render programmatically.
+
+### Completed Tasks
+- Added structured output format for code reviews
+- Added support for parsing JSON responses wrapped in code blocks
+- Added structured review type definitions
+- Added formatStructuredReviewAsMarkdown function
+
 ## 2024-04-08 - Version 1.2.0 Release
 
 ### Summary

@@ -11,6 +11,7 @@ export * from './logger';
 export * from './envLoader';
 export * from './config';
 export * from './fileSystem';
+export * from './priorityFilter';
 
 // API utilities
 export * from './api';

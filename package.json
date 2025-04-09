@@ -1,14 +1,14 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "1.2.0",
+  "version": "1.5.2",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "bin": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "local": "ts-node -r tsconfig-paths/register src/index.ts",
+    "dev": "ts-node --transpile-only src/index.ts",
+    "local": "ts-node --transpile-only -r tsconfig-paths/register src/index.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest",

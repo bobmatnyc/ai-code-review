@@ -46,22 +46,22 @@ export function getApiKeyType():
     : '';
 
   // First check if we have a specific adapter specified in the model
-  // and if we have the corresponding API key
-  if (adapter === 'gemini' && config.googleApiKey) {
+  // If so, return the corresponding API type regardless of whether we have the API key
+  // This ensures we respect the user's choice of model and provide appropriate error messages
+  if (adapter === 'gemini') {
     return 'Google';
   }
-  if (adapter === 'openrouter' && config.openRouterApiKey) {
+  if (adapter === 'openrouter') {
     return 'OpenRouter';
   }
-  if (adapter === 'anthropic' && config.anthropicApiKey) {
+  if (adapter === 'anthropic') {
     return 'Anthropic';
   }
-  if (adapter === 'openai' && config.openAIApiKey) {
+  if (adapter === 'openai') {
     return 'OpenAI';
   }
 
-  // If no specific adapter is specified or the preferred adapter doesn't have an API key,
-  // check if any API keys are available
+  // If no specific adapter is specified, check if any API keys are available
   // Note: We don't have any preference for which API to use - we'll use whatever is available
   if (adapter === '' || !selectedModel) {
     // Check for any available API keys

@@ -126,15 +126,15 @@ describe('modelMaps', () => {
       expect(openrouterModels.length).toBe(6);
 
       // Verify specific model keys exist
-      expect(openrouterModels).toContain('openrouter:anthropic/claude-3-opus-20240229');
-      expect(openrouterModels).toContain('openrouter:anthropic/claude-3-sonnet-20240229');
-      expect(openrouterModels).toContain('openrouter:anthropic/claude-3-haiku-20240307');
+      expect(openrouterModels).toContain('openrouter:anthropic/claude-3-opus');
+      expect(openrouterModels).toContain('openrouter:anthropic/claude-3-sonnet');
+      expect(openrouterModels).toContain('openrouter:anthropic/claude-3-haiku');
       expect(openrouterModels).toContain('openrouter:openai/gpt-4o');
       expect(openrouterModels).toContain('openrouter:openai/gpt-4-turbo');
       expect(openrouterModels).toContain('openrouter:google/gemini-1.5-pro');
 
       // Verify properties of a specific model
-      const openrouterClaude = MODEL_MAP['openrouter:anthropic/claude-3-opus-20240229'];
+      const openrouterClaude = MODEL_MAP['openrouter:anthropic/claude-3-opus'];
       expect(openrouterClaude.apiName).toBe('anthropic/claude-3-opus-20240229');
       expect(openrouterClaude.displayName).toBe('Claude 3 Opus (via OpenRouter)');
       expect(openrouterClaude.contextWindow).toBe(200000);
@@ -159,7 +159,7 @@ describe('modelMaps', () => {
 
       // Check OpenRouter models
       expect(MODELS.openrouter.length).toBe(6);
-      expect(MODELS.openrouter).toContain('openrouter:anthropic/claude-3-opus-20240229');
+      expect(MODELS.openrouter).toContain('openrouter:anthropic/claude-3-opus');
     });
   });
 

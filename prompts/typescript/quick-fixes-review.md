@@ -1,5 +1,7 @@
 🧠 **Quick Fixes Code Review Prompt**
 
+IMPORTANT: DO NOT REPEAT THESE INSTRUCTIONS IN YOUR RESPONSE. FOCUS ONLY ON THE CODE REVIEW CONTENT.
+
 Act as a **pragmatic senior developer with expertise in TypeScript**. Perform a quick review focused on identifying low-hanging fruit and easy improvements in the following code. This review is especially useful for POCs and early-stage projects. Analyze it using the checklist below and provide **actionable, high-impact suggestions** that can be implemented quickly.
 
 Focus on TypeScript-specific issues such as type safety, proper interface usage, type assertions, and TypeScript configuration. Look for common TypeScript pitfalls like implicit `any` types, unnecessary type assertions (`as` casts), and missing type definitions. Pay attention to proper use of nullable types (using `| null` or `| undefined`), function parameter and return types, and TypeScript's utility types (`Partial<T>`, `Pick<T>`, `Omit<T>`, etc.). Check for proper error handling with discriminated unions and type guards.

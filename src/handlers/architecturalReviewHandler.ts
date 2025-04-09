@@ -9,10 +9,10 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { ReviewOptions, ReviewType, FileInfo } from '../types/review';
+// Import only the Gemini client by default
 import { generateArchitecturalReview } from '../clients/geminiClient';
-import { generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
-import { generateAnthropicConsolidatedReview, initializeAnthropicClient } from '../clients/anthropicClient';
-import { generateOpenAIArchitecturalReview, initializeAnyOpenAIModel } from '../clients/openaiClient';
+
+// Other clients will be dynamically imported based on the selected model
 import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { readProjectDocs } from '../utils/projectDocs';
@@ -92,6 +92,9 @@ export async function handleArchitecturalReview(
 
       logger.info(`Using OpenRouter model: ${modelName}`);
 
+      // Dynamically import the OpenRouter client to avoid loading it unnecessarily
+      const { generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } = await import('../clients/openRouterClient.js');
+
       // Initialize OpenRouter model if needed
       await initializeAnyOpenRouterModel();
 
@@ -125,6 +128,9 @@ export async function handleArchitecturalReview(
 
       logger.info(`Using Anthropic API with model: ${modelName}`);
 
+      // Dynamically import the Anthropic client to avoid loading it unnecessarily
+      const { generateAnthropicConsolidatedReview, initializeAnthropicClient } = await import('../clients/anthropicClient.js');
+
       // Initialize Anthropic model if needed
       await initializeAnthropicClient();
 
@@ -145,6 +151,9 @@ export async function handleArchitecturalReview(
       }
 
       logger.info(`Using OpenAI API with model: ${modelName}`);
+
+      // Dynamically import the OpenAI client to avoid loading it unnecessarily
+      const { generateOpenAIArchitecturalReview, initializeAnyOpenAIModel } = await import('../clients/openaiClient.js');
 
       // Initialize OpenAI model if needed
       await initializeAnyOpenAIModel();

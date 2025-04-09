@@ -203,4 +203,9 @@ export interface ReviewResult {
    * The model used to generate the review
    */
   modelUsed?: string;
+
+  /**
+   * Structured review data (if available)
+   */
+  structuredData?: any; // Will be typed as StructuredReview when parsed
 }

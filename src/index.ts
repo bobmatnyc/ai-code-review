@@ -139,8 +139,9 @@ import { runApiConnectionTests } from './tests/apiConnectionTest';
 import { getCommandLineArguments } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
 
-// Get version from package.json
-const packageJson = require('../package.json');
+// Hardcoded version number to ensure --version flag works correctly
+// This is more reliable than requiring package.json which can be affected by npm installation issues
+const VERSION = '1.5.2';
 
 // Main function to run the application
 async function main() {
@@ -163,7 +164,7 @@ async function main() {
 
     // Check for version flag
     if (args.version) {
-      console.log(packageJson.version);
+      console.log(VERSION);
       return;
     }
 

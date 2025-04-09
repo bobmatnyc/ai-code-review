@@ -154,7 +154,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
   },
 
   // OpenRouter models
-  'openrouter:anthropic/claude-3-opus-20240229': {
+  'openrouter:anthropic/claude-3-opus': {
     apiName: 'anthropic/claude-3-opus-20240229',
     displayName: 'Claude 3 Opus (via OpenRouter)',
     provider: 'openrouter',
@@ -162,7 +162,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     description: "Anthropic's most powerful model via OpenRouter",
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
-  'openrouter:anthropic/claude-3-sonnet-20240229': {
+  'openrouter:anthropic/claude-3-sonnet': {
     apiName: 'anthropic/claude-3-sonnet-20240229',
     displayName: 'Claude 3 Sonnet (via OpenRouter)',
     provider: 'openrouter',
@@ -170,7 +170,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     description: 'Balanced performance and quality via OpenRouter',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
-  'openrouter:anthropic/claude-3-haiku-20240307': {
+  'openrouter:anthropic/claude-3-haiku': {
     apiName: 'anthropic/claude-3-haiku-20240307',
     displayName: 'Claude 3 Haiku (via OpenRouter)',
     provider: 'openrouter',
@@ -205,33 +205,21 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
 };
 
 /**
- * Default models by provider
+ * Default models by provider, derived from MODEL_MAP
  */
 export const MODELS: Record<Provider, string[]> = {
-  gemini: [
-    'gemini:gemini-2.5-pro',
-    'gemini:gemini-2.5-pro-preview',
-    'gemini:gemini-2.5-pro-exp',
-    'gemini:gemini-2.0-flash',
-    'gemini:gemini-2.0-flash-lite',
-    'gemini:gemini-1.5-pro',
-    'gemini:gemini-1.5-flash',
-    'gemini:gemini-1.5-flash-8b'
-  ],
-  anthropic: [
-    'anthropic:claude-3-opus',
-    'anthropic:claude-3-sonnet',
-    'anthropic:claude-3-haiku'
-  ],
-  openai: ['openai:gpt-4o', 'openai:gpt-4-turbo', 'openai:gpt-3.5-turbo'],
-  openrouter: [
-    'openrouter:anthropic/claude-3-opus-20240229',
-    'openrouter:anthropic/claude-3-sonnet-20240229',
-    'openrouter:anthropic/claude-3-haiku-20240307',
-    'openrouter:openai/gpt-4o',
-    'openrouter:openai/gpt-4-turbo',
-    'openrouter:google/gemini-1.5-pro'
-  ]
+  gemini: Object.keys(MODEL_MAP).filter(
+    key => MODEL_MAP[key].provider === 'gemini'
+  ),
+  anthropic: Object.keys(MODEL_MAP).filter(
+    key => MODEL_MAP[key].provider === 'anthropic'
+  ),
+  openai: Object.keys(MODEL_MAP).filter(
+    key => MODEL_MAP[key].provider === 'openai'
+  ),
+  openrouter: Object.keys(MODEL_MAP).filter(
+    key => MODEL_MAP[key].provider === 'openrouter'
+  )
 };
 
 /**
@@ -258,18 +246,17 @@ export function getModelMapping(modelKey: string): ModelMapping | undefined {
  * @returns Array of model keys for the provider
  */
 export function getModelsByProvider(provider: Provider): string[] {
-  return Object.keys(MODEL_MAP).filter(
-    key => MODEL_MAP[key].provider === provider
-  );
+  return MODELS[provider] || [];
 }
 
 /**
  * Get the models for a given provider
  * @param provider The provider (gemini, anthropic, openai, openrouter)
  * @returns Array of model keys for the provider
+ * @deprecated Use getModelsByProvider instead
  */
 export function getModels(provider: Provider): string[] {
-  return MODELS[provider] || [];
+  return getModelsByProvider(provider);
 }
 
 /**

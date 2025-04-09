@@ -7,12 +7,20 @@
  */
 
 import { ApiClientConfig } from './ApiClientSelector';
-import { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import {
+  FileInfo,
+  ReviewOptions,
+  ReviewResult,
+  ReviewType
+} from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
+// Import all clients directly
 import { generateConsolidatedReview } from '../clients/geminiClient';
-import { generateOpenRouterConsolidatedReview } from '../clients/openRouterClient';
-import { generateAnthropicConsolidatedReview } from '../clients/anthropicClient';
-import { generateOpenAIConsolidatedReview } from '../clients/openaiClient';
+import { generateAnthropicConsolidatedReview, initializeAnthropicClient } from '../clients/anthropicClientWrapper';
+import { generateOpenAIConsolidatedReview, initializeAnyOpenAIModel } from '../clients/openaiClientWrapper';
+import { generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } from '../clients/openRouterClientWrapper';
+
+// Other imports
 import logger from '../utils/logger';
 
 /**
@@ -33,50 +41,71 @@ export async function generateReview(
   options: ReviewOptions,
   apiClientConfig: ApiClientConfig
 ): Promise<ReviewResult> {
+  console.log('[DEBUG] generateReview called');
+  console.log(`[DEBUG] generateReview: apiClientConfig=${JSON.stringify(apiClientConfig)}`);
+
   // Use the appropriate API client based on the client type
-  switch (apiClientConfig.clientType) {
-    case 'OpenRouter':
-      return generateOpenRouterConsolidatedReview(
-        fileInfos,
-        project,
-        reviewType,
-        projectDocs,
-        options
-      );
-    case 'Google':
-      return generateConsolidatedReview(
-        fileInfos,
-        project,
-        reviewType,
-        projectDocs,
-        options
-      );
-    case 'Anthropic':
-      return generateAnthropicConsolidatedReview(
-        fileInfos,
-        project,
-        reviewType,
-        projectDocs,
-        options
-      );
-    case 'OpenAI':
-      return generateOpenAIConsolidatedReview(
-        fileInfos,
-        project,
-        reviewType,
-        projectDocs,
-        options
-      );
-    case 'None':
-    default:
-      // Fallback to Gemini client with mock responses
-      logger.warn('No API client available. Using mock responses.');
-      return generateConsolidatedReview(
-        fileInfos,
-        project,
-        reviewType,
-        projectDocs,
-        options
-      );
+  let result: Promise<ReviewResult>;
+
+  if (apiClientConfig.clientType === 'OpenRouter') {
+    console.log('[DEBUG] generateReview: Using OpenRouter client');
+    // Use the imported OpenRouter client wrapper
+
+    // Initialize the OpenRouter client before using it
+    await initializeAnyOpenRouterModel();
+
+    result = generateOpenRouterConsolidatedReview(
+      fileInfos,
+      project,
+      reviewType,
+      projectDocs,
+      options
+    );
+  } else if (apiClientConfig.clientType === 'Google') {
+    result = generateConsolidatedReview(
+      fileInfos,
+      project,
+      reviewType,
+      projectDocs,
+      options
+    );
+  } else if (apiClientConfig.clientType === 'Anthropic') {
+    // Use the imported Anthropic client wrapper
+
+    // Initialize the Anthropic client before using it
+    await initializeAnthropicClient();
+
+    result = generateAnthropicConsolidatedReview(
+      fileInfos,
+      project,
+      reviewType,
+      projectDocs,
+      options
+    );
+  } else if (apiClientConfig.clientType === 'OpenAI') {
+    // Use the imported OpenAI client wrapper
+
+    // Initialize the OpenAI client before using it
+    await initializeAnyOpenAIModel();
+
+    result = generateOpenAIConsolidatedReview(
+      fileInfos,
+      project,
+      reviewType,
+      projectDocs,
+      options
+    );
+  } else {
+    // Fallback to Gemini client with mock responses
+    logger.warn('No API client available. Using mock responses.');
+    result = generateConsolidatedReview(
+      fileInfos,
+      project,
+      reviewType,
+      projectDocs,
+      options
+    );
   }
+
+  return result;
 }
