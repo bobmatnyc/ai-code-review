@@ -141,7 +141,7 @@ import { initI18n, t } from './utils/i18n';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '1.5.2';
+const VERSION = '1.5.3';
 
 // Main function to run the application
 async function main() {

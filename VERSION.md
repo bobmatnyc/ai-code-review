@@ -2,6 +2,13 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.5.3] - 2024-04-09
+
+### Fixed
+- Fixed npm registry caching issues with version reporting
+- Improved standalone installation process
+- Updated version reporting mechanism for better reliability
+
 ## [1.5.2] - 2024-04-09
 
 ### Fixed
