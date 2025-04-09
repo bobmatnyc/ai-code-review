@@ -100,6 +100,7 @@ import { reviewCode } from './commands/reviewCode';
 import { runApiConnectionTests } from './tests/apiConnectionTest';
 import { getCommandLineArguments } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
+import { PluginManager } from './plugins/PluginManager';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
@@ -151,6 +152,26 @@ async function main() {
                           args.uiLanguage === 'ja' ? '日本語' :
                           args.uiLanguage;
       logger.info(t('app.language_selected', { language: languageName }));
+    }
+
+    // Load plugins
+    const pluginManager = PluginManager.getInstance();
+
+    // First try to load plugins from the current directory
+    const localPluginsDir = path.resolve(process.cwd(), 'plugins');
+    await pluginManager.loadPlugins(localPluginsDir);
+
+    // Then try to load plugins from the package directory
+    const packagePluginsDir = path.resolve(__dirname, '..', 'plugins', 'examples');
+    await pluginManager.loadPlugins(packagePluginsDir);
+
+    // Log the loaded plugins
+    const plugins = pluginManager.listPlugins();
+    if (plugins.length > 0) {
+      logger.info(`Loaded ${plugins.length} plugins:`);
+      plugins.forEach(plugin => {
+        logger.info(`- ${plugin.name}: ${plugin.description}`);
+      });
     }
 
     // Check for version flag

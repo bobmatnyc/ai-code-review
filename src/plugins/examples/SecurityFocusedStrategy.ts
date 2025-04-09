@@ -5,8 +5,16 @@
  * that focuses specifically on security issues.
  */
 
-import { BaseReviewStrategy, IReviewStrategy } from '../../strategies/ReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../../types/review';
+import {
+  BaseReviewStrategy,
+  IReviewStrategy
+} from '../../strategies/ReviewStrategy';
+import {
+  FileInfo,
+  ReviewOptions,
+  ReviewResult,
+  ReviewType
+} from '../../types/review';
 import { ProjectDocs } from '../../utils/projectDocs';
 import { ApiClientConfig } from '../../core/ApiClientSelector';
 import { generateReview } from '../../core/ReviewGenerator';
@@ -42,13 +50,13 @@ class SecurityFocusedStrategy extends BaseReviewStrategy {
     apiClientConfig: ApiClientConfig
   ): Promise<ReviewResult> {
     logger.info('Executing security-focused review strategy...');
-    
+
     // Override the review type to ensure we're using the security review type
     const securityOptions = {
       ...options,
       type: 'security' as ReviewType
     };
-    
+
     // Generate the review using the selected API client
     return generateReview(
       files,
@@ -72,20 +80,22 @@ const SecurityFocusedPlugin = {
   register: (pluginManager: PluginManager): void => {
     const registration: PluginRegistration = {
       name: 'security-focused',
-      description: 'A review strategy that focuses specifically on security issues',
+      description:
+        'A review strategy that focuses specifically on security issues',
       strategy: new SecurityFocusedStrategy()
     };
-    
+
     pluginManager.registerPlugin(registration);
   },
-  
+
   /**
    * Get information about the plugin
    * @returns Plugin information
    */
   getInfo: () => ({
     name: 'security-focused',
-    description: 'A review strategy that focuses specifically on security issues',
+    description:
+      'A review strategy that focuses specifically on security issues',
     version: '1.0.0',
     author: 'AI Code Review Team'
   })

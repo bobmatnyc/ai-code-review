@@ -124,6 +124,10 @@ export async function parseArguments(): Promise<CliOptions> {
         default: false,
         describe: 'List all available models based on configured API keys',
       })
+      .option('strategy', {
+        type: 'string',
+        describe: 'Custom review strategy to use (plugin name)',
+      })
       .option('ui-language', {
         choices: SUPPORTED_LANGUAGES,
         default: 'en',

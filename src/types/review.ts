@@ -108,6 +108,11 @@ export interface ReviewOptions {
    * Whether to list available models based on configured API keys
    */
   listmodels?: boolean;
+
+  /**
+   * Custom review strategy to use (plugin name)
+   */
+  strategy?: string;
 }
 
 /**

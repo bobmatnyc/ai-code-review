@@ -40,8 +40,8 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 **Dependencies**: Requires completion of Phase 1 configuration module for strategy selection.
 
 - [x] Decouple review logic from orchestrator into `strategies/` *(Implemented: Created ReviewStrategy interface, base class, and concrete implementations for different review types)*
-- [ ] Support for user-defined review strategies via plugins
-- [ ] Add `--strategy` CLI flag to choose logic
+- [x] Support for user-defined review strategies via plugins *(Implemented: Created PluginManager and plugin interface for custom strategies)*
+- [x] Add `--strategy` CLI flag to choose logic *(Implemented: Added CLI flag and updated StrategyFactory to support custom strategies)*
 - [ ] Move prompt templates to external files for better testing/versioning *(Note: Basic templates exist in prompts/ directory, but need standardization)*
 - [ ] Add unit tests for review strategies
 
