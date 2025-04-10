@@ -9,12 +9,14 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 - **Structured Output**: Implemented a well-defined schema for code review output that can be easily parsed and rendered procedurally
 - **Enhanced Interactive Mode**: Interactive mode now displays all issue details in a structured format with code samples
 - **Improved Model Support**: Better support for all model providers including Anthropic, OpenAI, Gemini, and OpenRouter
+- **Robust Model Mapping**: Centralized model mapping system that automatically converts user-friendly model names to provider-specific API formats
 
 ### Other Improvements
 
 - **Fixed Development Mode**: Fixed bug in API client selection where dynamic imports were failing in development mode
 - **Improved Imports**: Updated imports in anthropicClient.ts to use direct imports instead of dynamic imports
 - **Faster Development**: Added --transpile-only flag to ts-node for faster development builds
+- **Fixed Model Mapping**: Fixed issue where model names weren't being properly mapped to provider-specific API formats
 
 ## What's New in v1.3.2
 
@@ -304,8 +306,11 @@ AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
 AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Model configuration
-# Specify which model to use for code reviews using the format adapter:model
+# Specify which model to use for code reviews using the format provider:model
+# The tool will automatically map this to the correct API model name
 AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+
+# See the Supported Models section for all available models and their API mappings
 
 # Custom context files
 # Comma-separated list of file paths to include as context for the code review
@@ -318,35 +323,106 @@ AI_CODE_REVIEW_CONTEXT=README.md,docs/architecture.md,src/types.ts
 
 ## Supported Models
 
+### Model Mapping System
+
+The tool uses a centralized model mapping system that automatically converts user-friendly model names to provider-specific API formats. This ensures that you can use consistent model names across different providers without worrying about the specific API requirements of each provider.
+
+For example, when you specify `anthropic:claude-3-opus` as your model, the tool automatically maps this to the correct API model name `claude-3-opus-20240229` when making requests to the Anthropic API.
+
+The model mapping system provides the following benefits:
+
+- **Consistent Model Names**: Use the same model naming convention across all providers
+- **Automatic API Format Conversion**: No need to remember provider-specific model formats
+- **Centralized Configuration**: All model mappings are defined in a single location for easy maintenance
+- **Extensible**: New models can be added easily without changing the core code
+
+You can see all available models and their mappings by running `ai-code-review --listmodels`.
+
 ### Gemini Models
 
-| Model Name | Description | API Key Required |
-|------------|-------------|------------------|
-| `gemini:gemini-1.5-pro` | Recommended for most code reviews | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-1.5-flash` | Faster but less detailed reviews | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-2.5-pro` | Latest model with improved capabilities | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-2.0-flash` | Balanced performance and quality | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-pro` | Legacy model | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
-| `gemini:gemini-pro-latest` | Latest version of legacy model | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| Model Name | Description | API Key Required | API Model Name |
+|------------|-------------|------------------|----------------|
+| `gemini:gemini-1.5-pro` | Recommended for most code reviews | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-1.5-pro` |
+| `gemini:gemini-1.5-flash` | Faster but less detailed reviews | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-1.5-flash` |
+| `gemini:gemini-2.5-pro` | Latest model with improved capabilities | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-2.5-pro` |
+| `gemini:gemini-2.0-flash` | Balanced performance and quality | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-2.0-flash` |
+| `gemini:gemini-pro` | Legacy model | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-pro` |
+| `gemini:gemini-pro-latest` | Latest version of legacy model | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-pro-latest` |
 
 ### OpenRouter Models
 
-| Model Name | Description | API Key Required |
-|------------|-------------|------------------|
-| `openrouter:anthropic/claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:anthropic/claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:anthropic/claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:openai/gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:openai/gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
-| `openrouter:google/gemini-1.5-pro` | Google's model via OpenRouter | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| Model Name | Description | API Key Required | API Model Name |
+|------------|-------------|------------------|----------------|
+| `openrouter:anthropic/claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `anthropic/claude-3-opus` |
+| `openrouter:anthropic/claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `anthropic/claude-3-sonnet` |
+| `openrouter:anthropic/claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `anthropic/claude-3-haiku` |
+| `openrouter:openai/gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `openai/gpt-4o` |
+| `openrouter:openai/gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `openai/gpt-4-turbo` |
+| `openrouter:google/gemini-1.5-pro` | Google's model via OpenRouter | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `google/gemini-1.5-pro` |
 
 ### Anthropic Models (Direct API)
 
-| Model Name | Description | API Key Required |
-|------------|-------------|------------------|
-| `anthropic:claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
-| `anthropic:claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
-| `anthropic:claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| Model Name | Description | API Key Required | API Model Name |
+|------------|-------------|------------------|----------------|
+| `anthropic:claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-opus-20240229` |
+| `anthropic:claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-sonnet-20240229` |
+| `anthropic:claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-haiku-20240307` |
+
+### OpenAI Models (Direct API)
+
+| Model Name | Description | API Key Required | API Model Name |
+|------------|-------------|------------------|----------------|
+| `openai:gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4-turbo-preview` |
+| `openai:gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4o` |
+| `openai:gpt-4` | Original GPT-4 model | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4` |
+
+### Extending the Model Mapping System
+
+If you need to add support for a new model or update an existing model mapping, you can modify the `MODEL_MAP` in `src/clients/utils/modelMaps.ts`. The model mapping system uses a simple key-value structure where the key is the user-friendly model name (e.g., `anthropic:claude-3-opus`) and the value contains the API-specific details:
+
+```typescript
+export const MODEL_MAP: Record<string, ModelMapping> = {
+  'anthropic:claude-3-opus': {
+    apiName: 'claude-3-opus-20240229',  // The actual API model name
+    displayName: 'Claude 3 Opus',       // Human-readable name
+    provider: 'anthropic',              // Provider identifier
+    contextWindow: 200000,              // Context window size in tokens
+    description: 'Claude 3 Opus - Anthropic\'s most powerful model',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'  // Required API key
+  },
+  // Add more models here...
+};
+```
+
+After adding a new model mapping, you can use it by setting the `AI_CODE_REVIEW_MODEL` environment variable to the new model key.
+
+### Model Mapping Utility Functions
+
+The model mapping system provides several utility functions that you can use in your code:
+
+```typescript
+// Get the API name for a model key
+const apiName = getApiNameFromKey('anthropic:claude-3-opus');
+// Returns: 'claude-3-opus-20240229'
+
+// Get the full model mapping
+const modelMapping = getModelMapping('anthropic:claude-3-opus');
+// Returns: { apiName: 'claude-3-opus-20240229', displayName: 'Claude 3 Opus', ... }
+
+// Get all models for a provider
+const anthropicModels = getModelsByProvider('anthropic');
+// Returns: ['anthropic:claude-3-opus', 'anthropic:claude-3-sonnet', ...]
+
+// Parse a model string
+const { provider, modelName } = parseModelString('anthropic:claude-3-opus');
+// Returns: { provider: 'anthropic', modelName: 'claude-3-opus' }
+
+// Get the full model key from provider and model name
+const fullModelKey = getFullModelKey('anthropic', 'claude-3-opus');
+// Returns: 'anthropic:claude-3-opus'
+```
+
+These utility functions make it easy to work with the model mapping system in your code.
 
 ## Testing API Connections
 

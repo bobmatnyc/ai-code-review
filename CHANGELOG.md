@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2024-04-10
+
+### Added
+- Implemented a well-defined schema for code review output
+- Enhanced interactive mode to display all issue details in a structured format
+- Added centralized model mapping system for consistent model naming
+- Added support for user-defined prompt templates and fragments
+- Added model-specific prompt strategies for optimized prompts
+- Added prompt caching for improved performance
+
+### Changed
+- Reorganized review logic into strategy pattern for better extensibility
+- Improved model support for all providers (Anthropic, OpenAI, Gemini, OpenRouter)
+- Enhanced documentation with detailed model mapping information
+
+### Fixed
+- Fixed model mapping issue where model names weren't properly converted to API formats
+- Fixed development mode bug in API client selection
+- Fixed imports in anthropicClient.ts to use direct imports
+
 ## [1.2.0] - 2024-04-08
 
 ### Added
