@@ -33,6 +33,32 @@ export async function reviewCode(
       delete (options as any)['prompt-file'];
     }
 
+    // Handle prompt-fragment option if provided
+    if ((options as any)['prompt-fragment']) {
+      const fragment = (options as any)['prompt-fragment'] as string;
+      const position = (options as any)['prompt-fragment-position'] || 'middle';
+
+      options.promptFragments = [{
+        content: fragment,
+        position: position as 'start' | 'middle' | 'end'
+      }];
+
+      delete (options as any)['prompt-fragment'];
+      delete (options as any)['prompt-fragment-position'];
+    }
+
+    // Handle prompt-strategy option if provided
+    if ((options as any)['prompt-strategy']) {
+      options.promptStrategy = (options as any)['prompt-strategy'] as string;
+      delete (options as any)['prompt-strategy'];
+    }
+
+    // Handle use-cache option if provided
+    if ((options as any)['use-cache'] !== undefined) {
+      options.useCache = (options as any)['use-cache'] as boolean;
+      delete (options as any)['use-cache'];
+    }
+
     // Delegate to the review orchestrator
     await orchestrateReview(target, options);
   } catch (error) {

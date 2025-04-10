@@ -10,6 +10,9 @@ import fs from 'fs/promises';
 import { ReviewType, ReviewOptions } from '../types/review';
 import logger from '../utils/logger';
 import { getSchemaInstructions } from '../types/reviewSchema';
+import { PromptBuilder } from './PromptBuilder';
+import { PromptCache } from './cache/PromptCache';
+import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
 
 /**
  * Interface for prompt template metadata
@@ -19,32 +22,32 @@ export interface PromptTemplateMetadata {
    * Name of the template
    */
   name: string;
-  
+
   /**
    * Description of the template
    */
   description: string;
-  
+
   /**
    * Version of the template
    */
   version: string;
-  
+
   /**
    * Author of the template
    */
   author: string;
-  
+
   /**
    * Language the template is designed for
    */
   language?: string;
-  
+
   /**
    * Review type the template is designed for
    */
   reviewType: ReviewType;
-  
+
   /**
    * Tags associated with the template
    */
@@ -59,12 +62,12 @@ export interface PromptTemplate {
    * Content of the template
    */
   content: string;
-  
+
   /**
    * Metadata for the template
    */
   metadata: PromptTemplateMetadata;
-  
+
   /**
    * Path to the template file
    */
@@ -78,12 +81,20 @@ export class PromptManager {
   private static instance: PromptManager;
   private templates: Map<string, PromptTemplate> = new Map();
   private customTemplates: Map<string, PromptTemplate> = new Map();
-  
+  private promptCache: PromptCache;
+  private promptBuilder: PromptBuilder;
+
   /**
    * Private constructor to enforce singleton pattern
    */
-  private constructor() {}
-  
+  private constructor() {
+    // Initialize the prompt cache
+    this.promptCache = PromptCache.getInstance();
+
+    // Initialize the prompt builder
+    this.promptBuilder = new PromptBuilder(this, this.promptCache);
+  }
+
   /**
    * Get the singleton instance
    * @returns The prompt manager instance
@@ -94,7 +105,7 @@ export class PromptManager {
     }
     return PromptManager.instance;
   }
-  
+
   /**
    * Register a custom prompt template
    * @param template Prompt template to register
@@ -104,7 +115,7 @@ export class PromptManager {
     this.customTemplates.set(key, template);
     logger.info(`Registered custom prompt template: ${template.metadata.name}`);
   }
-  
+
   /**
    * Get a template key based on review type and language
    * @param reviewType Type of review
@@ -114,7 +125,7 @@ export class PromptManager {
   private getTemplateKey(reviewType: ReviewType, language?: string): string {
     return language ? `${reviewType}:${language.toLowerCase()}` : `${reviewType}`;
   }
-  
+
   /**
    * Load prompt templates from a directory
    * @param templatesDir Directory containing templates
@@ -128,14 +139,14 @@ export class PromptManager {
         logger.warn(`Templates directory not found: ${templatesDir}`);
         return;
       }
-      
+
       // Read the directory
       const files = await fs.readdir(templatesDir, { withFileTypes: true });
-      
+
       // Process each file or directory
       for (const file of files) {
         const fullPath = path.join(templatesDir, file.name);
-        
+
         if (file.isDirectory()) {
           // If it's a directory, recursively load templates from it
           await this.loadTemplates(fullPath);
@@ -143,17 +154,17 @@ export class PromptManager {
           try {
             // Read the file content
             const content = await fs.readFile(fullPath, 'utf-8');
-            
+
             // Extract metadata from the file content
             const metadata = this.extractMetadata(content, file.name);
-            
+
             // Create a template object
             const template: PromptTemplate = {
               content,
               metadata,
               path: fullPath
             };
-            
+
             // Register the template
             const key = this.getTemplateKey(metadata.reviewType, metadata.language);
             this.templates.set(key, template);
@@ -163,13 +174,13 @@ export class PromptManager {
           }
         }
       }
-      
+
       logger.info(`Loaded ${this.templates.size} prompt templates from ${templatesDir}`);
     } catch (error) {
       logger.error(`Error loading prompt templates: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  
+
   /**
    * Extract metadata from a prompt template
    * @param content Template content
@@ -185,14 +196,14 @@ export class PromptManager {
       author: 'AI Code Review Tool',
       reviewType: this.getReviewTypeFromFileName(fileName)
     };
-    
+
     // Try to extract metadata from the content
     const metadataMatch = content.match(/---\s*\n([\s\S]*?)\n---/);
     if (metadataMatch && metadataMatch[1]) {
       try {
         const metadataLines = metadataMatch[1].split('\n');
         const metadata: Record<string, string | string[]> = {};
-        
+
         for (const line of metadataLines) {
           const match = line.match(/^([^:]+):\s*(.*)$/);
           if (match) {
@@ -204,7 +215,7 @@ export class PromptManager {
             }
           }
         }
-        
+
         // Merge with default metadata
         return {
           ...defaultMetadata,
@@ -215,10 +226,10 @@ export class PromptManager {
         logger.warn(`Error parsing metadata from ${fileName}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
-    
+
     return defaultMetadata;
   }
-  
+
   /**
    * Get review type from a file name
    * @param fileName Name of the template file
@@ -226,7 +237,7 @@ export class PromptManager {
    */
   private getReviewTypeFromFileName(fileName: string): ReviewType {
     const baseName = path.basename(fileName, '.md');
-    
+
     if (baseName.includes('quick-fixes')) {
       return 'quick-fixes';
     } else if (baseName.includes('security')) {
@@ -241,7 +252,7 @@ export class PromptManager {
       return 'quick-fixes'; // Default to quick-fixes
     }
   }
-  
+
   /**
    * Get a prompt template
    * @param reviewType Type of review
@@ -251,11 +262,11 @@ export class PromptManager {
   async getPromptTemplate(reviewType: ReviewType, options?: ReviewOptions): Promise<string> {
     // Get the language from options or default to typescript
     let language = 'typescript';
-    
+
     if (options?.language) {
       language = options.language.toLowerCase();
     }
-    
+
     // If a custom prompt file is specified, try to load it first
     if (options?.promptFile) {
       try {
@@ -268,7 +279,7 @@ export class PromptManager {
         logger.warn('Falling back to default prompt template');
       }
     }
-    
+
     // Check if we have a custom template registered
     const customKey = this.getTemplateKey(reviewType, language);
     const customTemplate = this.customTemplates.get(customKey);
@@ -276,7 +287,7 @@ export class PromptManager {
       logger.info(`Using custom prompt template: ${customTemplate.metadata.name}`);
       return this.processPromptTemplate(customTemplate.content, options);
     }
-    
+
     // Check if we have a template for this review type and language
     const key = this.getTemplateKey(reviewType, language);
     const template = this.templates.get(key);
@@ -284,7 +295,7 @@ export class PromptManager {
       logger.debug(`Using prompt template: ${template.path}`);
       return this.processPromptTemplate(template.content, options);
     }
-    
+
     // Try to find a template for this review type without language
     const genericKey = this.getTemplateKey(reviewType);
     const genericTemplate = this.templates.get(genericKey);
@@ -292,11 +303,11 @@ export class PromptManager {
       logger.debug(`Using generic prompt template: ${genericTemplate.path}`);
       return this.processPromptTemplate(genericTemplate.content, options);
     }
-    
+
     // If we still don't have a template, try to load it from the file system
     return this.loadPromptTemplateFromFileSystem(reviewType, options);
   }
-  
+
   /**
    * Load a prompt template from the file system
    * @param reviewType Type of review
@@ -306,11 +317,11 @@ export class PromptManager {
   private async loadPromptTemplateFromFileSystem(reviewType: ReviewType, options?: ReviewOptions): Promise<string> {
     // Get the language from options or default to typescript
     let language = 'typescript';
-    
+
     if (options?.language) {
       language = options.language.toLowerCase();
     }
-    
+
     // Try multiple paths to find the prompt template
     const possiblePaths = [
       // First try the language-specific directory (for local development)
@@ -348,10 +359,10 @@ export class PromptManager {
         `${reviewType}-review.md`
       )
     ];
-    
+
     let lastError: any;
     let promptTemplate = '';
-    
+
     // Try each path in order
     for (const promptPath of possiblePaths) {
       try {
@@ -363,7 +374,7 @@ export class PromptManager {
         // Continue to the next path
       }
     }
-    
+
     // If we couldn't read any file, throw an error
     if (!promptTemplate) {
       logger.error(
@@ -376,11 +387,11 @@ export class PromptManager {
         `Failed to load prompt template for ${reviewType} (language: ${language})`
       );
     }
-    
+
     // Process the template
     return this.processPromptTemplate(promptTemplate, options);
   }
-  
+
   /**
    * Process a prompt template by replacing placeholders
    * @param promptTemplate The raw prompt template
@@ -401,7 +412,7 @@ export class PromptManager {
       // Otherwise, remove the schema instructions placeholder
       promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', '');
     }
-    
+
     // Add language-specific instructions if available
     if (options?.language) {
       promptTemplate = promptTemplate.replace(
@@ -411,27 +422,27 @@ export class PromptManager {
     } else {
       promptTemplate = promptTemplate.replace('{{LANGUAGE_INSTRUCTIONS}}', '');
     }
-    
+
     return promptTemplate;
   }
-  
+
   /**
    * List all available prompt templates
    * @returns Array of prompt template metadata
    */
   listTemplates(): PromptTemplateMetadata[] {
     const allTemplates: PromptTemplateMetadata[] = [];
-    
+
     // Add built-in templates
     for (const template of this.templates.values()) {
       allTemplates.push(template.metadata);
     }
-    
+
     // Add custom templates
     for (const template of this.customTemplates.values()) {
       allTemplates.push(template.metadata);
     }
-    
+
     return allTemplates;
   }
 }

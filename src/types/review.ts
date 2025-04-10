@@ -118,6 +118,25 @@ export interface ReviewOptions {
    * Path to a custom prompt template file
    */
   promptFile?: string;
+
+  /**
+   * Custom prompt fragments to inject into the prompt
+   */
+  promptFragments?: {
+    content: string;
+    position: 'start' | 'middle' | 'end';
+    priority?: number;
+  }[];
+
+  /**
+   * Whether to use cached prompts
+   */
+  useCache?: boolean;
+
+  /**
+   * Prompt strategy to use (e.g., 'anthropic', 'gemini', 'openai')
+   */
+  promptStrategy?: string;
 }
 
 /**

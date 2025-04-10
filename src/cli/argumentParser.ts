@@ -129,8 +129,27 @@ export async function parseArguments(): Promise<CliOptions> {
         describe: 'Custom review strategy to use (plugin name)',
       })
       .option('prompt-file', {
+        alias: 'prompt',
         type: 'string',
         describe: 'Path to a custom prompt template file',
+      })
+      .option('prompt-fragment', {
+        type: 'string',
+        describe: 'Custom prompt fragment to inject into the prompt',
+      })
+      .option('prompt-fragment-position', {
+        choices: ['start', 'middle', 'end'],
+        default: 'middle',
+        describe: 'Position of the prompt fragment in the prompt',
+      })
+      .option('prompt-strategy', {
+        type: 'string',
+        describe: 'Prompt strategy to use (e.g., anthropic, gemini, openai)',
+      })
+      .option('use-cache', {
+        type: 'boolean',
+        default: true,
+        describe: 'Whether to use cached prompts',
       })
       .option('ui-language', {
         choices: SUPPORTED_LANGUAGES,
