@@ -102,6 +102,7 @@ import { getCommandLineArguments } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
 import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
+import { listModelConfigs } from './clients/utils/modelLister';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
@@ -116,6 +117,12 @@ async function main() {
     // Check for version flag first, before any other processing
     if (args.version) {
       console.log(VERSION);
+      return;
+    }
+
+    // Check for models flag to list all supported models and their configuration names
+    if (args.models) {
+      listModelConfigs();
       return;
     }
 

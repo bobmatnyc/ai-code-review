@@ -110,6 +110,11 @@ export interface ReviewOptions {
   listmodels?: boolean;
 
   /**
+   * Whether to list all supported models and their configuration names
+   */
+  models?: boolean;
+
+  /**
    * Custom review strategy to use (plugin name)
    */
   strategy?: string;

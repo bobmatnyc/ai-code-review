@@ -13,7 +13,7 @@ import logger from '../utils/logger';
 import { getApiKeyType } from '../utils/apiUtils';
 import { runApiConnectionTests } from '../tests/apiConnectionTest';
 import { estimateFromFilePaths, formatEstimation } from '../utils/estimationUtils';
-import { listModels, printCurrentModel } from '../clients/utils/modelLister';
+import { listModels, printCurrentModel, listModelConfigs } from '../clients/utils/modelLister';
 
 // Import strategy-related modules
 import { StrategyFactory } from '../strategies/StrategyFactory';
@@ -55,6 +55,13 @@ export async function orchestrateReview(
     if (options.listmodels) {
       logger.info('Listing available models based on configured API keys...');
       listModels(false); // Show all models, not just available ones
+      return; // Exit after listing models
+    }
+
+    // If models flag is set, list all supported models and their configuration names
+    if (options.models) {
+      logger.info('Listing all supported models and their configuration names...');
+      listModelConfigs();
       return; // Exit after listing models
     }
 

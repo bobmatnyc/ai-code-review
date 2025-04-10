@@ -13,7 +13,7 @@ import {
 } from '../../utils/envLoader';
 import chalk from 'chalk';
 import logger from '../../utils/logger';
-import { MODEL_MAP, getModelsByProvider, Provider } from './modelMaps';
+import { MODEL_MAP, getModelsByProvider, Provider, ModelMapping } from './modelMaps';
 
 /**
  * Model information interface
@@ -208,6 +208,58 @@ export function listModels(showOnlyAvailable: boolean = false): void {
 export function getCurrentModel(): ModelInfo | undefined {
   const modelName = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
   return getAllModels().find(model => model.name === modelName);
+}
+
+/**
+ * List all supported models and their configuration names
+ */
+export function listModelConfigs(): void {
+  console.log(chalk.bold('\nSupported Models and Configuration Names:'));
+  console.log(chalk.dim('-----------------------------------'));
+
+  // Group models by provider
+  const modelsByProvider: Record<string, Array<ModelMapping & { name: string }>> = {};
+
+  Object.entries(MODEL_MAP).forEach(([key, model]) => {
+    if (!modelsByProvider[model.provider]) {
+      modelsByProvider[model.provider] = [];
+    }
+    modelsByProvider[model.provider].push({
+      ...model,
+      name: key // Add the key as the name
+    });
+  });
+
+  // Print models by provider
+  Object.entries(modelsByProvider).forEach(([provider, providerModels]) => {
+    console.log(chalk.bold(`\n${provider.charAt(0).toUpperCase() + provider.slice(1)} Models:`));
+
+    providerModels.forEach(model => {
+      console.log(
+        `  ${chalk.cyan(model.displayName)} (${chalk.yellow(model.name)})`
+      );
+      console.log(`    ${chalk.dim('API Name:')} ${model.apiName}`);
+      if (model.description) {
+        console.log(`    ${chalk.dim('Description:')} ${model.description}`);
+      }
+      if (model.contextWindow) {
+        console.log(
+          `    ${chalk.dim('Context Window:')} ${model.contextWindow.toLocaleString()} tokens`
+        );
+      }
+      console.log(
+        `    ${chalk.dim('API Key Required:')} ${model.apiKeyEnvVar}`
+      );
+      console.log();
+    });
+  });
+
+  // Print usage examples
+  console.log(chalk.dim('-----------------------------------'));
+  console.log(chalk.bold('Usage Examples:'));
+  console.log(`  ${chalk.dim('Environment Variable:')} AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro`);
+  console.log(`  ${chalk.dim('Command Line:')} --model=anthropic:claude-3-opus`);
+  console.log(`  ${chalk.dim('Config File:')} "model": "openai:gpt-4-turbo"`);
 }
 
 /**

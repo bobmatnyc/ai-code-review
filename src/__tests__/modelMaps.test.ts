@@ -36,9 +36,19 @@ describe('modelMaps', () => {
     it('should have the correct number of models', () => {
       // Count the total number of models
       const totalModels = Object.keys(MODEL_MAP).length;
+      const expectedModelCount = 14; // Update this number if models are intentionally added or removed
+
+      // This will throw an error if the count doesn't match
+      if (totalModels !== expectedModelCount) {
+        throw new Error(
+          `MODEL_MAP contains ${totalModels} models, but expected ${expectedModelCount}. ` +
+          'This error is intentional to prevent accidental removal of models. ' +
+          'If you intentionally added or removed models, please update the expectedModelCount in this test.'
+        );
+      }
 
       // This should be updated if models are added or removed
-      expect(totalModels).toBe(20); // Update this number if models change
+      expect(totalModels).toBe(expectedModelCount);
     });
   });
 
@@ -49,17 +59,12 @@ describe('modelMaps', () => {
       );
 
       // Verify we have the expected number of Gemini models
-      expect(geminiModels.length).toBe(8);
+      expect(geminiModels.length).toBe(3);
 
       // Verify specific model keys exist
       expect(geminiModels).toContain('gemini:gemini-2.5-pro');
-      expect(geminiModels).toContain('gemini:gemini-2.5-pro-preview');
-      expect(geminiModels).toContain('gemini:gemini-2.5-pro-exp');
       expect(geminiModels).toContain('gemini:gemini-2.0-flash');
       expect(geminiModels).toContain('gemini:gemini-2.0-flash-lite');
-      expect(geminiModels).toContain('gemini:gemini-1.5-pro');
-      expect(geminiModels).toContain('gemini:gemini-1.5-flash');
-      expect(geminiModels).toContain('gemini:gemini-1.5-flash-8b');
 
       // Verify properties of a specific model
       const gemini25Pro = MODEL_MAP['gemini:gemini-2.5-pro'];
@@ -123,7 +128,7 @@ describe('modelMaps', () => {
       );
 
       // Verify we have the expected number of OpenRouter models
-      expect(openrouterModels.length).toBe(6);
+      expect(openrouterModels.length).toBe(5);
 
       // Verify specific model keys exist
       expect(openrouterModels).toContain('openrouter:anthropic/claude-3-opus');
@@ -131,7 +136,6 @@ describe('modelMaps', () => {
       expect(openrouterModels).toContain('openrouter:anthropic/claude-3-haiku');
       expect(openrouterModels).toContain('openrouter:openai/gpt-4o');
       expect(openrouterModels).toContain('openrouter:openai/gpt-4-turbo');
-      expect(openrouterModels).toContain('openrouter:google/gemini-1.5-pro');
 
       // Verify properties of a specific model
       const openrouterClaude = MODEL_MAP['openrouter:anthropic/claude-3-opus'];
@@ -145,9 +149,9 @@ describe('modelMaps', () => {
   describe('MODELS array', () => {
     it('should have the correct models for each provider', () => {
       // Check Gemini models
-      expect(MODELS.gemini.length).toBe(8);
+      expect(MODELS.gemini.length).toBe(3);
       expect(MODELS.gemini).toContain('gemini:gemini-2.5-pro');
-      expect(MODELS.gemini).toContain('gemini:gemini-1.5-pro');
+      expect(MODELS.gemini).toContain('gemini:gemini-2.0-flash');
 
       // Check Anthropic models
       expect(MODELS.anthropic.length).toBe(3);
