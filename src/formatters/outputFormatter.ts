@@ -140,11 +140,17 @@ function formatAsMarkdown(review: ReviewResult): string {
   // Sanitize the content to prevent XSS attacks
   const sanitizedContent = sanitizeContent(content);
 
-  return `# Code Review: ${filePath}
+  // Use the actual file path for the review title and the reviewed field
+  // If filePath is the same as reviewType, it means we're reviewing the current directory
+  const displayPath = filePath === reviewType ?
+    (process.cwd() + ' (Current Directory)') :
+    filePath;
+
+  return `# Code Review: ${displayPath}
 
 > **Review Type**: ${reviewType}
 > **Generated**: ${new Date(timestamp).toLocaleString()}
-> **Reviewed**: ${filePath}
+> **Reviewed**: ${displayPath}
 
 ---
 
@@ -217,11 +223,17 @@ function formatStructuredReviewAsMarkdown(
     positiveAspectsMarkdown += '\n\n';
   }
 
-  return `# Code Review: ${filePath}
+  // Use the actual file path for the review title and the reviewed field
+  // If filePath is the same as reviewType, it means we're reviewing the current directory
+  const displayPath = filePath === reviewType ?
+    (process.cwd() + ' (Current Directory)') :
+    filePath;
+
+  return `# Code Review: ${displayPath}
 
 > **Review Type**: ${reviewType}
 > **Generated**: ${new Date(timestamp).toLocaleString()}
-> **Reviewed**: ${filePath}
+> **Reviewed**: ${displayPath}
 
 ---
 

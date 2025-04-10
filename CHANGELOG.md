@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.2] - 2024-04-10
+
+### Fixed
+- Fixed issue where the review output showed the review type instead of the actual file path in the "Reviewed" field
+- When reviewing the current directory, now shows the full path with "(Current Directory)" appended
+
+## [1.9.1] - 2024-04-10
+
+### Added
+- Added `--models` flag to list all supported models and their configuration names
+- Restored full list of models that were previously removed
+- Added unit test to check the number of models and throw an error if models are accidentally removed
+
+### Fixed
+- Fixed issue where most models were accidentally removed from the model map
+- Updated tests to match the current model structure
+
 ## [1.7.2] - 2024-04-10
 
 ### Fixed
