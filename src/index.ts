@@ -105,13 +105,19 @@ import { PromptManager } from './prompts/PromptManager';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '1.5.3';
+const VERSION = '1.5.5';
 
 // Main function to run the application
 async function main() {
   try {
     // Parse command-line arguments
     const args = await getCommandLineArguments();
+
+    // Check for version flag first, before any other processing
+    if (args.version) {
+      console.log(VERSION);
+      return;
+    }
 
     // Load and validate configuration with CLI overrides
     const config = getConfig(args);
@@ -195,11 +201,7 @@ async function main() {
       });
     }
 
-    // Check for version flag
-    if (args.version) {
-      console.log(VERSION);
-      return;
-    }
+    // Version flag is now checked at the beginning of the function
 
     // Check for test-api command
     if (args.testApi) {
