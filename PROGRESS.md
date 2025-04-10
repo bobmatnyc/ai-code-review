@@ -1,5 +1,68 @@
 # Project Progress Log
 
+## 2024-04-10 - Version 1.9.3 Release
+
+### Summary
+Today we released version 1.9.3 of the AI Code Review tool, which includes several important fixes and improvements. We fixed issues with logging messages in production builds, improved the review output display, and added a new feature to list all supported models with their configuration names.
+
+### Completed Tasks
+- Added `--models` flag to list all supported models and their configuration names
+- Restored full list of models that were previously removed
+- Fixed issue where the review output showed the review type instead of the actual file path
+- Suppressed DEBUG logging messages in production builds
+- Changed directory not found warnings to debug level messages for plugins and templates directories
+- Added unit test to check the number of models and throw an error if models are accidentally removed
+- Fixed npm package publishing issues with bin configuration
+
+### Implementation Details
+
+#### Model Listing Feature
+We implemented a comprehensive model listing feature with the `--models` flag:
+
+1. Added a new `--models` flag to display all supported models with their configuration names
+2. Created a `listModelConfigs` function that shows:
+   - Models grouped by provider
+   - Model display names and configuration names
+   - API names and descriptions
+   - Context window sizes
+   - Required API keys
+   - Usage examples for environment variables, command line, and config files
+
+#### Review Output Improvements
+We fixed an issue with the review output display:
+
+1. Updated the `formatAsMarkdown` and `formatStructuredReviewAsMarkdown` functions to use the actual file path for the "Reviewed" field
+2. Added logic to detect when reviewing the current directory and show the full path with "(Current Directory)" appended
+
+#### Logging Improvements
+We improved the logging system to be more production-friendly:
+
+1. Suppressed DEBUG logging messages in production builds by enforcing a minimum log level of INFO
+2. Changed directory not found warnings to debug level messages for plugins and templates directories
+3. Added comments to explain that missing directories are expected in most cases
+
+#### Model Management
+We improved the model management system:
+
+1. Restored the full list of models that were previously removed
+2. Added a unit test to check the number of models and throw an error if models are accidentally removed
+3. Updated the model tests to match the current model structure
+
+### Current Status
+- Version 1.9.3 released
+- Improved model listing and management
+- Fixed review output display
+- Improved logging system for production builds
+- All tests passing
+
+### Next Steps
+- Implement OpenAI client for direct API access
+- Add support for model-specific prompt templates
+- Enhance error handling for different API providers
+- Implement token usage optimization for large codebases
+- Add support for comparing reviews across different models
+
+
 ## 2024-04-08 - Version 1.3.1 Release
 
 ### Summary
@@ -389,9 +452,13 @@ We implemented structured version numbering following semantic versioning princi
 - [x] Improve code organization and reduce duplication - v1.2.0
 - [x] Add comprehensive JSDoc comments to key functions - v1.2.0
 - [x] Release version 1.2.0 to npm - v1.2.0
+- [x] Add enhanced model listing with configuration names - v1.9.3
+- [x] Fix review output display to show correct file paths - v1.9.3
+- [x] Improve logging system for production builds - v1.9.3
+- [x] Add unit tests for model management - v1.9.3
 - [ ] Implement OpenAI client for direct API access
 - [ ] Add ESLint and Prettier configuration
-- [ ] Add unit tests for core functionality
+- [ ] Add more unit tests for core functionality
 - [ ] Implement caching mechanism for API responses
 - [ ] Add support for model-specific prompt templates
 - [ ] Create example usage documentation with real examples
