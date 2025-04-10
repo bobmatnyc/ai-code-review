@@ -144,6 +144,7 @@ function formatAsMarkdown(review: ReviewResult): string {
 
 > **Review Type**: ${reviewType}
 > **Generated**: ${new Date(timestamp).toLocaleString()}
+> **Reviewed**: ${filePath}
 
 ---
 
@@ -220,6 +221,7 @@ function formatStructuredReviewAsMarkdown(
 
 > **Review Type**: ${reviewType}
 > **Generated**: ${new Date(timestamp).toLocaleString()}
+> **Reviewed**: ${filePath}
 
 ---
 
