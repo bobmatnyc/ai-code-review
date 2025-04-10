@@ -192,7 +192,9 @@ export async function initializeAnthropicClient(): Promise<boolean> {
 
     // Get the API name from the model map
     // Use the imported getApiNameFromKey function
-    const apiModelName = getApiNameFromKey(`anthropic:${modelName}`) || modelName;
+    const fullModelKey = `anthropic:${modelName}`;
+    const apiModelName = getApiNameFromKey(fullModelKey);
+    console.log(`[DEBUG] Full model key: ${fullModelKey}`);
     console.log(`[DEBUG] API model name: ${apiModelName}`);
 
     // Prepare the request body
