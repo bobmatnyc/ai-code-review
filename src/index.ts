@@ -101,6 +101,7 @@ import { runApiConnectionTests } from './tests/apiConnectionTest';
 import { getCommandLineArguments } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
 import { PluginManager } from './plugins/PluginManager';
+import { PromptManager } from './prompts/PromptManager';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
@@ -171,6 +172,26 @@ async function main() {
       logger.info(`Loaded ${plugins.length} plugins:`);
       plugins.forEach(plugin => {
         logger.info(`- ${plugin.name}: ${plugin.description}`);
+      });
+    }
+
+    // Load prompt templates
+    const promptManager = PromptManager.getInstance();
+
+    // First try to load templates from the current directory
+    const localTemplatesDir = path.resolve(process.cwd(), 'prompts', 'templates');
+    await promptManager.loadTemplates(localTemplatesDir);
+
+    // Then try to load templates from the package directory
+    const packageTemplatesDir = path.resolve(__dirname, 'prompts', 'templates');
+    await promptManager.loadTemplates(packageTemplatesDir);
+
+    // Log the loaded templates
+    const templates = promptManager.listTemplates();
+    if (templates.length > 0) {
+      logger.info(`Loaded ${templates.length} prompt templates:`);
+      templates.forEach(template => {
+        logger.info(`- ${template.name}: ${template.description} (${template.reviewType})`);
       });
     }
 

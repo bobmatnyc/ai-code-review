@@ -27,6 +27,12 @@ export async function reviewCode(
   options: ReviewOptions
 ): Promise<void> {
   try {
+    // Handle prompt-file option if provided
+    if ((options as any)['prompt-file']) {
+      options.promptFile = (options as any)['prompt-file'] as string;
+      delete (options as any)['prompt-file'];
+    }
+
     // Delegate to the review orchestrator
     await orchestrateReview(target, options);
   } catch (error) {

@@ -128,6 +128,10 @@ export async function parseArguments(): Promise<CliOptions> {
         type: 'string',
         describe: 'Custom review strategy to use (plugin name)',
       })
+      .option('prompt-file', {
+        type: 'string',
+        describe: 'Path to a custom prompt template file',
+      })
       .option('ui-language', {
         choices: SUPPORTED_LANGUAGES,
         default: 'en',

@@ -1,0 +1,123 @@
+/**
+ * @fileoverview Tests for the StrategyFactory class.
+ */
+
+import { StrategyFactory } from '../../src/strategies/StrategyFactory';
+import { ConsolidatedReviewStrategy } from '../../src/strategies/ConsolidatedReviewStrategy';
+import { IndividualReviewStrategy } from '../../src/strategies/IndividualReviewStrategy';
+import { ArchitecturalReviewStrategy } from '../../src/strategies/ArchitecturalReviewStrategy';
+import { ReviewOptions } from '../../src/types/review';
+import { PluginManager } from '../../src/plugins/PluginManager';
+
+// Mock dependencies
+jest.mock('../../src/plugins/PluginManager');
+jest.mock('../../src/utils/logger');
+
+describe('StrategyFactory', () => {
+  beforeEach(() => {
+    // Reset mocks
+    jest.resetAllMocks();
+    
+    // Mock PluginManager.getInstance
+    (PluginManager.getInstance as jest.Mock).mockReturnValue({
+      getPlugin: jest.fn()
+    });
+  });
+  
+  test('createStrategy should return ConsolidatedReviewStrategy for default options', () => {
+    // Set up test data
+    const options: ReviewOptions = {
+      type: 'quick-fixes',
+      includeTests: false,
+      output: 'markdown'
+    };
+    
+    // Create strategy
+    const strategy = StrategyFactory.createStrategy(options);
+    
+    // Verify the strategy type
+    expect(strategy).toBeInstanceOf(ConsolidatedReviewStrategy);
+  });
+  
+  test('createStrategy should return IndividualReviewStrategy when individual is true', () => {
+    // Set up test data
+    const options: ReviewOptions = {
+      type: 'quick-fixes',
+      includeTests: false,
+      output: 'markdown',
+      individual: true
+    };
+    
+    // Create strategy
+    const strategy = StrategyFactory.createStrategy(options);
+    
+    // Verify the strategy type
+    expect(strategy).toBeInstanceOf(IndividualReviewStrategy);
+  });
+  
+  test('createStrategy should return ArchitecturalReviewStrategy for architectural review type', () => {
+    // Set up test data
+    const options: ReviewOptions = {
+      type: 'architectural',
+      includeTests: false,
+      output: 'markdown'
+    };
+    
+    // Create strategy
+    const strategy = StrategyFactory.createStrategy(options);
+    
+    // Verify the strategy type
+    expect(strategy).toBeInstanceOf(ArchitecturalReviewStrategy);
+  });
+  
+  test('createStrategy should return custom strategy when strategy option is provided', () => {
+    // Set up test data
+    const options: ReviewOptions = {
+      type: 'quick-fixes',
+      includeTests: false,
+      output: 'markdown',
+      strategy: 'custom-strategy'
+    };
+    
+    // Set up mock custom strategy
+    const mockCustomStrategy = { execute: jest.fn() };
+    const mockPluginManager = {
+      getPlugin: jest.fn().mockReturnValue(mockCustomStrategy)
+    };
+    (PluginManager.getInstance as jest.Mock).mockReturnValue(mockPluginManager);
+    
+    // Create strategy
+    const strategy = StrategyFactory.createStrategy(options);
+    
+    // Verify the plugin manager was called
+    expect(mockPluginManager.getPlugin).toHaveBeenCalledWith('custom-strategy');
+    
+    // Verify the strategy is the custom strategy
+    expect(strategy).toBe(mockCustomStrategy);
+  });
+  
+  test('createStrategy should fall back to default strategy when custom strategy is not found', () => {
+    // Set up test data
+    const options: ReviewOptions = {
+      type: 'quick-fixes',
+      includeTests: false,
+      output: 'markdown',
+      strategy: 'non-existent-strategy'
+    };
+    
+    // Set up mock plugin manager to return undefined
+    const mockPluginManager = {
+      getPlugin: jest.fn().mockReturnValue(undefined)
+    };
+    (PluginManager.getInstance as jest.Mock).mockReturnValue(mockPluginManager);
+    
+    // Create strategy
+    const strategy = StrategyFactory.createStrategy(options);
+    
+    // Verify the plugin manager was called
+    expect(mockPluginManager.getPlugin).toHaveBeenCalledWith('non-existent-strategy');
+    
+    // Verify the strategy falls back to ConsolidatedReviewStrategy
+    expect(strategy).toBeInstanceOf(ConsolidatedReviewStrategy);
+  });
+});

@@ -42,7 +42,7 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 - [x] Decouple review logic from orchestrator into `strategies/` *(Implemented: Created ReviewStrategy interface, base class, and concrete implementations for different review types)*
 - [x] Support for user-defined review strategies via plugins *(Implemented: Created PluginManager and plugin interface for custom strategies)*
 - [x] Add `--strategy` CLI flag to choose logic *(Implemented: Added CLI flag and updated StrategyFactory to support custom strategies)*
-- [ ] Move prompt templates to external files for better testing/versioning *(Note: Basic templates exist in prompts/ directory, but need standardization)*
+- [x] Move prompt templates to external files for better testing/versioning *(Implemented: Created PromptManager for loading templates with metadata from external files)*
 - [ ] Add unit tests for review strategies
 
 ---

@@ -113,6 +113,11 @@ export interface ReviewOptions {
    * Custom review strategy to use (plugin name)
    */
   strategy?: string;
+
+  /**
+   * Path to a custom prompt template file
+   */
+  promptFile?: string;
 }
 
 /**

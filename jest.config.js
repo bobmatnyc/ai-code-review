@@ -2,7 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['**/__tests__/**/*.test.ts'],
+  testMatch: ['**/__tests__/**/*.test.ts', '**/tests/**/*.test.ts'],
   verbose: true,
   forceExit: true,
   clearMocks: true,
@@ -17,6 +17,6 @@ module.exports = {
   },
   transformIgnorePatterns: [
     // Tell Jest to transpile node_modules packages that use ESM
-    'node_modules/(?!node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill)'
+    'node_modules/(?!node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill|chalk|#ansi-styles)'
   ]
 };
