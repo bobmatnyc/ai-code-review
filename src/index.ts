@@ -105,7 +105,7 @@ import { PromptManager } from './prompts/PromptManager';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '1.7.0';
+const VERSION = '1.7.2';
 
 // Main function to run the application
 async function main() {

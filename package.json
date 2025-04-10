@@ -1,9 +1,11 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "1.7.0",
+  "version": "1.7.2",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
-  "bin": "dist/index.js",
+  "bin": {
+    "ai-code-review": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",

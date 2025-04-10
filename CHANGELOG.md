@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.2] - 2024-04-10
+
+### Fixed
+- Ensured proper executable permissions for CLI binary
+- Verified shebang line is present in compiled output
+
+## [1.7.1] - 2024-04-10
+
+### Fixed
+- Fixed package.json bin field format to properly support CLI usage
+- Improved npm package configuration for better compatibility
+
 ## [1.7.0] - 2024-04-10
 
 ### Fixed
