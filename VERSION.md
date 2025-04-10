@@ -2,6 +2,13 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [1.9.3] - 2024-04-10
+
+### Fixed
+- Suppressed DEBUG logging messages in production builds
+- Changed directory not found warnings to debug level messages for plugins and templates directories
+- Enforced minimum log level of INFO in production builds
+
 ## [1.9.2] - 2024-04-10
 
 ### Fixed

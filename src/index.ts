@@ -36,9 +36,16 @@ function debugLog(message: string): void {
   }
 }
 
-// Set log level to DEBUG if debug mode is enabled
+// Set log level based on debug mode
 if (isDebugMode) {
   logger.setLogLevel(LogLevel.DEBUG);
+} else {
+  // In production builds, ensure we're at INFO level or higher
+  // This prevents DEBUG messages from showing in production
+  const currentLevel = logger.getLogLevel();
+  if (currentLevel < LogLevel.INFO) {
+    logger.setLogLevel(LogLevel.INFO);
+  }
 }
 
 // First try to load from .env.local
@@ -106,7 +113,7 @@ import { listModelConfigs } from './clients/utils/modelLister';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '1.9.2';
+const VERSION = '1.9.3';
 
 // Main function to run the application
 async function main() {

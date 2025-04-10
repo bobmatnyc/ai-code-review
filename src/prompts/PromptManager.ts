@@ -136,7 +136,8 @@ export class PromptManager {
       try {
         await fs.access(templatesDir);
       } catch (error) {
-        logger.warn(`Templates directory not found: ${templatesDir}`);
+        // Silently ignore missing templates directory - this is expected in most cases
+        logger.debug(`Templates directory not found: ${templatesDir}`);
         return;
       }
 

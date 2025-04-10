@@ -42,7 +42,7 @@ export class PluginManager {
     if (this.plugins.has(registration.name)) {
       logger.warn(`Plugin with name "${registration.name}" is already registered. Overwriting...`);
     }
-    
+
     this.plugins.set(registration.name, registration);
     logger.info(`Registered plugin strategy: ${registration.name}`);
   }
@@ -84,13 +84,14 @@ export class PluginManager {
       try {
         await fs.access(pluginsDir);
       } catch (error) {
-        logger.warn(`Plugins directory not found: ${pluginsDir}`);
+        // Silently ignore missing plugins directory - this is expected in most cases
+        logger.debug(`Plugins directory not found: ${pluginsDir}`);
         return;
       }
-      
+
       // Read the directory
       const files = await fs.readdir(pluginsDir);
-      
+
       // Load each plugin
       for (const file of files) {
         if (file.endsWith('.js')) {
@@ -98,7 +99,7 @@ export class PluginManager {
             const pluginPath = path.join(pluginsDir, file);
             // Dynamic import to load the plugin
             const plugin = await import(pluginPath);
-            
+
             // Check if the plugin has a register function
             if (plugin.default && typeof plugin.default.register === 'function') {
               // Register the plugin
@@ -112,7 +113,7 @@ export class PluginManager {
           }
         }
       }
-      
+
       logger.info(`Loaded ${this.plugins.size} plugins from ${pluginsDir}`);
     } catch (error) {
       logger.error(`Error loading plugins: ${error instanceof Error ? error.message : String(error)}`);
