@@ -267,13 +267,22 @@ export class PromptManager {
       language = options.language.toLowerCase();
     }
 
+    // Check if we should use a cached prompt
+    if (options?.useCache !== false) {
+      const cachedPrompt = this.promptCache.getBestPrompt(reviewType);
+      if (cachedPrompt) {
+        logger.info(`Using cached prompt for ${reviewType} review type (rating: ${cachedPrompt.rating})`);
+        return await this.processPromptTemplate(cachedPrompt.content, options);
+      }
+    }
+
     // If a custom prompt file is specified, try to load it first
     if (options?.promptFile) {
       try {
         const customPromptPath = path.resolve(options.promptFile);
         const promptTemplate = await fs.readFile(customPromptPath, 'utf-8');
         logger.info(`Loaded custom prompt template from ${customPromptPath}`);
-        return this.processPromptTemplate(promptTemplate, options);
+        return await this.processPromptTemplate(promptTemplate, options);
       } catch (error) {
         logger.error(`Error loading custom prompt template: ${error instanceof Error ? error.message : String(error)}`);
         logger.warn('Falling back to default prompt template');
@@ -285,7 +294,7 @@ export class PromptManager {
     const customTemplate = this.customTemplates.get(customKey);
     if (customTemplate) {
       logger.info(`Using custom prompt template: ${customTemplate.metadata.name}`);
-      return this.processPromptTemplate(customTemplate.content, options);
+      return await this.processPromptTemplate(customTemplate.content, options);
     }
 
     // Check if we have a template for this review type and language
@@ -293,7 +302,7 @@ export class PromptManager {
     const template = this.templates.get(key);
     if (template) {
       logger.debug(`Using prompt template: ${template.path}`);
-      return this.processPromptTemplate(template.content, options);
+      return await this.processPromptTemplate(template.content, options);
     }
 
     // Try to find a template for this review type without language
@@ -301,7 +310,7 @@ export class PromptManager {
     const genericTemplate = this.templates.get(genericKey);
     if (genericTemplate) {
       logger.debug(`Using generic prompt template: ${genericTemplate.path}`);
-      return this.processPromptTemplate(genericTemplate.content, options);
+      return await this.processPromptTemplate(genericTemplate.content, options);
     }
 
     // If we still don't have a template, try to load it from the file system
@@ -389,7 +398,7 @@ export class PromptManager {
     }
 
     // Process the template
-    return this.processPromptTemplate(promptTemplate, options);
+    return await this.processPromptTemplate(promptTemplate, options);
   }
 
   /**
@@ -398,10 +407,10 @@ export class PromptManager {
    * @param options Review options
    * @returns The processed prompt template
    */
-  private processPromptTemplate(
+  private async processPromptTemplate(
     promptTemplate: string,
     options?: ReviewOptions
-  ): string {
+  ): Promise<string> {
     // If in interactive mode, include the schema instructions
     if (options?.interactive) {
       promptTemplate = promptTemplate.replace(
@@ -421,6 +430,55 @@ export class PromptManager {
       );
     } else {
       promptTemplate = promptTemplate.replace('{{LANGUAGE_INSTRUCTIONS}}', '');
+    }
+
+    // Apply model-specific optimizations if a prompt strategy is specified
+    if (options?.promptStrategy) {
+      // Get the appropriate prompt strategy
+      const strategy = PromptStrategyFactory.createStrategy(
+        options.promptStrategy,
+        this,
+        this.promptCache
+      );
+
+      // Format the prompt using the strategy
+      promptTemplate = strategy.formatPrompt(promptTemplate, options);
+
+      logger.debug(`Applied ${options.promptStrategy} prompt strategy`);
+    }
+
+    // Add any prompt fragments if provided
+    if (options?.promptFragments && options.promptFragments.length > 0) {
+      // Clear the prompt builder
+      this.promptBuilder.clear();
+
+      // Add the base prompt as a component
+      this.promptBuilder.addComponent({
+        content: promptTemplate,
+        position: 'middle',
+        priority: 10
+      });
+
+      // Add each fragment
+      for (const fragment of options.promptFragments) {
+        this.promptBuilder.addFragment(
+          fragment.content,
+          fragment.position,
+          fragment.priority
+        );
+      }
+
+      // Build the final prompt
+      const finalPrompt = await this.promptBuilder.buildPrompt(
+        options.type || 'quick-fixes',
+        options,
+        null,
+        promptTemplate
+      );
+
+      logger.debug(`Added ${options.promptFragments.length} prompt fragments`);
+
+      return finalPrompt;
     }
 
     return promptTemplate;
@@ -444,5 +502,32 @@ export class PromptManager {
     }
 
     return allTemplates;
+  }
+
+  /**
+   * Provide feedback on a prompt
+   * @param reviewType Type of review
+   * @param promptContent Content of the prompt
+   * @param rating Rating of the prompt (1-5)
+   * @param comments Comments on the prompt quality
+   * @param positiveAspects Positive aspects of the prompt
+   * @param negativeAspects Negative aspects of the prompt
+   */
+  async provideFeedback(
+    reviewType: ReviewType,
+    promptContent: string,
+    rating: number,
+    comments?: string,
+    positiveAspects?: string[],
+    negativeAspects?: string[]
+  ): Promise<void> {
+    try {
+      // Cache the prompt with the feedback
+      await this.promptCache.cachePrompt(reviewType, promptContent, rating);
+
+      logger.info(`Cached prompt for ${reviewType} review type with rating ${rating}`);
+    } catch (error) {
+      logger.error(`Error caching prompt: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 }

@@ -148,6 +148,18 @@ ai-code-review src/index.ts --no-include-project-docs
 # List all available models
 ai-code-review --listmodels
 
+# Use a custom prompt template file
+ai-code-review src/index.ts --prompt custom-prompt.md
+
+# Add a custom prompt fragment
+ai-code-review src/index.ts --prompt-fragment "Focus on performance issues"
+
+# Specify the position of the prompt fragment
+ai-code-review src/index.ts --prompt-fragment "Focus on security issues" --prompt-fragment-position start
+
+# Use a specific prompt strategy
+ai-code-review src/index.ts --prompt-strategy anthropic
+
 # Estimate token usage and cost without performing a review
 ai-code-review src/utils --estimate
 
@@ -209,14 +221,76 @@ ai-code-review-docs/[ai-model]-[review-type]-[file-name]-[date].md
 
 ### Customizing Prompts
 
-You can customize the review process by modifying the prompt templates in the `prompts/` directory:
+You can customize the review process in several ways:
 
-- `architectural-review.md` - For architectural reviews
+#### Prompt Templates
+
+The tool comes with built-in prompt templates in the `prompts/templates/` directory:
+
 - `quick-fixes-review.md` - For quick fixes reviews
 - `security-review.md` - For security reviews
+- `architectural-review.md` - For architectural reviews
 - `performance-review.md` - For performance reviews
-- `consolidated-review.md` - For consolidated reviews of multiple files
-- `base-prompt.md` - Base template used by all review types
+
+#### Custom Prompt Templates
+
+You can create your own prompt templates and use them with the `--prompt` flag. Custom templates should include metadata in YAML format at the top of the file:
+
+```markdown
+---
+name: Custom Security Review
+description: A custom prompt template for security-focused code reviews
+version: 1.0.0
+author: Your Name
+reviewType: security
+language: typescript
+tags: security, custom
+---
+
+# Security Code Review
+
+Please review the following code for security vulnerabilities:
+
+{{LANGUAGE_INSTRUCTIONS}}
+
+## Output Format
+
+Please provide your findings in the following format:
+
+1. **Vulnerability**: Description of the vulnerability
+2. **Severity**: High/Medium/Low
+3. **Location**: File and line number
+4. **Recommendation**: How to fix the issue
+
+{{SCHEMA_INSTRUCTIONS}}
+```
+
+#### Prompt Fragments
+
+You can inject custom fragments into the prompt with the `--prompt-fragment` flag:
+
+```bash
+ai-code-review src/index.ts --prompt-fragment "Focus on performance issues"
+```
+
+You can also specify the position of the fragment with the `--prompt-fragment-position` flag (start, middle, or end):
+
+```bash
+ai-code-review src/index.ts --prompt-fragment "Focus on security issues" --prompt-fragment-position start
+```
+
+#### Model-Specific Strategies
+
+You can use model-specific prompt strategies with the `--prompt-strategy` flag:
+
+```bash
+ai-code-review src/index.ts --prompt-strategy anthropic
+```
+
+Available strategies:
+- `anthropic` - Optimized for Claude models
+- `gemini` - Optimized for Gemini models
+- `openai` - Optimized for GPT models
 
 ### Environment Variables
 

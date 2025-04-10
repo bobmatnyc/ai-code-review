@@ -59,11 +59,11 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 
 **Dependencies**: Builds on Phase 2's strategy architecture for prompt strategy selection.
 
-- [ ] Implement meta-prompting layer for prompt optimization
-- [ ] Add support for `--prompt [PROMPT].md` CLI flag
-- [ ] Allow injection of user prompts into the prompt builder
-- [ ] Cache improved prompts for reuse
-- [ ] Expose model-specific prompt strategy selection
+- [x] Implement meta-prompting layer for prompt optimization *(Implemented: Created PromptOptimizer class for analyzing and improving prompts)*
+- [x] Add support for `--prompt [PROMPT].md` CLI flag *(Implemented: Added --prompt alias for --prompt-file flag)*
+- [x] Allow injection of user prompts into the prompt builder *(Implemented: Added PromptBuilder class and --prompt-fragment flag)*
+- [x] Cache improved prompts for reuse *(Implemented: Added PromptCache class for storing and retrieving optimized prompts)*
+- [x] Expose model-specific prompt strategy selection *(Implemented: Added model-specific prompt strategies and --prompt-strategy flag)*
 
 ---
 
