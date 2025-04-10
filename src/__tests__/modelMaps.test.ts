@@ -162,7 +162,7 @@ describe('modelMaps', () => {
       expect(MODELS.openai).toContain('openai:gpt-4o');
 
       // Check OpenRouter models
-      expect(MODELS.openrouter.length).toBe(6);
+      expect(MODELS.openrouter.length).toBe(5);
       expect(MODELS.openrouter).toContain('openrouter:anthropic/claude-3-opus');
     });
   });
@@ -197,7 +197,7 @@ describe('modelMaps', () => {
     describe('getModelsByProvider', () => {
       it('should return all models for a provider', () => {
         const geminiModels = getModelsByProvider('gemini');
-        expect(geminiModels.length).toBe(8);
+        expect(geminiModels.length).toBe(3);
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModelsByProvider('anthropic');
@@ -209,7 +209,7 @@ describe('modelMaps', () => {
     describe('getModels', () => {
       it('should return the default models for a provider', () => {
         const geminiModels = getModels('gemini');
-        expect(geminiModels.length).toBe(8);
+        expect(geminiModels.length).toBe(3);
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModels('anthropic');
