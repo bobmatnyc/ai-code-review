@@ -43,7 +43,7 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 - [x] Support for user-defined review strategies via plugins *(Implemented: Created PluginManager and plugin interface for custom strategies)*
 - [x] Add `--strategy` CLI flag to choose logic *(Implemented: Added CLI flag and updated StrategyFactory to support custom strategies)*
 - [x] Move prompt templates to external files for better testing/versioning *(Implemented: Created PromptManager for loading templates with metadata from external files)*
-- [ ] Add unit tests for review strategies
+- [x] Add unit tests for review strategies *(Implemented: Created test files for all strategy classes)*
 
 ---
 

@@ -24,6 +24,44 @@ export interface ModelMapping {
 }
 
 /**
+ * Model mapping for all supported models
+ */
+export const MODEL_MAP: Record<string, ModelMapping> = {
+  'gemini:gemini-1.5-pro': {
+    apiName: 'gemini-1.5-pro',
+    displayName: 'Gemini 1.5 Pro',
+    provider: 'gemini',
+    contextWindow: 1000000,
+    description: 'Gemini 1.5 Pro - Google\'s most capable multimodal model',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_GEMINI_API_KEY'
+  },
+  'anthropic:claude-3-opus': {
+    apiName: 'claude-3-opus-20240229',
+    displayName: 'Claude 3 Opus',
+    provider: 'anthropic',
+    contextWindow: 200000,
+    description: 'Claude 3 Opus - Anthropic\'s most powerful model',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
+  },
+  'openai:gpt-4-turbo': {
+    apiName: 'gpt-4-turbo-preview',
+    displayName: 'GPT-4 Turbo',
+    provider: 'openai',
+    contextWindow: 128000,
+    description: 'GPT-4 Turbo - OpenAI\'s most capable model',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+  },
+  'openrouter:anthropic/claude-3-opus': {
+    apiName: 'anthropic/claude-3-opus',
+    displayName: 'Claude 3 Opus (via OpenRouter)',
+    provider: 'openrouter',
+    contextWindow: 200000,
+    description: 'Claude 3 Opus via OpenRouter',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+  }
+};
+
+/**
  * Default models by provider, derived from MODEL_MAP
  */
 export const MODELS: Record<Provider, string[]> = {

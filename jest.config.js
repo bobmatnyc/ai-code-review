@@ -17,6 +17,6 @@ module.exports = {
   },
   transformIgnorePatterns: [
     // Tell Jest to transpile node_modules packages that use ESM
-    'node_modules/(?!node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill|chalk|#ansi-styles)'
+    'node_modules/(?!node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill|chalk|ansi-styles)'
   ]
 };
