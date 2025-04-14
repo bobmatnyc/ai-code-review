@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.4] - 2024-04-13
+
+### Added
+- Added deep code tracing for high-confidence unused code detection with the `--trace-code` option
+- Added LangChain integration for enhanced prompt management and structured output
+- Added the 'unused-code' review type for identifying and suggesting removal of dead code
+- Added multi-pass analysis for code tracing to identify unused code with high confidence
+- Added detailed evidence collection and confidence assessment for unused code detection
+
+### Changed
+- Enhanced unused code detection to provide more comprehensive evidence and confidence levels
+- Improved review formatter to display evidence for each unused code element
+- Updated documentation with detailed information about code tracing capabilities
+
 ## [1.9.3] - 2024-04-10
 
 ### Fixed

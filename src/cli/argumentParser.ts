@@ -156,6 +156,11 @@ export async function parseArguments(): Promise<CliOptions> {
         default: true,
         describe: 'Whether to use cached prompts',
       })
+      .option('trace-code', {
+        type: 'boolean',
+        default: false,
+        describe: 'Use deep code tracing for high-confidence unused code detection',
+      })
       .option('ui-language', {
         choices: SUPPORTED_LANGUAGES,
         default: 'en',

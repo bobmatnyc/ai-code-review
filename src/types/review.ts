@@ -140,9 +140,19 @@ export interface ReviewOptions {
   useCache?: boolean;
 
   /**
-   * Prompt strategy to use (e.g., 'anthropic', 'gemini', 'openai')
+   * Prompt strategy to use (e.g., 'anthropic', 'gemini', 'openai', 'langchain')
    */
   promptStrategy?: string;
+  
+  /**
+   * Whether to use the focused review strategy (currently for unused-code type)
+   */
+  focused?: boolean;
+  
+  /**
+   * Whether to use code tracing for unused code detection with high confidence
+   */
+  traceCode?: boolean;
 }
 
 /**

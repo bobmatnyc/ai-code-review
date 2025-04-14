@@ -11,6 +11,8 @@ import { ConsolidatedReviewStrategy } from './ConsolidatedReviewStrategy';
 import { IndividualReviewStrategy } from './IndividualReviewStrategy';
 import { ArchitecturalReviewStrategy } from './ArchitecturalReviewStrategy';
 import { UnusedCodeReviewStrategy } from './UnusedCodeReviewStrategy';
+import { FocusedUnusedCodeReviewStrategy } from './FocusedUnusedCodeReviewStrategy';
+import { CodeTracingUnusedCodeReviewStrategy } from './CodeTracingUnusedCodeReviewStrategy';
 import { ImprovedQuickFixesReviewStrategy } from './ImprovedQuickFixesReviewStrategy';
 import { PluginManager } from '../plugins/PluginManager';
 import logger from '../utils/logger';
@@ -46,7 +48,17 @@ export class StrategyFactory {
     } else if (reviewType === 'architectural') {
       return new ArchitecturalReviewStrategy();
     } else if (reviewType === 'unused-code') {
-      return new UnusedCodeReviewStrategy();
+      // Use code tracing strategy if the traceCode option is set
+      if (options.traceCode) {
+        logger.info('Using Code Tracing Unused Code Review Strategy');
+        return new CodeTracingUnusedCodeReviewStrategy();
+      }
+      
+      // Use the focused strategy if the focused option is set or when using LangChain
+      const useFocused = options.focused || options.promptStrategy === 'langchain';
+      return useFocused 
+        ? new FocusedUnusedCodeReviewStrategy()
+        : new UnusedCodeReviewStrategy();
     } else if (reviewType === 'quick-fixes' && options.promptStrategy === 'langchain') {
       return new ImprovedQuickFixesReviewStrategy();
     } else {

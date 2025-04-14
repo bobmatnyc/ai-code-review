@@ -53,6 +53,15 @@ We've integrated LangChain into the prompt management system to provide more pow
 5. Improved removal script generator to handle entire files and functions
 6. Added safeguards for generated removal scripts with clear git-based recovery instructions
 
+#### Focused Unused Code Detector
+1. Created highly focused prompt templates specifically for unused code detection
+2. Designed simplified schema for clearer representation of unused code elements
+3. Implemented specialized formatter focused solely on identifying removable code
+4. Added FocusedUnusedCodeReviewStrategy for pure dead code detection
+5. Improved confidence assessment with clear reasoning for each identified element
+6. Categorized unused elements by type (files, functions, classes, etc.) for better organization
+7. Added support for TypeScript-specific detection of unused interfaces and types
+
 #### Improved Quick Fixes Review
 1. Enhanced the quick fixes review with LangChain integration
 2. Created a detailed schema for structured output using Zod

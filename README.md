@@ -58,7 +58,7 @@ This tool analyzes code from specified files or directories in sibling projects 
   - **Quick Fixes**: Identify low-hanging fruit and easy improvements
   - **Security**: Focus on security vulnerabilities and best practices
   - **Performance**: Identify performance bottlenecks and optimization opportunities
-  - **Unused Code**: Identify and suggest removal of dead code, redundant functions, and unused variables
+  - **Unused Code**: Identify and suggest removal of dead code, redundant functions, and unused variables with deep code tracing capabilities
 - **Interactive Mode**: Process review results interactively, implementing fixes based on priority
 - **Automatic Fixes**: Automatically implement high priority fixes without manual intervention
 - **Prompt-Based Fixes**: Confirm and apply medium and low priority fixes with user input
@@ -143,6 +143,9 @@ ai-code-review src --type architectural
 # Find unused code that can be safely removed
 ai-code-review src --type unused-code
 
+# Use deep code tracing for high-confidence unused code detection
+ai-code-review src --type unused-code --trace-code
+
 # Use LangChain for enhanced prompt management
 ai-code-review src --type quick-fixes --prompt-strategy langchain
 
@@ -207,6 +210,7 @@ Options:
   -q, --quiet             Suppress non-essential output (default: false)
   --listmodels            List all available models (default: false)
   --models                List all supported models with their configuration names (default: false)
+  --trace-code            Use deep code tracing for high-confidence unused code detection (default: false)
   --prompt-strategy       Prompt strategy to use (anthropic, gemini, openai, langchain) (optional)
   -e, --estimate          Estimate token usage and cost without performing the review (default: false)
   -v, --version           Output the current version
@@ -452,6 +456,46 @@ const fullModelKey = getFullModelKey('anthropic', 'claude-3-opus');
 ```
 
 These utility functions make it easy to work with the model mapping system in your code.
+
+## Code Tracing for Unused Code Detection
+
+The tool includes a powerful code tracing feature for identifying unused code with high confidence. This feature uses a multi-pass approach to analyze code dependencies and references, providing detailed evidence for each element identified as unused.
+
+### How Code Tracing Works
+
+The code tracing feature follows a comprehensive approach:
+
+1. **Entry Point & Dependency Mapping**: Identifies all entry points to the codebase and maps module dependencies
+2. **Reference Tracing**: Finds all references to each code element throughout the codebase
+3. **Verification & Confidence Assessment**: Evaluates evidence and assigns confidence levels (high, medium, low)
+
+### Using Code Tracing
+
+To enable code tracing:
+
+```bash
+# Basic unused code detection
+ai-code-review src --type unused-code
+
+# Enhanced detection with deep code tracing
+ai-code-review src --type unused-code --trace-code
+```
+
+### Code Tracing Benefits
+
+- **High Confidence Detection**: Thorough evidence collection ensures recommendations are reliable
+- **Detailed Evidence**: Each element includes complete evidence chain showing why it's unused
+- **Risk Assessment**: Evaluates potential risks of removing each element
+- **Removal Scripts**: Automatically generates scripts for safely removing unused code
+- **Edge Case Detection**: Considers special cases like dynamic imports and reflection patterns
+
+### Confidence Levels
+
+Code tracing assigns confidence levels to each finding:
+
+- **High**: Clear evidence the element is never referenced (safe to remove)
+- **Medium**: Likely unused but with some uncertainty (verify before removing)
+- **Low**: Possibly unused but with significant uncertainty (requires further investigation)
 
 ## Testing API Connections
 
