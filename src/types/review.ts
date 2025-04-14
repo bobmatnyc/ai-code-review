@@ -27,7 +27,8 @@ export type ReviewType =
   | 'quick-fixes'
   | 'security'
   | 'performance'
-  | 'consolidated';
+  | 'consolidated'
+  | 'unused-code';
 
 /**
  * Options for the review command

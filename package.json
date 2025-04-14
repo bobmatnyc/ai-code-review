@@ -3,9 +3,7 @@
   "version": "1.9.3",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
-  "bin": {
-    "ai-code-review": "dist/index.js"
-  },
+  "bin": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -63,6 +61,7 @@
   "dependencies": {
     "@anthropic-ai/tokenizer": "^0.0.4",
     "@google/generative-ai": "^0.24.0",
+    "@langchain/core": "^0.3.44",
     "chalk": "^5.4.1",
     "commander": "^11.1.0",
     "dompurify": "^3.2.5",
@@ -74,6 +73,7 @@
     "i18next-icu": "^2.3.0",
     "intl-messageformat": "^10.7.16",
     "jsdom": "^26.0.0",
+    "langchain": "^0.3.21",
     "markdown-it": "^13.0.2",
     "yargs": "^17.7.2",
     "zod": "^3.24.2"

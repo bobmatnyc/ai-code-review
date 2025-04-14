@@ -9,6 +9,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { ReviewResult, ReviewOptions } from '../types/review';
 import { formatReviewOutput } from '../formatters/outputFormatter';
+import { saveRemovalScript, printRemovalScriptInstructions } from '../utils/removalScriptGenerator';
 import { generateVersionedOutputPath } from '../utils/fileSystem';
 import { logError } from '../utils/errorLogger';
 import logger from '../utils/logger';
@@ -47,6 +48,12 @@ export async function saveReviewOutput(
     // Write the output to the file
     await fs.writeFile(outputPath, formattedOutput);
     logger.info(`Review saved to: ${outputPath}`);
+    
+    // If this is an unused code review, generate a removal script
+    if (options.type === 'unused-code' && review.metadata?.removalScript) {
+      const scriptPath = await saveRemovalScript(review, outputBaseDir);
+      printRemovalScriptInstructions(scriptPath);
+    }
 
     return outputPath;
   } catch (error: unknown) {

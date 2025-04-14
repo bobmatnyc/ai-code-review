@@ -10,6 +10,8 @@ import { IReviewStrategy } from './ReviewStrategy';
 import { ConsolidatedReviewStrategy } from './ConsolidatedReviewStrategy';
 import { IndividualReviewStrategy } from './IndividualReviewStrategy';
 import { ArchitecturalReviewStrategy } from './ArchitecturalReviewStrategy';
+import { UnusedCodeReviewStrategy } from './UnusedCodeReviewStrategy';
+import { ImprovedQuickFixesReviewStrategy } from './ImprovedQuickFixesReviewStrategy';
 import { PluginManager } from '../plugins/PluginManager';
 import logger from '../utils/logger';
 
@@ -43,6 +45,10 @@ export class StrategyFactory {
       return new IndividualReviewStrategy(reviewType);
     } else if (reviewType === 'architectural') {
       return new ArchitecturalReviewStrategy();
+    } else if (reviewType === 'unused-code') {
+      return new UnusedCodeReviewStrategy();
+    } else if (reviewType === 'quick-fixes' && options.promptStrategy === 'langchain') {
+      return new ImprovedQuickFixesReviewStrategy();
     } else {
       return new ConsolidatedReviewStrategy(reviewType);
     }

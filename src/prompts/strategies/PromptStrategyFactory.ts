@@ -9,6 +9,7 @@ import { PromptStrategy } from './PromptStrategy';
 import { AnthropicPromptStrategy } from './AnthropicPromptStrategy';
 import { GeminiPromptStrategy } from './GeminiPromptStrategy';
 import { OpenAIPromptStrategy } from './OpenAIPromptStrategy';
+import { LangChainPromptStrategy } from './LangChainPromptStrategy';
 import { PromptManager } from '../PromptManager';
 import { PromptCache } from '../cache/PromptCache';
 import logger from '../../utils/logger';
@@ -52,6 +53,9 @@ export class PromptStrategyFactory {
       case 'openai':
         strategy = new OpenAIPromptStrategy(promptManager, promptCache);
         break;
+      case 'langchain':
+        strategy = new LangChainPromptStrategy(promptManager, promptCache);
+        break;
       default:
         // Default to Anthropic strategy
         logger.warn(`Unknown provider: ${provider}. Using default strategy.`);
@@ -77,7 +81,8 @@ export class PromptStrategyFactory {
     return [
       new AnthropicPromptStrategy(promptManager, promptCache),
       new GeminiPromptStrategy(promptManager, promptCache),
-      new OpenAIPromptStrategy(promptManager, promptCache)
+      new OpenAIPromptStrategy(promptManager, promptCache),
+      new LangChainPromptStrategy(promptManager, promptCache)
     ];
   }
 }

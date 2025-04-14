@@ -1,22 +1,23 @@
-# AI Code Review v1.5.0
+# AI Code Review v1.9.4
 
-A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, and OpenRouter API (Claude, GPT-4, etc.).
+A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, OpenAI models, and OpenRouter API (Claude, GPT-4, etc.) with LangChain integration for enhanced prompt management.
 
-## What's New in v1.5.0
+## What's New in v1.9.4
 
 ### Major Features
 
-- **Structured Output**: Implemented a well-defined schema for code review output that can be easily parsed and rendered procedurally
-- **Enhanced Interactive Mode**: Interactive mode now displays all issue details in a structured format with code samples
-- **Improved Model Support**: Better support for all model providers including Anthropic, OpenAI, Gemini, and OpenRouter
-- **Robust Model Mapping**: Centralized model mapping system that automatically converts user-friendly model names to provider-specific API formats
+- **LangChain Integration**: Added LangChain for enhanced prompt management, templating, and chain capabilities
+- **New Review Types**: Added 'unused-code' review type to identify and suggest removal of dead code
+- **Improved Prompts**: Enhanced prompt templates with LangChain, including few-shot learning and structured output
+- **Structured Schemas**: Created detailed Zod schemas for all review types to enable more structured and consistent output
+- **Enhanced TypeScript Support**: Added TypeScript-specific templates and analyzers for better static analysis
 
 ### Other Improvements
 
-- **Fixed Development Mode**: Fixed bug in API client selection where dynamic imports were failing in development mode
-- **Improved Imports**: Updated imports in anthropicClient.ts to use direct imports instead of dynamic imports
-- **Faster Development**: Added --transpile-only flag to ts-node for faster development builds
-- **Fixed Model Mapping**: Fixed issue where model names weren't being properly mapped to provider-specific API formats
+- **Model Listing Feature**: Added `--models` flag to list all supported models with their configuration names
+- **Improved Error Handling**: Enhanced error handling and recovery mechanisms
+- **Debug Logging Control**: Suppressed DEBUG logging messages in production builds
+- **Performance Optimizations**: Improved memory usage and processing speed
 
 ## What's New in v1.3.2
 
@@ -57,6 +58,7 @@ This tool analyzes code from specified files or directories in sibling projects 
   - **Quick Fixes**: Identify low-hanging fruit and easy improvements
   - **Security**: Focus on security vulnerabilities and best practices
   - **Performance**: Identify performance bottlenecks and optimization opportunities
+  - **Unused Code**: Identify and suggest removal of dead code, redundant functions, and unused variables
 - **Interactive Mode**: Process review results interactively, implementing fixes based on priority
 - **Automatic Fixes**: Automatically implement high priority fixes without manual intervention
 - **Prompt-Based Fixes**: Confirm and apply medium and low priority fixes with user input
@@ -138,6 +140,12 @@ ai-code-review src/utils --interactive
 # Perform an architectural review
 ai-code-review src --type architectural
 
+# Find unused code that can be safely removed
+ai-code-review src --type unused-code
+
+# Use LangChain for enhanced prompt management
+ai-code-review src --type quick-fixes --prompt-strategy langchain
+
 # Include test files in the review
 ai-code-review src --include-tests
 
@@ -149,6 +157,9 @@ ai-code-review src/index.ts --no-include-project-docs
 
 # List all available models
 ai-code-review --listmodels
+
+# List all supported models with their configuration names
+ai-code-review --models
 
 # Use a custom prompt template file
 ai-code-review src/index.ts --prompt custom-prompt.md
@@ -182,7 +193,7 @@ ai-code-review src/utils -q
 
 ```
 Options:
-  -t, --type <type>       Type of review (architectural, quick-fixes, security, performance) (default: "quick-fixes")
+  -t, --type <type>       Type of review (architectural, quick-fixes, security, performance, unused-code) (default: "quick-fixes")
   --include-tests         Include test files in the review (default: false)
   -o, --output <format>   Output format (markdown, json) (default: "markdown")
   -d, --include-project-docs  Include project documentation in the context (default: true)
@@ -194,6 +205,10 @@ Options:
   --test-api              Test API connections before running the review (default: false)
   --debug                 Enable debug mode with additional logging (default: false)
   -q, --quiet             Suppress non-essential output (default: false)
+  --listmodels            List all available models (default: false)
+  --models                List all supported models with their configuration names (default: false)
+  --prompt-strategy       Prompt strategy to use (anthropic, gemini, openai, langchain) (optional)
+  -e, --estimate          Estimate token usage and cost without performing the review (default: false)
   -v, --version           Output the current version
   -h, --help              Display help information
 ```
@@ -293,6 +308,20 @@ Available strategies:
 - `anthropic` - Optimized for Claude models
 - `gemini` - Optimized for Gemini models
 - `openai` - Optimized for GPT models
+- `langchain` - Uses LangChain for enhanced prompt management
+
+The LangChain strategy is particularly useful for complex reviews that benefit from:
+- Structured output with Zod schemas
+- Few-shot learning with examples
+- Chain-based reasoning
+
+```bash
+# Use LangChain for an unused code review
+ai-code-review src/utils --type unused-code --prompt-strategy langchain
+
+# Use LangChain for quick fixes with enhanced prompts
+ai-code-review src/components --type quick-fixes --prompt-strategy langchain
+```
 
 ### Environment Variables
 

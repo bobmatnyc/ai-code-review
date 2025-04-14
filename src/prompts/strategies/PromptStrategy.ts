@@ -11,6 +11,7 @@ import { ProjectDocs } from '../../utils/projectDocs';
 import { PromptManager } from '../PromptManager';
 import { PromptCache } from '../cache/PromptCache';
 import logger from '../../utils/logger';
+import { PromptTemplate as LangChainPromptTemplate } from '@langchain/core/prompts';
 
 /**
  * Interface for prompt strategies
@@ -36,6 +37,14 @@ export interface IPromptStrategy {
    * @returns Formatted prompt
    */
   formatPrompt(prompt: string, options: ReviewOptions): string;
+  
+  /**
+   * Get a LangChain prompt template
+   * @param prompt Raw prompt template
+   * @param options Review options
+   * @returns LangChain prompt template
+   */
+  getLangChainTemplate(prompt: string, options: ReviewOptions): LangChainPromptTemplate;
   
   /**
    * Get the name of the strategy
@@ -107,6 +116,40 @@ export abstract class PromptStrategy implements IPromptStrategy {
    * @returns Formatted prompt
    */
   abstract formatPrompt(prompt: string, options: ReviewOptions): string;
+  
+  /**
+   * Get a LangChain prompt template
+   * @param prompt Raw prompt template
+   * @param options Review options
+   * @returns LangChain prompt template
+   */
+  getLangChainTemplate(prompt: string, options: ReviewOptions): LangChainPromptTemplate {
+    // Format the prompt first using the model-specific formatter
+    const formattedPrompt = this.formatPrompt(prompt, options);
+    
+    // Create the LangChain template with appropriate input variables
+    return new LangChainPromptTemplate({
+      template: formattedPrompt,
+      inputVariables: this.extractInputVariables(formattedPrompt)
+    });
+  }
+  
+  /**
+   * Extract input variables from a prompt template
+   * @param prompt Prompt template
+   * @returns Array of input variable names
+   */
+  protected extractInputVariables(prompt: string): string[] {
+    // Extract variable names from the template using regex
+    // Matches patterns like {{VARIABLE_NAME}} or {VARIABLE_NAME}
+    const variableMatches = prompt.match(/{{(\w+)}}|{(\w+)}/g) || [];
+    
+    // Extract the variable names without the braces
+    return variableMatches.map(match => {
+      // Remove {{ and }} or { and }
+      return match.replace(/{{|}}/g, '').replace(/{|}/g, '');
+    });
+  }
   
   /**
    * Get the name of the strategy

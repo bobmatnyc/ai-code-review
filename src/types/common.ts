@@ -74,7 +74,8 @@ export const VALID_REVIEW_TYPES: ReviewType[] = [
   'quick-fixes',
   'security',
   'performance',
-  'consolidated'
+  'consolidated',
+  'unused-code'
 ];
 
 /**
@@ -84,5 +85,6 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<Exclude<ReviewType, 'consolidated'
   architectural: 'Architectural review focusing on design patterns and structure',
   'quick-fixes': 'Quick fixes review focusing on common issues and best practices',
   security: 'Security review focusing on vulnerabilities and security best practices',
-  performance: 'Performance review focusing on optimization opportunities'
+  performance: 'Performance review focusing on optimization opportunities',
+  'unused-code': 'Unused code review focusing on identifying and removing dead code'
 };
