@@ -166,13 +166,19 @@ async function improvedUnusedCodeExample() {
     rawPrompt = await promptManager.getPromptTemplate('unused-code', {
       language: 'typescript',
       promptFile: '/Users/masa/Projects/ai-code-review/prompts/typescript/improved-unused-code-review.md',
-      promptStrategy: 'langchain'
+      promptStrategy: 'langchain',
+      type: 'unused-code',
+      includeTests: false,
+      output: 'markdown'
     });
   } catch (error) {
     logger.warn('Could not find improved prompt template, using standard template');
     rawPrompt = await promptManager.getPromptTemplate('unused-code', {
       language: 'typescript',
-      promptStrategy: 'langchain'
+      promptStrategy: 'langchain',
+      type: 'unused-code',
+      includeTests: false,
+      output: 'markdown'
     });
   }
   
@@ -233,15 +239,7 @@ This code contains:
   
   // Create an example template
   const exampleTemplate = new PromptTemplate({
-    template: `
-Code example:
-```typescript
-{code}
-```
-
-Analysis:
-{analysis}
-`,
+    template: "Code example:\n```typescript\n{code}\n```\n\nAnalysis:\n{analysis}",
     inputVariables: ['code', 'analysis']
   });
   

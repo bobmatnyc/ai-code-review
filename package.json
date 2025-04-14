@@ -1,6 +1,6 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "bin": "dist/index.js",
@@ -21,8 +21,9 @@
     "prepare-package": "./scripts/prepare-package.sh",
     "prepublishOnly": "npm run build",
     "local-review": "./local-ai-review.sh",
-    "built-review": "./built-ai-review.sh"
-  },
+    "built-review": "./built-ai-review.sh",
+    "cleanup": "tsx scripts/cleanup-dead-code.ts"
+},
   "keywords": [
     "code-review",
     "gemini",

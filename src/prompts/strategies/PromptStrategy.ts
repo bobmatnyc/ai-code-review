@@ -34,17 +34,17 @@ export interface IPromptStrategy {
    * Format a prompt for a specific model
    * @param prompt Raw prompt
    * @param options Review options
-   * @returns Formatted prompt
+   * @returns Formatted prompt (can be synchronous or asynchronous)
    */
-  formatPrompt(prompt: string, options: ReviewOptions): string;
+  formatPrompt(prompt: string, options: ReviewOptions): string | Promise<string>;
   
   /**
    * Get a LangChain prompt template
    * @param prompt Raw prompt template
    * @param options Review options
-   * @returns LangChain prompt template
+   * @returns LangChain prompt template (can be asynchronous)
    */
-  getLangChainTemplate(prompt: string, options: ReviewOptions): LangChainPromptTemplate;
+  getLangChainTemplate(prompt: string, options: ReviewOptions): LangChainPromptTemplate | Promise<LangChainPromptTemplate>;
   
   /**
    * Get the name of the strategy
@@ -94,7 +94,7 @@ export abstract class PromptStrategy implements IPromptStrategy {
         const cachedPrompt = this.promptCache.getBestPrompt(reviewType);
         if (cachedPrompt) {
           logger.info(`Using cached prompt for ${reviewType} review type (rating: ${cachedPrompt.rating})`);
-          return this.formatPrompt(cachedPrompt.content, options);
+          return await Promise.resolve(this.formatPrompt(cachedPrompt.content, options));
         }
       }
       
@@ -102,7 +102,7 @@ export abstract class PromptStrategy implements IPromptStrategy {
       const promptTemplate = await this.promptManager.getPromptTemplate(reviewType, options);
       
       // Format the prompt
-      return this.formatPrompt(promptTemplate, options);
+      return await Promise.resolve(this.formatPrompt(promptTemplate, options));
     } catch (error) {
       logger.error(`Error generating prompt: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
@@ -113,9 +113,9 @@ export abstract class PromptStrategy implements IPromptStrategy {
    * Format a prompt for a specific model
    * @param prompt Raw prompt
    * @param options Review options
-   * @returns Formatted prompt
+   * @returns Formatted prompt (can be synchronous or asynchronous)
    */
-  abstract formatPrompt(prompt: string, options: ReviewOptions): string;
+  abstract formatPrompt(prompt: string, options: ReviewOptions): string | Promise<string>;
   
   /**
    * Get a LangChain prompt template
@@ -123,9 +123,9 @@ export abstract class PromptStrategy implements IPromptStrategy {
    * @param options Review options
    * @returns LangChain prompt template
    */
-  getLangChainTemplate(prompt: string, options: ReviewOptions): LangChainPromptTemplate {
+  async getLangChainTemplate(prompt: string, options: ReviewOptions): Promise<LangChainPromptTemplate> {
     // Format the prompt first using the model-specific formatter
-    const formattedPrompt = this.formatPrompt(prompt, options);
+    const formattedPrompt = await Promise.resolve(this.formatPrompt(prompt, options));
     
     // Create the LangChain template with appropriate input variables
     return new LangChainPromptTemplate({

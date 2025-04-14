@@ -75,7 +75,8 @@ export const VALID_REVIEW_TYPES: ReviewType[] = [
   'security',
   'performance',
   'consolidated',
-  'unused-code'
+  'unused-code',
+  'code-tracing-unused-code'
 ];
 
 /**
@@ -86,5 +87,6 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<Exclude<ReviewType, 'consolidated'
   'quick-fixes': 'Quick fixes review focusing on common issues and best practices',
   security: 'Security review focusing on vulnerabilities and security best practices',
   performance: 'Performance review focusing on optimization opportunities',
-  'unused-code': 'Unused code review focusing on identifying and removing dead code'
+  'unused-code': 'Unused code review focusing on identifying and removing dead code',
+  'code-tracing-unused-code': 'Deep code tracing for high-confidence unused code detection'
 };

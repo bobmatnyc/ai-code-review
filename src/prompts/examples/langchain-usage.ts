@@ -26,13 +26,18 @@ async function langChainExample() {
   // Get a raw prompt template for a security review
   const rawPrompt = await promptManager.getPromptTemplate('security', {
     language: 'typescript',
-    promptStrategy: 'langchain'
+    promptStrategy: 'langchain',
+    type: 'security',
+    includeTests: false,
+    output: 'markdown'
   });
   
   // Convert to a LangChain template
-  const template = strategy.getLangChainTemplate(rawPrompt, {
+  const template = await strategy.getLangChainTemplate(rawPrompt, {
     language: 'typescript',
-    type: 'security'
+    type: 'security',
+    includeTests: false,
+    output: 'markdown'
   });
   
   // Create a structured output parser

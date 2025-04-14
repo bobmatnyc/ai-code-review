@@ -31,7 +31,7 @@ export class LangChainPromptStrategy extends PromptStrategy {
    * @param options Review options
    * @returns Formatted prompt
    */
-  formatPrompt(prompt: string, options: ReviewOptions): string {
+  async formatPrompt(prompt: string, options: ReviewOptions): Promise<string> {
     try {
       // Get input variables from the template
       const inputVariables = this.extractInputVariables(prompt);
@@ -46,7 +46,7 @@ export class LangChainPromptStrategy extends PromptStrategy {
       const inputValues = this.createInputValuesFromOptions(options, inputVariables);
       
       // Format the prompt
-      return template.format(inputValues);
+      return await template.format(inputValues);
     } catch (error) {
       logger.error(`Error formatting prompt with LangChain: ${error instanceof Error ? error.message : String(error)}`);
       
@@ -115,12 +115,12 @@ export class LangChainPromptStrategy extends PromptStrategy {
     const inputValues: Record<string, string> = {};
     
     // Map common option fields to template variables
-    const optionsMap: Record<string, keyof ReviewOptions> = {
+    const optionsMap: Record<string, keyof ReviewOptions | string> = {
       LANGUAGE: 'language',
       FILE_PATH: 'filePath',
       CODE: 'code',
       TYPE: 'type',
-      MODEL: 'model',
+      MODEL: 'models',
       SCHEMA_INSTRUCTIONS: 'schemaInstructions',
       LANGUAGE_INSTRUCTIONS: 'languageInstructions',
     };
@@ -128,8 +128,8 @@ export class LangChainPromptStrategy extends PromptStrategy {
     // Fill in the input values from the options
     for (const variable of inputVariables) {
       const optionKey = optionsMap[variable];
-      if (optionKey && options[optionKey]) {
-        inputValues[variable] = String(options[optionKey]);
+      if (optionKey && typeof optionKey === 'string' && optionKey in options) {
+        inputValues[variable] = String(options[optionKey as keyof ReviewOptions]);
       } else {
         // Try to look up directly in options
         if (variable in options) {

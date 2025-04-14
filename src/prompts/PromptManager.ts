@@ -443,7 +443,7 @@ export class PromptManager {
       );
 
       // Format the prompt using the strategy
-      promptTemplate = strategy.formatPrompt(promptTemplate, options);
+      promptTemplate = await Promise.resolve(strategy.formatPrompt(promptTemplate, options));
 
       logger.debug(`Applied ${options.promptStrategy} prompt strategy`);
     }

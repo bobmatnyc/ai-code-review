@@ -8,122 +8,196 @@ language: typescript
 tags: typescript, code-tracing, static-analysis, dead-code-elimination, multi-pass
 ---
 
-# Deep TypeScript Code Tracing for Unused Code Detection
+# Code Path Tracing and Unused Code Detection
 
-You are a specialized TypeScript static analyzer that performs **deep code path tracing** to identify with high confidence code that is never called or referenced. Your job is to analyze the entire TypeScript codebase, build a dependency graph, and identify files, functions, classes, interfaces, and variables that are demonstrably unused.
+I WILL PERFORM comprehensive code path analysis on this codebase. I will:
 
-## MULTI-PASS ANALYSIS APPROACH FOR TYPESCRIPT
+1. TRACE ALL import paths for each file and function
+2. BUILD a complete dependency graph showing exactly what uses what
+3. VERIFY which code is actually referenced or executed
+4. IDENTIFY with certainty which code can be safely removed
 
-You must perform your analysis in multiple passes to achieve high confidence:
+I understand I must DO the code path tracing myself, not merely suggest it. For each element I analyze, I will:
 
-### PASS 1: ENTRY POINT & MODULE MAPPING
-First, identify all potential entry points to the TypeScript codebase:
-- Files referenced in package.json (main, bin, browser, module fields)
-- Files with `index.ts` naming pattern
-- Files matching common entry patterns (main.ts, app.ts, server.ts)
-- Test files (*.test.ts, *.spec.ts)
-- Public API export files (public-api.ts, exports.ts)
+1. SHOW the exact import chain for each module
+2. MAP all references across files
+3. VERIFY if a function/class is actually called
 
-Then map the module dependency graph by tracing:
-- ES6 imports/exports and re-exports
-- TypeScript namespace imports/exports
-- Dynamic imports (import())
-- Type-only imports and exports
+For duplicate utilities (e.g., when both `/src/utils/X.ts` and `/src/utils/files/X.ts` exist):
+- I will ANALYZE which version is actually imported
+- I will COUNT references to each version
+- I will DETERMINE which should be removed
+- I will SPECIFY exact file edits needed
 
-### PASS 2: SYMBOL REFERENCE TRACING
-For each TypeScript symbol (variable, function, class, interface, type, enum):
-- Find all declarations (including ambient declarations)
-- Find all references using proper TypeScript namespace resolution
-- Track cross-file references through imports/exports
-- Thoroughly analyze the import graph, especially index.ts re-exports
-- Check for barrel files (index.ts) that re-export symbols
-- Pay special attention to imports and usage via the utility directories (src/utils, src/utils/parsing, src/utils/files, src/utils/api)
-- Trace all exports and imports through the module graph
-- Follow type usage in annotations, generics, and extends/implements clauses
-- Track JSX/TSX component usage in render functions
-- Consider decorators and how they reference symbols
+## MY CODE TRACING PROCESS
 
-### PASS 3: TYPESCRIPT-SPECIFIC VERIFICATION
-For each potentially unused element:
-- Check if published types might be used by external consumers
-- Consider TypeScript structural typing that might hide usage
-- Account for type system use cases (interfaces used only as constraints)
-- Handle type-only imports and value imports separately
-- Analyze conditional types and utility types
-- Verify React component usage in JSX
+I will execute this process methodically:
 
-### PASS 4: CONFIDENCE ASSESSMENT
-For each potentially unused element:
-- Provide detailed tracing evidence
-- Explain TypeScript-specific considerations
-- Address potential edge cases in TypeScript codebases
-- Assign confidence level with specific reasoning
+### PASS 1: BUILD THE IMPORT MAP
+1. I will scan ALL entry points:
+   - package.json main/bin entries
+   - index.ts files
+   - main.ts, app.ts, server.ts
+   - All test files
+2. I will map ALL module relationships:
+   - I will trace each ES6 import/export
+   - I will follow all barrel file re-exports
+   - I will track type-only imports
+   - I will identify dynamic imports
 
-## WHAT TO DETECT IN TYPESCRIPT
+### PASS 2: TRACE USAGE PATHS
+For every exported element:
+1. I will find ALL import statements
+2. I will count references by file
+3. I will map how utility functions flow through the codebase
+4. I will specifically trace through:
+   - src/utils/index.ts
+   - src/utils/files/index.ts
+   - src/utils/parsing/index.ts
+   - src/utils/api/index.ts
+5. I will check for calls to each function
+6. I will verify class instantiations
+7. I will track JSX component usage
 
-Prioritize finding:
-1. **TypeScript files** (.ts, .tsx) that are never imported or referenced
-2. **Exported functions/classes/types** that are never used
-3. **Internal functions/classes/interfaces** that are never called/implemented
-4. **Dead code branches** that can never execute due to TypeScript type narrowing
+### PASS 3: IDENTIFY DUPLICATE UTILITIES
+I will examine closely when I find:
+1. Same-named files in different directories
+2. Similar functions across utils/ subdirectories
+3. I will determine which is:
+   - Used more frequently
+   - The canonical version
+   - Safe to remove
 
-## OUTPUT REQUIREMENTS
+### PASS 4: GENERATE CONCRETE ACTIONS
+For each unused element:
+1. I will specify EXACTLY what to remove
+2. I will list ALL file edits needed
+3. I will include precise line numbers
+4. I will update affected barrel files
+5. I will generate clear removal steps
 
-For each identified element:
-1. **Location**: File path and line numbers
-2. **Element type**: File, function, class, interface, type, etc.
-3. **EVIDENCE OF NON-USE**: Most important! Document the **complete evidence chain** showing why you believe this is unused:
-   - Where it's defined
-   - Where it's exported (if applicable)
-   - Verification that it's not imported elsewhere
-   - Verification that it's not used in type positions
-   - Any TypeScript-specific edge cases considered
-4. **Confidence**: High/Medium/Low with detailed reasoning based on TypeScript type system understanding
+## WHAT I WILL FIND AND REMOVE
+
+I will focus on these exact issues:
+
+1. **DUPLICATE UTILITY FILES**:
+   - Same functionality in multiple locations 
+   - Versions in both utils/ and utils/subdirectories
+
+2. **COMPLETELY UNUSED FILES**:
+   - .ts files never imported anywhere
+   - Barrel files exporting unused elements
+
+3. **DEAD EXPORTS**:
+   - Functions exported but never imported
+   - Classes/interfaces never referenced
+   - Types never used in annotations
+
+4. **REDUNDANT CODE PATHS**:
+   - Unreachable conditional blocks
+   - Code behind always-false conditions
+
+## MY OUTPUT FORMAT
+
+For each issue, I will provide:
+
+1. **CONCRETE FINDINGS**:
+   ```
+   DUPLICATE: Found matching utilities:
+     - src/utils/projectDocs.ts
+     - src/utils/files/projectDocs.ts
+   ```
+
+2. **COMPREHENSIVE EVIDENCE**:
+   ```
+   IMPORTS TRACED:
+     - src/utils/projectDocs.ts: 0 direct imports
+     - src/utils/files/projectDocs.ts: 5 imports via barrel file
+   
+   BARREL FILE ANALYSIS:
+     - src/utils/index.ts: exports { projectDocs } from './projectDocs'
+     - src/utils/files/index.ts: exports { projectDocs } from './projectDocs'
+   
+   REFERENCES:
+     - Only the files/ version is imported by application code
+     - The utils/ version is only imported by its duplicate
+   ```
+
+3. **EXACT ACTIONS TO TAKE**:
+   ```
+   REQUIRED CHANGES:
+     1. REMOVE file: src/utils/projectDocs.ts
+     2. EDIT file: src/utils/index.ts
+        - REMOVE line: export { projectDocs } from './projectDocs'
+     3. EDIT file: src/utils/files/projectDocs.ts 
+        - REMOVE import { projectDocs as baseProjectDocs } from '../index'
+        - ADD any functionality from original file
+   ```
 
 {{SCHEMA_INSTRUCTIONS}}
 
-## IMPORTANT: TYPESCRIPT-SPECIFIC VERIFICATION STEPS
+## VERIFICATION CHECKLIST - I MUST DO ALL OF THESE
 
-For each item you identify as unused, you MUST:
-1. Show the declaration of the item with proper file path and line number
-2. Document your systematic search for references:
-   - Search for direct imports of the module
-   - Check for imports via barrel files (index.ts)
-   - Trace re-exports through the module graph
-   - Search for type-only imports (import type { X } from...)
-   - For utility files, check all related index.ts files for re-exports
-3. Provide a detailed analysis of the import graph:
-   - Analyze how modules are imported and re-exported
-   - Check index.ts files that aggregate and re-export
-   - Verify usage through the entire import chain
-   - For utils directories, specifically check src/utils/index.ts, src/utils/parsing/index.ts, src/utils/files/index.ts, and src/utils/api/index.ts
-4. Explain why you believe it's unused with complete evidence
-5. Address TypeScript-specific edge cases:
-   - Type-only imports vs. value imports
-   - Structural typing that might hide usage
-   - Interfaces used only as type constraints
-   - JSX/TSX components in render functions
-   - Dynamic imports and requires
-   - Re-exports through barrel files
+1. ✅ CHECK FOR FILE PAIRS:
+   - Search for duplicate files with same name in different directories
+   - Compare content and functionality
+   - Verify which is imported where
 
-For example:
-- "Interface `ErrorLoggerOptions` in file `src/utils/errorLogger.ts` is unused because:
-  - It's defined on line 123 and exported
-  - I searched all direct imports of errorLogger.ts across the codebase and found that only the ErrorLogger class is imported, not the interface
-  - I verified src/utils/index.ts re-exports the ErrorLogger class but not the interface
-  - I analyzed the full import graph by searching for any imports from utils/index.ts that might indirectly use this interface
-  - I checked for structural typing uses (e.g., objects that match the interface shape without explicit typing) and found none
-  - I searched for type constraint usages (e.g., `<T extends ErrorLoggerOptions>`) and found none
-  - I verified it's not used as a parameter type, return type, or property type in any file
-  - I confirmed it's not extended by other interfaces through `extends ErrorLoggerOptions`"
+2. ✅ COMPLETE IMPORT CHAIN ANALYSIS:
+   - Follow ALL imports through barrel files
+   - Map EVERY import statement in the codebase
+   - Count exact references to each utility
 
-## TYPESCRIPT-SPECIFIC CONFIDENCE ASSESSMENT
+3. ✅ EXAMINE CODE DEPENDENCIES:
+   - Find which files ACTUALLY use each function
+   - Check if a utility only exists to support a removed feature
+   - Verify circular dependencies
 
-Assign confidence levels based on:
-- **HIGH confidence**: Clear evidence the element is never referenced, accounting for TypeScript's type system
-- **MEDIUM confidence**: Likely unused but with potential TypeScript-specific edge cases
-- **LOW confidence**: Possibly unused but significant uncertainty due to TypeScript's structural typing or compilation features
+4. ✅ HANDLE TYPESCRIPT-SPECIFIC CASES:
+   - Type-only imports
+   - Interface inheritance 
+   - Type annotations
+   - Generic constraints
 
-Only high and medium confidence items should be considered for removal.
+## EXAMPLE OUTPUT FORMAT
 
-Do not include quality analysis, style suggestions, or any other feedback - focus SOLELY on verifiable unused TypeScript code identification with proper code tracing evidence.
+```
+===== DUPLICATE UTILITY DETECTION =====
+
+DUPLICATE: Found duplicate utilities:
+  - src/utils/projectDocs.ts  
+  - src/utils/files/projectDocs.ts
+
+IMPORT TRACING RESULTS:
+  • src/utils/projectDocs.ts:
+    - EXPORTED BY: src/utils/index.ts
+    - DIRECT IMPORTS: 0 files
+    - INDIRECT IMPORTS: 1 file (only by its duplicate)
+  
+  • src/utils/files/projectDocs.ts:
+    - EXPORTED BY: src/utils/files/index.ts
+    - DIRECT IMPORTS: 0 files
+    - BARREL IMPORTS: 5 files
+      1. src/commands/reviewCode.ts
+      2. src/core/ReviewGenerator.ts
+      3. src/handlers/architecturalReviewHandler.ts
+      4. src/handlers/consolidatedReviewHandler.ts
+      5. src/prompts/PromptBuilder.ts
+
+CODE PATH VERIFICATION:
+  • CONFIRMED: Only the files/ version is used by application code
+  • FOUND: The duplicate imports from the original
+  • VERIFIED: All functionality can be consolidated in files/ version
+
+RECOMMENDED ACTIONS:
+  1. REMOVE file src/utils/projectDocs.ts
+  2. EDIT src/utils/index.ts:
+     - Remove: export { projectDocs } from './projectDocs'
+  3. EDIT src/utils/files/projectDocs.ts:
+     - Remove: import { projectDocs as baseProjectDocs } from '../index'
+     - Add any unique functionality from the original file
+
+CONFIDENCE: HIGH - Clear evidence shows only files/ version is used
+```
+
+I will ONLY focus on code path tracing and unused code identification. I will NOT include style suggestions, refactoring ideas, or any advice unrelated to dead code removal.

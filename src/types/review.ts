@@ -28,7 +28,8 @@ export type ReviewType =
   | 'security'
   | 'performance'
   | 'consolidated'
-  | 'unused-code';
+  | 'unused-code'
+  | 'code-tracing-unused-code';
 
 /**
  * Options for the review command
@@ -153,6 +154,30 @@ export interface ReviewOptions {
    * Whether to use code tracing for unused code detection with high confidence
    */
   traceCode?: boolean;
+  
+  /**
+   * Schema instructions for structured output
+   * @internal
+   */
+  schemaInstructions?: string;
+  
+  /**
+   * Language-specific instructions
+   * @internal
+   */
+  languageInstructions?: string;
+  
+  /**
+   * Raw code string (used in some strategies)
+   * @internal
+   */
+  code?: string;
+  
+  /**
+   * Example demos for few-shot learning
+   * @internal
+   */
+  examples?: any[];
 }
 
 /**
@@ -253,4 +278,22 @@ export interface ReviewResult {
    * Structured review data (if available)
    */
   structuredData?: any; // Will be typed as StructuredReview when parsed
+  
+  /**
+   * Raw response from the API (used in some strategies)
+   * @deprecated Use structuredData instead
+   */
+  response?: any;
+  
+  /**
+   * Output format of the review
+   * @deprecated Use options.output instead
+   */
+  outputFormat?: string;
+  
+  /**
+   * Metadata for the review
+   * @deprecated Use structuredData instead
+   */
+  metadata?: any;
 }

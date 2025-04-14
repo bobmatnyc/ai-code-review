@@ -104,13 +104,19 @@ async function improvedQuickFixesExample() {
     rawPrompt = await promptManager.getPromptTemplate('quick-fixes', {
       language: 'typescript',
       promptFile: '/Users/masa/Projects/ai-code-review/prompts/typescript/improved-quick-fixes-review.md',
-      promptStrategy: 'langchain'
+      promptStrategy: 'langchain',
+      type: 'quick-fixes',
+      includeTests: false,
+      output: 'markdown'
     });
   } catch (error) {
     logger.warn('Could not find improved prompt template, using standard template');
     rawPrompt = await promptManager.getPromptTemplate('quick-fixes', {
       language: 'typescript',
-      promptStrategy: 'langchain'
+      promptStrategy: 'langchain',
+      type: 'quick-fixes',
+      includeTests: false,
+      output: 'markdown'
     });
   }
   
@@ -159,15 +165,7 @@ Issues found:
   
   // Create an example template
   const exampleTemplate = new PromptTemplate({
-    template: `
-Code example:
-```typescript
-{code}
-```
-
-Analysis:
-{analysis}
-`,
+    template: "Code example:\n```typescript\n{code}\n```\n\nAnalysis:\n{analysis}",
     inputVariables: ['code', 'analysis']
   });
   

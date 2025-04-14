@@ -118,7 +118,7 @@ export class PromptBuilder {
         );
 
         // Format the prompt using the strategy
-        const formattedPrompt = strategy.formatPrompt(basePromptContent, options);
+        const formattedPrompt = await Promise.resolve(strategy.formatPrompt(basePromptContent, options));
 
         // Replace the base prompt with the formatted prompt
         this.components = this.components.filter(c => c.content !== basePromptContent);
