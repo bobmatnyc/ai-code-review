@@ -19,7 +19,7 @@ import logger from '../../utils/logger';
  */
 export class PromptStrategyFactory {
   private static strategies: Map<string, PromptStrategy> = new Map();
-  
+
   /**
    * Create a prompt strategy based on the model provider
    * @param provider Model provider (e.g., 'anthropic', 'gemini', 'openai')
@@ -34,15 +34,15 @@ export class PromptStrategyFactory {
   ): PromptStrategy {
     // Normalize the provider name
     const normalizedProvider = provider.toLowerCase();
-    
+
     // Check if we already have a strategy for this provider
     if (PromptStrategyFactory.strategies.has(normalizedProvider)) {
       return PromptStrategyFactory.strategies.get(normalizedProvider)!;
     }
-    
+
     // Create a new strategy based on the provider
     let strategy: PromptStrategy;
-    
+
     switch (normalizedProvider) {
       case 'anthropic':
         strategy = new AnthropicPromptStrategy(promptManager, promptCache);
@@ -61,13 +61,13 @@ export class PromptStrategyFactory {
         logger.warn(`Unknown provider: ${provider}. Using default strategy.`);
         strategy = new AnthropicPromptStrategy(promptManager, promptCache);
     }
-    
+
     // Cache the strategy
     PromptStrategyFactory.strategies.set(normalizedProvider, strategy);
-    
+
     return strategy;
   }
-  
+
   /**
    * Get all available prompt strategies
    * @param promptManager Prompt manager instance

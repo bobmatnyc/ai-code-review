@@ -104,7 +104,11 @@ if (envFileExists) {
 }
 
 // Import other dependencies after environment setup
-import { getConfig, validateConfigForSelectedModel, hasAnyApiKey } from './utils/config';
+import {
+  getConfig,
+  validateConfigForSelectedModel,
+  hasAnyApiKey
+} from './utils/config';
 
 import { reviewCode } from './commands/reviewCode';
 import { testModelCommand } from './commands/testModel';
@@ -118,7 +122,7 @@ import { listModelConfigs } from './clients/utils/modelLister';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '1.9.3';
+const VERSION = '2.0.0';
 
 // Main function to run the application
 async function main() {
@@ -143,11 +147,17 @@ async function main() {
 
     // Check if we have any API keys
     if (!hasAnyApiKey()) {
-      console.error('No API keys are available. Please add at least one API key.');
+      console.error(
+        'No API keys are available. Please add at least one API key.'
+      );
       console.error('Please make sure your .env.local file contains one of:');
       console.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
-      console.error('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
-      console.error('- AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here');
+      console.error(
+        '- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here'
+      );
+      console.error(
+        '- AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here'
+      );
       console.error('Or provide an API key via command-line flags:');
       console.error('- --google-api-key=your_google_api_key_here');
       console.error('- --openrouter-api-key=your_openrouter_api_key_here');
@@ -172,11 +182,16 @@ async function main() {
 
     // Log the selected language
     if (args.uiLanguage && args.uiLanguage !== 'en') {
-      const languageName = args.uiLanguage === 'es' ? 'Español' :
-                          args.uiLanguage === 'fr' ? 'Français' :
-                          args.uiLanguage === 'de' ? 'Deutsch' :
-                          args.uiLanguage === 'ja' ? '日本語' :
-                          args.uiLanguage;
+      const languageName =
+        args.uiLanguage === 'es'
+          ? 'Español'
+          : args.uiLanguage === 'fr'
+            ? 'Français'
+            : args.uiLanguage === 'de'
+              ? 'Deutsch'
+              : args.uiLanguage === 'ja'
+                ? '日本語'
+                : args.uiLanguage;
       logger.info(t('app.language_selected', { language: languageName }));
     }
 
@@ -188,7 +203,12 @@ async function main() {
     await pluginManager.loadPlugins(localPluginsDir);
 
     // Then try to load plugins from the package directory
-    const packagePluginsDir = path.resolve(__dirname, '..', 'plugins', 'examples');
+    const packagePluginsDir = path.resolve(
+      __dirname,
+      '..',
+      'plugins',
+      'examples'
+    );
     await pluginManager.loadPlugins(packagePluginsDir);
 
     // Log the loaded plugins
@@ -204,7 +224,11 @@ async function main() {
     const promptManager = PromptManager.getInstance();
 
     // First try to load templates from the current directory
-    const localTemplatesDir = path.resolve(process.cwd(), 'prompts', 'templates');
+    const localTemplatesDir = path.resolve(
+      process.cwd(),
+      'prompts',
+      'templates'
+    );
     await promptManager.loadTemplates(localTemplatesDir);
 
     // Then try to load templates from the package directory
@@ -216,7 +240,9 @@ async function main() {
     if (templates.length > 0) {
       logger.info(`Loaded ${templates.length} prompt templates:`);
       templates.forEach(template => {
-        logger.info(`- ${template.name}: ${template.description} (${template.reviewType})`);
+        logger.info(
+          `- ${template.name}: ${template.description} (${template.reviewType})`
+        );
       });
     }
 
@@ -232,7 +258,11 @@ async function main() {
         }
       } catch (error) {
         // Format the error message for better readability
-        logger.error(t('errors.api_test_failed', { message: error instanceof Error ? error.message : String(error) }));
+        logger.error(
+          t('errors.api_test_failed', {
+            message: error instanceof Error ? error.message : String(error)
+          })
+        );
 
         // Add a helpful message about common API issues
         logger.info('\n' + t('errors.common_solutions.title'));
@@ -248,16 +278,19 @@ async function main() {
     // Command line processing for model testing commands
     const { Command } = await import('commander');
     const program = new Command();
-    
+
     // Register the model-test command
     program.addCommand(testModelCommand);
 
     // Register the test-build command
     program.addCommand(testBuildCommand);
-    
+
     // Process model testing commands if specified
     const modelTestArgs = process.argv.slice(2);
-    if (modelTestArgs[0] === 'model-test' || modelTestArgs[0] === 'test-build') {
+    if (
+      modelTestArgs[0] === 'model-test' ||
+      modelTestArgs[0] === 'test-build'
+    ) {
       program.parse(process.argv);
       return;
     }
@@ -266,7 +299,11 @@ async function main() {
     await reviewCode(args.target, args);
   } catch (error) {
     // Format the error message for better readability
-    logger.error(t('errors.review_failed', { message: error instanceof Error ? error.message : String(error) }));
+    logger.error(
+      t('errors.review_failed', {
+        message: error instanceof Error ? error.message : String(error)
+      })
+    );
 
     // Add a helpful message about common issues
     logger.info('\n' + t('errors.common_solutions.title'));
@@ -280,6 +317,10 @@ async function main() {
 
 // Run the main function
 main().catch(error => {
-  logger.error(t('errors.unhandled', { message: error instanceof Error ? error.message : String(error) }));
+  logger.error(
+    t('errors.unhandled', {
+      message: error instanceof Error ? error.message : String(error)
+    })
+  );
   process.exit(1);
 });

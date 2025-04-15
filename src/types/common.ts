@@ -15,7 +15,20 @@ export type OutputFormat = 'markdown' | 'json';
 /**
  * Supported programming languages for code reviews
  */
-export type ProgrammingLanguage = 'typescript' | 'javascript' | 'python' | 'java' | 'go' | 'rust' | 'c' | 'cpp' | 'csharp' | 'php' | 'ruby' | 'swift' | 'kotlin';
+export type ProgrammingLanguage =
+  | 'typescript'
+  | 'javascript'
+  | 'python'
+  | 'java'
+  | 'go'
+  | 'rust'
+  | 'c'
+  | 'cpp'
+  | 'csharp'
+  | 'php'
+  | 'ruby'
+  | 'swift'
+  | 'kotlin';
 
 /**
  * Default programming language
@@ -82,11 +95,19 @@ export const VALID_REVIEW_TYPES: ReviewType[] = [
 /**
  * Review type descriptions
  */
-export const REVIEW_TYPE_DESCRIPTIONS: Record<Exclude<ReviewType, 'consolidated'>, string> = {
-  architectural: 'Architectural review focusing on design patterns and structure',
-  'quick-fixes': 'Quick fixes review focusing on common issues and best practices',
-  security: 'Security review focusing on vulnerabilities and security best practices',
+export const REVIEW_TYPE_DESCRIPTIONS: Record<
+  Exclude<ReviewType, 'consolidated'>,
+  string
+> = {
+  architectural:
+    'Architectural review focusing on design patterns and structure',
+  'quick-fixes':
+    'Quick fixes review focusing on common issues and best practices',
+  security:
+    'Security review focusing on vulnerabilities and security best practices',
   performance: 'Performance review focusing on optimization opportunities',
-  'unused-code': 'Unused code review focusing on identifying and removing dead code',
-  'code-tracing-unused-code': 'Deep code tracing for high-confidence unused code detection'
+  'unused-code':
+    'Unused code review focusing on identifying and removing dead code',
+  'code-tracing-unused-code':
+    'Deep code tracing for high-confidence unused code detection'
 };

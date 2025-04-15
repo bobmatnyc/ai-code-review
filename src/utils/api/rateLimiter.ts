@@ -16,12 +16,12 @@ interface RateLimiterOptions {
    * Maximum number of tokens in the bucket
    */
   bucketSize: number;
-  
+
   /**
    * Number of tokens added per second
    */
   tokensPerSecond: number;
-  
+
   /**
    * Initial number of tokens in the bucket
    */
@@ -41,7 +41,7 @@ export class RateLimiter {
     reject: (error: Error) => void;
     timeout: NodeJS.Timeout;
   }> = [];
-  
+
   /**
    * Create a new rate limiter
    * @param options Rate limiter options
@@ -52,7 +52,7 @@ export class RateLimiter {
     this.tokens = options.initialTokens ?? this.bucketSize;
     this.lastRefillTime = Date.now();
   }
-  
+
   /**
    * Refill the token bucket based on elapsed time
    */
@@ -60,13 +60,13 @@ export class RateLimiter {
     const now = Date.now();
     const elapsedSeconds = (now - this.lastRefillTime) / 1000;
     const newTokens = elapsedSeconds * this.tokensPerSecond;
-    
+
     if (newTokens > 0) {
       this.tokens = Math.min(this.bucketSize, this.tokens + newTokens);
       this.lastRefillTime = now;
     }
   }
-  
+
   /**
    * Process the wait queue
    */
@@ -78,7 +78,7 @@ export class RateLimiter {
       resolve();
     }
   }
-  
+
   /**
    * Acquire a token from the bucket
    * @param timeoutMs Timeout in milliseconds
@@ -86,32 +86,34 @@ export class RateLimiter {
    */
   async acquire(timeoutMs: number = 30000): Promise<void> {
     this.refill();
-    
+
     if (this.tokens >= 1) {
       this.tokens -= 1;
       return Promise.resolve();
     }
-    
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         // Remove this request from the queue
-        const index = this.waitQueue.findIndex(item => item.resolve === resolve);
+        const index = this.waitQueue.findIndex(
+          item => item.resolve === resolve
+        );
         if (index !== -1) {
           this.waitQueue.splice(index, 1);
         }
-        
+
         reject(new Error('Rate limit timeout exceeded'));
       }, timeoutMs);
-      
+
       this.waitQueue.push({ resolve, reject, timeout });
-      
+
       // Log if the queue is getting long
       if (this.waitQueue.length > 5) {
         logger.warn(`Rate limiter queue length: ${this.waitQueue.length}`);
       }
     });
   }
-  
+
   /**
    * Get the current number of tokens in the bucket
    * @returns Number of tokens
@@ -120,7 +122,7 @@ export class RateLimiter {
     this.refill();
     return this.tokens;
   }
-  
+
   /**
    * Get the current queue length
    * @returns Queue length

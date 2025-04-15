@@ -15,12 +15,12 @@ export interface PluginRegistration {
    * Name of the plugin
    */
   name: string;
-  
+
   /**
    * Description of the plugin
    */
   description: string;
-  
+
   /**
    * Strategy implementation
    */
@@ -36,7 +36,7 @@ export interface Plugin {
    * @param pluginManager The plugin manager instance
    */
   register: (pluginManager: any) => void;
-  
+
   /**
    * Get information about the plugin
    * @returns Plugin information

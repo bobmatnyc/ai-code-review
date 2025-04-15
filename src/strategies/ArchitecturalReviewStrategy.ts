@@ -6,7 +6,12 @@
  */
 
 import { BaseReviewStrategy } from './ReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import {
+  FileInfo,
+  ReviewOptions,
+  ReviewResult,
+  ReviewType
+} from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
@@ -40,7 +45,7 @@ export class ArchitecturalReviewStrategy extends BaseReviewStrategy {
     apiClientConfig: ApiClientConfig
   ): Promise<ReviewResult> {
     logger.info('Executing architectural review strategy...');
-    
+
     // Generate the review using the selected API client
     return generateReview(
       files,

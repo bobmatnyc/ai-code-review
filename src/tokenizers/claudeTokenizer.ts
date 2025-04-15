@@ -12,9 +12,7 @@ import { Tokenizer, TokenizerRegistry } from './baseTokenizer';
  * Tokenizer for Anthropic Claude models
  */
 export class ClaudeTokenizer implements Tokenizer {
-  private modelPatterns: RegExp[] = [
-    /claude/i
-  ];
+  private modelPatterns: RegExp[] = [/claude/i];
 
   /**
    * Count the number of tokens in a text using the Claude tokenizer

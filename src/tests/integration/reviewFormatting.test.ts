@@ -22,7 +22,7 @@ describe('Review Formatting Integration Tests', () => {
     try {
       // Create output directory if it doesn't exist
       await fs.mkdir(OUTPUT_DIR, { recursive: true });
-      
+
       // Clean up any existing test files
       const files = await fs.readdir(OUTPUT_DIR);
       for (const file of files) {
@@ -50,70 +50,99 @@ describe('Review Formatting Integration Tests', () => {
   });
 
   test('Gemini model review formatting', async () => {
+    jest.setTimeout(60000); // Increase timeout to 60 seconds
+
+    // Skip test if Gemini API key is not available
+    if (!process.env.AI_CODE_REVIEW_GOOGLE_API_KEY) {
+      console.log('Skipping Gemini test - API key not available');
+      return;
+    }
+
     // Set environment variables for Gemini
     process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-1.5-pro';
-    
+
     // Run the review
     execSync(`yarn dev ${TEST_FILE_PATH}`, { stdio: 'inherit' });
-    
+
     // Find the generated review file
     const files = await fs.readdir(OUTPUT_DIR);
-    const reviewFile = files.find(file => 
-      file.includes('apiKeyValidator') && 
-      file.includes('gemini-1.5-pro')
+    const reviewFile = files.find(
+      file =>
+        file.includes('apiKeyValidator') && file.includes('gemini-1.5-pro')
     );
-    
+
     if (!reviewFile) {
       throw new Error('Review file not found for Gemini model');
     }
-    
+
     // Read the review content
-    const reviewContent = await fs.readFile(path.join(OUTPUT_DIR, reviewFile), 'utf-8');
-    
+    const reviewContent = await fs.readFile(
+      path.join(OUTPUT_DIR, reviewFile),
+      'utf-8'
+    );
+
     // Verify the review doesn't contain the prompt instructions
-    expect(reviewContent).not.toContain('Act as a **pragmatic senior developer');
-    expect(reviewContent).not.toContain('🧠 **Quick Fixes Code Review Prompt**');
-    
+    expect(reviewContent).not.toContain(
+      'Act as a **pragmatic senior developer'
+    );
+    expect(reviewContent).not.toContain(
+      '🧠 **Quick Fixes Code Review Prompt**'
+    );
+
     // Verify the review has the expected sections
     expect(reviewContent).toContain('# Code Review: quick-fixes');
-    
+
     // Verify the review doesn't have formatting in Hindi or other languages
     expect(reviewContent).not.toContain('हाई');
     expect(reviewContent).not.toContain('मध्यम');
     expect(reviewContent).not.toContain('कम');
-    
+
     // Verify the review has proper sections
     expect(reviewContent).toMatch(/## (High|Medium|Low) Priority/);
   });
 
   test('Anthropic model review formatting', async () => {
+    jest.setTimeout(60000); // Increase timeout to 60 seconds
+
+    // Skip test if Anthropic API key is not available
+    if (!process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY) {
+      console.log('Skipping Anthropic test - API key not available');
+      return;
+    }
+
     // Set environment variables for Anthropic
     process.env.AI_CODE_REVIEW_MODEL = 'anthropic:claude-3-opus';
-    
+
     // Run the review
     execSync(`yarn dev ${TEST_FILE_PATH}`, { stdio: 'inherit' });
-    
+
     // Find the generated review file
     const files = await fs.readdir(OUTPUT_DIR);
-    const reviewFile = files.find(file => 
-      file.includes('apiKeyValidator') && 
-      file.includes('claude-3-opus')
+    const reviewFile = files.find(
+      file => file.includes('apiKeyValidator') && file.includes('claude-3-opus')
     );
-    
+
     if (!reviewFile) {
       throw new Error('Review file not found for Anthropic model');
     }
-    
+
     // Read the review content
-    const reviewContent = await fs.readFile(path.join(OUTPUT_DIR, reviewFile), 'utf-8');
-    
+    const reviewContent = await fs.readFile(
+      path.join(OUTPUT_DIR, reviewFile),
+      'utf-8'
+    );
+
     // Verify the review doesn't contain the prompt instructions
-    expect(reviewContent).not.toContain('Act as a **pragmatic senior developer');
-    expect(reviewContent).not.toContain('🧠 **Quick Fixes Code Review Prompt**');
-    
+    expect(reviewContent).not.toContain(
+      'Act as a **pragmatic senior developer'
+    );
+    expect(reviewContent).not.toContain(
+      '🧠 **Quick Fixes Code Review Prompt**'
+    );
+
     // Verify the review has the expected sections
     expect(reviewContent).toContain('# Code Review: quick-fixes');
-    
+
     // Verify the review has proper sections
     expect(reviewContent).toMatch(/## (High|Medium|Low) Priority/);
   });

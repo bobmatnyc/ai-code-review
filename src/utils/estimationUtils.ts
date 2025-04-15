@@ -9,7 +9,13 @@
 
 import path from 'path';
 import fs from 'fs/promises';
-import { estimateTokenCount, calculateCost, formatCost, getCostInfo, EstimatorFactory } from '../estimators';
+import {
+  estimateTokenCount,
+  calculateCost,
+  formatCost,
+  getCostInfo,
+  EstimatorFactory
+} from '../estimators';
 import logger from './logger';
 import { FileInfo } from '../types/review';
 
@@ -18,11 +24,11 @@ import { FileInfo } from '../types/review';
  * This is an approximation and may vary based on the specific review type and content
  */
 const OUTPUT_TO_INPUT_RATIO = {
-  'architectural': 0.6,  // Architectural reviews tend to be more concise
-  'quick-fixes': 0.8,    // Quick fixes often include code snippets
-  'security': 0.7,       // Security reviews are moderately detailed
-  'performance': 0.7,    // Performance reviews are similar to security
-  'default': 0.75        // Default ratio if review type is not specified
+  architectural: 0.6, // Architectural reviews tend to be more concise
+  'quick-fixes': 0.8, // Quick fixes often include code snippets
+  security: 0.7, // Security reviews are moderately detailed
+  performance: 0.7, // Performance reviews are similar to security
+  default: 0.75 // Default ratio if review type is not specified
 };
 
 /**
@@ -37,8 +43,13 @@ const REVIEW_OVERHEAD_TOKENS = 1500;
  * @param reviewType Type of review
  * @returns Estimated number of output tokens
  */
-export function estimateOutputTokens(inputTokens: number, reviewType: string): number {
-  const ratio = OUTPUT_TO_INPUT_RATIO[reviewType as keyof typeof OUTPUT_TO_INPUT_RATIO] || OUTPUT_TO_INPUT_RATIO.default;
+export function estimateOutputTokens(
+  inputTokens: number,
+  reviewType: string
+): number {
+  const ratio =
+    OUTPUT_TO_INPUT_RATIO[reviewType as keyof typeof OUTPUT_TO_INPUT_RATIO] ||
+    OUTPUT_TO_INPUT_RATIO.default;
   return Math.ceil(inputTokens * ratio);
 }
 
@@ -69,7 +80,8 @@ export function estimateOutputTokens(inputTokens: number, reviewType: string): n
 export async function estimateReviewCost(
   files: FileInfo[],
   reviewType: string,
-  modelName: string = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro'
+  modelName: string = process.env.AI_CODE_REVIEW_MODEL ||
+    'gemini:gemini-1.5-pro'
 ): Promise<{
   inputTokens: number;
   outputTokens: number;
@@ -90,10 +102,17 @@ export async function estimateReviewCost(
   }
 
   // Estimate output tokens based on input tokens and review type
-  const estimatedOutputTokens = estimateOutputTokens(totalInputTokens, reviewType);
+  const estimatedOutputTokens = estimateOutputTokens(
+    totalInputTokens,
+    reviewType
+  );
 
   // Calculate cost information
-  const costInfo = getCostInfo(totalInputTokens, estimatedOutputTokens, modelName);
+  const costInfo = getCostInfo(
+    totalInputTokens,
+    estimatedOutputTokens,
+    modelName
+  );
 
   return {
     ...costInfo,
@@ -130,18 +149,25 @@ export async function estimateReviewCost(
  * // - Estimated Cost: $0.015 USD
  */
 export function formatEstimation(
-  estimation: ReturnType<typeof estimateReviewCost> extends Promise<infer T> ? T : never,
+  estimation: ReturnType<typeof estimateReviewCost> extends Promise<infer T>
+    ? T
+    : never,
   reviewType: string,
   modelName: string
 ): string {
   // Extract provider and model if available
-  const [provider, model] = modelName.includes(':') ? modelName.split(':') : [undefined, modelName];
+  const [provider, model] = modelName.includes(':')
+    ? modelName.split(':')
+    : [undefined, modelName];
   const displayModel = model || modelName;
-  const displayProvider = provider ? `${provider.charAt(0).toUpperCase() + provider.slice(1)}` : 'Unknown';
+  const displayProvider = provider
+    ? `${provider.charAt(0).toUpperCase() + provider.slice(1)}`
+    : 'Unknown';
   const fileSizeInKB = (estimation.totalFileSize / 1024).toFixed(2);
-  const averageFileSize = estimation.fileCount > 0
-    ? ((estimation.totalFileSize / estimation.fileCount) / 1024).toFixed(2)
-    : '0.00';
+  const averageFileSize =
+    estimation.fileCount > 0
+      ? (estimation.totalFileSize / estimation.fileCount / 1024).toFixed(2)
+      : '0.00';
 
   return `
 === Token Usage and Cost Estimation ===
@@ -183,8 +209,11 @@ Note: This is an estimate based on approximate token counts and may vary
 export async function estimateFromFilePaths(
   filePaths: string[],
   reviewType: string,
-  modelName: string = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro'
-): Promise<ReturnType<typeof estimateReviewCost> extends Promise<infer T> ? T : never> {
+  modelName: string = process.env.AI_CODE_REVIEW_MODEL ||
+    'gemini:gemini-1.5-pro'
+): Promise<
+  ReturnType<typeof estimateReviewCost> extends Promise<infer T> ? T : never
+> {
   // Read file contents
   const files: FileInfo[] = [];
 
@@ -197,7 +226,9 @@ export async function estimateFromFilePaths(
         content
       });
     } catch (error) {
-      logger.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 

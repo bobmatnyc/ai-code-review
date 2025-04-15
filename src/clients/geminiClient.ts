@@ -37,7 +37,10 @@ import { loadPromptTemplate } from './utils/promptLoader';
 import { getLanguageFromExtension } from './utils/languageDetection';
 import { generateDirectoryStructure } from './utils';
 import { getModelMapping } from './utils/modelMaps';
-import { formatSingleFileReviewPrompt, formatConsolidatedReviewPrompt } from './utils/promptFormatter';
+import {
+  formatSingleFileReviewPrompt,
+  formatConsolidatedReviewPrompt
+} from './utils/promptFormatter';
 import { getConfig, getApiKeyForProvider } from '../utils/config';
 
 /**
@@ -162,7 +165,9 @@ function initializeGeminiClient(): void {
   const modelMapping = getModelMapping(modelKey);
 
   if (!modelMapping) {
-    throw new Error(`Model ${modelToUse} not found in model map. Please check the model name.`);
+    throw new Error(
+      `Model ${modelToUse} not found in model map. Please check the model name.`
+    );
   }
 
   // Set the selected model
@@ -172,7 +177,9 @@ function initializeGeminiClient(): void {
     useV1Beta: modelMapping.useV1Beta
   };
 
-  logger.info(`Successfully initialized Gemini model: ${modelToUse} (API name: ${selectedGeminiModel.name})`);
+  logger.info(
+    `Successfully initialized Gemini model: ${modelToUse} (API name: ${selectedGeminiModel.name})`
+  );
 }
 
 /**
@@ -198,7 +205,7 @@ export async function generateReview(
   if (!isCorrect) {
     throw new Error(
       `Gemini client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-      `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`
     );
   }
 
@@ -246,7 +253,9 @@ export async function generateReview(
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
       }
     } catch (parseError) {
       logger.warn(
@@ -298,7 +307,7 @@ export async function generateConsolidatedReview(
   if (!isCorrect) {
     throw new Error(
       `Gemini client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-      `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`
     );
   }
 
@@ -347,7 +356,9 @@ export async function generateConsolidatedReview(
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
       }
     } catch (parseError) {
       logger.warn(
@@ -411,7 +422,10 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
     } catch (e: unknown) {
       // Type assertion for error with status property
       const err = e as { status?: number };
-      if ((err.status === 429 || (err.status && err.status >= 500)) && i < retries - 1) {
+      if (
+        (err.status === 429 || (err.status && err.status >= 500)) &&
+        i < retries - 1
+      ) {
         await new Promise(res => setTimeout(res, 1000 * (i + 1)));
       } else {
         throw e;

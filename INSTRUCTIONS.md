@@ -2,7 +2,6 @@
 - Updated 4-15-2025
 
 ## 🔧 Core Principles
-let'
 ### ✅ Best Practices
 
 - Always implement using modern, community-validated best practices.
@@ -84,6 +83,7 @@ let'
 - `PROJECT.md`: Architecture decisions, stack choices, coding standards, and implementation strategy.
 - `PROGRESS.md`: Session logs with status, blockers, tasks, and commits.
 - `ABOUT.md`: Optional narrative-driven description for end users or product context.
+- 'VERSIONS.md': Version history, features, and technical improvements.
 
 ### 📄 Updating `PROJECT.md`
 

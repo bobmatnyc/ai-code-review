@@ -1,6 +1,6 @@
 /**
  * @fileoverview Factory for creating token and cost estimators.
- * 
+ *
  * This module provides a factory for creating the appropriate estimator
  * based on the model name or provider.
  */
@@ -16,7 +16,7 @@ import { OpenRouterTokenEstimator } from './openRouterEstimator';
  */
 export class EstimatorFactory {
   private static instance: EstimatorFactory;
-  
+
   /**
    * Get the singleton instance of the factory
    * @returns EstimatorFactory instance
@@ -27,12 +27,12 @@ export class EstimatorFactory {
     }
     return EstimatorFactory.instance;
   }
-  
+
   /**
    * Private constructor to enforce singleton pattern
    */
   private constructor() {}
-  
+
   /**
    * Get the appropriate estimator for a given model
    * @param modelName Name of the model
@@ -44,22 +44,28 @@ export class EstimatorFactory {
       const [provider, model] = modelName.split(':');
       return this.getEstimatorForProvider(provider);
     }
-    
+
     // Try to determine the provider from the model name
     if (modelName.startsWith('gemini-')) {
       return GeminiTokenEstimator.getInstance();
-    } else if (modelName.startsWith('claude-') || modelName.startsWith('anthropic/')) {
+    } else if (
+      modelName.startsWith('claude-') ||
+      modelName.startsWith('anthropic/')
+    ) {
       return AnthropicTokenEstimator.getInstance();
-    } else if (modelName.startsWith('gpt-') || modelName.startsWith('openai/')) {
+    } else if (
+      modelName.startsWith('gpt-') ||
+      modelName.startsWith('openai/')
+    ) {
       return OpenAITokenEstimator.getInstance();
     } else if (modelName.startsWith('openrouter-')) {
       return OpenRouterTokenEstimator.getInstance();
     }
-    
+
     // Default to Gemini estimator
     return GeminiTokenEstimator.getInstance();
   }
-  
+
   /**
    * Get the estimator for a specific provider
    * @param provider Provider name
@@ -79,7 +85,7 @@ export class EstimatorFactory {
         return GeminiTokenEstimator.getInstance();
     }
   }
-  
+
   /**
    * Get the default estimator
    * @returns TokenEstimator instance

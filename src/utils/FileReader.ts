@@ -21,7 +21,9 @@ export async function readFile(filePath: string): Promise<string> {
   try {
     return await fs.readFile(filePath, 'utf-8');
   } catch (error) {
-    logger.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+    );
     throw error;
   }
 }
@@ -35,7 +37,7 @@ export async function readFileWithInfo(filePath: string): Promise<FileInfo> {
   try {
     const content = await fs.readFile(filePath, 'utf-8');
     const extension = path.extname(filePath).slice(1);
-    
+
     return {
       path: filePath,
       content,
@@ -43,7 +45,9 @@ export async function readFileWithInfo(filePath: string): Promise<FileInfo> {
       filename: path.basename(filePath)
     };
   } catch (error) {
-    logger.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+    );
     throw error;
   }
 }
@@ -53,8 +57,12 @@ export async function readFileWithInfo(filePath: string): Promise<FileInfo> {
  * @param filePaths Array of file paths
  * @returns Promise resolving to an array of FileInfo objects
  */
-export async function readFilesWithInfo(filePaths: string[]): Promise<FileInfo[]> {
-  const fileInfoPromises = filePaths.map(filePath => readFileWithInfo(filePath));
+export async function readFilesWithInfo(
+  filePaths: string[]
+): Promise<FileInfo[]> {
+  const fileInfoPromises = filePaths.map(filePath =>
+    readFileWithInfo(filePath)
+  );
   return Promise.all(fileInfoPromises);
 }
 
@@ -69,13 +77,13 @@ export async function readFilesInDirectory(
   filter?: (filePath: string) => boolean
 ): Promise<string[]> {
   const result: string[] = [];
-  
+
   async function processDirectory(currentPath: string) {
     const entries = await fs.readdir(currentPath, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const entryPath = path.join(currentPath, entry.name);
-      
+
       if (entry.isDirectory()) {
         await processDirectory(entryPath);
       } else if (entry.isFile()) {
@@ -85,7 +93,7 @@ export async function readFilesInDirectory(
       }
     }
   }
-  
+
   await processDirectory(dirPath);
   return result;
 }

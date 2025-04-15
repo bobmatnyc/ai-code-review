@@ -36,7 +36,9 @@ export class StrategyFactory {
         logger.info(`Using custom strategy: ${options.strategy}`);
         return customStrategy;
       } else {
-        logger.warn(`Custom strategy "${options.strategy}" not found. Falling back to default strategy.`);
+        logger.warn(
+          `Custom strategy "${options.strategy}" not found. Falling back to default strategy.`
+        );
       }
     }
 
@@ -53,13 +55,17 @@ export class StrategyFactory {
         logger.info('Using Code Tracing Unused Code Review Strategy');
         return new CodeTracingUnusedCodeReviewStrategy();
       }
-      
+
       // Use the focused strategy if the focused option is set or when using LangChain
-      const useFocused = options.focused || options.promptStrategy === 'langchain';
-      return useFocused 
+      const useFocused =
+        options.focused || options.promptStrategy === 'langchain';
+      return useFocused
         ? new FocusedUnusedCodeReviewStrategy()
         : new UnusedCodeReviewStrategy();
-    } else if (reviewType === 'quick-fixes' && options.promptStrategy === 'langchain') {
+    } else if (
+      reviewType === 'quick-fixes' &&
+      options.promptStrategy === 'langchain'
+    ) {
       return new ImprovedQuickFixesReviewStrategy();
     } else {
       return new ConsolidatedReviewStrategy(reviewType);

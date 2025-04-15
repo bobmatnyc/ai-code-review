@@ -8,7 +8,12 @@
  * Uses Zod for schema validation to ensure type safety and provide clear error messages.
  */
 
-import { getGoogleApiKey, getOpenRouterApiKey, getAnthropicApiKey, getOpenAIApiKey } from './envLoader';
+import {
+  getGoogleApiKey,
+  getOpenRouterApiKey,
+  getAnthropicApiKey,
+  getOpenAIApiKey
+} from './envLoader';
 import logger from './logger';
 import path from 'path';
 import fs from 'fs';
@@ -57,25 +62,40 @@ function loadConfig(cliOptions?: any): AppConfig {
 
   // Override API keys with CLI options if provided
   const googleApiKey = cliOptions?.apiKey?.google || googleApiKeyResult.apiKey;
-  const openRouterApiKey = cliOptions?.apiKey?.openrouter || openRouterApiKeyResult.apiKey;
-  const anthropicApiKey = cliOptions?.apiKey?.anthropic || anthropicApiKeyResult.apiKey;
+  const openRouterApiKey =
+    cliOptions?.apiKey?.openrouter || openRouterApiKeyResult.apiKey;
+  const anthropicApiKey =
+    cliOptions?.apiKey?.anthropic || anthropicApiKeyResult.apiKey;
   const openAIApiKey = cliOptions?.apiKey?.openai || openAIApiKeyResult.apiKey;
 
   // Get selected model (CLI override takes precedence)
-  const selectedModel = cliOptions?.model || process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+  const selectedModel =
+    cliOptions?.model ||
+    process.env.AI_CODE_REVIEW_MODEL ||
+    'gemini:gemini-1.5-pro';
 
   // Get debug mode
-  const debug = cliOptions?.debug || process.env.AI_CODE_REVIEW_DEBUG === 'true' || process.argv.includes('--debug');
+  const debug =
+    cliOptions?.debug ||
+    process.env.AI_CODE_REVIEW_DEBUG === 'true' ||
+    process.argv.includes('--debug');
 
   // Get log level (CLI override takes precedence)
-  const logLevel = (cliOptions?.logLevel || process.env.AI_CODE_REVIEW_LOG_LEVEL || 'info') as 'debug' | 'info' | 'warn' | 'error' | 'none';
+  const logLevel = (cliOptions?.logLevel ||
+    process.env.AI_CODE_REVIEW_LOG_LEVEL ||
+    'info') as 'debug' | 'info' | 'warn' | 'error' | 'none';
 
   // Get context paths
   const contextPathsStr = process.env.AI_CODE_REVIEW_CONTEXT;
-  const contextPaths = contextPathsStr ? contextPathsStr.split(',').map(p => p.trim()) : undefined;
+  const contextPaths = contextPathsStr
+    ? contextPathsStr.split(',').map(p => p.trim())
+    : undefined;
 
   // Get output directory (CLI override takes precedence)
-  const outputDir = cliOptions?.outputDir || process.env.AI_CODE_REVIEW_OUTPUT_DIR || 'ai-code-review-docs';
+  const outputDir =
+    cliOptions?.outputDir ||
+    process.env.AI_CODE_REVIEW_OUTPUT_DIR ||
+    'ai-code-review-docs';
 
   // Create the configuration object
   const configObj = {
@@ -96,7 +116,9 @@ function loadConfig(cliOptions?: any): AppConfig {
   } catch (error) {
     if (error instanceof z.ZodError) {
       logger.error('Configuration validation failed:', error.errors);
-      throw new Error(`Configuration validation failed: ${error.errors.map(e => e.message).join(', ')}`);
+      throw new Error(
+        `Configuration validation failed: ${error.errors.map(e => e.message).join(', ')}`
+      );
     }
     throw error;
   }
@@ -125,8 +147,14 @@ export function getConfig(cliOptions?: any): AppConfig {
  * @returns True if at least one API key is available
  */
 export function hasAnyApiKey(): boolean {
-  const { googleApiKey, openRouterApiKey, anthropicApiKey, openAIApiKey } = getConfig();
-  return !!(googleApiKey || openRouterApiKey || anthropicApiKey || openAIApiKey);
+  const { googleApiKey, openRouterApiKey, anthropicApiKey, openAIApiKey } =
+    getConfig();
+  return !!(
+    googleApiKey ||
+    openRouterApiKey ||
+    anthropicApiKey ||
+    openAIApiKey
+  );
 }
 
 /**
@@ -162,7 +190,10 @@ export function resetConfig(): void {
  * Validate that the configuration has the required API key for the selected model
  * @returns Object containing validation result and error message if applicable
  */
-export function validateConfigForSelectedModel(): { valid: boolean; message: string } {
+export function validateConfigForSelectedModel(): {
+  valid: boolean;
+  message: string;
+} {
   const config = getConfig();
   const [provider] = config.selectedModel.split(':');
 
@@ -215,7 +246,10 @@ export function validateConfigForSelectedModel(): { valid: boolean; message: str
       };
   }
 
-  return { valid: true, message: 'Configuration is valid for the selected model' };
+  return {
+    valid: true,
+    message: 'Configuration is valid for the selected model'
+  };
 }
 
 /**

@@ -17,10 +17,10 @@ describe('RateLimiter', () => {
   beforeEach(() => {
     // Start with a fixed timestamp
     mockTime = 1000000000000;
-    
+
     // Mock Date.now to return controlled time
     global.Date.now = jest.fn(() => mockTime);
-    
+
     // Create a new rate limiter with 5 requests per minute limit
     rateLimiter = new RateLimiter(5);
   });
@@ -28,7 +28,7 @@ describe('RateLimiter', () => {
   afterEach(() => {
     // Restore original Date.now
     global.Date.now = originalDateNow;
-    
+
     // Clear all mocks
     jest.clearAllMocks();
   });
@@ -46,10 +46,10 @@ describe('RateLimiter', () => {
       for (let i = 0; i < 3; i++) {
         await rateLimiter.acquireToken();
       }
-      
+
       // Advance time by more than a minute
       mockTime += 61 * 1000;
-      
+
       // Should allow 5 more requests since the old ones are cleaned up
       for (let i = 0; i < 5; i++) {
         await expect(rateLimiter.acquireToken()).resolves.not.toThrow();
@@ -60,27 +60,27 @@ describe('RateLimiter', () => {
       // Mock setTimeout to execute immediately
       jest.useFakeTimers();
       const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-      
+
       // Make 5 requests to reach the limit
       for (let i = 0; i < 5; i++) {
         await rateLimiter.acquireToken();
       }
-      
+
       // Start a request that should wait
       const acquirePromise = rateLimiter.acquireToken();
-      
+
       // Verify setTimeout was called
       expect(setTimeoutSpy).toHaveBeenCalled();
-      
+
       // Advance time to simulate waiting
       mockTime += 60 * 1000 + 100; // 60 seconds + 100ms buffer
-      
+
       // Run the timer
       jest.runAllTimers();
-      
+
       // The promise should resolve
       await expect(acquirePromise).resolves.not.toThrow();
-      
+
       // Clean up
       jest.useRealTimers();
     });
@@ -90,10 +90,10 @@ describe('RateLimiter', () => {
     it('should be an alias for acquireToken', async () => {
       // Spy on acquireToken
       const acquireTokenSpy = jest.spyOn(rateLimiter, 'acquireToken');
-      
+
       // Call acquire
       await rateLimiter.acquire();
-      
+
       // Verify acquireToken was called
       expect(acquireTokenSpy).toHaveBeenCalledTimes(1);
     });
@@ -110,7 +110,7 @@ describe('RateLimiter', () => {
     it('should export a global rate limiter instance', () => {
       // Import the global rate limiter
       const { globalRateLimiter } = require('../utils/rateLimiter');
-      
+
       // Should be an instance of RateLimiter
       expect(globalRateLimiter).toBeInstanceOf(RateLimiter);
     });

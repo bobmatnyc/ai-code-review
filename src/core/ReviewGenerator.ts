@@ -16,9 +16,18 @@ import {
 import { ProjectDocs } from '../utils/projectDocs';
 // Import all clients directly
 import { generateConsolidatedReview } from '../clients/geminiClient';
-import { generateAnthropicConsolidatedReview, initializeAnthropicClient } from '../clients/anthropicClientWrapper';
-import { generateOpenAIConsolidatedReview, initializeAnyOpenAIModel } from '../clients/openaiClientWrapper';
-import { generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } from '../clients/openRouterClientWrapper';
+import {
+  generateAnthropicConsolidatedReview,
+  initializeAnthropicClient
+} from '../clients/anthropicClientWrapper';
+import {
+  generateOpenAIConsolidatedReview,
+  initializeAnyOpenAIModel
+} from '../clients/openaiClientWrapper';
+import {
+  generateOpenRouterConsolidatedReview,
+  initializeAnyOpenRouterModel
+} from '../clients/openRouterClientWrapper';
 
 // Other imports
 import logger from '../utils/logger';
@@ -42,7 +51,9 @@ export async function generateReview(
   apiClientConfig: ApiClientConfig
 ): Promise<ReviewResult> {
   console.log('[DEBUG] generateReview called');
-  console.log(`[DEBUG] generateReview: apiClientConfig=${JSON.stringify(apiClientConfig)}`);
+  console.log(
+    `[DEBUG] generateReview: apiClientConfig=${JSON.stringify(apiClientConfig)}`
+  );
 
   // Use the appropriate API client based on the client type
   let result: Promise<ReviewResult>;

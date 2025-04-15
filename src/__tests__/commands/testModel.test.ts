@@ -19,16 +19,34 @@ jest.mock('../../utils/logger', () => ({
 
 // Mock the test functions
 jest.mock('../../clients/utils/modelTester', () => ({
-  testGeminiModel: jest.fn().mockResolvedValue({ success: true, message: 'Success', response: 'Hello!' }),
-  testAnthropicModel: jest.fn().mockResolvedValue({ success: true, message: 'Success', response: 'Hello!' }),
-  testOpenAIModel: jest.fn().mockResolvedValue({ success: true, message: 'Success', response: 'Hello!' }),
-  testOpenRouterModel: jest.fn().mockResolvedValue({ success: true, message: 'Success', response: 'Hello!' }),
+  testGeminiModel: jest.fn().mockResolvedValue({
+    success: true,
+    message: 'Success',
+    response: 'Hello!'
+  }),
+  testAnthropicModel: jest.fn().mockResolvedValue({
+    success: true,
+    message: 'Success',
+    response: 'Hello!'
+  }),
+  testOpenAIModel: jest.fn().mockResolvedValue({
+    success: true,
+    message: 'Success',
+    response: 'Hello!'
+  }),
+  testOpenRouterModel: jest.fn().mockResolvedValue({
+    success: true,
+    message: 'Success',
+    response: 'Hello!'
+  }),
   findAvailableModelForProvider: jest.fn().mockResolvedValue('test-model')
 }));
 
 // Mock the model maps
 jest.mock('../../clients/utils/modelMaps', () => ({
-  getModelsByProvider: jest.fn().mockReturnValue(['test:model1', 'test:model2']),
+  getModelsByProvider: jest
+    .fn()
+    .mockReturnValue(['test:model1', 'test:model2']),
   MODEL_MAP: {
     'test:model1': {
       apiName: 'model1-api',
@@ -58,11 +76,11 @@ jest.mock('../../clients/utils/modelMaps', () => ({
 jest.mock('chalk', () => ({
   __esModule: true,
   default: {
-    cyan: jest.fn((text) => text),
-    gray: jest.fn((text) => text),
-    green: jest.fn((text) => text),
-    red: jest.fn((text) => text),
-    bold: jest.fn((text) => text)
+    cyan: jest.fn(text => text),
+    gray: jest.fn(text => text),
+    green: jest.fn(text => text),
+    red: jest.fn(text => text),
+    bold: jest.fn(text => text)
   }
 }));
 
@@ -70,41 +88,45 @@ describe('testModelCommand', () => {
   // Mock process.stdout.write to capture output
   const originalWrite = process.stdout.write;
   let writeOutput: string[] = [];
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
     writeOutput = [];
-    process.stdout.write = jest.fn((text) => {
+    process.stdout.write = jest.fn(text => {
       writeOutput.push(text.toString());
       return true;
     }) as any;
   });
-  
+
   afterEach(() => {
     process.stdout.write = originalWrite;
   });
-  
+
   it('should be defined', () => {
     expect(testModelCommand).toBeDefined();
     expect(testModelCommand.name()).toBe('model-test');
   });
-  
+
   it('should have the correct description', () => {
     expect(testModelCommand.description()).toContain('Test AI models');
   });
-  
+
   it('should have a provider option', () => {
-    const providerOption = testModelCommand.options.find(opt => 
-      opt.flags.includes('--provider') || opt.flags.includes('-p'));
-    
+    const providerOption = testModelCommand.options.find(
+      opt => opt.flags.includes('--provider') || opt.flags.includes('-p')
+    );
+
     expect(providerOption).toBeDefined();
-    expect(providerOption?.description).toContain('Test all models for a specific provider');
+    expect(providerOption?.description).toContain(
+      'Test all models for a specific provider'
+    );
   });
-  
+
   it('should have an all option', () => {
-    const allOption = testModelCommand.options.find(opt => 
-      opt.flags.includes('--all'));
-    
+    const allOption = testModelCommand.options.find(opt =>
+      opt.flags.includes('--all')
+    );
+
     expect(allOption).toBeDefined();
     expect(allOption?.description).toContain('Test all available models');
   });

@@ -23,20 +23,20 @@ const originalCwd = process.cwd;
 describe('validateTargetPath', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock process.cwd to return a fixed path
     jest.spyOn(process, 'cwd').mockImplementation(() => '/test/base/path');
-    
+
     // Mock pathExists to return true for all paths
     mockedFs.accessSync.mockImplementation(() => undefined);
-    
+
     // Mock isDirectory to return false by default
     mockedFs.statSync.mockReturnValue({
       isDirectory: () => false,
       isFile: () => true
     } as any);
   });
-  
+
   afterEach(() => {
     // Restore original process.cwd
     jest.spyOn(process, 'cwd').mockRestore();
@@ -54,7 +54,9 @@ describe('validateTargetPath', () => {
     expect(result2.error).toBeUndefined();
 
     // Test with a path that includes multiple directories
-    const result3 = validateTargetPath('/test/base/path/dir1/dir2/dir3/file.txt');
+    const result3 = validateTargetPath(
+      '/test/base/path/dir1/dir2/dir3/file.txt'
+    );
     expect(result3.isValid).toBe(true);
     expect(result3.error).toBeUndefined();
   });
@@ -63,12 +65,16 @@ describe('validateTargetPath', () => {
     // Test with a path outside the base directory
     const result1 = validateTargetPath('/etc/passwd');
     expect(result1.isValid).toBe(false);
-    expect(result1.error).toContain('Path must be within the current directory');
+    expect(result1.error).toContain(
+      'Path must be within the current directory'
+    );
 
     // Test with a path that traverses outside the base directory
     const result2 = validateTargetPath('/test/base/path/../../../etc/passwd');
     expect(result2.isValid).toBe(false);
-    expect(result2.error).toContain('Path must be within the current directory');
+    expect(result2.error).toContain(
+      'Path must be within the current directory'
+    );
   });
 
   test('rejects paths that do not exist', () => {
@@ -76,7 +82,7 @@ describe('validateTargetPath', () => {
     mockedFs.accessSync.mockImplementation(() => {
       throw new Error('Path does not exist');
     });
-    
+
     const result = validateTargetPath('/test/base/path/nonexistent.txt');
     expect(result.isValid).toBe(false);
     expect(result.error).toContain('Path does not exist');
@@ -88,7 +94,7 @@ describe('validateTargetPath', () => {
       isDirectory: () => true,
       isFile: () => false
     } as any);
-    
+
     const result = validateTargetPath('/test/base/path/dir');
     expect(result.isValid).toBe(true);
     expect(result.isDir).toBe(true);
@@ -100,7 +106,7 @@ describe('validateTargetPath', () => {
       isDirectory: () => false,
       isFile: () => true
     } as any);
-    
+
     const result = validateTargetPath('/test/base/path/file.txt');
     expect(result.isValid).toBe(true);
     expect(result.isDir).toBe(false);

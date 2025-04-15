@@ -23,7 +23,7 @@ export class AnthropicPromptStrategy extends PromptStrategy {
   constructor(promptManager: PromptManager, promptCache: PromptCache) {
     super(promptManager, promptCache);
   }
-  
+
   /**
    * Format a prompt for Anthropic models
    * @param prompt Raw prompt
@@ -33,23 +33,25 @@ export class AnthropicPromptStrategy extends PromptStrategy {
   formatPrompt(prompt: string, options: ReviewOptions): string {
     // Anthropic models work well with the default prompt format
     // but we can add some Anthropic-specific optimizations here
-    
+
     // Add a reminder to be concise and actionable
     let formattedPrompt = prompt;
-    
+
     // Add a note about being concise for Claude models
     if (!formattedPrompt.includes('Be concise and actionable')) {
-      formattedPrompt += '\n\nRemember to be concise and actionable in your review. Focus on the most important issues and provide clear, specific recommendations.';
+      formattedPrompt +=
+        '\n\nRemember to be concise and actionable in your review. Focus on the most important issues and provide clear, specific recommendations.';
     }
-    
+
     // Add a note about code examples for Claude models
     if (!formattedPrompt.includes('code examples')) {
-      formattedPrompt += '\n\nWhen suggesting fixes, provide specific code examples that demonstrate the recommended changes.';
+      formattedPrompt +=
+        '\n\nWhen suggesting fixes, provide specific code examples that demonstrate the recommended changes.';
     }
-    
+
     return formattedPrompt;
   }
-  
+
   /**
    * Get the name of the strategy
    * @returns Strategy name
@@ -57,7 +59,7 @@ export class AnthropicPromptStrategy extends PromptStrategy {
   getName(): string {
     return 'anthropic';
   }
-  
+
   /**
    * Get the description of the strategy
    * @returns Strategy description

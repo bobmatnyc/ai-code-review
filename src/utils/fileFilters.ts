@@ -49,7 +49,11 @@ async function getGitignorePatterns(projectPath: string): Promise<string[]> {
  * @param projectRoot Project root path
  * @returns Boolean indicating if file should be ignored
  */
-function shouldIgnoreFile(filePath: string, patterns: string[], projectRoot: string): boolean {
+function shouldIgnoreFile(
+  filePath: string,
+  patterns: string[],
+  projectRoot: string
+): boolean {
   const relativePath = path.relative(projectRoot, filePath);
   // console.log('DEBUG: Checking if file should be ignored:', { filePath, relativePath, projectRoot });
 
@@ -62,9 +66,7 @@ function shouldIgnoreFile(filePath: string, patterns: string[], projectRoot: str
     }
 
     if (pattern.includes('*')) {
-      const regexPattern = pattern
-        .replace(/\./g, '\\.')
-        .replace(/\*/g, '.*');
+      const regexPattern = pattern.replace(/\./g, '\\.').replace(/\*/g, '.*');
 
       if (new RegExp(`^${regexPattern}$`).test(relativePath)) {
         // console.log('DEBUG: File matches wildcard pattern:', { relativePath, pattern, regexPattern });

@@ -12,9 +12,7 @@ import { Tokenizer, TokenizerRegistry } from './baseTokenizer';
  * Tokenizer for OpenAI GPT models
  */
 export class GPTTokenizer implements Tokenizer {
-  private modelPatterns: RegExp[] = [
-    /gpt/i
-  ];
+  private modelPatterns: RegExp[] = [/gpt/i];
 
   /**
    * Count the number of tokens in a text using the GPT tokenizer

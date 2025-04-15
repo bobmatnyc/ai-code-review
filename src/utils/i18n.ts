@@ -23,7 +23,9 @@ export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'de', 'ja'];
  * @param lng Language code to use
  * @returns Promise that resolves when i18next is initialized
  */
-export async function initI18n(lng: string = DEFAULT_LANGUAGE): Promise<typeof i18next> {
+export async function initI18n(
+  lng: string = DEFAULT_LANGUAGE
+): Promise<typeof i18next> {
   // Ensure the language is supported, fallback to default if not
   const language = SUPPORTED_LANGUAGES.includes(lng) ? lng : DEFAULT_LANGUAGE;
 
@@ -48,7 +50,7 @@ export async function initI18n(lng: string = DEFAULT_LANGUAGE): Promise<typeof i
       },
       backend: {
         loadPath: path.join(localesPath, '{{lng}}/{{ns}}.json')
-      },
+      }
       // Add any additional configuration here
     });
 
@@ -105,7 +107,9 @@ export function getCurrentLanguage(): string {
  */
 export async function changeLanguage(lng: string): Promise<void> {
   if (!SUPPORTED_LANGUAGES.includes(lng)) {
-    console.warn(`Language ${lng} is not supported. Using ${DEFAULT_LANGUAGE} instead.`);
+    console.warn(
+      `Language ${lng} is not supported. Using ${DEFAULT_LANGUAGE} instead.`
+    );
     lng = DEFAULT_LANGUAGE;
   }
 

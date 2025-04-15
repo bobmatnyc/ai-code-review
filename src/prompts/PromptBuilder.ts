@@ -118,10 +118,14 @@ export class PromptBuilder {
         );
 
         // Format the prompt using the strategy
-        const formattedPrompt = await Promise.resolve(strategy.formatPrompt(basePromptContent, options));
+        const formattedPrompt = await Promise.resolve(
+          strategy.formatPrompt(basePromptContent, options)
+        );
 
         // Replace the base prompt with the formatted prompt
-        this.components = this.components.filter(c => c.content !== basePromptContent);
+        this.components = this.components.filter(
+          c => c.content !== basePromptContent
+        );
         this.addComponent({
           content: formattedPrompt,
           position: 'middle',
@@ -151,7 +155,9 @@ export class PromptBuilder {
 
       return finalPrompt;
     } catch (error) {
-      logger.error(`Error building prompt: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error building prompt: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     }
   }

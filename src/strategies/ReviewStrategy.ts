@@ -5,7 +5,12 @@
  * which encapsulate the logic for different types of code reviews.
  */
 
-import { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import {
+  FileInfo,
+  ReviewOptions,
+  ReviewResult,
+  ReviewType
+} from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 

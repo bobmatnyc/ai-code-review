@@ -82,7 +82,9 @@ async function fetchWithRetry(
         await new Promise(r => setTimeout(r, 1000 * (i + 1)));
       } else {
         console.log(`[DEBUG] Non-retryable error status: ${res.status}`);
-        throw new Error(`Anthropic API request failed with status ${res.status}`);
+        throw new Error(
+          `Anthropic API request failed with status ${res.status}`
+        );
       }
     } catch (error) {
       console.log(`[DEBUG] Fetch error: ${error}`);
@@ -188,7 +190,9 @@ export async function initializeAnthropicClient(): Promise<boolean> {
 
     // Make a simple test request to verify the model works
     console.log(`[DEBUG] Testing Anthropic model: ${modelName}`);
-    console.log(`[DEBUG] API key: ${apiKey ? apiKey.substring(0, 10) + '...' : 'not set'}`);
+    console.log(
+      `[DEBUG] API key: ${apiKey ? apiKey.substring(0, 10) + '...' : 'not set'}`
+    );
 
     // Get the API name from the model map
     // Use the imported getApiNameFromKey function
@@ -200,7 +204,7 @@ export async function initializeAnthropicClient(): Promise<boolean> {
     // Prepare the request body
     const requestBody = {
       model: apiModelName,
-      system: "You are a helpful AI assistant.",
+      system: 'You are a helpful AI assistant.',
       messages: [
         {
           role: 'user',
@@ -210,7 +214,9 @@ export async function initializeAnthropicClient(): Promise<boolean> {
       max_tokens: 100
     };
 
-    console.log(`[DEBUG] Request body: ${JSON.stringify(requestBody, null, 2)}`);
+    console.log(
+      `[DEBUG] Request body: ${JSON.stringify(requestBody, null, 2)}`
+    );
 
     const response = await fetchWithRetry(
       'https://api.anthropic.com/v1/messages',
@@ -232,13 +238,17 @@ export async function initializeAnthropicClient(): Promise<boolean> {
       console.log(`[DEBUG] Response text: ${responseText}`);
 
       if (!response.ok) {
-        logger.error(`Error initializing Anthropic model ${modelName}: ${responseText}`);
+        logger.error(
+          `Error initializing Anthropic model ${modelName}: ${responseText}`
+        );
         return false;
       }
 
       try {
         const data = JSON.parse(responseText);
-        console.log(`[DEBUG] Parsed response: ${JSON.stringify(data, null, 2)}`);
+        console.log(
+          `[DEBUG] Parsed response: ${JSON.stringify(data, null, 2)}`
+        );
 
         if (data.content && data.content.length > 0) {
           logger.info(`Successfully initialized Anthropic model: ${modelName}`);
@@ -246,7 +256,9 @@ export async function initializeAnthropicClient(): Promise<boolean> {
           return true;
         }
 
-        logger.error(`Unexpected response format from Anthropic model ${modelName}: ${JSON.stringify(data)}`);
+        logger.error(
+          `Unexpected response format from Anthropic model ${modelName}: ${JSON.stringify(data)}`
+        );
         return false;
       } catch (parseError) {
         logger.error(`Error parsing JSON response: ${parseError}`);
@@ -349,7 +361,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
         try {
           // Make the API request
-          console.log(`[DEBUG] Anthropic API request: model=${modelName}, apiKey=${apiKey ? 'set' : 'not set'}`);
+          console.log(
+            `[DEBUG] Anthropic API request: model=${modelName}, apiKey=${apiKey ? 'set' : 'not set'}`
+          );
           const apiModelName = await getApiModelName(modelName);
           const requestBody = {
             model: apiModelName,
@@ -358,7 +372,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
             temperature: 0.2,
             max_tokens: MAX_TOKENS_PER_REQUEST
           };
-          console.log(`[DEBUG] Anthropic API request body: ${JSON.stringify(requestBody, null, 2)}`);
+          console.log(
+            `[DEBUG] Anthropic API request body: ${JSON.stringify(requestBody, null, 2)}`
+          );
           const response = await fetchWithRetry(
             'https://api.anthropic.com/v1/messages',
             {
@@ -373,7 +389,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           );
 
           // Handle response errors
-          console.log(`[DEBUG] Anthropic API response status: ${response.status}`);
+          console.log(
+            `[DEBUG] Anthropic API response status: ${response.status}`
+          );
           try {
             const responseText = await response.text();
             console.log(`[DEBUG] Anthropic API response: ${responseText}`);
@@ -441,7 +459,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
       }
     } catch (parseError) {
       logger.warn(
@@ -637,7 +657,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
       }
     } catch (parseError) {
       logger.warn(

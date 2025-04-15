@@ -15,9 +15,7 @@ import logger from '../logger';
 /**
  * Supported file extensions for code review
  */
-const SUPPORTED_EXTENSIONS = [
-  '.ts', '.tsx', '.js', '.jsx', '.json', '.md'
-];
+const SUPPORTED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.json', '.md'];
 
 /**
  * Check if a file is a test file
@@ -46,7 +44,10 @@ export function isTestFile(filePath: string): boolean {
  * @param gitignorePatterns Array of gitignore patterns
  * @returns True if the file should be excluded
  */
-export function shouldExcludeFile(filePath: string, gitignorePatterns: string[]): boolean {
+export function shouldExcludeFile(
+  filePath: string,
+  gitignorePatterns: string[]
+): boolean {
   // Convert Windows paths to Unix-style for consistent pattern matching
   const normalizedPath = filePath.replace(/\\/g, '/');
 
@@ -77,7 +78,9 @@ export function shouldExcludeFile(filePath: string, gitignorePatterns: string[])
     }
 
     // Create the regex
-    const regex = new RegExp(`^${regexPattern}$|^${regexPattern}/|/${regexPattern}$|/${regexPattern}/`);
+    const regex = new RegExp(
+      `^${regexPattern}$|^${regexPattern}/|/${regexPattern}$|/${regexPattern}/`
+    );
 
     // Check if the path matches the pattern
     const matches = regex.test(normalizedPath);
@@ -232,7 +235,9 @@ export async function readFileInfo(filePath: string): Promise<FileInfo> {
  * @param filePaths Array of file paths
  * @returns Array of FileInfo objects
  */
-export async function readMultipleFiles(filePaths: string[]): Promise<FileInfo[]> {
+export async function readMultipleFiles(
+  filePaths: string[]
+): Promise<FileInfo[]> {
   const filePromises = filePaths.map(filePath => readFileInfo(filePath));
   return Promise.all(filePromises);
 }

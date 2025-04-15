@@ -27,7 +27,10 @@ import { sanitizeContent } from '../utils/parsing/sanitizer';
  * @param format Output format (markdown or json)
  * @returns Formatted review output
  */
-export function formatReviewOutput(review: ReviewResult, format: string): string {
+export function formatReviewOutput(
+  review: ReviewResult,
+  format: string
+): string {
   if (format === 'json') {
     return formatAsJson(review);
   }
@@ -91,7 +94,8 @@ function formatAsJson(review: ReviewResult): string {
  * @returns Markdown string
  */
 function formatAsMarkdown(review: ReviewResult): string {
-  const { filePath, reviewType, content, timestamp, cost, structuredData } = review;
+  const { filePath, reviewType, content, timestamp, cost, structuredData } =
+    review;
 
   // Determine model information
   let modelInfo = 'Google Gemini AI';
@@ -126,11 +130,19 @@ function formatAsMarkdown(review: ReviewResult): string {
   // If we have structured data, format it as Markdown
   if (structuredData) {
     try {
-      const structuredReview = typeof structuredData === 'string'
-        ? JSON.parse(structuredData) as StructuredReview
-        : structuredData as StructuredReview;
+      const structuredReview =
+        typeof structuredData === 'string'
+          ? (JSON.parse(structuredData) as StructuredReview)
+          : (structuredData as StructuredReview);
 
-      return formatStructuredReviewAsMarkdown(structuredReview, filePath, reviewType, timestamp, costInfo, modelInfo);
+      return formatStructuredReviewAsMarkdown(
+        structuredReview,
+        filePath,
+        reviewType,
+        timestamp,
+        costInfo,
+        modelInfo
+      );
     } catch (error) {
       console.error('Error parsing structured review data:', error);
       // Fall back to unstructured format
@@ -142,9 +154,8 @@ function formatAsMarkdown(review: ReviewResult): string {
 
   // Use the actual file path for the review title and the reviewed field
   // If filePath is the same as reviewType, it means we're reviewing the current directory
-  const displayPath = filePath === reviewType ?
-    (process.cwd() + ' (Current Directory)') :
-    filePath;
+  const displayPath =
+    filePath === reviewType ? process.cwd() + ' (Current Directory)' : filePath;
 
   return `# Code Review: ${displayPath}
 
@@ -179,11 +190,14 @@ function formatStructuredReviewAsMarkdown(
   costInfo: string,
   modelInfo: string
 ): string {
-  const { summary, issues, recommendations, positiveAspects } = structuredReview;
+  const { summary, issues, recommendations, positiveAspects } =
+    structuredReview;
 
   // Group issues by priority
   const highPriorityIssues = issues.filter(issue => issue.priority === 'high');
-  const mediumPriorityIssues = issues.filter(issue => issue.priority === 'medium');
+  const mediumPriorityIssues = issues.filter(
+    issue => issue.priority === 'medium'
+  );
   const lowPriorityIssues = issues.filter(issue => issue.priority === 'low');
 
   // Format issues by priority
@@ -191,19 +205,25 @@ function formatStructuredReviewAsMarkdown(
 
   if (highPriorityIssues.length > 0) {
     issuesMarkdown += '### High Priority\n\n';
-    issuesMarkdown += highPriorityIssues.map(issue => formatIssue(issue)).join('\n\n');
+    issuesMarkdown += highPriorityIssues
+      .map(issue => formatIssue(issue))
+      .join('\n\n');
     issuesMarkdown += '\n\n';
   }
 
   if (mediumPriorityIssues.length > 0) {
     issuesMarkdown += '### Medium Priority\n\n';
-    issuesMarkdown += mediumPriorityIssues.map(issue => formatIssue(issue)).join('\n\n');
+    issuesMarkdown += mediumPriorityIssues
+      .map(issue => formatIssue(issue))
+      .join('\n\n');
     issuesMarkdown += '\n\n';
   }
 
   if (lowPriorityIssues.length > 0) {
     issuesMarkdown += '### Low Priority\n\n';
-    issuesMarkdown += lowPriorityIssues.map(issue => formatIssue(issue)).join('\n\n');
+    issuesMarkdown += lowPriorityIssues
+      .map(issue => formatIssue(issue))
+      .join('\n\n');
     issuesMarkdown += '\n\n';
   }
 
@@ -211,7 +231,9 @@ function formatStructuredReviewAsMarkdown(
   let recommendationsMarkdown = '';
   if (recommendations && recommendations.length > 0) {
     recommendationsMarkdown = '## General Recommendations\n\n';
-    recommendationsMarkdown += recommendations.map(rec => `- ${rec}`).join('\n');
+    recommendationsMarkdown += recommendations
+      .map(rec => `- ${rec}`)
+      .join('\n');
     recommendationsMarkdown += '\n\n';
   }
 
@@ -219,15 +241,16 @@ function formatStructuredReviewAsMarkdown(
   let positiveAspectsMarkdown = '';
   if (positiveAspects && positiveAspects.length > 0) {
     positiveAspectsMarkdown = '## Positive Aspects\n\n';
-    positiveAspectsMarkdown += positiveAspects.map(aspect => `- ${aspect}`).join('\n');
+    positiveAspectsMarkdown += positiveAspects
+      .map(aspect => `- ${aspect}`)
+      .join('\n');
     positiveAspectsMarkdown += '\n\n';
   }
 
   // Use the actual file path for the review title and the reviewed field
   // If filePath is the same as reviewType, it means we're reviewing the current directory
-  const displayPath = filePath === reviewType ?
-    (process.cwd() + ' (Current Directory)') :
-    filePath;
+  const displayPath =
+    filePath === reviewType ? process.cwd() + ' (Current Directory)' : filePath;
 
   return `# Code Review: ${displayPath}
 
@@ -255,7 +278,16 @@ ${recommendationsMarkdown}${positiveAspectsMarkdown}---${costInfo}
  * @returns Markdown string
  */
 function formatIssue(issue: ReviewIssue): string {
-  const { title, type, filePath, lineNumbers, description, codeSnippet, suggestedFix, impact } = issue;
+  const {
+    title,
+    type,
+    filePath,
+    lineNumbers,
+    description,
+    codeSnippet,
+    suggestedFix,
+    impact
+  } = issue;
 
   let issueMarkdown = `#### ${title}\n`;
 

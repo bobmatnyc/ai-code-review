@@ -2,6 +2,19 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [2.0.0] - 2024-04-15
+
+### Added
+- Fixed all unit tests to ensure compatibility with the latest dependencies
+- Improved Jest configuration to handle ESM modules properly
+- Removed Prettier checking from the test process for better developer experience
+- Added p-limit dependency to fix ESLint issues
+
+### Changed
+- Major version bump to reflect the stability and feature completeness of the tool
+- Updated all dependencies to their latest versions
+- Improved build process reliability
+
 ## [1.9.4] - 2024-04-13
 
 ### Added

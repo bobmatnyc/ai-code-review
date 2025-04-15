@@ -21,13 +21,7 @@ import {
 } from './PathValidator';
 
 // Re-export from PathValidator
-export {
-  validateTargetPath,
-  pathExists,
-  isDirectory,
-  isFile,
-  isPathWithinCwd
-};
+export { validateTargetPath, pathExists, isDirectory, isFile, isPathWithinCwd };
 
 // Aliases for backward compatibility
 export const fileExists = pathExists;

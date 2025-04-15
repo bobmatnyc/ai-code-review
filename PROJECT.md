@@ -234,7 +234,7 @@ yarn dev code-review project-name path/to/file.ts
 Output will be generated in the `/review/[project-name]/` directory, with subdirectories matching the source path structure.
 
 ### Code Review Workflow
-// Updated: 2024-07-10
+// Updated: 2024-04-15
 1. When asked to perform a code review on a specific file or directory, run the code review script in interactive mode
 2. Automatically implement all high priority fixes identified in the review
 3. Ask for confirmation before implementing medium and low priority fixes

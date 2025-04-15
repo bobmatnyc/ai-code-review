@@ -11,7 +11,8 @@ import { sanitizeFilename } from '../utils/sanitizer';
 describe('sanitizer', () => {
   describe('sanitizeContent', () => {
     it('should allow safe HTML content', () => {
-      const safeContent = '<p>This is <strong>safe</strong> content with <a href="https://example.com">links</a>.</p>';
+      const safeContent =
+        '<p>This is <strong>safe</strong> content with <a href="https://example.com">links</a>.</p>';
       expect(sanitizeHtml(safeContent)).toBe(safeContent);
     });
 
@@ -21,12 +22,16 @@ describe('sanitizer', () => {
     });
 
     it('should remove event handlers', () => {
-      const unsafeContent = '<a href="https://example.com" onclick="alert(\'XSS\')">Click me</a>';
-      expect(sanitizeHtml(unsafeContent)).toBe('<a href="https://example.com">Click me</a>');
+      const unsafeContent =
+        '<a href="https://example.com" onclick="alert(\'XSS\')">Click me</a>';
+      expect(sanitizeHtml(unsafeContent)).toBe(
+        '<a href="https://example.com">Click me</a>'
+      );
     });
 
     it('should remove iframe tags', () => {
-      const unsafeContent = '<p>Text</p><iframe src="https://evil.com"></iframe>';
+      const unsafeContent =
+        '<p>Text</p><iframe src="https://evil.com"></iframe>';
       expect(sanitizeHtml(unsafeContent)).toBe('<p>Text</p>');
     });
 
@@ -41,7 +46,8 @@ describe('sanitizer', () => {
     });
 
     it('should preserve markdown-style formatting', () => {
-      const markdownContent = '# Heading\n\n- List item 1\n- List item 2\n\n```js\nconst x = 5;\n```';
+      const markdownContent =
+        '# Heading\n\n- List item 1\n- List item 2\n\n```js\nconst x = 5;\n```';
       // Use sanitizeMarkdown for markdown content
       const sanitized = sanitizeContent(markdownContent, 'markdown');
       expect(sanitized).toContain('# Heading');
@@ -84,11 +90,15 @@ describe('sanitizer', () => {
     it('should remove invalid characters from filenames', () => {
       // The actual implementation replaces each invalid character with an underscore
       // So we need to update our expectation to match the actual behavior
-      expect(sanitizeFilename('file/with\\invalid:chars?*.txt')).toBe('file_with_invalid_chars__.txt');
+      expect(sanitizeFilename('file/with\\invalid:chars?*.txt')).toBe(
+        'file_with_invalid_chars__.txt'
+      );
     });
 
     it('should handle spaces', () => {
-      expect(sanitizeFilename('file with spaces.txt')).toBe('file with spaces.txt');
+      expect(sanitizeFilename('file with spaces.txt')).toBe(
+        'file with spaces.txt'
+      );
     });
 
     it('should handle empty input', () => {
@@ -101,7 +111,9 @@ describe('sanitizer', () => {
     });
 
     it('should preserve valid characters', () => {
-      expect(sanitizeFilename('valid-file_name.123.txt')).toBe('valid-file_name.123.txt');
+      expect(sanitizeFilename('valid-file_name.123.txt')).toBe(
+        'valid-file_name.123.txt'
+      );
     });
 
     it('should handle non-ASCII characters', () => {

@@ -39,17 +39,20 @@ export class OpenAIPromptStrategy extends PromptStrategy {
 
     // Add a note about being detailed for OpenAI models
     if (!formattedPrompt.includes('step-by-step')) {
-      formattedPrompt += '\n\nProvide a step-by-step analysis of the code, identifying patterns and potential issues systematically.';
+      formattedPrompt +=
+        '\n\nProvide a step-by-step analysis of the code, identifying patterns and potential issues systematically.';
     }
 
     // Add a note about reasoning for OpenAI models
     if (!formattedPrompt.includes('reasoning')) {
-      formattedPrompt += '\n\nExplain your reasoning for each suggestion, including why it is an issue and the benefits of fixing it.';
+      formattedPrompt +=
+        '\n\nExplain your reasoning for each suggestion, including why it is an issue and the benefits of fixing it.';
     }
 
     // Add a note about alternatives for OpenAI models
     if (!formattedPrompt.includes('alternative approaches')) {
-      formattedPrompt += '\n\nWhen appropriate, suggest alternative approaches or design patterns that could improve the code.';
+      formattedPrompt +=
+        '\n\nWhen appropriate, suggest alternative approaches or design patterns that could improve the code.';
     }
 
     return formattedPrompt;

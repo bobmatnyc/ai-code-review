@@ -40,7 +40,9 @@ export class PluginManager {
    */
   registerPlugin(registration: PluginRegistration): void {
     if (this.plugins.has(registration.name)) {
-      logger.warn(`Plugin with name "${registration.name}" is already registered. Overwriting...`);
+      logger.warn(
+        `Plugin with name "${registration.name}" is already registered. Overwriting...`
+      );
     }
 
     this.plugins.set(registration.name, registration);
@@ -101,22 +103,31 @@ export class PluginManager {
             const plugin = await import(pluginPath);
 
             // Check if the plugin has a register function
-            if (plugin.default && typeof plugin.default.register === 'function') {
+            if (
+              plugin.default &&
+              typeof plugin.default.register === 'function'
+            ) {
               // Register the plugin
               plugin.default.register(this);
               logger.info(`Loaded plugin from ${file}`);
             } else {
-              logger.warn(`File ${file} is not a valid plugin (missing register function)`);
+              logger.warn(
+                `File ${file} is not a valid plugin (missing register function)`
+              );
             }
           } catch (error) {
-            logger.error(`Error loading plugin ${file}: ${error instanceof Error ? error.message : String(error)}`);
+            logger.error(
+              `Error loading plugin ${file}: ${error instanceof Error ? error.message : String(error)}`
+            );
           }
         }
       }
 
       logger.info(`Loaded ${this.plugins.size} plugins from ${pluginsDir}`);
     } catch (error) {
-      logger.error(`Error loading plugins: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error loading plugins: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 }

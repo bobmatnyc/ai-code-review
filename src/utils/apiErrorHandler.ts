@@ -144,8 +144,12 @@ export async function handleFetchResponse(
       }
     } catch (e) {
       // Log body read errors
-      console.log(`[DEBUG] Failed to read error body: ${e instanceof Error ? e.message : String(e)}`);
-      logger.debug(`Failed to read error body: ${e instanceof Error ? e.message : String(e)}`);
+      console.log(
+        `[DEBUG] Failed to read error body: ${e instanceof Error ? e.message : String(e)}`
+      );
+      logger.debug(
+        `Failed to read error body: ${e instanceof Error ? e.message : String(e)}`
+      );
     }
 
     // Create appropriate error based on status code
@@ -158,21 +162,15 @@ export async function handleFetchResponse(
 
     // Throw appropriate error based on status code
     if (response.status === 401 || response.status === 403) {
-      throw new AuthenticationError(
-        errorMessage,
-        response.status,
-        errorBody
-      );
+      throw new AuthenticationError(errorMessage, response.status, errorBody);
     } else if (response.status === 404) {
-      throw new NotFoundError(
-        errorMessage,
-        response.status,
-        errorBody
-      );
+      throw new NotFoundError(errorMessage, response.status, errorBody);
     } else if (response.status === 429) {
       // Check for retry-after header
       const retryAfter = response.headers.get('retry-after');
-      const retryAfterSeconds = retryAfter ? parseInt(retryAfter, 10) : undefined;
+      const retryAfterSeconds = retryAfter
+        ? parseInt(retryAfter, 10)
+        : undefined;
 
       throw new RateLimitError(
         errorMessage,
@@ -181,11 +179,7 @@ export async function handleFetchResponse(
         errorBody
       );
     } else {
-      throw new ApiError(
-        errorMessage,
-        response.status,
-        errorBody
-      );
+      throw new ApiError(errorMessage, response.status, errorBody);
     }
   }
 
@@ -204,7 +198,7 @@ export async function safeJsonParse<T>(
   apiName: string
 ): Promise<T> {
   try {
-    return await response.json() as T;
+    return (await response.json()) as T;
   } catch (error) {
     const errorMessage = `Failed to parse ${apiName} API response as JSON: ${
       error instanceof Error ? error.message : String(error)

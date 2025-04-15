@@ -28,13 +28,13 @@ async function main() {
       alias: 'a',
       type: 'boolean',
       default: false,
-      describe: 'Show only available models (with configured API keys)',
+      describe: 'Show only available models (with configured API keys)'
     })
     .option('current', {
       alias: 'c',
       type: 'boolean',
       default: false,
-      describe: 'Show only the current model (from AI_CODE_REVIEW_MODEL)',
+      describe: 'Show only the current model (from AI_CODE_REVIEW_MODEL)'
     })
     .help()
     .parse();

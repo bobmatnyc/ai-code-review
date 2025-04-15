@@ -87,7 +87,8 @@ export async function handleIndividualFileReviews(
           logger.info(`Using OpenRouter model: ${modelName}`);
 
           // Dynamically import the OpenRouter client to avoid loading it unnecessarily
-          const { generateOpenRouterReview, initializeAnyOpenRouterModel } = await import('../clients/openRouterClient.js');
+          const { generateOpenRouterReview, initializeAnyOpenRouterModel } =
+            await import('../clients/openRouterClient.js');
 
           // Initialize OpenRouter model if needed
           await initializeAnyOpenRouterModel();
@@ -137,7 +138,8 @@ export async function handleIndividualFileReviews(
           logger.info(`Using Anthropic API with model: ${modelName}`);
 
           // Dynamically import the Anthropic client to avoid loading it unnecessarily
-          const { generateAnthropicReview, initializeAnthropicClient } = await import('../clients/anthropicClient.js');
+          const { generateAnthropicReview, initializeAnthropicClient } =
+            await import('../clients/anthropicClient.js');
 
           // Initialize Anthropic model if needed
           await initializeAnthropicClient();
@@ -163,7 +165,8 @@ export async function handleIndividualFileReviews(
           logger.info(`Using OpenAI API with model: ${modelName}`);
 
           // Dynamically import the OpenAI client to avoid loading it unnecessarily
-          const { generateOpenAIReview, initializeAnyOpenAIModel } = await import('../clients/openaiClient.js');
+          const { generateOpenAIReview, initializeAnyOpenAIModel } =
+            await import('../clients/openaiClient.js');
 
           // Initialize OpenAI model if needed
           await initializeAnyOpenAIModel();

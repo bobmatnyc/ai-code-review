@@ -85,7 +85,10 @@ export function formatConsolidatedReviewPrompt(
 
   // Prepare file summaries
   const fileSummaries = files
-    .map(file => `- ${file.relativePath || 'unnamed file'} (${file.sizeInBytes} bytes)`)
+    .map(
+      file =>
+        `- ${file.relativePath || 'unnamed file'} (${file.sizeInBytes} bytes)`
+    )
     .join('\n');
 
   // Prepare the user prompt

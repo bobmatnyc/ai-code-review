@@ -30,7 +30,11 @@ export abstract class AbstractTokenEstimator implements TokenEstimator {
    * @param modelName Name of the model (optional, uses default if not provided)
    * @returns Estimated cost in USD
    */
-  abstract calculateCost(inputTokens: number, outputTokens: number, modelName?: string): number;
+  abstract calculateCost(
+    inputTokens: number,
+    outputTokens: number,
+    modelName?: string
+  ): number;
 
   /**
    * Format a cost value as a currency string
@@ -48,9 +52,17 @@ export abstract class AbstractTokenEstimator implements TokenEstimator {
    * @param modelName Name of the model (optional)
    * @returns Cost information
    */
-  getCostInfo(inputTokens: number, outputTokens: number, modelName?: string): CostInfo {
+  getCostInfo(
+    inputTokens: number,
+    outputTokens: number,
+    modelName?: string
+  ): CostInfo {
     const totalTokens = inputTokens + outputTokens;
-    const estimatedCost = this.calculateCost(inputTokens, outputTokens, modelName);
+    const estimatedCost = this.calculateCost(
+      inputTokens,
+      outputTokens,
+      modelName
+    );
 
     return {
       inputTokens,
@@ -68,7 +80,11 @@ export abstract class AbstractTokenEstimator implements TokenEstimator {
    * @param modelName Name of the model (optional)
    * @returns Cost information
    */
-  getCostInfoFromText(inputText: string, outputText: string, modelName?: string): CostInfo {
+  getCostInfoFromText(
+    inputText: string,
+    outputText: string,
+    modelName?: string
+  ): CostInfo {
     const model = modelName || this.getDefaultModel();
     const inputTokens = this.estimateTokenCount(inputText, model);
     const outputTokens = this.estimateTokenCount(outputText, model);

@@ -12,8 +12,15 @@ import { FileInfo, discoverFiles, readFilesContent } from './fileDiscovery';
 import logger from '../utils/logger';
 import { getApiKeyType } from '../utils/apiUtils';
 import { runApiConnectionTests } from '../tests/apiConnectionTest';
-import { estimateFromFilePaths, formatEstimation } from '../utils/estimationUtils';
-import { listModels, printCurrentModel, listModelConfigs } from '../clients/utils/modelLister';
+import {
+  estimateFromFilePaths,
+  formatEstimation
+} from '../utils/estimationUtils';
+import {
+  listModels,
+  printCurrentModel,
+  listModelConfigs
+} from '../clients/utils/modelLister';
 
 // Import strategy-related modules
 import { StrategyFactory } from '../strategies/StrategyFactory';
@@ -47,7 +54,9 @@ export async function orchestrateReview(
     if (options.debug) {
       logger.debug(`Review options: ${JSON.stringify(options, null, 2)}`);
       logger.debug(`Target path: ${target}`);
-      logger.debug(`Selected model: ${process.env.AI_CODE_REVIEW_MODEL || 'not set'}`);
+      logger.debug(
+        `Selected model: ${process.env.AI_CODE_REVIEW_MODEL || 'not set'}`
+      );
       logger.debug(`API key type: ${getApiKeyType() || 'None'}`);
     }
 
@@ -60,7 +69,9 @@ export async function orchestrateReview(
 
     // If models flag is set, list all supported models and their configuration names
     if (options.models) {
-      logger.info('Listing all supported models and their configuration names...');
+      logger.info(
+        'Listing all supported models and their configuration names...'
+      );
       listModelConfigs();
       return; // Exit after listing models
     }
@@ -74,11 +85,15 @@ export async function orchestrateReview(
 
     // Log the review type
     if (options.individual) {
-      logger.info(`Starting individual ${options.type} reviews for ${target}...`);
+      logger.info(
+        `Starting individual ${options.type} reviews for ${target}...`
+      );
     } else if (options.type === 'architectural') {
       logger.info(`Starting architectural review for ${target}...`);
     } else {
-      logger.info(`Starting consolidated ${options.type} review for ${target}...`);
+      logger.info(
+        `Starting consolidated ${options.type} review for ${target}...`
+      );
     }
 
     // Determine the project path
@@ -94,7 +109,11 @@ export async function orchestrateReview(
     logger.info(`Project path: ${projectPath}`);
 
     // Discover files to review
-    const filesToReview = await discoverFiles(target, projectPath, options.includeTests);
+    const filesToReview = await discoverFiles(
+      target,
+      projectPath,
+      options.includeTests
+    );
 
     if (filesToReview.length === 0) {
       return; // No files to review, exit early
@@ -105,13 +124,22 @@ export async function orchestrateReview(
       logger.info('Calculating token usage and cost estimates...');
 
       // Get the model name from environment variables
-      const modelName = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+      const modelName =
+        process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 
       // Estimate token usage and cost
-      const estimation = await estimateFromFilePaths(filesToReview, options.type, modelName);
+      const estimation = await estimateFromFilePaths(
+        filesToReview,
+        options.type,
+        modelName
+      );
 
       // Display the estimation results
-      const formattedEstimation = formatEstimation(estimation, options.type, modelName);
+      const formattedEstimation = formatEstimation(
+        estimation,
+        options.type,
+        modelName
+      );
       logger.info(formattedEstimation);
 
       return; // Exit after displaying the estimation
@@ -121,8 +149,12 @@ export async function orchestrateReview(
     // Interactive mode with individual reviews only makes sense for a single file
     // because we can't effectively display multiple individual reviews interactively
     if (options.interactive && options.individual && filesToReview.length > 1) {
-      logger.warn('Interactive mode with individual reviews is only supported for single file reviews.');
-      logger.warn('Switching to consolidated review mode for interactive review of multiple files.');
+      logger.warn(
+        'Interactive mode with individual reviews is only supported for single file reviews.'
+      );
+      logger.warn(
+        'Switching to consolidated review mode for interactive review of multiple files.'
+      );
       options.individual = false; // Force consolidated mode for multiple files in interactive mode
     }
 
@@ -175,7 +207,9 @@ export async function orchestrateReview(
 
     logger.info('Review completed!');
   } catch (error) {
-    logger.error(`An unexpected error occurred during the review process: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `An unexpected error occurred during the review process: ${error instanceof Error ? error.message : String(error)}`
+    );
     process.exit(1);
   }
 }

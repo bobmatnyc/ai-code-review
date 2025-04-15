@@ -16,7 +16,10 @@ import { PromptManager } from '../prompts/PromptManager';
 import { PromptCache } from '../prompts/cache/PromptCache';
 import { getUnusedCodeReviewFormatInstructions } from '../prompts/schemas/unused-code-schema';
 import { getImprovedUnusedCodeReviewFormatInstructions } from '../prompts/schemas/improved-unused-code-schema';
-import { formatUnusedCodeReviewAsMarkdown, generateRemovalScript } from '../formatters/unusedCodeFormatter';
+import {
+  formatUnusedCodeReviewAsMarkdown,
+  generateRemovalScript
+} from '../formatters/unusedCodeFormatter';
 
 /**
  * Strategy for unused code review
@@ -45,8 +48,10 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
     options: ReviewOptions,
     apiClientConfig: ApiClientConfig
   ): Promise<ReviewResult> {
-    logger.info(`Executing unused code review strategy for ${files.length} files...`);
-    
+    logger.info(
+      `Executing unused code review strategy for ${files.length} files...`
+    );
+
     // Enhance options with LangChain-specific settings
     const enhancedOptions: ReviewOptions = {
       ...options,
@@ -54,15 +59,16 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
       // Use improved schema instructions if available, fall back to standard
       schemaInstructions: getImprovedUnusedCodeReviewFormatInstructions(),
       // Try to use the improved prompt template
-      promptFile: options.language === 'typescript' ? 
-        `${process.cwd()}/prompts/typescript/improved-unused-code-review.md` : 
-        `${process.cwd()}/prompts/improved-unused-code-review.md`,
+      promptFile:
+        options.language === 'typescript'
+          ? `${process.cwd()}/prompts/typescript/improved-unused-code-review.md`
+          : `${process.cwd()}/prompts/improved-unused-code-review.md`
     };
-    
+
     // Use LangChain prompt strategy if available
     if (!enhancedOptions.promptStrategy) {
       enhancedOptions.promptStrategy = 'langchain';
-      
+
       // Get LangChain prompt strategy
       const promptManager = PromptManager.getInstance();
       const promptCache = PromptCache.getInstance();
@@ -71,10 +77,10 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
         promptManager,
         promptCache
       );
-      
+
       logger.info('Using LangChain prompt strategy for unused code review');
     }
-    
+
     // Generate the review
     const reviewResult = await generateReview(
       files,
@@ -84,34 +90,36 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
       enhancedOptions,
       apiClientConfig
     );
-    
+
     // If we have a response and it's in JSON format, try to reformat it
     if (reviewResult.response && reviewResult.outputFormat === 'json') {
       try {
         // Parse the JSON response
         const parsedResult = JSON.parse(reviewResult.response);
-        
+
         // If it's a valid result with the expected structure, format it
-        if (parsedResult.highImpactIssues && 
-            parsedResult.mediumImpactIssues && 
-            parsedResult.lowImpactIssues) {
-          
+        if (
+          parsedResult.highImpactIssues &&
+          parsedResult.mediumImpactIssues &&
+          parsedResult.lowImpactIssues
+        ) {
           // Format the response using our specialized formatter
-          const formattedMarkdown = formatUnusedCodeReviewAsMarkdown(parsedResult);
-          
+          const formattedMarkdown =
+            formatUnusedCodeReviewAsMarkdown(parsedResult);
+
           // Also generate a removal script
           const removalScript = generateRemovalScript(parsedResult);
-          
+
           // Update the response with our formatted version
           reviewResult.response = formattedMarkdown;
           reviewResult.outputFormat = 'markdown';
-          
+
           // Store the removal script in the metadata
           if (!reviewResult.metadata) {
             reviewResult.metadata = {};
           }
           reviewResult.metadata.removalScript = removalScript;
-          
+
           logger.info('Reformatted unused code review for improved usability');
         }
       } catch (error) {
@@ -119,7 +127,7 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
         // Continue with the original response
       }
     }
-    
+
     return reviewResult;
   }
 }

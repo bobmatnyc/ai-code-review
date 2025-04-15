@@ -44,7 +44,7 @@ export function estimateTokenCount(text: string, modelName?: string): number {
  * Interface for model pricing with standard per-token costs
  */
 interface StandardPricing {
-  inputTokenCost: number;  // Cost per 1K input tokens in USD
+  inputTokenCost: number; // Cost per 1K input tokens in USD
   outputTokenCost: number; // Cost per 1K output tokens in USD
   type: 'standard';
 }
@@ -55,8 +55,8 @@ interface StandardPricing {
 interface TieredPricing {
   type: 'tiered';
   tiers: {
-    threshold: number;      // Token threshold for this tier
-    inputTokenCost: number;  // Cost per 1K input tokens in USD for this tier
+    threshold: number; // Token threshold for this tier
+    inputTokenCost: number; // Cost per 1K input tokens in USD for this tier
     outputTokenCost: number; // Cost per 1K output tokens in USD for this tier
   }[];
 }
@@ -76,13 +76,13 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     tiers: [
       {
         threshold: 0,
-        inputTokenCost: 0.00125,  // $1.25 per 1M tokens (≤200k tokens)
-        outputTokenCost: 0.01,     // $10.00 per 1M tokens (≤200k tokens)
+        inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
       },
       {
         threshold: 200000,
-        inputTokenCost: 0.0025,    // $2.50 per 1M tokens (>200k tokens)
-        outputTokenCost: 0.015,    // $15.00 per 1M tokens (>200k tokens)
+        inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
+        outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
       }
     ]
   },
@@ -91,13 +91,13 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     tiers: [
       {
         threshold: 0,
-        inputTokenCost: 0.00125,  // $1.25 per 1M tokens (≤200k tokens)
-        outputTokenCost: 0.01,     // $10.00 per 1M tokens (≤200k tokens)
+        inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
       },
       {
         threshold: 200000,
-        inputTokenCost: 0.0025,    // $2.50 per 1M tokens (>200k tokens)
-        outputTokenCost: 0.015,    // $15.00 per 1M tokens (>200k tokens)
+        inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
+        outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
       }
     ]
   },
@@ -106,25 +106,25 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     tiers: [
       {
         threshold: 0,
-        inputTokenCost: 0.00125,  // $1.25 per 1M tokens (≤200k tokens)
-        outputTokenCost: 0.01,     // $10.00 per 1M tokens (≤200k tokens)
+        inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
       },
       {
         threshold: 200000,
-        inputTokenCost: 0.0025,    // $2.50 per 1M tokens (>200k tokens)
-        outputTokenCost: 0.015,    // $15.00 per 1M tokens (>200k tokens)
+        inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
+        outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
       }
     ]
   },
   'gemini-2.0-flash': {
     type: 'standard',
-    inputTokenCost: 0.0001,      // $0.10 per 1M tokens
-    outputTokenCost: 0.0004,     // $0.40 per 1M tokens
+    inputTokenCost: 0.0001, // $0.10 per 1M tokens
+    outputTokenCost: 0.0004 // $0.40 per 1M tokens
   },
   'gemini-2.0-flash-lite': {
     type: 'standard',
-    inputTokenCost: 0.000075,    // $0.075 per 1M tokens
-    outputTokenCost: 0.0003,     // $0.30 per 1M tokens
+    inputTokenCost: 0.000075, // $0.075 per 1M tokens
+    outputTokenCost: 0.0003 // $0.30 per 1M tokens
   },
 
   // Gemini 1.5 models
@@ -133,13 +133,13 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     tiers: [
       {
         threshold: 0,
-        inputTokenCost: 0.00125,  // $1.25 per 1M tokens (≤128k tokens)
-        outputTokenCost: 0.005,   // $5.00 per 1M tokens (≤128k tokens)
+        inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.005 // $5.00 per 1M tokens (≤128k tokens)
       },
       {
         threshold: 128000,
-        inputTokenCost: 0.0025,   // $2.50 per 1M tokens (>128k tokens)
-        outputTokenCost: 0.01,    // $10.00 per 1M tokens (>128k tokens)
+        inputTokenCost: 0.0025, // $2.50 per 1M tokens (>128k tokens)
+        outputTokenCost: 0.01 // $10.00 per 1M tokens (>128k tokens)
       }
     ]
   },
@@ -149,12 +149,12 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
       {
         threshold: 0,
         inputTokenCost: 0.000075, // $0.075 per 1M tokens (≤128k tokens)
-        outputTokenCost: 0.0003,  // $0.30 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.0003 // $0.30 per 1M tokens (≤128k tokens)
       },
       {
         threshold: 128000,
-        inputTokenCost: 0.00015,  // $0.15 per 1M tokens (>128k tokens)
-        outputTokenCost: 0.0006,  // $0.60 per 1M tokens (>128k tokens)
+        inputTokenCost: 0.00015, // $0.15 per 1M tokens (>128k tokens)
+        outputTokenCost: 0.0006 // $0.60 per 1M tokens (>128k tokens)
       }
     ]
   },
@@ -164,12 +164,12 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
       {
         threshold: 0,
         inputTokenCost: 0.0000375, // $0.0375 per 1M tokens (≤128k tokens)
-        outputTokenCost: 0.00015,  // $0.15 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.00015 // $0.15 per 1M tokens (≤128k tokens)
       },
       {
         threshold: 128000,
-        inputTokenCost: 0.000075,  // $0.075 per 1M tokens (>128k tokens)
-        outputTokenCost: 0.0003,   // $0.30 per 1M tokens (>128k tokens)
+        inputTokenCost: 0.000075, // $0.075 per 1M tokens (>128k tokens)
+        outputTokenCost: 0.0003 // $0.30 per 1M tokens (>128k tokens)
       }
     ]
   },
@@ -177,36 +177,36 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
   // OpenRouter models
   'anthropic/claude-3-opus': {
     type: 'standard',
-    inputTokenCost: 0.015,       // $15.00 per 1M tokens
-    outputTokenCost: 0.075,      // $75.00 per 1M tokens
+    inputTokenCost: 0.015, // $15.00 per 1M tokens
+    outputTokenCost: 0.075 // $75.00 per 1M tokens
   },
   'anthropic/claude-3-sonnet': {
     type: 'standard',
-    inputTokenCost: 0.003,       // $3.00 per 1M tokens
-    outputTokenCost: 0.015,      // $15.00 per 1M tokens
+    inputTokenCost: 0.003, // $3.00 per 1M tokens
+    outputTokenCost: 0.015 // $15.00 per 1M tokens
   },
   'openai/gpt-4-turbo': {
     type: 'standard',
-    inputTokenCost: 0.01,        // $10.00 per 1M tokens
-    outputTokenCost: 0.03,       // $30.00 per 1M tokens
+    inputTokenCost: 0.01, // $10.00 per 1M tokens
+    outputTokenCost: 0.03 // $30.00 per 1M tokens
   },
   'openai/gpt-4o': {
     type: 'standard',
-    inputTokenCost: 0.0025,      // $2.50 per 1M tokens
-    outputTokenCost: 0.01,       // $10.00 per 1M tokens
+    inputTokenCost: 0.0025, // $2.50 per 1M tokens
+    outputTokenCost: 0.01 // $10.00 per 1M tokens
   },
   'anthropic/claude-2.1': {
     type: 'standard',
-    inputTokenCost: 0.008,       // $8.00 per 1M tokens
-    outputTokenCost: 0.024,      // $24.00 per 1M tokens
+    inputTokenCost: 0.008, // $8.00 per 1M tokens
+    outputTokenCost: 0.024 // $24.00 per 1M tokens
   },
 
   // Default fallback pricing
-  'default': {
+  default: {
     type: 'standard',
-    inputTokenCost: 0.001,       // $1.00 per 1M tokens
-    outputTokenCost: 0.002,      // $2.00 per 1M tokens
-  },
+    inputTokenCost: 0.001, // $1.00 per 1M tokens
+    outputTokenCost: 0.002 // $2.00 per 1M tokens
+  }
 };
 
 /**

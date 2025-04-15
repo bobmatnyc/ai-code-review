@@ -38,7 +38,9 @@ export async function handleConsolidatedReview(
   options: ReviewOptions,
   originalTarget: string = ''
 ): Promise<void> {
-  logger.info(`Generating consolidated review for ${filesToReview.length} files...`);
+  logger.info(
+    `Generating consolidated review for ${filesToReview.length} files...`
+  );
 
   // Read project documentation if enabled
   let projectDocs = null;
@@ -65,7 +67,9 @@ export async function handleConsolidatedReview(
         content: fileContent
       });
     } catch (error) {
-      logger.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -110,19 +114,26 @@ export async function handleConsolidatedReview(
       });
 
       // Check if it's a rate limit error
-      if (apiError.message && apiError.message.includes('Rate limit exceeded')) {
-        logger.error('Rate limit exceeded. The review will continue with a fallback model.');
+      if (
+        apiError.message &&
+        apiError.message.includes('Rate limit exceeded')
+      ) {
+        logger.error(
+          'Rate limit exceeded. The review will continue with a fallback model.'
+        );
         logger.error(`Error details logged to: ${errorLogPath}`);
-        logger.error('You can try again later or reduce the number of files being reviewed.');
+        logger.error(
+          'You can try again later or reduce the number of files being reviewed.'
+        );
       } else {
         logger.error(`Error generating consolidated review:`);
         logger.error(`  Message: ${apiError.message}`);
         logger.error(`  Error details logged to: ${errorLogPath}`);
       }
     } else {
-      logger.error(`Unknown error generating consolidated review: ${String(apiError)}`);
+      logger.error(
+        `Unknown error generating consolidated review: ${String(apiError)}`
+      );
     }
   }
 }
-
-

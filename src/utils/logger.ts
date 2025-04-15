@@ -1,6 +1,6 @@
 /**
  * @fileoverview Centralized logging system for the AI Code Review tool.
- * 
+ *
  * This module provides a standardized logging interface with support for
  * different log levels, colored output, and log level control via environment
  * variables. It's designed to be used throughout the codebase to ensure
@@ -18,11 +18,11 @@ export enum LogLevel {
 
 // Map string log level names to enum values
 const LOG_LEVEL_MAP: Record<string, LogLevel> = {
-  'debug': LogLevel.DEBUG,
-  'info': LogLevel.INFO,
-  'warn': LogLevel.WARN,
-  'error': LogLevel.ERROR,
-  'none': LogLevel.NONE
+  debug: LogLevel.DEBUG,
+  info: LogLevel.INFO,
+  warn: LogLevel.WARN,
+  error: LogLevel.ERROR,
+  none: LogLevel.NONE
 };
 
 // ANSI color codes for terminal output
@@ -31,20 +31,20 @@ const COLORS = {
   dim: '\x1b[2m',
   bright: '\x1b[1m',
   debug: '\x1b[36m', // Cyan
-  info: '\x1b[32m',  // Green
-  warn: '\x1b[33m',  // Yellow
+  info: '\x1b[32m', // Green
+  warn: '\x1b[33m', // Yellow
   error: '\x1b[31m', // Red
-  time: '\x1b[90m',  // Gray
+  time: '\x1b[90m' // Gray
 };
 
 // Get the current log level from environment variables
 function getCurrentLogLevel(): LogLevel {
   const envLogLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase();
-  
+
   if (envLogLevel && envLogLevel in LOG_LEVEL_MAP) {
     return LOG_LEVEL_MAP[envLogLevel];
   }
-  
+
   // Default to INFO if not specified
   return LogLevel.INFO;
 }
@@ -86,7 +86,7 @@ export function getLogLevel(): LogLevel {
 function formatLogMessage(level: string, message: string): string {
   const timestamp = new Date().toISOString();
   const levelUpper = level.toUpperCase().padEnd(5);
-  
+
   return `${COLORS.time}[${timestamp}]${COLORS.reset} ${COLORS[level as keyof typeof COLORS]}${levelUpper}${COLORS.reset} ${message}`;
 }
 
@@ -96,11 +96,16 @@ function formatLogMessage(level: string, message: string): string {
  * @param message The message to log
  * @param args Additional arguments to log
  */
-function log(level: LogLevel, levelName: string, message: string, ...args: any[]): void {
+function log(
+  level: LogLevel,
+  levelName: string,
+  message: string,
+  ...args: any[]
+): void {
   // Only log if the current log level is less than or equal to the specified level
   if (level >= currentLogLevel) {
     const formattedMessage = formatLogMessage(levelName, message);
-    
+
     switch (level) {
       case LogLevel.DEBUG:
         console.debug(formattedMessage, ...args);
@@ -161,10 +166,14 @@ export function error(message: string, ...args: any[]): void {
  */
 export function createLogger(prefix: string) {
   return {
-    debug: (message: string, ...args: any[]) => debug(`[${prefix}] ${message}`, ...args),
-    info: (message: string, ...args: any[]) => info(`[${prefix}] ${message}`, ...args),
-    warn: (message: string, ...args: any[]) => warn(`[${prefix}] ${message}`, ...args),
-    error: (message: string, ...args: any[]) => error(`[${prefix}] ${message}`, ...args),
+    debug: (message: string, ...args: any[]) =>
+      debug(`[${prefix}] ${message}`, ...args),
+    info: (message: string, ...args: any[]) =>
+      info(`[${prefix}] ${message}`, ...args),
+    warn: (message: string, ...args: any[]) =>
+      warn(`[${prefix}] ${message}`, ...args),
+    error: (message: string, ...args: any[]) =>
+      error(`[${prefix}] ${message}`, ...args)
   };
 }
 

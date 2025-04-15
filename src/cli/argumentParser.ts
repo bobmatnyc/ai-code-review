@@ -9,7 +9,14 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { ReviewOptions, ReviewType } from '../types/review';
-import { OutputFormat, ProgrammingLanguage, VALID_LANGUAGES, VALID_OUTPUT_FORMATS, VALID_REVIEW_TYPES, VALID_PRIORITY_FILTERS } from '../types/common';
+import {
+  OutputFormat,
+  ProgrammingLanguage,
+  VALID_LANGUAGES,
+  VALID_OUTPUT_FORMATS,
+  VALID_REVIEW_TYPES,
+  VALID_PRIORITY_FILTERS
+} from '../types/common';
 import { SUPPORTED_LANGUAGES } from '../utils/i18n';
 import { LogLevel } from '../utils/logger';
 
@@ -37,163 +44,171 @@ import logger from '../utils/logger';
 export async function parseArguments(): Promise<CliOptions> {
   try {
     const argv = await yargs(hideBin(process.argv))
-      .command('$0 [target]', 'Run AI code review on a file or directory', (yargs) => {
-        return yargs.positional('target', {
-          describe: 'Path to the file or directory to review',
-          type: 'string',
-          default: '.',
-        });
-      })
+      .command(
+        '$0 [target]',
+        'Run AI code review on a file or directory',
+        yargs => {
+          return yargs.positional('target', {
+            describe: 'Path to the file or directory to review',
+            type: 'string',
+            default: '.'
+          });
+        }
+      )
       .option('target', {
         type: 'string',
         default: '.',
-        describe: 'Path to the file or directory to review',
+        describe: 'Path to the file or directory to review'
       })
       .option('type', {
         alias: 't',
-        choices: VALID_REVIEW_TYPES.filter(type => type !== 'consolidated') as readonly ReviewType[],
+        choices: VALID_REVIEW_TYPES.filter(
+          type => type !== 'consolidated'
+        ) as readonly ReviewType[],
         default: 'quick-fixes' as ReviewType,
-        describe: 'Type of review to perform',
+        describe: 'Type of review to perform'
       })
       .option('output', {
         alias: 'o',
         choices: VALID_OUTPUT_FORMATS as readonly OutputFormat[],
         default: 'markdown' as OutputFormat,
-        describe: 'Output format for the review',
+        describe: 'Output format for the review'
       })
       .option('interactive', {
         alias: 'i',
         type: 'boolean',
         default: false,
-        describe: 'Run in interactive mode with real-time feedback',
+        describe: 'Run in interactive mode with real-time feedback'
       })
       .option('individual', {
         type: 'boolean',
         default: false,
-        describe: 'Process each file individually instead of a consolidated review',
+        describe:
+          'Process each file individually instead of a consolidated review'
       })
       .option('include-tests', {
         type: 'boolean',
         default: false,
-        describe: 'Include test files in the review',
+        describe: 'Include test files in the review'
       })
       .option('include-project-docs', {
         type: 'boolean',
         default: false,
-        describe: 'Include project documentation in the review context',
+        describe: 'Include project documentation in the review context'
       })
       .option('debug', {
         type: 'boolean',
         default: false,
-        describe: 'Enable debug logging',
+        describe: 'Enable debug logging'
       })
       .option('test-api', {
         type: 'boolean',
         default: false,
-        describe: 'Test API connections before starting the review',
+        describe: 'Test API connections before starting the review'
       })
       .option('auto-fix', {
         type: 'boolean',
         default: false,
-        describe: 'Automatically implement suggested fixes in interactive mode',
+        describe: 'Automatically implement suggested fixes in interactive mode'
       })
       .option('prompt-all', {
         type: 'boolean',
         default: false,
-        describe: 'Prompt for all fixes, including high priority ones',
+        describe: 'Prompt for all fixes, including high priority ones'
       })
       .option('version', {
         alias: 'v',
         type: 'boolean',
-        describe: 'Show version information',
+        describe: 'Show version information'
       })
       .option('estimate', {
         alias: 'e',
         type: 'boolean',
         default: false,
-        describe: 'Estimate token usage and cost without performing the review',
+        describe: 'Estimate token usage and cost without performing the review'
       })
       .option('language', {
         alias: 'l',
         choices: VALID_LANGUAGES as readonly ProgrammingLanguage[],
         default: 'typescript' as ProgrammingLanguage,
-        describe: 'Programming language for the code review',
+        describe: 'Programming language for the code review'
       })
       .option('listmodels', {
         type: 'boolean',
         default: false,
-        describe: 'List all available models based on configured API keys',
+        describe: 'List all available models based on configured API keys'
       })
       .option('models', {
         type: 'boolean',
         default: false,
-        describe: 'List all supported models and their configuration names',
+        describe: 'List all supported models and their configuration names'
       })
       .option('strategy', {
         type: 'string',
-        describe: 'Custom review strategy to use (plugin name)',
+        describe: 'Custom review strategy to use (plugin name)'
       })
       .option('prompt-file', {
         alias: 'prompt',
         type: 'string',
-        describe: 'Path to a custom prompt template file',
+        describe: 'Path to a custom prompt template file'
       })
       .option('prompt-fragment', {
         type: 'string',
-        describe: 'Custom prompt fragment to inject into the prompt',
+        describe: 'Custom prompt fragment to inject into the prompt'
       })
       .option('prompt-fragment-position', {
         choices: ['start', 'middle', 'end'],
         default: 'middle',
-        describe: 'Position of the prompt fragment in the prompt',
+        describe: 'Position of the prompt fragment in the prompt'
       })
       .option('prompt-strategy', {
         type: 'string',
-        describe: 'Prompt strategy to use (e.g., anthropic, gemini, openai)',
+        describe: 'Prompt strategy to use (e.g., anthropic, gemini, openai)'
       })
       .option('use-cache', {
         type: 'boolean',
         default: true,
-        describe: 'Whether to use cached prompts',
+        describe: 'Whether to use cached prompts'
       })
       .option('trace-code', {
         type: 'boolean',
         default: false,
-        describe: 'Use deep code tracing for high-confidence unused code detection',
+        describe:
+          'Use deep code tracing for high-confidence unused code detection'
       })
       .option('ui-language', {
         choices: SUPPORTED_LANGUAGES,
         default: 'en',
-        describe: 'Language for the user interface',
+        describe: 'Language for the user interface'
       })
       .option('model', {
         alias: 'm',
         type: 'string',
-        describe: 'Override the model to use (format: provider:model-name)',
+        describe: 'Override the model to use (format: provider:model-name)'
       })
       .option('output-dir', {
         type: 'string',
-        describe: 'Override the output directory for review results',
+        describe: 'Override the output directory for review results'
       })
       .option('log-level', {
         choices: ['debug', 'info', 'warn', 'error', 'none'],
-        describe: 'Set the logging level',
+        describe: 'Set the logging level'
       })
       .option('google-api-key', {
         type: 'string',
-        describe: 'Override the Google API key',
+        describe: 'Override the Google API key'
       })
       .option('openrouter-api-key', {
         type: 'string',
-        describe: 'Override the OpenRouter API key',
+        describe: 'Override the OpenRouter API key'
       })
       .option('anthropic-api-key', {
         type: 'string',
-        describe: 'Override the Anthropic API key',
+        describe: 'Override the Anthropic API key'
       })
       .option('openai-api-key', {
         type: 'string',
-        describe: 'Override the OpenAI API key',
+        describe: 'Override the OpenAI API key'
       })
       .strict() // Report errors for unknown options
       .help()
@@ -201,10 +216,14 @@ export async function parseArguments(): Promise<CliOptions> {
 
     // Process API key overrides
     const apiKey: CliOptions['apiKey'] = {};
-    if (argv['google-api-key']) apiKey.google = argv['google-api-key'] as string;
-    if (argv['openrouter-api-key']) apiKey.openrouter = argv['openrouter-api-key'] as string;
-    if (argv['anthropic-api-key']) apiKey.anthropic = argv['anthropic-api-key'] as string;
-    if (argv['openai-api-key']) apiKey.openai = argv['openai-api-key'] as string;
+    if (argv['google-api-key'])
+      apiKey.google = argv['google-api-key'] as string;
+    if (argv['openrouter-api-key'])
+      apiKey.openrouter = argv['openrouter-api-key'] as string;
+    if (argv['anthropic-api-key'])
+      apiKey.anthropic = argv['anthropic-api-key'] as string;
+    if (argv['openai-api-key'])
+      apiKey.openai = argv['openai-api-key'] as string;
 
     // Add API key overrides to the options
     if (Object.keys(apiKey).length > 0) {
@@ -217,7 +236,10 @@ export async function parseArguments(): Promise<CliOptions> {
 
     return argv as CliOptions;
   } catch (error) {
-    logger.error('Error parsing arguments:', error instanceof Error ? error.message : String(error));
+    logger.error(
+      'Error parsing arguments:',
+      error instanceof Error ? error.message : String(error)
+    );
     process.exit(1);
   }
 }
@@ -230,13 +252,21 @@ export async function parseArguments(): Promise<CliOptions> {
 export function validateArguments(options: CliOptions): CliOptions {
   // Check for conflicting options
   if (options.interactive && options.output === 'json') {
-    logger.warn('Interactive mode is not compatible with JSON output. Switching to markdown output.');
+    logger.warn(
+      'Interactive mode is not compatible with JSON output. Switching to markdown output.'
+    );
     options.output = 'markdown';
   }
 
   // Validate review type
-  const validReviewTypes = VALID_REVIEW_TYPES.filter(type => type !== 'consolidated') as Array<Exclude<ReviewType, 'consolidated'>>;
-  if (!validReviewTypes.includes(options.type as Exclude<ReviewType, 'consolidated'>)) {
+  const validReviewTypes = VALID_REVIEW_TYPES.filter(
+    type => type !== 'consolidated'
+  ) as Array<Exclude<ReviewType, 'consolidated'>>;
+  if (
+    !validReviewTypes.includes(
+      options.type as Exclude<ReviewType, 'consolidated'>
+    )
+  ) {
     logger.error(`Invalid review type: ${options.type}`);
     logger.error(`Valid types are: ${validReviewTypes.join(', ')}`);
     process.exit(1);
@@ -250,7 +280,10 @@ export function validateArguments(options: CliOptions): CliOptions {
   }
 
   // Validate programming language
-  if (options.language && !VALID_LANGUAGES.includes(options.language as ProgrammingLanguage)) {
+  if (
+    options.language &&
+    !VALID_LANGUAGES.includes(options.language as ProgrammingLanguage)
+  ) {
     logger.error(`Invalid programming language: ${options.language}`);
     logger.error(`Valid languages are: ${VALID_LANGUAGES.join(', ')}`);
     process.exit(1);

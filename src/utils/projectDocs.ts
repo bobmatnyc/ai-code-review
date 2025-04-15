@@ -131,7 +131,10 @@ export function formatProjectDocs(docs: ProjectDocs): string {
  * @param docs Project documentation object
  * @returns The prompt with documentation added
  */
-export function addProjectDocsToPrompt(prompt: string, docs: ProjectDocs): string {
+export function addProjectDocsToPrompt(
+  prompt: string,
+  docs: ProjectDocs
+): string {
   const docsText = formatProjectDocs(docs);
   if (docsText) {
     // Try to replace a placeholder if it exists

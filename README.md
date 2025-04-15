@@ -1,11 +1,12 @@
-# AI Code Review v1.9.4
+# AI Code Review v2.0.0
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, OpenAI models, and OpenRouter API (Claude, GPT-4, etc.) with LangChain integration for enhanced prompt management.
 
-## What's New in v1.9.4
+## What's New in v2.0.0
 
-### Major Features
+### Major Features in v2.0.0
 
+- **Stable Release**: Version 2.0.0 marks the first stable release with all major features complete
 - **LangChain Integration**: Added LangChain for enhanced prompt management, templating, and chain capabilities
 - **New Review Types**: Added 'unused-code' review type to identify and suggest removal of dead code
 - **Improved Prompts**: Enhanced prompt templates with LangChain, including few-shot learning and structured output
@@ -19,6 +20,10 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 
 ### Other Improvements
 
+- **Fixed Unit Tests**: Ensured compatibility with the latest dependencies
+- **Improved Jest Configuration**: Added proper handling for ESM modules
+- **Removed Prettier Checking**: Improved developer experience by removing Prettier from the test process
+- **Fixed ESLint Issues**: Added p-limit dependency to fix ESLint errors
 - **Model Listing Feature**: Added `--models` flag to list all supported models with their configuration names
 - **Improved Error Handling**: Enhanced error handling and recovery mechanisms
 - **Debug Logging Control**: Suppressed DEBUG logging messages in production builds

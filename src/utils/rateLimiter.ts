@@ -48,7 +48,9 @@ export class RateLimiter {
       const oldestRequest = this.requestTimes[0];
       const timeToWait = oldestRequest + 60 * 1000 - now + 100; // Add 100ms buffer
 
-      console.log(`Rate limit reached. Waiting ${(timeToWait / 1000).toFixed(1)} seconds before next request...`);
+      console.log(
+        `Rate limit reached. Waiting ${(timeToWait / 1000).toFixed(1)} seconds before next request...`
+      );
 
       // Wait until we can make another request
       await new Promise(resolve => setTimeout(resolve, timeToWait));

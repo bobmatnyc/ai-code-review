@@ -111,7 +111,10 @@ export class PromptManager {
    * @param template Prompt template to register
    */
   registerCustomTemplate(template: PromptTemplate): void {
-    const key = this.getTemplateKey(template.metadata.reviewType, template.metadata.language);
+    const key = this.getTemplateKey(
+      template.metadata.reviewType,
+      template.metadata.language
+    );
     this.customTemplates.set(key, template);
     logger.info(`Registered custom prompt template: ${template.metadata.name}`);
   }
@@ -123,7 +126,9 @@ export class PromptManager {
    * @returns Template key
    */
   private getTemplateKey(reviewType: ReviewType, language?: string): string {
-    return language ? `${reviewType}:${language.toLowerCase()}` : `${reviewType}`;
+    return language
+      ? `${reviewType}:${language.toLowerCase()}`
+      : `${reviewType}`;
   }
 
   /**
@@ -167,18 +172,27 @@ export class PromptManager {
             };
 
             // Register the template
-            const key = this.getTemplateKey(metadata.reviewType, metadata.language);
+            const key = this.getTemplateKey(
+              metadata.reviewType,
+              metadata.language
+            );
             this.templates.set(key, template);
             logger.debug(`Loaded prompt template: ${fullPath}`);
           } catch (error) {
-            logger.error(`Error loading prompt template ${fullPath}: ${error instanceof Error ? error.message : String(error)}`);
+            logger.error(
+              `Error loading prompt template ${fullPath}: ${error instanceof Error ? error.message : String(error)}`
+            );
           }
         }
       }
 
-      logger.info(`Loaded ${this.templates.size} prompt templates from ${templatesDir}`);
+      logger.info(
+        `Loaded ${this.templates.size} prompt templates from ${templatesDir}`
+      );
     } catch (error) {
-      logger.error(`Error loading prompt templates: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error loading prompt templates: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -188,7 +202,10 @@ export class PromptManager {
    * @param fileName Name of the template file
    * @returns Prompt template metadata
    */
-  private extractMetadata(content: string, fileName: string): PromptTemplateMetadata {
+  private extractMetadata(
+    content: string,
+    fileName: string
+  ): PromptTemplateMetadata {
     // Default metadata
     const defaultMetadata: PromptTemplateMetadata = {
       name: path.basename(fileName, '.md'),
@@ -221,10 +238,13 @@ export class PromptManager {
         return {
           ...defaultMetadata,
           ...metadata,
-          reviewType: (metadata.reviewType as string || defaultMetadata.reviewType) as ReviewType
+          reviewType: ((metadata.reviewType as string) ||
+            defaultMetadata.reviewType) as ReviewType
         };
       } catch (error) {
-        logger.warn(`Error parsing metadata from ${fileName}: ${error instanceof Error ? error.message : String(error)}`);
+        logger.warn(
+          `Error parsing metadata from ${fileName}: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
     }
 
@@ -260,7 +280,10 @@ export class PromptManager {
    * @param options Review options
    * @returns Promise resolving to the prompt template content
    */
-  async getPromptTemplate(reviewType: ReviewType, options?: ReviewOptions): Promise<string> {
+  async getPromptTemplate(
+    reviewType: ReviewType,
+    options?: ReviewOptions
+  ): Promise<string> {
     // Get the language from options or default to typescript
     let language = 'typescript';
 
@@ -272,7 +295,9 @@ export class PromptManager {
     if (options?.useCache !== false) {
       const cachedPrompt = this.promptCache.getBestPrompt(reviewType);
       if (cachedPrompt) {
-        logger.info(`Using cached prompt for ${reviewType} review type (rating: ${cachedPrompt.rating})`);
+        logger.info(
+          `Using cached prompt for ${reviewType} review type (rating: ${cachedPrompt.rating})`
+        );
         return await this.processPromptTemplate(cachedPrompt.content, options);
       }
     }
@@ -285,7 +310,9 @@ export class PromptManager {
         logger.info(`Loaded custom prompt template from ${customPromptPath}`);
         return await this.processPromptTemplate(promptTemplate, options);
       } catch (error) {
-        logger.error(`Error loading custom prompt template: ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(
+          `Error loading custom prompt template: ${error instanceof Error ? error.message : String(error)}`
+        );
         logger.warn('Falling back to default prompt template');
       }
     }
@@ -294,7 +321,9 @@ export class PromptManager {
     const customKey = this.getTemplateKey(reviewType, language);
     const customTemplate = this.customTemplates.get(customKey);
     if (customTemplate) {
-      logger.info(`Using custom prompt template: ${customTemplate.metadata.name}`);
+      logger.info(
+        `Using custom prompt template: ${customTemplate.metadata.name}`
+      );
       return await this.processPromptTemplate(customTemplate.content, options);
     }
 
@@ -324,7 +353,10 @@ export class PromptManager {
    * @param options Review options
    * @returns Promise resolving to the prompt template content
    */
-  private async loadPromptTemplateFromFileSystem(reviewType: ReviewType, options?: ReviewOptions): Promise<string> {
+  private async loadPromptTemplateFromFileSystem(
+    reviewType: ReviewType,
+    options?: ReviewOptions
+  ): Promise<string> {
     // Get the language from options or default to typescript
     let language = 'typescript';
 
@@ -443,7 +475,9 @@ export class PromptManager {
       );
 
       // Format the prompt using the strategy
-      promptTemplate = await Promise.resolve(strategy.formatPrompt(promptTemplate, options));
+      promptTemplate = await Promise.resolve(
+        strategy.formatPrompt(promptTemplate, options)
+      );
 
       logger.debug(`Applied ${options.promptStrategy} prompt strategy`);
     }
@@ -526,9 +560,13 @@ export class PromptManager {
       // Cache the prompt with the feedback
       await this.promptCache.cachePrompt(reviewType, promptContent, rating);
 
-      logger.info(`Cached prompt for ${reviewType} review type with rating ${rating}`);
+      logger.info(
+        `Cached prompt for ${reviewType} review type with rating ${rating}`
+      );
     } catch (error) {
-      logger.error(`Error caching prompt: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error caching prompt: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 }
