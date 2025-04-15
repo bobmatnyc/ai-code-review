@@ -1,7 +1,8 @@
 # 🧠 AI Assistant Instructions
+- Updated 4-15-2025
 
 ## 🔧 Core Principles
-
+let'
 ### ✅ Best Practices
 
 - Always implement using modern, community-validated best practices.

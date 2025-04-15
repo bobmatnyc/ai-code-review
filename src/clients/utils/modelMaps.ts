@@ -80,14 +80,30 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     description: 'Fastest Claude 3 model',
     apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
   },
-
   // OpenAI models
+  'openai:gpt-4.1': {
+    apiName: 'gpt-4.1',
+    displayName: 'GPT-4.1',
+    provider: 'openai',
+    contextWindow: 1000000,
+    description: "OpenAI's most capable model",
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+  },
+  // OpenAI models
+  'openai:gpt-4.1-mini': {
+    apiName: 'gpt-4.1-mini',
+    displayName: 'GPT-4.1 Mini',
+    provider: 'openai',
+    contextWindow: 1000000,
+    description: 'Significant leap in small model performance',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+  },
   'openai:gpt-4o': {
     apiName: 'gpt-4o',
     displayName: 'GPT-4o',
     provider: 'openai',
     contextWindow: 128000,
-    description: "OpenAI's most capable model",
+    description: "OpenAI's workhorse",
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
   },
   'openai:gpt-4-turbo': {

@@ -6,7 +6,7 @@
  * This file serves as the primary entry point for the AI Code Review command-line interface.
  * It handles environment variable loading, command-line argument parsing, and dispatches
  * to the appropriate command handlers. The tool supports multiple review types including
- * quick fixes, architectural reviews, security reviews, and performance reviews.
+ * quick fixes, architectural reviews, security reviews, performance reviews, and unused code detection.
  *
  * Key responsibilities:
  * - Loading environment variables from .env.local
@@ -14,8 +14,11 @@
  * - Dispatching to appropriate command handlers based on user input
  * - Providing help and usage information
  * - Handling model testing and verification
+ * - Testing model functionality and API keys
  *
  * Usage: ai-code-review [file|directory] [options]
+ *        ai-code-review model-test [provider:model] [options]
+ *        ai-code-review test-build [options]
  */
 
 // Load dotenv as early as possible
@@ -104,6 +107,8 @@ if (envFileExists) {
 import { getConfig, validateConfigForSelectedModel, hasAnyApiKey } from './utils/config';
 
 import { reviewCode } from './commands/reviewCode';
+import { testModelCommand } from './commands/testModel';
+import { testBuildCommand } from './commands/testBuild';
 import { runApiConnectionTests } from './tests/apiConnectionTest';
 import { getCommandLineArguments } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
@@ -238,6 +243,23 @@ async function main() {
 
         process.exit(1);
       }
+    }
+
+    // Command line processing for model testing commands
+    const { Command } = await import('commander');
+    const program = new Command();
+    
+    // Register the model-test command
+    program.addCommand(testModelCommand);
+
+    // Register the test-build command
+    program.addCommand(testBuildCommand);
+    
+    // Process model testing commands if specified
+    const modelTestArgs = process.argv.slice(2);
+    if (modelTestArgs[0] === 'model-test' || modelTestArgs[0] === 'test-build') {
+      program.parse(process.argv);
+      return;
     }
 
     // Run the code review

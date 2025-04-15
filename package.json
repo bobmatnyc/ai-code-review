@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "bin": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run test && npm run lint && tsc && npm run test:build",
     "start": "node dist/index.js",
     "dev": "ts-node --transpile-only src/index.ts",
     "local": "ts-node --transpile-only -r tsconfig-paths/register src/index.ts",
@@ -13,8 +13,9 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage --collectCoverageFrom='src/utils/**/*.ts'",
-    "test:model": "ts-node src/test-model.ts",
+    "test:coverage": "jest --coverage --collectCoverageFrom='src/**/*.ts'",
+    "test:model": "ts-node src/index.ts model-test",
+    "test:build": "ts-node src/index.ts test-build --json",
     "list:models": "ts-node src/list-models.ts",
     "test:latest": "ts-node src/test-latest.ts",
     "test:api": "ts-node src/test-api-connections.ts",
@@ -23,7 +24,7 @@
     "local-review": "./local-ai-review.sh",
     "built-review": "./built-ai-review.sh",
     "cleanup": "tsx scripts/cleanup-dead-code.ts"
-},
+  },
   "keywords": [
     "code-review",
     "gemini",
@@ -102,5 +103,5 @@
     "typescript": "^5.3.3",
     "vitest": "^1.0.4"
   },
-  "packageManager": "yarn@4.1.1+sha512.ec40d0639bb307441b945d9467139cbb88d14394baac760b52eca038b330d16542d66fef61574271534ace5a200518dabf3b53a85f1f9e4bfa37141b538a9590"
+  "packageManager": "yarn@4.9.1"
 }

@@ -11,6 +11,7 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 - **Improved Prompts**: Enhanced prompt templates with LangChain, including few-shot learning and structured output
 - **Structured Schemas**: Created detailed Zod schemas for all review types to enable more structured and consistent output
 - **Enhanced TypeScript Support**: Added TypeScript-specific templates and analyzers for better static analysis
+- **Model Testing**: Added new commands to test individual models (`model-test`) and verify all models on build
 
 ### Other Improvements
 
@@ -18,6 +19,7 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 - **Improved Error Handling**: Enhanced error handling and recovery mechanisms
 - **Debug Logging Control**: Suppressed DEBUG logging messages in production builds
 - **Performance Optimizations**: Improved memory usage and processing speed
+- **Build Verification**: Added automatic model testing during build process
 
 ## What's New in v1.3.2
 
@@ -164,6 +166,15 @@ ai-code-review --listmodels
 # List all supported models with their configuration names
 ai-code-review --models
 
+# Test a specific model
+ai-code-review model-test gemini:gemini-1.5-pro
+
+# Test all models for a specific provider
+ai-code-review model-test -p anthropic
+
+# Test all available models
+ai-code-review model-test --all
+
 # Use a custom prompt template file
 ai-code-review src/index.ts --prompt custom-prompt.md
 
@@ -214,6 +225,30 @@ Options:
   --prompt-strategy       Prompt strategy to use (anthropic, gemini, openai, langchain) (optional)
   -e, --estimate          Estimate token usage and cost without performing the review (default: false)
   -v, --version           Output the current version
+  -h, --help              Display help information
+```
+
+### Model Testing Options
+
+```
+Command: model-test [provider:model]
+Description: Test AI models to verify API keys and model availability
+
+Arguments:
+  provider:model          Provider and model to test (e.g. gemini:gemini-1.5-pro, anthropic:claude-3-opus)
+
+Options:
+  --all                   Test all available models
+  -p, --provider <provider>  Test all models for a specific provider
+  -h, --help              Display help information
+
+Command: test-build
+Description: Test all AI models during build process
+
+Options:
+  --fail-on-error         Exit with error code if any model test fails
+  --json                  Output results in JSON format
+  -p, --provider <provider>  Test only models for a specific provider
   -h, --help              Display help information
 ```
 

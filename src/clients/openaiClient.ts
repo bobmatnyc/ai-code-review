@@ -150,11 +150,11 @@ export async function generateOpenAIReview(
     }
 
     // Lazy-load dependencies only when needed
-    const { getCostInfoFromText } = await import('./utils/tokenCounter.js');
-    const { loadPromptTemplate } = await import('./utils/promptLoader.js');
-    const { ApiError } = await import('../utils/apiErrorHandler.js');
+    const { getCostInfoFromText } = await import('./utils/tokenCounter');
+    const { loadPromptTemplate } = await import('./utils/promptLoader');
+    const { ApiError } = await import('../utils/apiErrorHandler');
     const { getLanguageFromExtension } = await import(
-      './utils/languageDetection.js'
+      './utils/languageDetection'
     );
 
     // Get API key from environment variables
@@ -336,9 +336,9 @@ export async function generateOpenAIConsolidatedReview(
     }
 
     // Lazy-load dependencies only when needed
-    const { getCostInfoFromText } = await import('./utils/tokenCounter.js');
-    const { loadPromptTemplate } = await import('./utils/promptLoader.js');
-    const { ApiError } = await import('../utils/apiErrorHandler.js');
+    const { getCostInfoFromText } = await import('./utils/tokenCounter');
+    const { loadPromptTemplate } = await import('./utils/promptLoader');
+    const { ApiError } = await import('../utils/apiErrorHandler');
 
     // Get API key from environment variables
     const apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;

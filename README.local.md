@@ -47,6 +47,20 @@ yarn list:models
 # Test API connections
 yarn test:api
 
+# Test all models during build
+yarn test:build
+
+# Test a specific model
+yarn test:model -- gemini:gemini-1.5-pro
+yarn test:model -- anthropic:claude-3-opus
+yarn test:model -- openai:gpt-4o
+
+# Test all models for a specific provider
+yarn test:model -- -p anthropic
+
+# Test all available models
+yarn test:model -- --all
+
 # Run tests
 yarn test
 ```
@@ -68,9 +82,20 @@ npm publish --access=public
 For local development, create a `.env.local` file with your API keys:
 
 ```
+# Google Gemini API - Required for testing Gemini models
 AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
-# or
-AI_CODE_REVIEW_GOOGLE_GENERATIVE_AI_KEY=your_google_api_key_here
-# or
+
+# Anthropic API - Required for testing Claude models directly
+AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# OpenAI API - Required for testing OpenAI models directly
+AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here
+
+# OpenRouter API - Required for testing models via OpenRouter
 AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# Set default model to use (provider:model format)
+AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
 ```
+
+You don't need to set all API keys, just the ones for the providers you want to test.
