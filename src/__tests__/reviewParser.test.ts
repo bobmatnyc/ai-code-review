@@ -35,7 +35,7 @@ describe('reviewParser', () => {
       };
 
       const result = formatIssueForDisplay(issue, 0, 0);
-      
+
       expect(result).toContain('Issue 1.1');
       expect(result).toContain('[HIGH]');
       expect(result).toContain('A high priority issue');
@@ -61,7 +61,7 @@ describe('reviewParser', () => {
       };
 
       const result = formatIssueForDisplay(issue, 1, 0);
-      
+
       expect(result).toContain('Issue 2.1');
       expect(result).toContain('[MEDIUM]');
       expect(result).toContain('A medium priority issue');
@@ -83,7 +83,7 @@ describe('reviewParser', () => {
       };
 
       const result = formatIssueForDisplay(issue, 2, 0);
-      
+
       expect(result).toContain('Issue 3.1');
       expect(result).toContain('[LOW]');
       expect(result).toContain('A low priority issue');

@@ -4,16 +4,22 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { findAvailableModelForProvider } from './clients/utils/modelTester';
 
-// Load environment variables from .env.local
-const envLocalPath = path.resolve(process.cwd(), '.env.local');
-console.log(`Loading environment variables from: ${envLocalPath}`);
-dotenv.config({ path: envLocalPath });
+// Import the environment variable loader
+import { loadEnvVariables } from './utils/envLoader';
+
+// Load environment variables from the tool's directory first
+(async () => {
+  const result = await loadEnvVariables();
+  console.log(result.message);
+})();
 
 // Get API key
 const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
 
 if (!apiKey) {
-  console.error('No API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in .env.local');
+  console.error(
+    'No API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in .env.local'
+  );
   process.exit(1);
 }
 
@@ -22,7 +28,9 @@ async function runTest() {
   console.log('Testing available Gemini models...');
 
   if (!apiKey) {
-    console.error('No API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in .env.local');
+    console.error(
+      'No API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in .env.local'
+    );
     return;
   }
 

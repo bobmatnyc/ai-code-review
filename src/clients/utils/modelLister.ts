@@ -13,7 +13,12 @@ import {
 } from '../../utils/envLoader';
 import chalk from 'chalk';
 import logger from '../../utils/logger';
-import { MODEL_MAP, getModelsByProvider, Provider, ModelMapping } from './modelMaps';
+import {
+  MODEL_MAP,
+  getModelsByProvider,
+  Provider,
+  ModelMapping
+} from './modelMaps';
 
 /**
  * Model information interface
@@ -218,7 +223,10 @@ export function listModelConfigs(): void {
   console.log(chalk.dim('-----------------------------------'));
 
   // Group models by provider
-  const modelsByProvider: Record<string, Array<ModelMapping & { name: string }>> = {};
+  const modelsByProvider: Record<
+    string,
+    Array<ModelMapping & { name: string }>
+  > = {};
 
   Object.entries(MODEL_MAP).forEach(([key, model]) => {
     if (!modelsByProvider[model.provider]) {
@@ -232,7 +240,11 @@ export function listModelConfigs(): void {
 
   // Print models by provider
   Object.entries(modelsByProvider).forEach(([provider, providerModels]) => {
-    console.log(chalk.bold(`\n${provider.charAt(0).toUpperCase() + provider.slice(1)} Models:`));
+    console.log(
+      chalk.bold(
+        `\n${provider.charAt(0).toUpperCase() + provider.slice(1)} Models:`
+      )
+    );
 
     providerModels.forEach(model => {
       console.log(
@@ -257,8 +269,12 @@ export function listModelConfigs(): void {
   // Print usage examples
   console.log(chalk.dim('-----------------------------------'));
   console.log(chalk.bold('Usage Examples:'));
-  console.log(`  ${chalk.dim('Environment Variable:')} AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro`);
-  console.log(`  ${chalk.dim('Command Line:')} --model=anthropic:claude-3-opus`);
+  console.log(
+    `  ${chalk.dim('Environment Variable:')} AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro`
+  );
+  console.log(
+    `  ${chalk.dim('Command Line:')} --model=anthropic:claude-3-opus`
+  );
   console.log(`  ${chalk.dim('Config File:')} "model": "openai:gpt-4-turbo"`);
 }
 

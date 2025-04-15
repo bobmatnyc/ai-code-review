@@ -118,16 +118,28 @@ export function getTokenizer(modelName: string): Tokenizer {
   const modelNameLower = modelName.toLowerCase();
 
   if (modelNameLower.includes('gpt')) {
-    return TokenizerRegistry.getAllTokenizers().find(t => t.getModelName() === 'gpt') || new FallbackTokenizer();
+    return (
+      TokenizerRegistry.getAllTokenizers().find(
+        t => t.getModelName() === 'gpt'
+      ) || new FallbackTokenizer()
+    );
   }
 
   if (modelNameLower.includes('claude')) {
-    return TokenizerRegistry.getAllTokenizers().find(t => t.getModelName() === 'claude') || new FallbackTokenizer();
+    return (
+      TokenizerRegistry.getAllTokenizers().find(
+        t => t.getModelName() === 'claude'
+      ) || new FallbackTokenizer()
+    );
   }
 
   // Check for Gemini models
   if (modelNameLower.includes('gemini')) {
-    return TokenizerRegistry.getAllTokenizers().find(t => t.getModelName() === 'gemini') || new FallbackTokenizer();
+    return (
+      TokenizerRegistry.getAllTokenizers().find(
+        t => t.getModelName() === 'gemini'
+      ) || new FallbackTokenizer()
+    );
   }
 
   // If no specific tokenizer matches, fall back to the fallback tokenizer

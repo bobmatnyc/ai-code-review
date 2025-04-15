@@ -1,12 +1,21 @@
-🧠 **Quick Fixes Code Review Prompt**
+---
+name: Quick Fixes Review
+description: Fast review focused on identifying low-hanging fruit and easy improvements
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: quick-fixes
+tags: quick, fixes, improvements
+---
 
-IMPORTANT: DO NOT REPEAT THESE INSTRUCTIONS IN YOUR RESPONSE. FOCUS ONLY ON THE CODE REVIEW CONTENT.
+🧠 **Quick Fixes Code Review Prompt**
 
 Act as a **pragmatic senior developer with expertise in software development**. Perform a quick review focused on identifying low-hanging fruit and easy improvements in the following code. This review is especially useful for POCs and early-stage projects. Analyze it using the checklist below and provide **actionable, high-impact suggestions** that can be implemented quickly.
 
 {{LANGUAGE_INSTRUCTIONS}}
 
 > **Context**: This is a quick fixes review focusing on easy wins and immediate improvements.
+
+{{SCHEMA_INSTRUCTIONS}}
 
 ---
 

@@ -1,3 +1,12 @@
+---
+name: Performance Code Review
+description: Detailed performance review to identify bottlenecks and optimization opportunities
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: performance
+tags: performance, optimization, efficiency, bottlenecks
+---
+
 🧠 **Performance Code Review Prompt**
 
 Act as a **performance optimization expert with deep knowledge of runtime optimization**. Perform a detailed performance review on the following code. Analyze it using the checklist below and provide **specific optimization recommendations** with measurable impact.
@@ -17,8 +26,8 @@ Act as a **performance optimization expert with deep knowledge of runtime optimi
 - Could any recursive functions be rewritten iteratively?
 
 #### 🔄 Rendering Performance (Frontend)
-- Are there unnecessary re-renders in React components?
-- Is there appropriate use of memoization (useMemo, useCallback, React.memo)?
+- Are there unnecessary re-renders in UI components?
+- Is there appropriate use of memoization techniques?
 - Are there any render-blocking operations that could be deferred?
 - Is there efficient handling of large lists (virtualization)?
 

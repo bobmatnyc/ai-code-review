@@ -36,10 +36,10 @@ describe('modelMaps', () => {
     it('should have the correct number of models', () => {
       // Note: This test is fragile and requires updating the count each time models are added or removed
       // Consider a better approach for this test, such as tracking only the minimum number of models expected
-      
+
       // Count the total number of models
       const totalModels = Object.keys(MODEL_MAP).length;
-      // For this test, let's check that we have at least this many models 
+      // For this test, let's check that we have at least this many models
       // instead of exactly matching which makes the test more fragile
       const minimumExpectedModels = 15; // Minimum number of models expected
 
@@ -50,8 +50,8 @@ describe('modelMaps', () => {
 
   describe('Gemini models', () => {
     it('should have the correct Gemini models', () => {
-      const geminiModels = Object.keys(MODEL_MAP).filter(key =>
-        MODEL_MAP[key].provider === 'gemini'
+      const geminiModels = Object.keys(MODEL_MAP).filter(
+        key => MODEL_MAP[key].provider === 'gemini'
       );
 
       // Verify we have the expected number of Gemini models
@@ -73,8 +73,8 @@ describe('modelMaps', () => {
 
   describe('Anthropic models', () => {
     it('should have the correct Anthropic models', () => {
-      const anthropicModels = Object.keys(MODEL_MAP).filter(key =>
-        MODEL_MAP[key].provider === 'anthropic'
+      const anthropicModels = Object.keys(MODEL_MAP).filter(
+        key => MODEL_MAP[key].provider === 'anthropic'
       );
 
       // Verify we have the expected number of Anthropic models
@@ -96,8 +96,8 @@ describe('modelMaps', () => {
 
   describe('OpenAI models', () => {
     it('should have the correct OpenAI models', () => {
-      const openaiModels = Object.keys(MODEL_MAP).filter(key =>
-        MODEL_MAP[key].provider === 'openai'
+      const openaiModels = Object.keys(MODEL_MAP).filter(
+        key => MODEL_MAP[key].provider === 'openai'
       );
 
       // Verify we have the expected number of OpenAI models
@@ -120,8 +120,8 @@ describe('modelMaps', () => {
 
   describe('OpenRouter models', () => {
     it('should have the correct OpenRouter models', () => {
-      const openrouterModels = Object.keys(MODEL_MAP).filter(key =>
-        MODEL_MAP[key].provider === 'openrouter'
+      const openrouterModels = Object.keys(MODEL_MAP).filter(
+        key => MODEL_MAP[key].provider === 'openrouter'
       );
 
       // Verify we have the expected number of OpenRouter models
@@ -129,7 +129,9 @@ describe('modelMaps', () => {
 
       // Verify specific model keys exist
       expect(openrouterModels).toContain('openrouter:anthropic/claude-3-opus');
-      expect(openrouterModels).toContain('openrouter:anthropic/claude-3-sonnet');
+      expect(openrouterModels).toContain(
+        'openrouter:anthropic/claude-3-sonnet'
+      );
       expect(openrouterModels).toContain('openrouter:anthropic/claude-3-haiku');
       expect(openrouterModels).toContain('openrouter:openai/gpt-4o');
       expect(openrouterModels).toContain('openrouter:openai/gpt-4-turbo');
@@ -137,9 +139,13 @@ describe('modelMaps', () => {
       // Verify properties of a specific model
       const openrouterClaude = MODEL_MAP['openrouter:anthropic/claude-3-opus'];
       expect(openrouterClaude.apiName).toBe('anthropic/claude-3-opus-20240229');
-      expect(openrouterClaude.displayName).toBe('Claude 3 Opus (via OpenRouter)');
+      expect(openrouterClaude.displayName).toBe(
+        'Claude 3 Opus (via OpenRouter)'
+      );
       expect(openrouterClaude.contextWindow).toBe(200000);
-      expect(openrouterClaude.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENROUTER_API_KEY');
+      expect(openrouterClaude.apiKeyEnvVar).toBe(
+        'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+      );
     });
   });
 
@@ -167,8 +173,12 @@ describe('modelMaps', () => {
   describe('Utility functions', () => {
     describe('getApiNameFromKey', () => {
       it('should return the correct API name for a model key', () => {
-        expect(getApiNameFromKey('gemini:gemini-2.5-pro')).toBe('gemini-2.5-pro-preview-03-25');
-        expect(getApiNameFromKey('anthropic:claude-3-opus')).toBe('claude-3-opus-20240229');
+        expect(getApiNameFromKey('gemini:gemini-2.5-pro')).toBe(
+          'gemini-2.5-pro-preview-03-25'
+        );
+        expect(getApiNameFromKey('anthropic:claude-3-opus')).toBe(
+          'claude-3-opus-20240229'
+        );
         expect(getApiNameFromKey('openai:gpt-4o')).toBe('gpt-4o');
       });
 
@@ -239,8 +249,12 @@ describe('modelMaps', () => {
 
     describe('getFullModelKey', () => {
       it('should return the full model key', () => {
-        expect(getFullModelKey('gemini', 'gemini-2.5-pro')).toBe('gemini:gemini-2.5-pro');
-        expect(getFullModelKey('anthropic', 'claude-3-opus')).toBe('anthropic:claude-3-opus');
+        expect(getFullModelKey('gemini', 'gemini-2.5-pro')).toBe(
+          'gemini:gemini-2.5-pro'
+        );
+        expect(getFullModelKey('anthropic', 'claude-3-opus')).toBe(
+          'anthropic:claude-3-opus'
+        );
       });
     });
   });

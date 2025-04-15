@@ -38,13 +38,16 @@ export async function discoverFiles(
 
     // Check if the path is within the project directory
     if (!isPathWithinCwd(resolvedTarget)) {
-      throw new Error(`Target must be within the project directory: ${projectPath}`);
+      throw new Error(
+        `Target must be within the project directory: ${projectPath}`
+      );
     }
 
     const targetPath = resolvedTarget;
 
     // Check if the target exists
-    const isFileTarget = await pathExists(targetPath) && !(await isDirectory(targetPath));
+    const isFileTarget =
+      (await pathExists(targetPath)) && !(await isDirectory(targetPath));
     const isDirectoryTarget = await isDirectory(targetPath);
 
     if (!isFileTarget && !isDirectoryTarget) {
@@ -66,7 +69,9 @@ export async function discoverFiles(
 
     return filesToReview;
   } catch (error) {
-    logger.error(`Error discovering files: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error discovering files: ${error instanceof Error ? error.message : String(error)}`
+    );
     throw error; // Re-throw to allow the caller to handle it
   }
 }
@@ -98,7 +103,9 @@ export async function readFilesContent(
         content: fileContent
       });
     } catch (error) {
-      logger.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      );
       // Continue with other files instead of failing completely
     }
   }

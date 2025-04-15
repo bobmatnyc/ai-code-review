@@ -1,3 +1,12 @@
+---
+name: Security Code Review
+description: Comprehensive security review to identify vulnerabilities and security best practice violations
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: security
+tags: security, vulnerabilities, owasp
+---
+
 🧠 **Security Code Review Prompt**
 
 Act as a **security engineer with expertise in application security**. Perform a comprehensive security review on the following code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.

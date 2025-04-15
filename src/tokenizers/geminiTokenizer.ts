@@ -16,9 +16,7 @@ import { Tokenizer, TokenizerRegistry } from './baseTokenizer';
  * Tokenizer for Google Gemini models
  */
 export class GeminiTokenizer implements Tokenizer {
-  private modelPatterns: RegExp[] = [
-    /gemini/i
-  ];
+  private modelPatterns: RegExp[] = [/gemini/i];
 
   /**
    * Count the number of tokens in a text using an approximation for Gemini models

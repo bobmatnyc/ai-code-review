@@ -22,6 +22,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { glob } from 'glob';
 import { fileExists, readFile } from './fileSystem';
+import logger from './logger';
 
 /**
  * Get .gitignore patterns from a project
@@ -49,7 +50,11 @@ async function getGitignorePatterns(projectPath: string): Promise<string[]> {
  * @param projectRoot Project root path
  * @returns Boolean indicating if file should be ignored
  */
-function shouldIgnoreFile(filePath: string, patterns: string[], projectRoot: string): boolean {
+function shouldIgnoreFile(
+  filePath: string,
+  patterns: string[],
+  projectRoot: string
+): boolean {
   const relativePath = path.relative(projectRoot, filePath);
   // console.log('DEBUG: Checking if file should be ignored:', { filePath, relativePath, projectRoot });
 
@@ -62,9 +67,7 @@ function shouldIgnoreFile(filePath: string, patterns: string[], projectRoot: str
     }
 
     if (pattern.includes('*')) {
-      const regexPattern = pattern
-        .replace(/\./g, '\\.')
-        .replace(/\*/g, '.*');
+      const regexPattern = pattern.replace(/\./g, '\\.').replace(/\*/g, '.*');
 
       if (new RegExp(`^${regexPattern}$`).test(relativePath)) {
         // console.log('DEBUG: File matches wildcard pattern:', { relativePath, pattern, regexPattern });
@@ -112,44 +115,72 @@ export async function getFilesToReview(
   isFile: boolean,
   includeTests: boolean
 ): Promise<string[]> {
-  // console.log('DEBUG: getFilesToReview called with:', { targetPath, isFile, includeTests });
+  logger.debug('getFilesToReview called with:', { targetPath, isFile, includeTests });
 
   if (isFile) {
-    // console.log('DEBUG: Target is a file, returning:', [targetPath]);
+    logger.debug('Target is a file, returning:', [targetPath]);
     return [targetPath];
   }
 
   const projectRoot = path.resolve(targetPath, '..');
-  // console.log('DEBUG: Project root:', projectRoot);
+  logger.debug('Project root:', projectRoot);
 
   const gitignorePatterns = await getGitignorePatterns(projectRoot);
-  // console.log('DEBUG: Gitignore patterns:', gitignorePatterns);
+  logger.debug('Gitignore patterns:', gitignorePatterns);
 
   // Use glob to find all files - include code and documentation files
-  // console.log('DEBUG: Running glob in directory:', targetPath);
-  const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md}', {
+  logger.debug('Running glob in directory:', targetPath);
+  
+  // Comprehensive glob pattern to ensure all relevant files are included
+  const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md,py,pyc,pyi,pyx,pyd,php,java,rb,go,rs,c,cpp,h,hpp,cs,swift,kt}', {
     cwd: targetPath,
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/build/**']
+    ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.venv/**', '**/env/**', '**/__pycache__/**']
   });
-  // console.log('DEBUG: Found files with glob:', allFiles);
+  
+  // Log stats about found files by extension
+  const fileExtensionCounts = countFilesByExtension(allFiles);
+  logger.debug('Files found by extension:', fileExtensionCounts);
 
   const filteredFiles = allFiles.filter(filePath => {
     // Skip files in gitignore
     if (shouldIgnoreFile(filePath, gitignorePatterns, projectRoot)) {
-      // console.log('DEBUG: Ignoring file due to gitignore:', filePath);
+      logger.debug('Ignoring file due to gitignore:', filePath);
       return false;
     }
 
     // Skip test files if not including tests
     if (!includeTests && isTestFile(filePath)) {
-      // console.log('DEBUG: Ignoring test file:', filePath);
+      logger.debug('Ignoring test file:', filePath);
       return false;
     }
 
     return true;
   });
 
-  // console.log('DEBUG: Returning filtered files:', filteredFiles);
+  // Log stats about filtered files by extension
+  const filteredExtensionCounts = countFilesByExtension(filteredFiles);
+  logger.debug('Filtered files by extension:', filteredExtensionCounts);
+  
+  logger.info(`Found ${allFiles.length} files, ${filteredFiles.length} after filtering`);
   return filteredFiles;
+}
+
+/**
+ * Count files by extension to help debug file collection issues
+ * @param files Array of file paths
+ * @returns Object with counts by extension
+ */
+function countFilesByExtension(files: string[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  
+  for (const file of files) {
+    const ext = path.extname(file).toLowerCase();
+    if (!counts[ext]) {
+      counts[ext] = 0;
+    }
+    counts[ext]++;
+  }
+  
+  return counts;
 }

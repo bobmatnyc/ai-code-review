@@ -60,8 +60,8 @@ function createReadlineInterface(): readline.Interface {
 async function promptForConfirmation(message: string): Promise<boolean> {
   const rl = createReadlineInterface();
 
-  return new Promise((resolve) => {
-    rl.question(`${message} (y/n): `, (answer) => {
+  return new Promise(resolve => {
+    rl.question(`${message} (y/n): `, answer => {
       rl.close();
       resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
     });
@@ -88,10 +88,18 @@ export async function extractFixSuggestions(
 
     switch (priorityLevel) {
       case FixPriority.HIGH:
-        section = extractSection(reviewContent, '### 🟥 High Priority', '### 🟧 Medium Priority');
+        section = extractSection(
+          reviewContent,
+          '### 🟥 High Priority',
+          '### 🟧 Medium Priority'
+        );
         break;
       case FixPriority.MEDIUM:
-        section = extractSection(reviewContent, '### 🟧 Medium Priority', '### 🟩 Low Priority');
+        section = extractSection(
+          reviewContent,
+          '### 🟧 Medium Priority',
+          '### 🟩 Low Priority'
+        );
         break;
       case FixPriority.LOW:
         section = extractSection(reviewContent, '### 🟩 Low Priority', '---');
@@ -99,7 +107,11 @@ export async function extractFixSuggestions(
     }
 
     if (section) {
-      const prioritySuggestions = await parseSuggestions(section, priorityLevel, projectPath);
+      const prioritySuggestions = await parseSuggestions(
+        section,
+        priorityLevel,
+        projectPath
+      );
       suggestions.push(...prioritySuggestions);
     }
 
@@ -108,23 +120,47 @@ export async function extractFixSuggestions(
 
   // Otherwise, extract all priority levels
   // Extract high priority issues
-  const highPrioritySection = extractSection(reviewContent, '### 🟥 High Priority', '### 🟧 Medium Priority');
+  const highPrioritySection = extractSection(
+    reviewContent,
+    '### 🟥 High Priority',
+    '### 🟧 Medium Priority'
+  );
   if (highPrioritySection) {
-    const highPrioritySuggestions = await parseSuggestions(highPrioritySection, FixPriority.HIGH, projectPath);
+    const highPrioritySuggestions = await parseSuggestions(
+      highPrioritySection,
+      FixPriority.HIGH,
+      projectPath
+    );
     suggestions.push(...highPrioritySuggestions);
   }
 
   // Extract medium priority issues
-  const mediumPrioritySection = extractSection(reviewContent, '### 🟧 Medium Priority', '### 🟩 Low Priority');
+  const mediumPrioritySection = extractSection(
+    reviewContent,
+    '### 🟧 Medium Priority',
+    '### 🟩 Low Priority'
+  );
   if (mediumPrioritySection) {
-    const mediumPrioritySuggestions = await parseSuggestions(mediumPrioritySection, FixPriority.MEDIUM, projectPath);
+    const mediumPrioritySuggestions = await parseSuggestions(
+      mediumPrioritySection,
+      FixPriority.MEDIUM,
+      projectPath
+    );
     suggestions.push(...mediumPrioritySuggestions);
   }
 
   // Extract low priority issues
-  const lowPrioritySection = extractSection(reviewContent, '### 🟩 Low Priority', '---');
+  const lowPrioritySection = extractSection(
+    reviewContent,
+    '### 🟩 Low Priority',
+    '---'
+  );
   if (lowPrioritySection) {
-    const lowPrioritySuggestions = await parseSuggestions(lowPrioritySection, FixPriority.LOW, projectPath);
+    const lowPrioritySuggestions = await parseSuggestions(
+      lowPrioritySection,
+      FixPriority.LOW,
+      projectPath
+    );
     suggestions.push(...lowPrioritySuggestions);
   }
 
@@ -138,7 +174,11 @@ export async function extractFixSuggestions(
  * @param endMarker End marker for the section
  * @returns The extracted section or null if not found
  */
-function extractSection(content: string, startMarker: string, endMarker: string): string | null {
+function extractSection(
+  content: string,
+  startMarker: string,
+  endMarker: string
+): string | null {
   // Try exact match first
   let startIndex = content.indexOf(startMarker);
 
@@ -161,12 +201,19 @@ function extractSection(content: string, startMarker: string, endMarker: string)
 
     // Try with case-insensitive match for priority level
     if (startIndex === -1) {
-      const priorityLevel = startMarker.includes('High') ? 'high' :
-                          startMarker.includes('Medium') ? 'medium' :
-                          startMarker.includes('Low') ? 'low' : '';
+      const priorityLevel = startMarker.includes('High')
+        ? 'high'
+        : startMarker.includes('Medium')
+          ? 'medium'
+          : startMarker.includes('Low')
+            ? 'low'
+            : '';
 
       if (priorityLevel) {
-        const regex = new RegExp(`[#]{1,3}\s*(?:🟥|🟧|🟩)?\s*${priorityLevel}\s*priority`, 'i');
+        const regex = new RegExp(
+          `[#]{1,3}\s*(?:🟥|🟧|🟩)?\s*${priorityLevel}\s*priority`,
+          'i'
+        );
         const match = content.match(regex);
         if (match && match.index !== undefined) {
           startIndex = match.index;
@@ -199,7 +246,9 @@ function extractSection(content: string, startMarker: string, endMarker: string)
 
     // If we still can't find the end marker, look for the next heading
     if (endIndex === -1) {
-      const nextHeadingMatch = content.substring(startIndex).match(/\n[#]{1,3}\s/);
+      const nextHeadingMatch = content
+        .substring(startIndex)
+        .match(/\n[#]{1,3}\s/);
       if (nextHeadingMatch && nextHeadingMatch.index !== undefined) {
         endIndex = startIndex + nextHeadingMatch.index;
       }
@@ -230,27 +279,37 @@ async function parseSuggestions(
   let issueBlocks: string[] = [];
 
   // Pattern 1: **Issue**: format
-  const pattern1Blocks = sectionContent.split(/(?=\*\*Issue\*\*:)/).filter(block => block.trim().startsWith('**Issue**:'));
+  const pattern1Blocks = sectionContent
+    .split(/(?=\*\*Issue\*\*:)/)
+    .filter(block => block.trim().startsWith('**Issue**:'));
   if (pattern1Blocks.length > 0) {
     issueBlocks = pattern1Blocks;
   } else {
     // Pattern 2: 1. **Issue**: format (numbered list)
-    const pattern2Blocks = sectionContent.split(/(?=\d+\.\s*\*\*Issue\*\*:)/).filter(block => block.trim().match(/^\d+\.\s*\*\*Issue\*\*/));
+    const pattern2Blocks = sectionContent
+      .split(/(?=\d+\.\s*\*\*Issue\*\*:)/)
+      .filter(block => block.trim().match(/^\d+\.\s*\*\*Issue\*\*/));
     if (pattern2Blocks.length > 0) {
       issueBlocks = pattern2Blocks;
     } else {
       // Pattern 3: ### Issue: format (heading)
-      const pattern3Blocks = sectionContent.split(/(?=[#]{1,3}\s+Issue:)/).filter(block => block.trim().match(/^[#]{1,3}\s+Issue:/));
+      const pattern3Blocks = sectionContent
+        .split(/(?=[#]{1,3}\s+Issue:)/)
+        .filter(block => block.trim().match(/^[#]{1,3}\s+Issue:/));
       if (pattern3Blocks.length > 0) {
         issueBlocks = pattern3Blocks;
       } else {
         // Pattern 4: **Finding**: format (security reviews)
-        const pattern4Blocks = sectionContent.split(/(?=\*\*Finding\*\*:)/).filter(block => block.trim().startsWith('**Finding**:'));
+        const pattern4Blocks = sectionContent
+          .split(/(?=\*\*Finding\*\*:)/)
+          .filter(block => block.trim().startsWith('**Finding**:'));
         if (pattern4Blocks.length > 0) {
           issueBlocks = pattern4Blocks;
         } else {
           // Pattern 5: **Performance Issue**: format (performance reviews)
-          const pattern5Blocks = sectionContent.split(/(?=\*\*Performance Issue\*\*:)/).filter(block => block.trim().startsWith('**Performance Issue**:'));
+          const pattern5Blocks = sectionContent
+            .split(/(?=\*\*Performance Issue\*\*:)/)
+            .filter(block => block.trim().startsWith('**Performance Issue**:'));
           if (pattern5Blocks.length > 0) {
             issueBlocks = pattern5Blocks;
           }
@@ -294,7 +353,9 @@ async function parseSuggestions(
       }
       if (!fileMatch) {
         // Try to find any path-like string in the issue block
-        const pathMatch = issueBlock.match(/(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-\.\/_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/);
+        const pathMatch = issueBlock.match(
+          /(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-\.\/_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/
+        );
         if (pathMatch) {
           filePath = pathMatch[0].trim();
         } else {
@@ -307,14 +368,19 @@ async function parseSuggestions(
       let cleanFilePath = filePath.replace(/`/g, '').replace(/\*/g, '').trim();
 
       // Extract the actual file path from common patterns
-      const filePathMatch = cleanFilePath.match(/(?:src|\/)\S+\.(ts|js|tsx|jsx|json)/);
+      const filePathMatch = cleanFilePath.match(
+        /(?:src|\/)\S+\.(ts|js|tsx|jsx|json)/
+      );
       if (filePathMatch) {
         cleanFilePath = filePathMatch[0];
       } else {
         // If we can't extract a clear file path, try to find the most likely path
-        const possiblePaths = cleanFilePath.split(/[\s,()]/).filter(part =>
-          part.includes('/') || part.includes('.ts') || part.includes('.js')
-        );
+        const possiblePaths = cleanFilePath
+          .split(/[\s,()]/)
+          .filter(
+            part =>
+              part.includes('/') || part.includes('.ts') || part.includes('.js')
+          );
 
         if (possiblePaths.length > 0) {
           cleanFilePath = possiblePaths[0];
@@ -330,7 +396,8 @@ async function parseSuggestions(
 
       // Extract code blocks with more flexible pattern matching
       // Match code blocks with or without language specifier
-      const codeBlockMatches = issueBlock.match(/```(?:[a-zA-Z0-9_\-]*)?\s*([\s\S]*?)```/g) || [];
+      const codeBlockMatches =
+        issueBlock.match(/```(?:[a-zA-Z0-9_\-]*)?\s*([\s\S]*?)```/g) || [];
 
       // If no code blocks found with triple backticks, try alternative formats
       let codeBlocks: string[] = [];
@@ -343,17 +410,23 @@ async function parseSuggestions(
         });
       } else {
         // Try to find code blocks with indentation (4 spaces or tab)
-        const indentedCodeBlockMatch = issueBlock.match(/(?:^|\n)(?:    |\t)([^\n]+(?:\n(?:    |\t)[^\n]+)*)/g);
+        const indentedCodeBlockMatch = issueBlock.match(
+          /(?:^|\n)(?: {4}|\t)([^\n]+(?:\n(?: {4}|\t)[^\n]+)*)/g
+        );
         if (indentedCodeBlockMatch) {
           codeBlocks = indentedCodeBlockMatch.map((block: string) => {
             // Remove the indentation
-            return block.replace(/(?:^|\n)(?:    |\t)/g, '\n').trim();
+            return block.replace(/(?:^|\n)(?: {4}|\t)/g, '\n').trim();
           });
         }
 
         // Try to find code blocks with 'Current code:' and 'Suggested code:' markers
-        const currentCodeMatch = issueBlock.match(/Current code:([\s\S]*?)(?:Suggested code:|$)/i);
-        const suggestedCodeMatch = issueBlock.match(/Suggested code:([\s\S]*?)(?:Impact:|$)/i);
+        const currentCodeMatch = issueBlock.match(
+          /Current code:([\s\S]*?)(?:Suggested code:|$)/i
+        );
+        const suggestedCodeMatch = issueBlock.match(
+          /Suggested code:([\s\S]*?)(?:Impact:|$)/i
+        );
 
         if (currentCodeMatch && currentCodeMatch[1].trim()) {
           codeBlocks.push(currentCodeMatch[1].trim());
@@ -368,7 +441,7 @@ async function parseSuggestions(
       const suggestion: FixSuggestion = {
         priority,
         file: fullFilePath,
-        description: issueDescription,
+        description: issueDescription
       };
 
       // If we have code blocks, assume the first is current code and second is suggested code
@@ -384,7 +457,9 @@ async function parseSuggestions(
       const lineNumberMatch = location.match(/lines? (\d+)(?:-(\d+))?/i);
       if (lineNumberMatch) {
         const startLine = parseInt(lineNumberMatch[1], 10);
-        const endLine = lineNumberMatch[2] ? parseInt(lineNumberMatch[2], 10) : startLine;
+        const endLine = lineNumberMatch[2]
+          ? parseInt(lineNumberMatch[2], 10)
+          : startLine;
         suggestion.lineNumbers = { start: startLine, end: endLine };
       }
 
@@ -408,7 +483,9 @@ async function parseSuggestions(
  */
 async function applyFixToFile(suggestion: FixSuggestion): Promise<boolean> {
   console.log(`\n⚠️ Automatic fixes are not supported.`);
-  console.log(`The AI code review tool only provides suggestions that you must implement manually.`);
+  console.log(
+    `The AI code review tool only provides suggestions that you must implement manually.`
+  );
   console.log(`Review the suggested fix and apply it yourself if appropriate.`);
 
   if (suggestion.suggestedCode) {
@@ -515,7 +592,10 @@ async function applyFixToFile(suggestion: FixSuggestion): Promise<boolean> {
  * @param suggestions Array of fix suggestions
  * @param priority Priority level of the suggestions
  */
-function displayFixSuggestions(suggestions: FixSuggestion[], priority: FixPriority): void {
+function displayFixSuggestions(
+  suggestions: FixSuggestion[],
+  priority: FixPriority
+): void {
   if (suggestions.length === 0) {
     return;
   }
@@ -538,13 +618,17 @@ function displayFixSuggestions(suggestions: FixSuggestion[], priority: FixPriori
     [FixPriority.LOW]: 'LOW'
   };
 
-  console.log(`\n${priorityColor[priority]}${priorityEmoji[priority]} ${priorityLabel[priority]} PRIORITY ISSUES (${suggestions.length})\x1b[0m`);
+  console.log(
+    `\n${priorityColor[priority]}${priorityEmoji[priority]} ${priorityLabel[priority]} PRIORITY ISSUES (${suggestions.length})\x1b[0m`
+  );
 
   suggestions.forEach((suggestion, index) => {
     console.log(`${index + 1}. ${suggestion.description}`);
     console.log(`   File: ${suggestion.file}`);
     if (suggestion.lineNumbers) {
-      console.log(`   Lines: ${suggestion.lineNumbers.start}-${suggestion.lineNumbers.end}`);
+      console.log(
+        `   Lines: ${suggestion.lineNumbers.start}-${suggestion.lineNumbers.end}`
+      );
     }
   });
 }
@@ -555,7 +639,11 @@ function displayFixSuggestions(suggestions: FixSuggestion[], priority: FixPriori
  * @param index Index of the suggestion in its priority group
  * @param priority Priority level of the suggestion
  */
-function displayDetailedFixSuggestion(suggestion: FixSuggestion, index: number, priority: FixPriority): void {
+function displayDetailedFixSuggestion(
+  suggestion: FixSuggestion,
+  index: number,
+  priority: FixPriority
+): void {
   const priorityColor = {
     [FixPriority.HIGH]: '\x1b[31m', // Red
     [FixPriority.MEDIUM]: '\x1b[33m', // Yellow
@@ -574,11 +662,15 @@ function displayDetailedFixSuggestion(suggestion: FixSuggestion, index: number, 
     [FixPriority.LOW]: 'LOW'
   };
 
-  console.log(`\n${priorityColor[priority]}${priorityEmoji[priority]} ${priorityLabel[priority]} PRIORITY ISSUE #${index + 1}\x1b[0m`);
+  console.log(
+    `\n${priorityColor[priority]}${priorityEmoji[priority]} ${priorityLabel[priority]} PRIORITY ISSUE #${index + 1}\x1b[0m`
+  );
   console.log(`Description: ${suggestion.description}`);
   console.log(`File: ${suggestion.file}`);
   if (suggestion.lineNumbers) {
-    console.log(`Lines: ${suggestion.lineNumbers.start}-${suggestion.lineNumbers.end}`);
+    console.log(
+      `Lines: ${suggestion.lineNumbers.start}-${suggestion.lineNumbers.end}`
+    );
   }
 
   if (suggestion.currentCode && suggestion.suggestedCode) {
@@ -627,16 +719,22 @@ export async function displayReviewResults(
     parsedReview.review.files.forEach(file => {
       file.issues.forEach(issue => {
         const suggestion: FixSuggestion = {
-          priority: issue.priority === 'HIGH' ? FixPriority.HIGH :
-                   issue.priority === 'MEDIUM' ? FixPriority.MEDIUM : FixPriority.LOW,
+          priority:
+            issue.priority === 'HIGH'
+              ? FixPriority.HIGH
+              : issue.priority === 'MEDIUM'
+                ? FixPriority.MEDIUM
+                : FixPriority.LOW,
           file: file.filePath,
           description: issue.description,
           currentCode: issue.currentCode,
           suggestedCode: issue.suggestedCode,
-          lineNumbers: issue.location ? {
-            start: issue.location.startLine,
-            end: issue.location.endLine
-          } : undefined
+          lineNumbers: issue.location
+            ? {
+                start: issue.location.startLine,
+                end: issue.location.endLine
+              }
+            : undefined
         };
 
         // Add to the appropriate array based on priority
@@ -650,7 +748,10 @@ export async function displayReviewResults(
       });
     });
 
-    const totalSuggestions = highPrioritySuggestions.length + mediumPrioritySuggestions.length + lowPrioritySuggestions.length;
+    const totalSuggestions =
+      highPrioritySuggestions.length +
+      mediumPrioritySuggestions.length +
+      lowPrioritySuggestions.length;
 
     return {
       highPrioritySuggestions,
@@ -660,14 +761,31 @@ export async function displayReviewResults(
     };
   } else {
     // Fall back to the original extraction method if parsing fails
-    logger.info('Using legacy format for review results (no structured schema detected)');
+    logger.info(
+      'Using legacy format for review results (no structured schema detected)'
+    );
 
     // Extract all suggestions
-    const highPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.HIGH);
-    const mediumPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.MEDIUM);
-    const lowPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.LOW);
+    const highPrioritySuggestions = await extractFixSuggestions(
+      reviewContent,
+      projectPath,
+      FixPriority.HIGH
+    );
+    const mediumPrioritySuggestions = await extractFixSuggestions(
+      reviewContent,
+      projectPath,
+      FixPriority.MEDIUM
+    );
+    const lowPrioritySuggestions = await extractFixSuggestions(
+      reviewContent,
+      projectPath,
+      FixPriority.LOW
+    );
 
-    const totalSuggestions = highPrioritySuggestions.length + mediumPrioritySuggestions.length + lowPrioritySuggestions.length;
+    const totalSuggestions =
+      highPrioritySuggestions.length +
+      mediumPrioritySuggestions.length +
+      lowPrioritySuggestions.length;
 
     // Display summary of all suggestions
     logger.info('\n=== CODE REVIEW RECOMMENDATIONS ===');
@@ -677,7 +795,9 @@ export async function displayReviewResults(
     logger.info(`🟩 Low priority: ${lowPrioritySuggestions.length}`);
 
     // Display instructions for interactive mode
-    logger.info('\nShowing ALL issues by default. To filter by priority, use these options:');
+    logger.info(
+      '\nShowing ALL issues by default. To filter by priority, use these options:'
+    );
     logger.info('  (h) High priority issues only');
     logger.info('  (m) Medium priority issues only');
     logger.info('  (l) Low priority issues only');
@@ -748,11 +868,17 @@ export async function processReviewResults(
 
   // Process high priority suggestions
   console.log('\nExtracting high priority issues...');
-  const highPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.HIGH);
+  const highPrioritySuggestions = await extractFixSuggestions(
+    reviewContent,
+    projectPath,
+    FixPriority.HIGH
+  );
   totalSuggestions += highPrioritySuggestions.length;
 
   if (highPrioritySuggestions.length > 0) {
-    console.log(`Found ${highPrioritySuggestions.length} high priority issues.`);
+    console.log(
+      `Found ${highPrioritySuggestions.length} high priority issues.`
+    );
 
     if (autoImplementHighPriority) {
       console.log('Automatically implementing high priority fixes...');
@@ -770,7 +896,9 @@ export async function processReviewResults(
         }
       }
     } else {
-      console.log('Skipping high priority fixes as auto-implementation is disabled.');
+      console.log(
+        'Skipping high priority fixes as auto-implementation is disabled.'
+      );
     }
   } else {
     console.log('No high priority issues found.');
@@ -778,11 +906,17 @@ export async function processReviewResults(
 
   // Process medium priority suggestions
   console.log('\nExtracting medium priority issues...');
-  const mediumPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.MEDIUM);
+  const mediumPrioritySuggestions = await extractFixSuggestions(
+    reviewContent,
+    projectPath,
+    FixPriority.MEDIUM
+  );
   totalSuggestions += mediumPrioritySuggestions.length;
 
   if (mediumPrioritySuggestions.length > 0) {
-    console.log(`Found ${mediumPrioritySuggestions.length} medium priority issues.`);
+    console.log(
+      `Found ${mediumPrioritySuggestions.length} medium priority issues.`
+    );
 
     if (promptForMediumLow) {
       for (const suggestion of mediumPrioritySuggestions) {
@@ -801,7 +935,9 @@ export async function processReviewResults(
           console.log('```');
         }
 
-        const shouldImplement = await promptForConfirmation('Implement this fix?');
+        const shouldImplement = await promptForConfirmation(
+          'Implement this fix?'
+        );
         if (shouldImplement) {
           const success = await applyFixToFile(suggestion);
           if (success) {
@@ -823,7 +959,11 @@ export async function processReviewResults(
 
   // Process low priority suggestions
   console.log('\nExtracting low priority issues...');
-  const lowPrioritySuggestions = await extractFixSuggestions(reviewContent, projectPath, FixPriority.LOW);
+  const lowPrioritySuggestions = await extractFixSuggestions(
+    reviewContent,
+    projectPath,
+    FixPriority.LOW
+  );
   totalSuggestions += lowPrioritySuggestions.length;
 
   if (lowPrioritySuggestions.length > 0) {
@@ -846,7 +986,9 @@ export async function processReviewResults(
           console.log('```');
         }
 
-        const shouldImplement = await promptForConfirmation('Implement this fix?');
+        const shouldImplement = await promptForConfirmation(
+          'Implement this fix?'
+        );
         if (shouldImplement) {
           const success = await applyFixToFile(suggestion);
           if (success) {

@@ -1,3 +1,12 @@
+---
+name: Consolidated Code Review
+description: Comprehensive review that analyzes the entire codebase and provides a single consolidated response
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: consolidated
+tags: comprehensive, codebase, multi-file
+---
+
 🧠 **Consolidated Code Review Prompt**
 
 Act as a **senior software developer with expertise in modern application development**. Perform a comprehensive review on the following codebase. Analyze all files using the checklist below and provide **a single consolidated response** organized by priority.
@@ -5,6 +14,8 @@ Act as a **senior software developer with expertise in modern application develo
 {{LANGUAGE_INSTRUCTIONS}}
 
 > **Context**: This is a consolidated review focusing on actionable improvements across the entire codebase.
+
+{{SCHEMA_INSTRUCTIONS}}
 
 ---
 
@@ -57,5 +68,3 @@ Provide a single consolidated review organized by priority (High, Medium, Low). 
 Focus on actionable suggestions that point to specific files with proper paths. Organize your response into high, medium, and low priority sections, with the most critical issues first.
 
 NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.
-
-{{SCHEMA_INSTRUCTIONS}}

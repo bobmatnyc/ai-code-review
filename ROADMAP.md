@@ -1,6 +1,6 @@
 # AI Code Review Tool — Roadmap
 
-> Last Updated: 2024-04-09
+> Last Updated: 2024-04-17
 
 This roadmap outlines the evolution of the AI Code Review Tool, focused on improving configurability, robustness, usability, and developer experience. Features are grouped by priority and phase.
 
@@ -8,7 +8,7 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 
 ---
 
-## ✅ Phase 1: Stabilization & Configuration (Q1-Q2 2024)
+## ✅ Phase 1: Stabilization & Configuration 
 
 **Goal**: Strengthen configuration, improve DX, and lay groundwork for extensibility.
 
@@ -27,7 +27,7 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 
 ---
 
-## 🚧 Phase 2: Plugin & Strategy Architecture (Q2–Q3 2024)
+## 🚧 Phase 2: Plugin & Strategy Architecture 
 
 **Goal**: Make the review engine more composable, swappable, and testable.
 
@@ -47,7 +47,7 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 
 ---
 
-## ✨ Phase 3: Prompt Enhancements (Q3 2024)
+## ✨ Phase 3: Prompt Enhancements
 
 **Goal**: Add meta-prompting and user-defined prompts.
 
@@ -67,7 +67,7 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 
 ---
 
-## 📦 Phase 4: Review Output Enhancements (Q3-Q4 2024)
+## 🚧 Phase 4: Review Output Enhancements 
 
 **Goal**: Improve output quality, formatting, and traceability.
 
@@ -79,35 +79,16 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 
 **Dependencies**: Can be developed in parallel with Phase 3, but benefits from Phase 2's strategy architecture.
 
+- [x] Add static code analysis integration (ts-prune, eslint) *(Implemented in v2.1.0: Added ts-prune and eslint integration for unused code detection)*
+- [x] Add dependency visualization integration *(Implemented in v2.1.0: Added dependency-cruiser integration for architectural reviews)*
 - [ ] Add metadata headers to each review (model, token cost, timestamp)
 - [ ] Embed original code context alongside suggestions
 - [ ] Include model confidence or explanation (if available)
 - [ ] Support HTML and CLI-rendered output options
 - [ ] Add inline annotations in markdown output (like GitHub PRs)
-
 ---
 
-## 🌐 Phase 5: Multi-Provider + Caching (Q4 2024–Q1 2025)
-
-**Goal**: Enhance reliability and cost-effectiveness with provider fallback + caching.
-
-**Success Metrics**:
-- Automatic fallback between providers when one fails
-- Smart routing based on cost or quota availability
-- Significant reduction in API costs through caching
-- Cache invalidation strategy prevents stale results
-
-**Dependencies**: Requires Phase 1's centralized configuration for provider settings.
-
-- [ ] Retry/fallback support across Gemini/OpenRouter/Anthropic
-- [ ] Smart routing based on token pricing or quota
-- [ ] In-memory and disk-level prompt/response caching
-- [ ] Add cache layer to orchestrator
-- [ ] CLI flag `--no-cache` to disable cache
-
----
-
-## 🧪 Phase 6: Unit Testing & Validation (Q2–Q3 2024)
+## 🧪 Phase 5: Unit Testing & Validation 
 
 **Goal**: Strengthen test coverage and enforce contract correctness.
 

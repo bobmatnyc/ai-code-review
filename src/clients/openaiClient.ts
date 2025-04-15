@@ -27,7 +27,14 @@ import {
   validateOpenAIApiKey,
   isDebugMode
 } from './utils';
-import { formatSingleFileReviewPrompt, formatConsolidatedReviewPrompt } from './utils/promptFormatter';
+import {
+  formatSingleFileReviewPrompt,
+  formatConsolidatedReviewPrompt
+} from './utils/promptFormatter';
+import { getCostInfoFromText } from './utils/tokenCounter';
+import { loadPromptTemplate } from './utils/promptLoader';
+import { ApiError } from '../utils/apiErrorHandler';
+import { getLanguageFromExtension } from './utils/languageDetection';
 
 const MAX_TOKENS_PER_REQUEST = 4000;
 
@@ -139,7 +146,7 @@ export async function generateOpenAIReview(
   if (!isCorrect) {
     throw new Error(
       `OpenAI client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-      `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`
     );
   }
 
@@ -149,13 +156,7 @@ export async function generateOpenAIReview(
       await initializeAnyOpenAIModel();
     }
 
-    // Lazy-load dependencies only when needed
-    const { getCostInfoFromText } = await import('./utils/tokenCounter');
-    const { loadPromptTemplate } = await import('./utils/promptLoader');
-    const { ApiError } = await import('../utils/apiErrorHandler');
-    const { getLanguageFromExtension } = await import(
-      './utils/languageDetection'
-    );
+    // Dependencies are now imported at the top of the file
 
     // Get API key from environment variables
     const apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
@@ -245,7 +246,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Calculate cost information
       try {
-        cost = getCostInfoFromText(prompt + content, `openai:${modelName}`);
+        cost = getCostInfoFromText(prompt, content, `openai:${modelName}`);
       } catch (error) {
         logger.warn(
           `Failed to calculate cost information: ${
@@ -273,7 +274,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
       }
     } catch (parseError) {
       logger.warn(
@@ -325,7 +328,7 @@ export async function generateOpenAIConsolidatedReview(
   if (!isCorrect) {
     throw new Error(
       `OpenAI client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-      `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`
     );
   }
 
@@ -335,10 +338,7 @@ export async function generateOpenAIConsolidatedReview(
       await initializeAnyOpenAIModel();
     }
 
-    // Lazy-load dependencies only when needed
-    const { getCostInfoFromText } = await import('./utils/tokenCounter');
-    const { loadPromptTemplate } = await import('./utils/promptLoader');
-    const { ApiError } = await import('../utils/apiErrorHandler');
+    // Dependencies are now imported at the top of the file
 
     // Get API key from environment variables
     const apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
@@ -429,7 +429,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Calculate cost information
       try {
-        cost = getCostInfoFromText(prompt + content, `openai:${modelName}`);
+        cost = getCostInfoFromText(prompt, content, `openai:${modelName}`);
       } catch (error) {
         logger.warn(
           `Failed to calculate cost information: ${
@@ -457,7 +457,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
       }
     } catch (parseError) {
       logger.warn(

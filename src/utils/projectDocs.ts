@@ -40,6 +40,18 @@ export interface ProjectDocs {
    * Content of PROGRESS.md
    */
   progress?: string;
+  
+  /**
+   * Additional metadata that can be added programmatically
+   */
+  metadata?: Record<string, string>;
+  
+  /**
+   * Add metadata to project documentation
+   * @param key Metadata key
+   * @param value Metadata value
+   */
+  addMetadata?: (key: string, value: string) => void;
 }
 
 /**
@@ -51,7 +63,15 @@ export async function readProjectDocs(
   projectPath: string,
   contextFiles?: string
 ): Promise<ProjectDocs> {
-  const docs: ProjectDocs = {};
+  const docs: ProjectDocs = {
+    metadata: {} as Record<string, string>,
+    addMetadata(key: string, value: string) {
+      if (!this.metadata) {
+        this.metadata = {};
+      }
+      this.metadata[key] = value;
+    }
+  };
 
   // If context files are specified, read them
   if (contextFiles) {
@@ -79,7 +99,7 @@ export async function readProjectDocs(
       if (await fileExists(filePath)) {
         try {
           const content = await fs.readFile(filePath, 'utf-8');
-          docs[key] = content;
+          (docs as any)[key] = content;
         } catch (error) {
           console.warn(`Warning: Could not read ${file}:`, error);
         }
@@ -95,7 +115,7 @@ export async function readProjectDocs(
     if (await fileExists(filePath)) {
       try {
         const content = await fs.readFile(filePath, 'utf-8');
-        docs[defaultFile.name as keyof ProjectDocs] = content;
+        (docs as any)[defaultFile.name] = content;
       } catch (error) {
         console.warn(`Warning: Could not read ${defaultFile.path}:`, error);
       }
@@ -115,10 +135,21 @@ export function formatProjectDocs(docs: ProjectDocs): string {
 
   // Process each document in the docs object
   for (const [key, content] of Object.entries(docs)) {
-    if (content) {
+    if (content && key !== 'metadata' && key !== 'addMetadata') {
       // Format the section title based on the key
       const title = key.charAt(0).toUpperCase() + key.slice(1);
       result += `## ${title} Documentation (${key.toUpperCase()}.md):\n\n${content}\n\n`;
+    }
+  }
+  
+  // Add metadata if present
+  if (docs.metadata && Object.keys(docs.metadata).length > 0) {
+    for (const [key, content] of Object.entries(docs.metadata)) {
+      if (content) {
+        // Format the metadata section
+        const title = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+        result += `## ${title}\n\n${content}\n\n`;
+      }
     }
   }
 
@@ -131,7 +162,10 @@ export function formatProjectDocs(docs: ProjectDocs): string {
  * @param docs Project documentation object
  * @returns The prompt with documentation added
  */
-export function addProjectDocsToPrompt(prompt: string, docs: ProjectDocs): string {
+export function addProjectDocsToPrompt(
+  prompt: string,
+  docs: ProjectDocs
+): string {
   const docsText = formatProjectDocs(docs);
   if (docsText) {
     // Try to replace a placeholder if it exists

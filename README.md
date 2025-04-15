@@ -1,11 +1,21 @@
-# AI Code Review v1.9.4
+# AI Code Review v2.1.0
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, OpenAI models, and OpenRouter API (Claude, GPT-4, etc.) with LangChain integration for enhanced prompt management.
 
-## What's New in v1.9.4
+## What's New in v2.1.0
 
-### Major Features
+### Major Features in v2.1.0
 
+- **Automatic Language Detection**: Automatically detects Python, PHP, TypeScript, and JavaScript projects
+- **Multi-Language Support**: Added specialized prompts for Python and PHP code review
+- **Dependency Analysis**: Added dependency-cruiser integration for architectural reviews
+- **Static Code Analysis**: Added ts-prune and eslint integration for unused code detection
+- **Enhanced Prompts**: Improved prompt templates with standardized YAML metadata
+- **TypeScript Focus**: Added specialized TypeScript architectural review prompt
+
+### Major Features in v2.0.0
+
+- **Stable Release**: Version 2.0.0 marks the first stable release with all major features complete
 - **LangChain Integration**: Added LangChain for enhanced prompt management, templating, and chain capabilities
 - **New Review Types**: Added 'unused-code' review type to identify and suggest removal of dead code
 - **Improved Prompts**: Enhanced prompt templates with LangChain, including few-shot learning and structured output
@@ -19,6 +29,10 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 
 ### Other Improvements
 
+- **Fixed Unit Tests**: Ensured compatibility with the latest dependencies
+- **Improved Jest Configuration**: Added proper handling for ESM modules
+- **Removed Prettier Checking**: Improved developer experience by removing Prettier from the test process
+- **Fixed ESLint Issues**: Added p-limit dependency to fix ESLint errors
 - **Model Listing Feature**: Added `--models` flag to list all supported models with their configuration names
 - **Improved Error Handling**: Enhanced error handling and recovery mechanisms
 - **Debug Logging Control**: Suppressed DEBUG logging messages in production builds
@@ -143,7 +157,7 @@ ai-code-review src/index.ts
 # Review an entire directory with interactive mode
 ai-code-review src/utils --interactive
 
-# Perform an architectural review
+# Perform an architectural review with dependency analysis
 ai-code-review src --type architectural
 
 # Find unused code that can be safely removed
@@ -151,6 +165,9 @@ ai-code-review src --type unused-code
 
 # Use deep code tracing for high-confidence unused code detection
 ai-code-review src --type unused-code --trace-code
+
+# Use static analysis tools for unused code detection
+ai-code-review src --type unused-code --use-ts-prune --use-eslint
 
 # Use LangChain for enhanced prompt management
 ai-code-review src --type quick-fixes --prompt-strategy langchain
@@ -215,6 +232,7 @@ Options:
   --include-tests         Include test files in the review (default: false)
   -o, --output <format>   Output format (markdown, json) (default: "markdown")
   -d, --include-project-docs  Include project documentation in the context (default: true)
+  --include-dependency-analysis Include dependency analysis in architectural reviews (default: true)
   -c, --consolidated      Generate a single consolidated review (default: true)
   --individual            Generate individual file reviews (default: false)
   -i, --interactive       Process review results interactively (default: false)
@@ -226,6 +244,8 @@ Options:
   --listmodels            List all available models (default: false)
   --models                List all supported models with their configuration names (default: false)
   --trace-code            Use deep code tracing for high-confidence unused code detection (default: false)
+  --use-ts-prune          Use ts-prune static analysis to detect unused exports in unused-code reviews (default: false)
+  --use-eslint            Use eslint static analysis to detect unused variables in unused-code reviews (default: false)
   --prompt-strategy       Prompt strategy to use (anthropic, gemini, openai, langchain) (optional)
   -e, --estimate          Estimate token usage and cost without performing the review (default: false)
   -v, --version           Output the current version
@@ -368,7 +388,7 @@ ai-code-review src/components --type quick-fixes --prompt-strategy langchain
 
 ### Environment Variables
 
-Create a `.env.local` file in your project root with your API keys:
+Create a `.env.local` file in the AI Code Review tool directory with your API keys:
 
 ```
 # For Google Gemini models
@@ -376,6 +396,61 @@ AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
 
 # For OpenRouter models (Claude, GPT-4, etc.)
 AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# For Anthropic models directly
+AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# For OpenAI models directly
+AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here
+```
+
+#### Global Installation
+
+When installed globally, you can use the setup script to create your `.env.local` file:
+
+```bash
+# If installed via npm
+npx @bobmatnyc/ai-code-review/scripts/setup-env.js
+
+# If installed via Homebrew
+node /opt/homebrew/lib/node_modules/@bobmatnyc/ai-code-review/scripts/setup-env.js
+```
+
+The script will guide you through setting up your API keys and will place the `.env.local` file in the correct directory.
+
+#### Quick Fix for Environment Errors in Global Installation
+
+If you're seeing errors about missing `.env` or `.env.local` files when running the globally installed tool, use this quick fix script:
+
+```bash
+# Download and run the fix script
+curl -O https://raw.githubusercontent.com/bobmatnyc/ai-code-review/develop/scripts/global-env-fix.js
+node global-env-fix.js
+
+# You may need to run with sudo if permission errors occur
+sudo node global-env-fix.js
+```
+
+This script will patch the global installation to avoid errors when environment files are missing and help you set up your API keys properly.
+
+Alternatively, you can manually place your `.env.local` file in one of these locations:
+
+1. If you installed via npm:
+   ```
+   /path/to/global/node_modules/@bobmatnyc/ai-code-review/.env.local
+   ```
+   
+2. If you installed via Homebrew:
+   ```
+   /opt/homebrew/lib/node_modules/@bobmatnyc/ai-code-review/.env.local
+   ```
+
+3. Or, you can set the `AI_CODE_REVIEW_DIR` environment variable to specify the directory containing your `.env.local`:
+   ```bash
+   export AI_CODE_REVIEW_DIR=/path/to/your/config/directory
+   ```
+
+> **Important**: The tool first looks for `.env.local` in its own installation directory, not in the target project being reviewed. This allows you to keep your API keys in one place and review any project without modifying it.
 
 # Model configuration
 # Specify which model to use for code reviews using the format provider:model

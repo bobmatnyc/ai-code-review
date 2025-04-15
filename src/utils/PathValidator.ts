@@ -16,7 +16,7 @@ import path from 'path';
 export function isPathWithinCwd(targetPath: string): boolean {
   const resolvedPath = path.resolve(targetPath);
   const resolvedCwd = path.resolve(process.cwd());
-  
+
   return resolvedPath.startsWith(resolvedCwd);
 }
 
@@ -90,7 +90,7 @@ export function validateTargetPath(targetPath: string): {
 
   // Check if the path is a directory or file
   const isDir = isDirectory(targetPath);
-  
+
   return {
     isValid: true,
     isDir

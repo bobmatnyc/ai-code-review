@@ -1,6 +1,6 @@
 /**
  * @fileoverview Utilities for detecting programming languages from file extensions.
- * 
+ *
  * This module provides functions for mapping file extensions to programming languages,
  * which is useful for formatting code snippets and providing language-specific hints
  * to AI models.

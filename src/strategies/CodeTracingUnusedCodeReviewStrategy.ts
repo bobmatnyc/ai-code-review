@@ -11,18 +11,29 @@
  */
 
 import { BaseReviewStrategy, IReviewStrategy } from './ReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import {
+  FileInfo,
+  ReviewOptions,
+  ReviewResult,
+  ReviewType
+} from '../types/review';
 import { ProjectDocs } from '../utils/files/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { CodeTracingUnusedCodeReview } from '../prompts/schemas/code-tracing-unused-code-schema';
-import { formatCodeTracingUnusedCodeReviewAsMarkdown, generateCodeTracingRemovalScript } from '../formatters/codeTracingUnusedCodeFormatter';
+import {
+  formatCodeTracingUnusedCodeReviewAsMarkdown,
+  generateCodeTracingRemovalScript
+} from '../formatters/codeTracingUnusedCodeFormatter';
 import { formatProjectDocs } from '../utils/files/projectDocs';
 import logger from '../utils/logger';
 
 /**
  * Strategy for performing code tracing based unused code review
  */
-export class CodeTracingUnusedCodeReviewStrategy extends BaseReviewStrategy implements IReviewStrategy {
+export class CodeTracingUnusedCodeReviewStrategy
+  extends BaseReviewStrategy
+  implements IReviewStrategy
+{
   constructor() {
     super('unused-code');
     logger.debug('Initialized CodeTracingUnusedCodeReviewStrategy');
@@ -53,13 +64,16 @@ export class CodeTracingUnusedCodeReviewStrategy extends BaseReviewStrategy impl
 
     // Determine the prompt template to use based on language
     const languagePrefix = options.language ? `${options.language}/` : '';
-    const promptTemplate = options.promptFile || 
+    const promptTemplate =
+      options.promptFile ||
       `${languagePrefix}code-tracing-unused-code-review.md`;
 
     // Build code context from files
-    const codeContext = files.map(file => {
-      return `File: ${file.relativePath || file.path}\n\n\`\`\`${file.extension || 'typescript'}\n${file.content}\n\`\`\``;
-    }).join('\n\n');
+    const codeContext = files
+      .map(file => {
+        return `File: ${file.relativePath || file.path}\n\n\`\`\`${file.extension || 'typescript'}\n${file.content}\n\`\`\``;
+      })
+      .join('\n\n');
 
     // Include project docs if available
     let docsContext = '';
@@ -76,7 +90,7 @@ export class CodeTracingUnusedCodeReviewStrategy extends BaseReviewStrategy impl
 
     // Get the model response with schema validation
     let response;
-    
+
     // This is just a temporary placeholder as we don't have access to the actual API client here
     // In a real implementation, this would be replaced with the appropriate API call
     try {
@@ -101,7 +115,9 @@ export class CodeTracingUnusedCodeReviewStrategy extends BaseReviewStrategy impl
           potentialCodeReduction: ''
         }
       };
-      logger.info('Using mock response for code tracing review (for compilation)');
+      logger.info(
+        'Using mock response for code tracing review (for compilation)'
+      );
     } catch (error) {
       logger.error('Error getting completion:', error);
       throw error;
@@ -115,16 +131,19 @@ export class CodeTracingUnusedCodeReviewStrategy extends BaseReviewStrategy impl
     if (options.output === 'json') {
       formattedResponse = JSON.stringify(response, null, 2);
     } else {
-      formattedResponse = formatCodeTracingUnusedCodeReviewAsMarkdown(typedResponse);
-      
+      formattedResponse =
+        formatCodeTracingUnusedCodeReviewAsMarkdown(typedResponse);
+
       // Add removal script if there are high confidence unused elements
-      const hasHighConfidenceUnused = this.hasHighConfidenceUnusedElements(typedResponse);
+      const hasHighConfidenceUnused =
+        this.hasHighConfidenceUnusedElements(typedResponse);
       if (hasHighConfidenceUnused) {
         formattedResponse += '\n\n## Removal Script\n\n';
         formattedResponse += '```bash\n';
         formattedResponse += generateCodeTracingRemovalScript(typedResponse);
         formattedResponse += '\n```\n\n';
-        formattedResponse += '**Important**: Review the script carefully before execution and make sure to back up your code or use version control.';
+        formattedResponse +=
+          '**Important**: Review the script carefully before execution and make sure to back up your code or use version control.';
       }
     }
 
@@ -138,23 +157,37 @@ export class CodeTracingUnusedCodeReviewStrategy extends BaseReviewStrategy impl
       structuredData: response
     };
   }
-  
+
   /**
    * Check if there are any high confidence unused elements
    * @param review The review to check
    * @returns Whether there are high confidence unused elements
    */
-  private hasHighConfidenceUnusedElements(review: CodeTracingUnusedCodeReview): boolean {
-    const highConfidenceFiles = review.unusedFiles.filter(file => file.confidence === 'high');
-    const highConfidenceFunctions = review.unusedFunctions.filter(func => func.confidence === 'high');
-    const highConfidenceClasses = review.unusedClasses.filter(cls => cls.confidence === 'high');
-    const highConfidenceTypes = review.unusedTypesAndInterfaces.filter(type => type.confidence === 'high');
-    const highConfidenceBranches = review.deadCodeBranches.filter(branch => branch.confidence === 'high');
-    
-    return highConfidenceFiles.length > 0 || 
-           highConfidenceFunctions.length > 0 || 
-           highConfidenceClasses.length > 0 ||
-           highConfidenceTypes.length > 0 || 
-           highConfidenceBranches.length > 0;
+  private hasHighConfidenceUnusedElements(
+    review: CodeTracingUnusedCodeReview
+  ): boolean {
+    const highConfidenceFiles = review.unusedFiles.filter(
+      file => file.confidence === 'high'
+    );
+    const highConfidenceFunctions = review.unusedFunctions.filter(
+      func => func.confidence === 'high'
+    );
+    const highConfidenceClasses = review.unusedClasses.filter(
+      cls => cls.confidence === 'high'
+    );
+    const highConfidenceTypes = review.unusedTypesAndInterfaces.filter(
+      type => type.confidence === 'high'
+    );
+    const highConfidenceBranches = review.deadCodeBranches.filter(
+      branch => branch.confidence === 'high'
+    );
+
+    return (
+      highConfidenceFiles.length > 0 ||
+      highConfidenceFunctions.length > 0 ||
+      highConfidenceClasses.length > 0 ||
+      highConfidenceTypes.length > 0 ||
+      highConfidenceBranches.length > 0
+    );
   }
 }

@@ -54,6 +54,12 @@ export interface ReviewOptions {
    * Whether to include project documentation in the context
    */
   includeProjectDocs?: boolean;
+  
+  /**
+   * Whether to include dependency analysis in architectural reviews
+   * Only applicable for architectural review type
+   */
+  includeDependencyAnalysis?: boolean;
 
   /**
    * Whether to generate a consolidated review instead of individual file reviews
@@ -144,35 +150,45 @@ export interface ReviewOptions {
    * Prompt strategy to use (e.g., 'anthropic', 'gemini', 'openai', 'langchain')
    */
   promptStrategy?: string;
-  
+
   /**
    * Whether to use the focused review strategy (currently for unused-code type)
    */
   focused?: boolean;
-  
+
   /**
    * Whether to use code tracing for unused code detection with high confidence
    */
   traceCode?: boolean;
   
   /**
+   * Whether to use ts-prune for static analysis of unused exports
+   */
+  useTsPrune?: boolean;
+  
+  /**
+   * Whether to use eslint for static analysis of unused variables
+   */
+  useEslint?: boolean;
+
+  /**
    * Schema instructions for structured output
    * @internal
    */
   schemaInstructions?: string;
-  
+
   /**
    * Language-specific instructions
    * @internal
    */
   languageInstructions?: string;
-  
+
   /**
    * Raw code string (used in some strategies)
    * @internal
    */
   code?: string;
-  
+
   /**
    * Example demos for few-shot learning
    * @internal
@@ -278,19 +294,19 @@ export interface ReviewResult {
    * Structured review data (if available)
    */
   structuredData?: any; // Will be typed as StructuredReview when parsed
-  
+
   /**
    * Raw response from the API (used in some strategies)
    * @deprecated Use structuredData instead
    */
   response?: any;
-  
+
   /**
    * Output format of the review
    * @deprecated Use options.output instead
    */
   outputFormat?: string;
-  
+
   /**
    * Metadata for the review
    * @deprecated Use structuredData instead

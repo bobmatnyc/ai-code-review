@@ -61,7 +61,9 @@ export async function handleArchitecturalReview(
         content: fileContent
       });
     } catch (error) {
-      logger.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -85,15 +87,22 @@ export async function handleArchitecturalReview(
       // Check if we have a valid model name
       if (!modelName) {
         logger.error('No OpenRouter model specified in environment variables.');
-        logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
-        logger.error('Example: AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus');
+        logger.error(
+          'Please set AI_CODE_REVIEW_MODEL in your .env.local file.'
+        );
+        logger.error(
+          'Example: AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus'
+        );
         process.exit(1);
       }
 
       logger.info(`Using OpenRouter model: ${modelName}`);
 
       // Dynamically import the OpenRouter client to avoid loading it unnecessarily
-      const { generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } = await import('../clients/openRouterClient.js');
+      const {
+        generateOpenRouterConsolidatedReview,
+        initializeAnyOpenRouterModel
+      } = await import('../clients/openRouterClient.js');
 
       // Initialize OpenRouter model if needed
       await initializeAnyOpenRouterModel();
@@ -109,19 +118,28 @@ export async function handleArchitecturalReview(
       // Check if we have a valid model name
       if (!modelName) {
         logger.error('No Gemini model specified in environment variables.');
-        logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
+        logger.error(
+          'Please set AI_CODE_REVIEW_MODEL in your .env.local file.'
+        );
         logger.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
         process.exit(1);
       }
 
       logger.info(`Using Gemini API with model: ${modelName}`);
 
-      review = await generateArchitecturalReview(fileInfos, project, projectDocs, options);
+      review = await generateArchitecturalReview(
+        fileInfos,
+        project,
+        projectDocs,
+        options
+      );
     } else if (apiKeyType === 'Anthropic') {
       // Check if we have a valid model name
       if (!modelName) {
         logger.error('No Anthropic model specified in environment variables.');
-        logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
+        logger.error(
+          'Please set AI_CODE_REVIEW_MODEL in your .env.local file.'
+        );
         logger.error('Example: AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus');
         process.exit(1);
       }
@@ -129,7 +147,8 @@ export async function handleArchitecturalReview(
       logger.info(`Using Anthropic API with model: ${modelName}`);
 
       // Dynamically import the Anthropic client to avoid loading it unnecessarily
-      const { generateAnthropicConsolidatedReview, initializeAnthropicClient } = await import('../clients/anthropicClient.js');
+      const { generateAnthropicConsolidatedReview, initializeAnthropicClient } =
+        await import('../clients/anthropicClient.js');
 
       // Initialize Anthropic model if needed
       await initializeAnthropicClient();
@@ -145,7 +164,9 @@ export async function handleArchitecturalReview(
       // Check if we have a valid model name
       if (!modelName) {
         logger.error('No OpenAI model specified in environment variables.');
-        logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
+        logger.error(
+          'Please set AI_CODE_REVIEW_MODEL in your .env.local file.'
+        );
         logger.error('Example: AI_CODE_REVIEW_MODEL=openai:gpt-4o');
         process.exit(1);
       }
@@ -153,7 +174,8 @@ export async function handleArchitecturalReview(
       logger.info(`Using OpenAI API with model: ${modelName}`);
 
       // Dynamically import the OpenAI client to avoid loading it unnecessarily
-      const { generateOpenAIArchitecturalReview, initializeAnyOpenAIModel } = await import('../clients/openaiClient.js');
+      const { generateOpenAIArchitecturalReview, initializeAnyOpenAIModel } =
+        await import('../clients/openaiClient.js');
 
       // Initialize OpenAI model if needed
       await initializeAnyOpenAIModel();
@@ -167,7 +189,12 @@ export async function handleArchitecturalReview(
     } else {
       // No API keys available, use mock responses
       logger.warn('No API keys available. Using mock responses.');
-      review = await generateArchitecturalReview(fileInfos, project, projectDocs, options);
+      review = await generateArchitecturalReview(
+        fileInfos,
+        project,
+        projectDocs,
+        options
+      );
     }
 
     // Generate a versioned output path
@@ -211,9 +238,15 @@ export async function handleArchitecturalReview(
         // Print summary
         logger.info('\n--- Review Summary ---');
         logger.info(`Total issues found: ${results.totalSuggestions}`);
-        logger.info(`High priority issues: ${results.highPrioritySuggestions.length}`);
-        logger.info(`Medium priority issues: ${results.mediumPrioritySuggestions.length}`);
-        logger.info(`Low priority issues: ${results.lowPrioritySuggestions.length}`);
+        logger.info(
+          `High priority issues: ${results.highPrioritySuggestions.length}`
+        );
+        logger.info(
+          `Medium priority issues: ${results.mediumPrioritySuggestions.length}`
+        );
+        logger.info(
+          `Low priority issues: ${results.lowPrioritySuggestions.length}`
+        );
         logger.info('----------------------');
       }
     } catch (error: unknown) {
@@ -228,7 +261,9 @@ export async function handleArchitecturalReview(
         logger.error(`  Message: ${error.message}`);
         logger.error(`  Error details logged to: ${errorLogPath}`);
       } else {
-        logger.error(`Unknown error saving architectural review: ${String(error)}`);
+        logger.error(
+          `Unknown error saving architectural review: ${String(error)}`
+        );
       }
     }
   } catch (apiError: unknown) {
@@ -242,17 +277,26 @@ export async function handleArchitecturalReview(
       });
 
       // Check if it's a rate limit error
-      if (apiError.message && apiError.message.includes('Rate limit exceeded')) {
-        logger.error('Rate limit exceeded. The review will continue with a fallback model.');
+      if (
+        apiError.message &&
+        apiError.message.includes('Rate limit exceeded')
+      ) {
+        logger.error(
+          'Rate limit exceeded. The review will continue with a fallback model.'
+        );
         logger.error(`Error details logged to: ${errorLogPath}`);
-        logger.error('You can try again later or reduce the number of files being reviewed.');
+        logger.error(
+          'You can try again later or reduce the number of files being reviewed.'
+        );
       } else {
         logger.error(`Error generating architectural review:`);
         logger.error(`  Message: ${apiError.message}`);
         logger.error(`  Error details logged to: ${errorLogPath}`);
       }
     } else {
-      logger.error(`Unknown error generating architectural review: ${String(apiError)}`);
+      logger.error(
+        `Unknown error generating architectural review: ${String(apiError)}`
+      );
     }
   }
 }
@@ -262,15 +306,23 @@ export async function handleArchitecturalReview(
  * @param options Review options that may contain the priority filter
  * @returns The priority filter (h, m, l, or a) or undefined if not specified
  */
-function getPriorityFilterFromArgs(options?: ReviewOptions): 'h' | 'm' | 'l' | 'a' | undefined {
+function getPriorityFilterFromArgs(
+  options?: ReviewOptions
+): 'h' | 'm' | 'l' | 'a' | undefined {
   // First check if the interactive option is a string (priority filter)
-  if (options && typeof options.interactive === 'string' && ['h', 'm', 'l', 'a'].includes(options.interactive)) {
+  if (
+    options &&
+    typeof options.interactive === 'string' &&
+    ['h', 'm', 'l', 'a'].includes(options.interactive)
+  ) {
     return options.interactive as 'h' | 'm' | 'l' | 'a';
   }
 
   // Otherwise check if there's a priority filter argument after --interactive
   const args = process.argv;
-  const interactiveIndex = args.findIndex(arg => arg === '--interactive' || arg === '-i');
+  const interactiveIndex = args.findIndex(
+    arg => arg === '--interactive' || arg === '-i'
+  );
 
   if (interactiveIndex !== -1 && interactiveIndex < args.length - 1) {
     const nextArg = args[interactiveIndex + 1];

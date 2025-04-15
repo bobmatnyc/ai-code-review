@@ -45,9 +45,7 @@ export function validateGoogleApiKey(
   if (!apiKey) {
     logger.error('No Google API key found.');
     logger.error('Please add the following to your .env file:');
-    logger.error(
-      '- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here'
-    );
+    logger.error('- AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here');
     return false;
   }
 

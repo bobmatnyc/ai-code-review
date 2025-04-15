@@ -27,7 +27,10 @@ import logger from './logger';
  * @param context Additional context information
  * @returns Promise resolving to the path of the error log file
  */
-export async function logError(error: any, context: Record<string, any> = {}): Promise<string> {
+export async function logError(
+  error: any,
+  context: Record<string, any> = {}
+): Promise<string> {
   try {
     // Create error logs directory
     const errorLogsDir = path.resolve('error-logs');
@@ -42,7 +45,7 @@ export async function logError(error: any, context: Record<string, any> = {}): P
       timestamp: new Date().toISOString(),
       message: error?.message || 'Unknown error',
       stack: error?.stack,
-      context,
+      context
     };
 
     // Write error to file

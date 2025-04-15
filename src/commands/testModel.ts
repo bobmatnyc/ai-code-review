@@ -2,8 +2,17 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { getModelsByProvider, MODEL_MAP, Provider } from '../clients/utils/modelMaps';
-import { testGeminiModel, testAnthropicModel, testOpenAIModel, testOpenRouterModel } from '../clients/utils/modelTester';
+import {
+  getModelsByProvider,
+  MODEL_MAP,
+  Provider
+} from '../clients/utils/modelMaps';
+import {
+  testGeminiModel,
+  testAnthropicModel,
+  testOpenAIModel,
+  testOpenRouterModel
+} from '../clients/utils/modelTester';
 import logger from '../utils/logger';
 
 /**
@@ -11,9 +20,15 @@ import logger from '../utils/logger';
  */
 export const testModelCommand = new Command('model-test')
   .description('Test AI models to verify API keys and model availability')
-  .argument('[provider:model]', 'Provider and model to test (e.g. gemini:gemini-1.5-pro, anthropic:claude-3-opus)')
+  .argument(
+    '[provider:model]',
+    'Provider and model to test (e.g. gemini:gemini-1.5-pro, anthropic:claude-3-opus)'
+  )
   .option('--all', 'Test all available models')
-  .option('-p, --provider <provider>', 'Test all models for a specific provider')
+  .option(
+    '-p, --provider <provider>',
+    'Test all models for a specific provider'
+  )
   .action(async (modelStr, options) => {
     try {
       if (options.all) {
@@ -45,22 +60,26 @@ export const testModelCommand = new Command('model-test')
 async function testSpecificModel(modelStr: string) {
   // Extract provider and model name
   const [provider, modelName] = modelStr.split(':');
-  
+
   if (!provider || !modelName) {
-    logger.error('Invalid model string. Format should be provider:model (e.g. gemini:gemini-1.5-pro)');
+    logger.error(
+      'Invalid model string. Format should be provider:model (e.g. gemini:gemini-1.5-pro)'
+    );
     return;
   }
-  
+
   const fullModelKey = `${provider}:${modelName}`;
   const modelMapping = MODEL_MAP[fullModelKey];
-  
+
   if (!modelMapping) {
     logger.error(`Model ${fullModelKey} not found in model registry`);
     return;
   }
-  
-  logger.info(`Testing model: ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(fullModelKey)})`);
-  
+
+  logger.info(
+    `Testing model: ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(fullModelKey)})`
+  );
+
   let result;
   switch (provider as Provider) {
     case 'gemini':
@@ -79,7 +98,7 @@ async function testSpecificModel(modelStr: string) {
       logger.error(`Unknown provider: ${provider}`);
       return;
   }
-  
+
   if (result.success) {
     logger.info(chalk.green(`✓ ${result.message}`));
     if (result.response) {
@@ -96,17 +115,21 @@ async function testSpecificModel(modelStr: string) {
 async function testAllModels() {
   const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
   const results = [];
-  
+
   logger.info(chalk.bold('Testing all models from all providers...\n'));
-  
+
   for (const provider of providers) {
     const modelKeys = getModelsByProvider(provider);
-    logger.info(chalk.bold(`\nTesting ${modelKeys.length} ${provider} models:`));
-    
+    logger.info(
+      chalk.bold(`\nTesting ${modelKeys.length} ${provider} models:`)
+    );
+
     for (const modelKey of modelKeys) {
       const modelMapping = MODEL_MAP[modelKey];
-      process.stdout.write(`  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `);
-      
+      process.stdout.write(
+        `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `
+      );
+
       let result;
       switch (provider) {
         case 'gemini':
@@ -122,14 +145,14 @@ async function testAllModels() {
           result = await testOpenRouterModel(modelMapping.apiName);
           break;
       }
-      
+
       results.push({
         provider,
         modelKey,
         displayName: modelMapping.displayName,
         result
       });
-      
+
       if (result.success) {
         process.stdout.write(chalk.green('✓\n'));
       } else {
@@ -137,21 +160,23 @@ async function testAllModels() {
       }
     }
   }
-  
+
   // Print summary
   const successful = results.filter(r => r.result.success).length;
   const failed = results.length - successful;
-  
+
   logger.info(chalk.bold('\nSummary:'));
   logger.info(`  ${chalk.green(`${successful} models available`)}`);
   logger.info(`  ${chalk.red(`${failed} models unavailable`)}`);
-  
+
   if (failed > 0) {
     logger.info(chalk.bold('\nFailed models:'));
     results
       .filter(r => !r.result.success)
       .forEach(r => {
-        logger.info(`  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.result.message)}`);
+        logger.info(
+          `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.result.message)}`
+        );
       });
   }
 }
@@ -162,19 +187,21 @@ async function testAllModels() {
 async function testProviderModels(providerStr: string) {
   const provider = providerStr as Provider;
   const modelKeys = getModelsByProvider(provider);
-  
+
   if (modelKeys.length === 0) {
     logger.error(`Unknown provider: ${provider}`);
     return;
   }
-  
+
   logger.info(chalk.bold(`Testing ${modelKeys.length} ${provider} models:\n`));
   const results = [];
-  
+
   for (const modelKey of modelKeys) {
     const modelMapping = MODEL_MAP[modelKey];
-    process.stdout.write(`  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `);
-    
+    process.stdout.write(
+      `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `
+    );
+
     let result;
     switch (provider) {
       case 'gemini':
@@ -190,34 +217,36 @@ async function testProviderModels(providerStr: string) {
         result = await testOpenRouterModel(modelMapping.apiName);
         break;
     }
-    
+
     results.push({
       modelKey,
       displayName: modelMapping.displayName,
       result
     });
-    
+
     if (result.success) {
       process.stdout.write(chalk.green('✓\n'));
     } else {
       process.stdout.write(chalk.red('✗\n'));
     }
   }
-  
+
   // Print summary
   const successful = results.filter(r => r.result.success).length;
   const failed = results.length - successful;
-  
+
   logger.info(chalk.bold('\nSummary:'));
   logger.info(`  ${chalk.green(`${successful} models available`)}`);
   logger.info(`  ${chalk.red(`${failed} models unavailable`)}`);
-  
+
   if (failed > 0) {
     logger.info(chalk.bold('\nFailed models:'));
     results
       .filter(r => !r.result.success)
       .forEach(r => {
-        logger.info(`  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.result.message)}`);
+        logger.info(
+          `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.result.message)}`
+        );
       });
   }
 }
@@ -228,18 +257,20 @@ async function testProviderModels(providerStr: string) {
 async function testDefaultModels() {
   const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
   const results = [];
-  
+
   logger.info(chalk.bold('Testing default models from each provider:\n'));
-  
+
   for (const provider of providers) {
     const modelKeys = getModelsByProvider(provider);
     if (modelKeys.length === 0) continue;
-    
+
     const defaultModelKey = modelKeys[0]; // Just use the first one
     const modelMapping = MODEL_MAP[defaultModelKey];
-    
-    process.stdout.write(`  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(defaultModelKey)})... `);
-    
+
+    process.stdout.write(
+      `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(defaultModelKey)})... `
+    );
+
     let result;
     switch (provider) {
       case 'gemini':
@@ -255,35 +286,37 @@ async function testDefaultModels() {
         result = await testOpenRouterModel(modelMapping.apiName);
         break;
     }
-    
+
     results.push({
       provider,
       modelKey: defaultModelKey,
       displayName: modelMapping.displayName,
       result
     });
-    
+
     if (result.success) {
       process.stdout.write(chalk.green('✓\n'));
     } else {
       process.stdout.write(chalk.red('✗\n'));
     }
   }
-  
+
   // Print summary
   const successful = results.filter(r => r.result.success).length;
   const failed = results.length - successful;
-  
+
   logger.info(chalk.bold('\nSummary:'));
   logger.info(`  ${chalk.green(`${successful} providers available`)}`);
   logger.info(`  ${chalk.red(`${failed} providers unavailable`)}`);
-  
+
   if (failed > 0) {
     logger.info(chalk.bold('\nUnavailable providers:'));
     results
       .filter(r => !r.result.success)
       .forEach(r => {
-        logger.info(`  ${chalk.cyan(r.provider)}: ${chalk.red(r.result.message)}`);
+        logger.info(
+          `  ${chalk.cyan(r.provider)}: ${chalk.red(r.result.message)}`
+        );
       });
   }
 }

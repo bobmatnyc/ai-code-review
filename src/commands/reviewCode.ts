@@ -38,10 +38,12 @@ export async function reviewCode(
       const fragment = (options as any)['prompt-fragment'] as string;
       const position = (options as any)['prompt-fragment-position'] || 'middle';
 
-      options.promptFragments = [{
-        content: fragment,
-        position: position as 'start' | 'middle' | 'end'
-      }];
+      options.promptFragments = [
+        {
+          content: fragment,
+          position: position as 'start' | 'middle' | 'end'
+        }
+      ];
 
       delete (options as any)['prompt-fragment'];
       delete (options as any)['prompt-fragment-position'];
@@ -64,7 +66,9 @@ export async function reviewCode(
   } catch (error) {
     // Any unhandled errors will be caught here
     // The orchestrator should handle most errors, but this is a safety net
-    console.error(`Unhandled error in reviewCode: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(
+      `Unhandled error in reviewCode: ${error instanceof Error ? error.message : String(error)}`
+    );
     process.exit(1);
   }
 }

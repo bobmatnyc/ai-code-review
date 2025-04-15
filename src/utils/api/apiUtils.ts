@@ -44,7 +44,12 @@ export function hasApiKey(provider: string): boolean {
  * // If no API keys are set
  * getApiKeyType() // Returns 'none'
  */
-export function getApiKeyType(): 'google' | 'openrouter' | 'anthropic' | 'openai' | 'none' {
+export function getApiKeyType():
+  | 'google'
+  | 'openrouter'
+  | 'anthropic'
+  | 'openai'
+  | 'none' {
   if (hasApiKey('gemini')) {
     return 'google';
   } else if (hasApiKey('openrouter')) {
@@ -85,9 +90,15 @@ export function formatApiError(error: any, provider: string): string {
   // Check for common API errors
   if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
     return `${provider} API key is invalid or expired. Please check your API key.`;
-  } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+  } else if (
+    errorMessage.includes('429') ||
+    errorMessage.includes('rate limit')
+  ) {
     return `${provider} API rate limit exceeded. Please try again later.`;
-  } else if (errorMessage.includes('500') || errorMessage.includes('server error')) {
+  } else if (
+    errorMessage.includes('500') ||
+    errorMessage.includes('server error')
+  ) {
     return `${provider} API server error. Please try again later.`;
   } else {
     return `${provider} API error: ${errorMessage}`;
@@ -114,7 +125,11 @@ export function formatApiError(error: any, provider: string): string {
  *   apiKey: 'sk-1234' // This will be redacted in the logs
  * });
  */
-export function logApiRequest(provider: string, endpoint: string, params: any): void {
+export function logApiRequest(
+  provider: string,
+  endpoint: string,
+  params: any
+): void {
   // Clone the params to avoid modifying the original
   const redactedParams = { ...params };
 

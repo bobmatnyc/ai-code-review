@@ -1,8 +1,8 @@
 # 🧠 AI Assistant Instructions
-- Updated 4-15-2025
+- Updated 4-17-2025
 
 ## 🔧 Core Principles
-let'
+
 ### ✅ Best Practices
 
 - Always implement using modern, community-validated best practices.
@@ -34,6 +34,7 @@ let'
 ### 🔭 Development Flow
 
 - Run linting and typechecking after all changes—non-negotiable.
+- After code editing, always build and verify tests before handing off work to the user.
 - Ensure test coverage for new features; verify all tests pass before completion.
 - Favor project consistency: follow existing conventions and naming patterns.
 - Optimize for clarity, maintainability, and fast onboarding.
@@ -70,7 +71,7 @@ let'
 - Unit tests required for all core logic and utilities.
 - Integration tests for API services or multi-component flows.
 - Use mocks/stubs only when external dependencies are involved.
-- Prefer `Vitest`, `Jest`, or the project’s default test runner.
+- Prefer `Vitest`, `Jest`, or the project's default test runner.
 - All tests must pass with >80% coverage unless justified.
 
 ---
@@ -82,7 +83,8 @@ let'
 - `README.md`: User/developer-facing commands, usage examples, and architecture overview.
 - `INSTRUCTIONS.md`: AI assistant directives (this document).
 - `PROJECT.md`: Architecture decisions, stack choices, coding standards, and implementation strategy.
-- `PROGRESS.md`: Session logs with status, blockers, tasks, and commits.
+- `PROGRESS.md`: Session logs with status, blockers, tasks, and commits.  Includes TODOS from ongoing work.
+- 'ROADMAP.md': Long term project roadmap and feature prioritization.
 - `ABOUT.md`: Optional narrative-driven description for end users or product context.
 
 ### 📄 Updating `PROJECT.md`
@@ -107,11 +109,11 @@ Update this file when any of the following occur:
 At the start of every session, add a dated header:
 
 - Log:
-  - Completed tasks
-  - Current status / blockers
-  - Next steps
-  - Git commit references (at end of section)
-- Keep a live “To Do” list at the bottom of the file
+    - Completed tasks
+    - Current status / blockers
+    - Next steps
+    - Git commit references (at end of section)
+- Keep a live "To Do" list at the bottom of the file
 
 ---
 
@@ -128,11 +130,11 @@ When `PROGRESS.md` exceeds 1000 lines or at the end of the month:
    ```
 
 2. Start a fresh `PROGRESS.md`:
-   - Header with current date and session number
-   - Tasks Completed
-   - Implementation Progress
-   - To Do
-   - Reference to the archived file
+    - Header with current date and session number
+    - Tasks Completed
+    - Implementation Progress
+    - To Do
+    - Reference to the archived file
 
 ---
 

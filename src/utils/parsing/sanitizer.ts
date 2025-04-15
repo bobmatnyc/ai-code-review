@@ -26,25 +26,70 @@ export function sanitizeHtml(content: string): string {
     // Configure DOMPurify to allow certain tags and attributes
     const sanitized = DOMPurify.sanitize(content, {
       ALLOWED_TAGS: [
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'p', 'br', 'hr',
-        'ul', 'ol', 'li',
-        'b', 'i', 'strong', 'em', 'code', 'pre',
-        'a', 'span', 'div',
-        'table', 'thead', 'tbody', 'tr', 'th', 'td'
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'p',
+        'br',
+        'hr',
+        'ul',
+        'ol',
+        'li',
+        'b',
+        'i',
+        'strong',
+        'em',
+        'code',
+        'pre',
+        'a',
+        'span',
+        'div',
+        'table',
+        'thead',
+        'tbody',
+        'tr',
+        'th',
+        'td'
       ],
-      ALLOWED_ATTR: [
-        'href', 'target', 'rel', 'class', 'id', 'style'
-      ],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'id', 'style'],
       FORBID_TAGS: [
-        'script', 'iframe', 'object', 'embed', 'form', 'input', 'button',
-        'style', 'link', 'meta', 'base', 'applet', 'math', 'svg'
+        'script',
+        'iframe',
+        'object',
+        'embed',
+        'form',
+        'input',
+        'button',
+        'style',
+        'link',
+        'meta',
+        'base',
+        'applet',
+        'math',
+        'svg'
       ],
       FORBID_ATTR: [
-        'onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout',
-        'onmousedown', 'onmouseup', 'onkeydown', 'onkeyup', 'onkeypress',
-        'onfocus', 'onblur', 'onchange', 'onsubmit', 'onreset',
-        'javascript:', 'data:', 'vbscript:'
+        'onerror',
+        'onload',
+        'onclick',
+        'onmouseover',
+        'onmouseout',
+        'onmousedown',
+        'onmouseup',
+        'onkeydown',
+        'onkeyup',
+        'onkeypress',
+        'onfocus',
+        'onblur',
+        'onchange',
+        'onsubmit',
+        'onreset',
+        'javascript:',
+        'data:',
+        'vbscript:'
       ]
     });
 
@@ -64,7 +109,7 @@ export function sanitizeHtml(content: string): string {
 export function sanitizeMarkdown(content: string): string {
   try {
     // Remove potentially harmful content
-    let sanitized = content
+    const sanitized = content
       // Remove HTML comments
       .replace(/<!--[\s\S]*?-->/g, '')
       // Remove script tags and their content

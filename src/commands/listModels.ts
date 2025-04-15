@@ -18,9 +18,8 @@ import { hideBin } from 'yargs/helpers';
  * Main function to run the list-models command
  */
 async function main() {
-  // Load environment variables
-  const envLocalPath = path.resolve(process.cwd(), '.env.local');
-  await loadEnvVariables(envLocalPath);
+  // Load environment variables from the tool's directory first
+  await loadEnvVariables();
 
   // Parse command line arguments
   const argv = await yargs(hideBin(process.argv))
@@ -28,13 +27,13 @@ async function main() {
       alias: 'a',
       type: 'boolean',
       default: false,
-      describe: 'Show only available models (with configured API keys)',
+      describe: 'Show only available models (with configured API keys)'
     })
     .option('current', {
       alias: 'c',
       type: 'boolean',
       default: false,
-      describe: 'Show only the current model (from AI_CODE_REVIEW_MODEL)',
+      describe: 'Show only the current model (from AI_CODE_REVIEW_MODEL)'
     })
     .help()
     .parse();

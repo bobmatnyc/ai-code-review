@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2024-04-17
+
+### Added
+
+- Added Python and PHP prompt subdirectories for language-specific code reviews
+- Added automatic programming language detection based on project files and structure
+- Expanded file extension support to include Python, PHP, and other major programming languages
+- Added environment variable loading prioritization to use the tool's own .env file
+- Improved global installation environment handling with better directory detection
+- Improved error messages for missing .env files and API keys
+- Added setup-env.js script to help configure API keys for global installations
+- Added support for AI_CODE_REVIEW_DIR environment variable to specify config location
+- Added dependency-cruiser integration for architectural reviews
+- Added ts-prune and eslint integration for unused code detection
+- Added standardized YAML metadata to all prompt templates
+- Added specialized TypeScript architectural review prompt
+- Added new CLI options: `--include-dependency-analysis`, `--use-ts-prune`, and `--use-eslint`
+
+### Changed
+- Enhanced architectural review to analyze dependency structure
+- Improved prompt templates with consistent formatting
+- Made prompt loading more robust with consistent metadata
+
+### Fixed
+- Fixed TypeScript compilation errors in ProjectDocs interface
+- Fixed dependency issues with chalk library
+
+## [2.0.0] - 2024-04-15
+
+### Added
+- LangChain integration for enhanced prompt management and templating
+- New unused-code review type with deep code tracing
+- Structured schemas for all review types
+- Enhanced TypeScript-specific templates
+- Model testing command with comprehensive provider and model support
+
+### Changed
+- Complete codebase reorganization with strategy pattern
+- Standardized prompt templates and loading system
+- Enhanced error handling and recovery mechanisms
+
 ## [1.9.4] - 2024-04-13
 
 ### Added

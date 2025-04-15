@@ -22,5 +22,8 @@ export * from './files';
 // Parsing utilities
 export * from './parsing';
 
+// Detection utilities
+export * from './detection';
+
 // Re-export types
 export * from '../types/review';

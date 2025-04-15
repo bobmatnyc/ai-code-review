@@ -13,7 +13,7 @@ Act as a **code cleanup expert with deep knowledge of static analysis**. Perform
 
 {{LANGUAGE_INSTRUCTIONS}}
 
-> **Context**: This is an unused code focused review to identify and safely remove dead code.
+> **Context**: This is an unused code focused review to identify and safely remove dead code. The analysis may include results from static analysis tools like ts-prune (for unused exports) and eslint (for unused local variables).
 
 {{SCHEMA_INSTRUCTIONS}}
 

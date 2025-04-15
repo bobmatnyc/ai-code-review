@@ -23,18 +23,29 @@ import {
 } from '../types/review';
 import { ProjectDocs, addProjectDocsToPrompt } from '../utils/projectDocs';
 import logger from '../utils/logger';
-import { generateDirectoryStructure, validateOpenRouterApiKey, isDebugMode } from './utils';
+import {
+  generateDirectoryStructure,
+  validateOpenRouterApiKey,
+  isDebugMode
+} from './utils';
 import { getCostInfoFromText } from './utils/tokenCounter';
 import { loadPromptTemplate } from './utils/promptLoader';
 import { ApiError } from '../utils/apiErrorHandler';
 import { getLanguageFromExtension } from './utils/languageDetection';
-import { formatSingleFileReviewPrompt, formatConsolidatedReviewPrompt } from './utils/promptFormatter';
+import {
+  formatSingleFileReviewPrompt,
+  formatConsolidatedReviewPrompt
+} from './utils/promptFormatter';
 
 // Track if we've initialized a model successfully
 let modelInitialized = false;
 
 // Helper function to check if this is the correct client for the selected model
-function isOpenRouterModel(): { isCorrect: boolean; adapter: string; modelName: string } {
+function isOpenRouterModel(): {
+  isCorrect: boolean;
+  adapter: string;
+  modelName: string;
+} {
   // Get the model from environment variables
   const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
 
@@ -115,7 +126,7 @@ export async function generateOpenRouterReview(
   if (!isCorrect) {
     throw new Error(
       `OpenRouter client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-      `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`
     );
   }
 
@@ -151,20 +162,22 @@ export async function generateOpenRouterReview(
       console.log(`Generating review with OpenRouter ${modelName}...`);
 
       // Make the API request
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
-          'X-Title': 'AI Code Review'
-        },
-        body: JSON.stringify({
-          model: modelName,
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+      const response = await fetch(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+            'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
+            'X-Title': 'AI Code Review'
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
 
 IMPORTANT: Your response MUST be in the following JSON format:
 
@@ -194,16 +207,17 @@ IMPORTANT: Your response MUST be in the following JSON format:
 }
 
 Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.2,
-          max_tokens: 4000
-        })
-      });
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.2,
+            max_tokens: 4000
+          })
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -213,7 +227,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       const data = await response.json();
       if (data.choices && data.choices.length > 0) {
         content = data.choices[0].message.content;
-        console.log(`Successfully generated review with OpenRouter ${modelName}`);
+        console.log(
+          `Successfully generated review with OpenRouter ${modelName}`
+        );
       } else {
         throw new Error(`Invalid response format from OpenRouter ${modelName}`);
       }
@@ -248,7 +264,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
       }
     } catch (parseError) {
       logger.warn(
@@ -300,7 +318,7 @@ export async function generateOpenRouterConsolidatedReview(
   if (!isCorrect) {
     throw new Error(
       `OpenRouter client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-      `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`
     );
   }
 
@@ -334,23 +352,27 @@ export async function generateOpenRouterConsolidatedReview(
     );
 
     try {
-      console.log(`Generating consolidated review with OpenRouter ${modelName}...`);
+      console.log(
+        `Generating consolidated review with OpenRouter ${modelName}...`
+      );
 
       // Make the API request
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
-          'X-Title': 'AI Code Review'
-        },
-        body: JSON.stringify({
-          model: modelName,
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+      const response = await fetch(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+            'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
+            'X-Title': 'AI Code Review'
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
 
 IMPORTANT: Your response MUST be in the following JSON format:
 
@@ -380,16 +402,17 @@ IMPORTANT: Your response MUST be in the following JSON format:
 }
 
 Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.2,
-          max_tokens: 4000
-        })
-      });
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.2,
+            max_tokens: 4000
+          })
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -399,7 +422,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       const data = await response.json();
       if (data.choices && data.choices.length > 0) {
         content = data.choices[0].message.content;
-        console.log(`Successfully generated review with OpenRouter ${modelName}`);
+        console.log(
+          `Successfully generated review with OpenRouter ${modelName}`
+        );
       } else {
         throw new Error(`Invalid response format from OpenRouter ${modelName}`);
       }
@@ -434,7 +459,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
       }
     } catch (parseError) {
       logger.warn(

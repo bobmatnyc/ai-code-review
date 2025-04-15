@@ -37,16 +37,16 @@ export function generateVersionedOutputPath(
   // Get the current date
   const now = new Date();
   const dateStr = now.toISOString().split('T')[0].replace(/-/g, '-');
-  
+
   // Get the base name of the file
   const baseName = path.basename(filePath);
-  
+
   // Create the output directory if it doesn't exist
   const outputDir = path.resolve(process.cwd(), 'ai-code-review-docs');
-  
+
   // Generate the output file name
   const outputFileName = `${reviewType}-review-${baseName}-${dateStr}.md`;
-  
+
   // Return the full output path
   return path.join(outputDir, outputFileName);
 }
@@ -63,21 +63,23 @@ export function generateConsolidatedOutputPath(
 ): string {
   // Get the current date
   const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric'
-  }).replace(/\//g, '-');
-  
+  const dateStr = now
+    .toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    })
+    .replace(/\//g, '-');
+
   // Get the base name of the directory
   const baseName = path.basename(sourceDir);
-  
+
   // Create the output directory if it doesn't exist
   const outputDir = path.resolve(process.cwd(), 'ai-code-review-docs');
-  
+
   // Generate the output file name
   const outputFileName = `${reviewType}-review-${baseName}-${dateStr}.md`;
-  
+
   // Return the full output path
   return path.join(outputDir, outputFileName);
 }
@@ -94,10 +96,10 @@ export async function writeReviewToFile(
   try {
     // Ensure the output directory exists
     await ensureDirectoryExists(path.dirname(outputPath));
-    
+
     // Write the content to the file
     await fs.writeFile(outputPath, content, 'utf-8');
-    
+
     logger.info(`Review saved to: ${outputPath}`);
   } catch (error) {
     logger.error(`Error writing review to file ${outputPath}:`, error);

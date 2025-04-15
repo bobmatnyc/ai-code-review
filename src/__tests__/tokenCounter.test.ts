@@ -11,10 +11,15 @@ describe('tokenCounter', () => {
   describe('estimateTokenCount', () => {
     it('should estimate tokens based on character count', () => {
       // The actual implementation uses characters / 4, so we'll test that
-      expect(estimateTokenCount('Hello, world!')).toBe(Math.ceil('Hello, world!'.length / 4));
+      expect(estimateTokenCount('Hello, world!')).toBe(
+        Math.ceil('Hello, world!'.length / 4)
+      );
 
-      const longSentence = 'This is a longer sentence to test token estimation.';
-      expect(estimateTokenCount(longSentence)).toBe(Math.ceil(longSentence.length / 4));
+      const longSentence =
+        'This is a longer sentence to test token estimation.';
+      expect(estimateTokenCount(longSentence)).toBe(
+        Math.ceil(longSentence.length / 4)
+      );
 
       // Empty string
       expect(estimateTokenCount('')).toBe(0);

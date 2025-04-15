@@ -28,19 +28,19 @@ export async function generateVersionedOutputPath(
 ): Promise<string> {
   // Ensure the output directory exists
   await ensureDirectoryExists(baseDir);
-  
+
   // Generate a timestamp for the filename
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  
+
   // Clean up the model name for use in a filename
   const cleanModelName = modelName.replace(/[^a-zA-Z0-9-]/g, '-');
-  
+
   // Clean up the target name for use in a filename
   const cleanTargetName = targetName.replace(/[^a-zA-Z0-9-]/g, '-');
-  
+
   // Generate the filename
   const filename = `${prefix}-${cleanTargetName}-${cleanModelName}-${timestamp}${extension}`;
-  
+
   // Return the full path
   return path.join(baseDir, filename);
 }
@@ -57,23 +57,26 @@ export async function generateUniqueOutputPath(
 ): Promise<string> {
   // Ensure the output directory exists
   await ensureDirectoryExists(baseDir);
-  
+
   // Generate the initial path
   let outputPath = path.join(baseDir, filename);
-  
+
   // If the file already exists, add a number to the filename
   if (await pathExists(outputPath)) {
     const extension = path.extname(filename);
     const nameWithoutExtension = path.basename(filename, extension);
     let counter = 1;
-    
+
     // Try different numbers until we find an available filename
     while (await pathExists(outputPath)) {
-      outputPath = path.join(baseDir, `${nameWithoutExtension}-${counter}${extension}`);
+      outputPath = path.join(
+        baseDir,
+        `${nameWithoutExtension}-${counter}${extension}`
+      );
       counter++;
     }
   }
-  
+
   return outputPath;
 }
 
@@ -83,7 +86,10 @@ export async function generateUniqueOutputPath(
  * @param extension File extension (including the dot)
  * @returns Generated temporary file path
  */
-export function generateTempFilePath(prefix: string, extension: string): string {
+export function generateTempFilePath(
+  prefix: string,
+  extension: string
+): string {
   const timestamp = new Date().getTime();
   const randomPart = Math.floor(Math.random() * 10000);
   return path.join(

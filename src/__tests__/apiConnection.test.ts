@@ -7,7 +7,11 @@
  */
 
 import dotenv from 'dotenv';
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold
+} from '@google/generative-ai';
 import path from 'path';
 
 // Using native fetch API (Node.js 18+)
@@ -29,30 +33,33 @@ beforeAll(() => {
 
 // Mock global fetch
 const originalFetch = global.fetch;
-global.fetch = jest.fn().mockImplementation((url) => {
+global.fetch = jest.fn().mockImplementation(url => {
   if (url.includes('openrouter.ai')) {
     return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ 
-        choices: [{ message: { content: 'Yes, I am working!' } }] 
-      })
+      json: () =>
+        Promise.resolve({
+          choices: [{ message: { content: 'Yes, I am working!' } }]
+        })
     });
   } else if (url.includes('anthropic.com')) {
     return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ 
-        content: [{ text: 'Yes, I am working!' }] 
-      })
+      json: () =>
+        Promise.resolve({
+          content: [{ text: 'Yes, I am working!' }]
+        })
     });
   } else if (url.includes('openai.com')) {
     return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({ 
-        choices: [{ message: { content: 'Yes, I am working!' } }] 
-      })
+      json: () =>
+        Promise.resolve({
+          choices: [{ message: { content: 'Yes, I am working!' } }]
+        })
     });
   }
-  
+
   // Fall back to a mock response for any other URL
   return Promise.resolve({
     ok: true,
@@ -68,7 +75,10 @@ process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-1.5-pro';
 
 describe('API Connection Tests', () => {
   describe('Google Gemini API', () => {
-    const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || process.env.CODE_REVIEW_GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY;
+    const apiKey =
+      process.env.AI_CODE_REVIEW_GOOGLE_API_KEY ||
+      process.env.CODE_REVIEW_GOOGLE_API_KEY ||
+      process.env.GOOGLE_GENERATIVE_AI_KEY;
 
     test('API key is checked', () => {
       // This test just checks if the API key is available, but doesn't fail if it's not
@@ -89,7 +99,10 @@ describe('API Connection Tests', () => {
   });
 
   describe('OpenRouter API', () => {
-    const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || process.env.CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+    const apiKey =
+      process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY ||
+      process.env.CODE_REVIEW_OPENROUTER_API_KEY ||
+      process.env.OPENROUTER_API_KEY;
 
     test('API key is checked', () => {
       // This test just checks if the API key is available, but doesn't fail if it's not
@@ -120,7 +133,9 @@ describe('API Connection Tests', () => {
       const [adapter, model] = selectedModel.split(':');
 
       // Check that the adapter is valid
-      expect(['gemini', 'openrouter', 'anthropic', 'openai']).toContain(adapter);
+      expect(['gemini', 'openrouter', 'anthropic', 'openai']).toContain(
+        adapter
+      );
 
       // Check that the model is not empty
       expect(model).toBeTruthy();

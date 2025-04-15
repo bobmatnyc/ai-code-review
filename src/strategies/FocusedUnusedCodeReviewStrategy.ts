@@ -15,7 +15,10 @@ import { PromptStrategyFactory } from '../prompts/strategies/PromptStrategyFacto
 import { PromptManager } from '../prompts/PromptManager';
 import { PromptCache } from '../prompts/cache/PromptCache';
 import { getFocusedUnusedCodeReviewFormatInstructions } from '../prompts/schemas/focused-unused-code-schema';
-import { formatFocusedUnusedCodeReviewAsMarkdown, generateFocusedRemovalScript } from '../formatters/focusedUnusedCodeFormatter';
+import {
+  formatFocusedUnusedCodeReviewAsMarkdown,
+  generateFocusedRemovalScript
+} from '../formatters/focusedUnusedCodeFormatter';
 import path from 'path';
 
 /**
@@ -45,16 +48,27 @@ export class FocusedUnusedCodeReviewStrategy extends BaseReviewStrategy {
     options: ReviewOptions,
     apiClientConfig: ApiClientConfig
   ): Promise<ReviewResult> {
-    logger.info(`Executing focused unused code review strategy for ${files.length} files...`);
-    
+    logger.info(
+      `Executing focused unused code review strategy for ${files.length} files...`
+    );
+
     // Select the prompt file based on language
     let promptFile: string;
     if (options.language) {
-      promptFile = path.resolve(process.cwd(), 'prompts', options.language.toLowerCase(), 'focused-unused-code-review.md');
+      promptFile = path.resolve(
+        process.cwd(),
+        'prompts',
+        options.language.toLowerCase(),
+        'focused-unused-code-review.md'
+      );
     } else {
-      promptFile = path.resolve(process.cwd(), 'prompts', 'focused-unused-code-review.md');
+      promptFile = path.resolve(
+        process.cwd(),
+        'prompts',
+        'focused-unused-code-review.md'
+      );
     }
-    
+
     // Enhance options with LangChain-specific settings
     const enhancedOptions: ReviewOptions = {
       ...options,
@@ -63,7 +77,7 @@ export class FocusedUnusedCodeReviewStrategy extends BaseReviewStrategy {
       schemaInstructions: getFocusedUnusedCodeReviewFormatInstructions(),
       promptStrategy: 'langchain'
     };
-    
+
     // Generate the review
     const reviewResult = await generateReview(
       files,
@@ -73,43 +87,50 @@ export class FocusedUnusedCodeReviewStrategy extends BaseReviewStrategy {
       enhancedOptions,
       apiClientConfig
     );
-    
+
     // If we have a response and it's in JSON format, try to reformat it
     if (reviewResult.response && reviewResult.outputFormat === 'json') {
       try {
         // Parse the JSON response
         const parsedResult = JSON.parse(reviewResult.response);
-        
+
         // Check if it's a valid result with the expected structure
-        if (parsedResult.unusedFiles && 
-            parsedResult.unusedFunctions && 
-            parsedResult.unusedClasses && 
-            parsedResult.summary) {
-          
+        if (
+          parsedResult.unusedFiles &&
+          parsedResult.unusedFunctions &&
+          parsedResult.unusedClasses &&
+          parsedResult.summary
+        ) {
           // Format the response using our specialized formatter
-          const formattedMarkdown = formatFocusedUnusedCodeReviewAsMarkdown(parsedResult);
-          
+          const formattedMarkdown =
+            formatFocusedUnusedCodeReviewAsMarkdown(parsedResult);
+
           // Generate a removal script
           const removalScript = generateFocusedRemovalScript(parsedResult);
-          
+
           // Update the response with our formatted version
           reviewResult.response = formattedMarkdown;
           reviewResult.outputFormat = 'markdown';
-          
+
           // Store the removal script in the metadata
           if (!reviewResult.metadata) {
             reviewResult.metadata = {};
           }
           reviewResult.metadata.removalScript = removalScript;
-          
-          logger.info('Reformatted focused unused code review for improved usability');
+
+          logger.info(
+            'Reformatted focused unused code review for improved usability'
+          );
         }
       } catch (error) {
-        logger.warn('Failed to reformat focused unused code review response:', error);
+        logger.warn(
+          'Failed to reformat focused unused code review response:',
+          error
+        );
         // Continue with the original response
       }
     }
-    
+
     return reviewResult;
   }
 }

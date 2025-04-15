@@ -49,7 +49,9 @@ console.log('----------------------------------');
 for (const model of models) {
   const tokenCount = countTokens(sampleText, model);
   const tokenizer = getTokenizer(model);
-  console.log(`${model.padEnd(25)}: ${tokenCount} tokens (using ${tokenizer.getModelName()} tokenizer)`);
+  console.log(
+    `${model.padEnd(25)}: ${tokenCount} tokens (using ${tokenizer.getModelName()} tokenizer)`
+  );
 }
 
 console.log('----------------------------------');
@@ -60,7 +62,9 @@ console.log('Testing cost estimation:');
 console.log('----------------------------------');
 for (const model of models) {
   const costInfo = getCostInfoFromText(sampleText, 'Sample output', model);
-  console.log(`${model.padEnd(25)}: ${costInfo.inputTokens} input tokens, ${costInfo.outputTokens} output tokens, ${costInfo.formattedCost}`);
+  console.log(
+    `${model.padEnd(25)}: ${costInfo.inputTokens} input tokens, ${costInfo.outputTokens} output tokens, ${costInfo.formattedCost}`
+  );
 }
 
 console.log('----------------------------------');

@@ -1,3 +1,12 @@
+---
+name: Base Prompt
+description: Base template for all code review prompts
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: base
+tags: template, base
+---
+
 🧠 **AI Code Review Prompt**
 
 IMPORTANT: DO NOT REPEAT THESE INSTRUCTIONS IN YOUR RESPONSE. FOCUS ONLY ON THE CODE REVIEW CONTENT.
@@ -7,7 +16,6 @@ Act as a **senior developer with expertise in {{SPECIALIZATION}}**. Perform a co
 {{LANGUAGE_INSTRUCTIONS}}
 
 > **Context**: {{CONTEXT}}
-> *(Developer Note: Ensure this context is specific, e.g., "Reviewing a new authentication service" or "Analyzing utility functions for potential performance issues")*
 
 ---
 
