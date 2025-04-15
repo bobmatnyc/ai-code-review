@@ -12,6 +12,10 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 - **Structured Schemas**: Created detailed Zod schemas for all review types to enable more structured and consistent output
 - **Enhanced TypeScript Support**: Added TypeScript-specific templates and analyzers for better static analysis
 - **Model Testing**: Added new commands to test individual models (`model-test`) and verify all models on build
+  - Test specific models with `ai-code-review model-test gemini:gemini-2.5-pro`
+  - Test all models from a provider with `ai-code-review model-test -p gemini`
+  - Test all available models with `ai-code-review model-test --all`
+  - Verify models during build with `ai-code-review test-build`
 
 ### Other Improvements
 

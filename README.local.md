@@ -20,6 +20,31 @@ yarn local-review [target] [options]
 
 This runs the TypeScript code directly using ts-node, which is perfect for development.
 
+## Testing AI Models
+
+You can test your AI model connectivity and API keys using the model testing commands:
+
+```bash
+# Test a specific model
+./local-ai-review.sh model-test gemini:gemini-2.5-pro
+./local-ai-review.sh model-test anthropic:claude-3-opus
+./local-ai-review.sh model-test openai:gpt-4o
+
+# Test all models from a specific provider
+./local-ai-review.sh model-test -p gemini
+./local-ai-review.sh model-test --provider openai
+
+# Test all available models (requires API keys for all providers)
+./local-ai-review.sh model-test --all
+
+# Run model tests during build process
+./local-ai-review.sh test-build
+./local-ai-review.sh test-build --fail-on-error
+./local-ai-review.sh test-build --json
+```
+
+These commands are useful for verifying that your API keys are valid and that you can connect to the AI services.
+
 ## Running the Built Version
 
 To test the built version (simulating the installed npm package):
