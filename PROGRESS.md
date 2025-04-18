@@ -1,26 +1,43 @@
 # Project Progress Log
 
-## 2025-04-18 - Post-Release Enhancements
+## 2025-04-18 - Version 2.1.1 Release
 
 ### Summary
-After successfully publishing version 2.1.0 of the AI Code Review tool to npm, we're now focusing on enhancing the tool with additional language analyzers, improving prompt optimization, and implementing performance benchmarking for models. Today's session focused on codebase health - fixing TypeScript type errors and ensuring all tests pass.
+After addressing quality-of-life issues with the 2.1.0 release, we've created version 2.1.1 with improved Python file detection, better path display in reviews, and enhanced logging. This update focuses on improving cross-language support and making the tool more user-friendly with clear version display and better console output.
 
 ### Current Status
-- Version 2.1.0 is published and stable
-- Addressed TypeScript errors in debug utilities
-- Fixed command-line argument handling in index.ts
-- Verified all tests are passing successfully
-- Identified linting issues for future cleanup
+- Version 2.1.1 is ready for release
+- Fixed Python file detection and path display in review output
+- Enhanced logging with focus on INFO level messages
+- Added version display at application startup
+- All tests passing with no typechecking errors
 
 ### Completed Tasks
 - Fixed invalid character escape sequences in fileFilters.debug.ts
 - Fixed typechecking error in index.ts related to command-line arguments
+- Enhanced file globbing patterns to better support Python file extensions (.py, .pyc, .pyi, .pyx, .pyd)
+- Fixed issue with code review output path display by updating the outputFormatter.ts to always show full paths
+- Improved Python file detection in mixed language projects
+- Added detailed logging of file extension counts to help debug language detection issues
+- Added version display at application startup
+- Modified output format to focus on INFO level logs by default
+- Added post-build script to automatically update global installation
+- Fixed issue where global `ai-code-review` command could use outdated builds
+- Enhanced global installation script to handle both npm link and npm install -g scenarios
+- Resolved issue with globally installed package conflicting with local development build
+- Updated version to 2.1.1 in package.json and index.ts
+- Updated CHANGELOG.md with new version details
 - Ran full test suite and verified all 119 tests are passing
 - Identified linting issues for future cleanup (278 problems: 142 errors, 136 warnings)
-- Updated PROGRESS.md to track ongoing work
-- Fixed issue with code review output path display by updating the outputFormatter.ts to always show full paths
-- Improved Python file detection by enhancing file globbing patterns and adding additional Python file extensions
-- Added detailed logging of file extension counts to help debug language detection issues
+
+### Next Steps
+- Implement additional language-specific analyzers
+- Add prompt optimization using LangChain's evaluators
+- Expand model testing with performance benchmarking
+- Add caching for model test results
+- Create interactive model comparison tool
+- Fix identified linting issues, especially in enhancement/ and test-projects/ directories
+- Continue improving error handling and user experience
 
 ### Tasks In Progress
 - Planning implementation of additional language-specific analyzers

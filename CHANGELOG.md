@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-04-18
+
+### Added
+- Improved debugging for file extension detection with detailed logging
+- Added version display at startup
+- Added automatic global installation linking after build (postbuild script)
+- Enhanced global installation script to handle both npm link and npm install -g scenarios
+
+### Changed
+- Enhanced file globbing patterns to better support Python file extensions (.py, .pyc, .pyi, .pyx, .pyd)
+- Improved logging with stats about file types detected
+- Added postbuild script to ensure global command always uses latest build
+
+### Fixed
+- Fixed issue where review output did not show full directory path
+- Fixed Python file detection in mixed language projects
+- Fixed TypeScript errors in fileFilters.debug.ts
+- Fixed console output to focus on INFO level logs by default
+- Fixed global installation issues where old builds were used instead of latest
+
 ## [2.1.0] - 2024-04-17
 
 ### Added
