@@ -160,7 +160,7 @@ export interface ReviewOptions {
    * Whether to use code tracing for unused code detection with high confidence
    */
   traceCode?: boolean;
-  
+
   /**
    * Whether to use ts-prune for static analysis of unused exports
    */

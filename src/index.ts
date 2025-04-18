@@ -204,7 +204,6 @@ async function main() {
       
       console.log("\n3. Or set an environment variable in your shell:");
       console.log("   export AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here\n");
-      
       process.exit(1);
     }
 

@@ -2,7 +2,6 @@
 - Updated 4-17-2025
 
 ## 🔧 Core Principles
-
 ### ✅ Best Practices
 
 - Always implement using modern, community-validated best practices.
@@ -86,6 +85,7 @@
 - `PROGRESS.md`: Session logs with status, blockers, tasks, and commits.  Includes TODOS from ongoing work.
 - 'ROADMAP.md': Long term project roadmap and feature prioritization.
 - `ABOUT.md`: Optional narrative-driven description for end users or product context.
+- 'VERSIONS.md': Version history, features, and technical improvements.
 
 ### 📄 Updating `PROJECT.md`
 

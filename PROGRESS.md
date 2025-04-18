@@ -1,15 +1,50 @@
 # Project Progress Log
 
-## 2025-04-18 - Version 2.1.1 Release
+## 2025-04-18 - Added Enhanced Metadata Headers to Reviews
 
 ### Summary
-After addressing quality-of-life issues with the 2.1.0 release, we've created version 2.1.1 with improved Python file detection, better path display in reviews, and enhanced logging. This update focuses on improving cross-language support and making the tool more user-friendly with clear version display and better console output.
+Today we implemented enhanced metadata headers for code reviews as outlined in Phase 4 of the ROADMAP.md file. The enhanced headers provide more comprehensive information about each review, including the model used, token usage, cost estimates, tool version, and command-line options used to generate the review.
 
 ### Current Status
-- Version 2.1.1 is ready for release
+- Implemented enhanced metadata headers for code reviews
+- Added tool version and command options to all review outputs
+- Improved formatting of metadata in both Markdown and JSON outputs
+- All implementation done for first task in Phase 4 of ROADMAP.md
+
+### Completed Tasks
+- Enhanced `outputFormatter.ts` to display comprehensive metadata in a tabular format
+- Updated the `formatAsJson` function to provide structured metadata in JSON output
+- Added `toolVersion` and `commandOptions` fields to the `ReviewResult` interface
+- Modified the `generateReview` function to capture and include command-line options
+- Added version information from package.json to all reviews
+- Created robust formatting for command-line options in the metadata section
+- Improved date formatting for better readability
+- Added backward compatibility for older metadata formats
+
+### Next Steps
+- Implement remaining tasks from Phase 4 of ROADMAP.md:
+  - Embed original code context alongside suggestions
+  - Include model confidence or explanation (if available)
+  - Support HTML and CLI-rendered output options
+  - Add inline annotations in markdown output (like GitHub PRs)
+- Complete unit tests for the enhanced metadata feature
+- Consider adding additional metadata like execution time and analysis scope
+
+### Tasks In Progress
+- Working on embedding original code context alongside suggestions
+- Researching formats for displaying model confidence levels
+
+## 2025-04-18 - Version 2.1.1 Released
+
+### Summary
+We've successfully released version 2.1.1 to npm. This update focuses on improving cross-language support, particularly for Python projects, and making the tool more user-friendly with clear version display and better console output. We've also significantly improved the global installation experience and fixed several edge cases.
+
+### Current Status
+- Version 2.1.1 published to npm registry
 - Fixed Python file detection and path display in review output
 - Enhanced logging with focus on INFO level messages
 - Added version display at application startup
+- Improved global installation with robust installation scripts
 - All tests passing with no typechecking errors
 
 ### Completed Tasks
@@ -42,21 +77,6 @@ After addressing quality-of-life issues with the 2.1.0 release, we've created ve
 - Fix identified linting issues, especially in enhancement/ and test-projects/ directories
 - Continue improving error handling and user experience
 
-### Tasks In Progress
-- Planning implementation of additional language-specific analyzers
-- Researching LangChain evaluators for prompt optimization
-- Designing model performance benchmarking system
-- Planning caching system for model test results
-
-### Next Steps
-- Implement additional language-specific analyzers
-- Add prompt optimization using LangChain's evaluators
-- Expand model testing with performance benchmarking
-- Add caching for model test results
-- Create interactive model comparison tool
-- Fix identified linting issues, especially in enhancement/ and test-projects/ directories
-- Continue improving error handling and user experience
-
 ## 2024-04-18 - Version 2.1.0
 
 ### Summary
@@ -77,7 +97,6 @@ We've successfully published version 2.1.0 of the AI Code Review tool to npm. Th
 - Add caching for model test results
 - Create interactive model comparison tool
 - Continue improving error handling and user experience
-
 ## 2024-04-15 - Version 2.0.0
 
 ### Summary

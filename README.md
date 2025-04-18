@@ -6,6 +6,7 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 
 ### Fixes and Improvements in v2.1.1
 
+- **Enhanced Metadata**: Added comprehensive metadata headers to each review with model details, token usage, cost, and command options
 - **Version Display**: Added version display at startup for easier version identification
 - **Enhanced Python Support**: Improved Python file detection and enhanced file globbing patterns
 - **Better Path Display**: Fixed issue where review output did not show full directory path
@@ -22,7 +23,6 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 - **TypeScript Focus**: Added specialized TypeScript architectural review prompt
 
 ### Major Features in v2.0.0
-
 - **Stable Release**: Version 2.0.0 marks the first stable release with all major features complete
 - **LangChain Integration**: Added LangChain for enhanced prompt management, templating, and chain capabilities
 - **New Review Types**: Added 'unused-code' review type to identify and suggest removal of dead code
