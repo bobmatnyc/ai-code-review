@@ -25,6 +25,9 @@ After addressing quality-of-life issues with the 2.1.0 release, we've created ve
 - Fixed issue where global `ai-code-review` command could use outdated builds
 - Enhanced global installation script to handle both npm link and npm install -g scenarios
 - Resolved issue with globally installed package conflicting with local development build
+- Added cleanup routine to remove conflicting installations (Homebrew, multiple global installs)
+- Improved robustness of global installation to handle cross-package-manager conflicts
+- Fixed debug logging to use proper logger module instead of console.log
 - Updated version to 2.1.1 in package.json and index.ts
 - Updated CHANGELOG.md with new version details
 - Ran full test suite and verified all 119 tests are passing

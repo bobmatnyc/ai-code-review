@@ -1,8 +1,16 @@
-# AI Code Review v2.1.0
+# AI Code Review v2.1.1
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, OpenAI models, and OpenRouter API (Claude, GPT-4, etc.) with LangChain integration for enhanced prompt management.
 
-## What's New in v2.1.0
+## What's New in v2.1.1
+
+### Fixes and Improvements in v2.1.1
+
+- **Version Display**: Added version display at startup for easier version identification
+- **Enhanced Python Support**: Improved Python file detection and enhanced file globbing patterns
+- **Better Path Display**: Fixed issue where review output did not show full directory path
+- **Improved Installation**: Added global installation utilities to prevent conflicts
+- **Troubleshooting**: Added `./scripts/fix-global-command.sh` script to quickly resolve global installation issues
 
 ### Major Features in v2.1.0
 

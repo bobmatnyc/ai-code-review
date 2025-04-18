@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added version display at startup
 - Added automatic global installation linking after build (postbuild script)
 - Enhanced global installation script to handle both npm link and npm install -g scenarios
+- Added cleanup routine to remove conflicting installations from different package managers
+- Added dedicated `fix-global-command.sh` script to quickly resolve installation issues
 
 ### Changed
 - Enhanced file globbing patterns to better support Python file extensions (.py, .pyc, .pyi, .pyx, .pyd)
@@ -24,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed TypeScript errors in fileFilters.debug.ts
 - Fixed console output to focus on INFO level logs by default
 - Fixed global installation issues where old builds were used instead of latest
+- Fixed debug logging to use proper logger instead of console.log
 
 ## [2.1.0] - 2024-04-17
 

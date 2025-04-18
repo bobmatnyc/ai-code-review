@@ -35,17 +35,17 @@ export interface ApiClientConfig {
  * @returns Promise resolving to the API client configuration
  */
 export async function selectApiClient(): Promise<ApiClientConfig> {
-  console.log('[DEBUG] selectApiClient called');
+  logger.debug('selectApiClient called');
 
   // Check which API key is available based on the model specified in environment variables
   const apiKeyType = getApiKeyType();
-  console.log(`[DEBUG] selectApiClient: apiKeyType=${apiKeyType}`);
+  logger.debug(`selectApiClient: apiKeyType=${apiKeyType}`);
 
   const modelEnv = process.env.AI_CODE_REVIEW_MODEL || '';
-  console.log(`[DEBUG] selectApiClient: modelEnv=${modelEnv}`);
+  logger.debug(`selectApiClient: modelEnv=${modelEnv}`);
 
   const modelName = modelEnv.includes(':') ? modelEnv.split(':')[1] : '';
-  console.log(`[DEBUG] selectApiClient: modelName=${modelName}`);
+  logger.debug(`selectApiClient: modelName=${modelName}`);
 
   // Default configuration with no API client
   const config: ApiClientConfig = {
@@ -53,13 +53,11 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
     modelName: '',
     initialized: false
   };
-  console.log(
-    `[DEBUG] selectApiClient: initial config=${JSON.stringify(config)}`
-  );
+  logger.debug(`selectApiClient: initial config=${JSON.stringify(config)}`);
 
   // Use the appropriate API client based on the available API key
   if (apiKeyType === 'OpenRouter') {
-    console.log('[DEBUG] selectApiClient: Using OpenRouter client');
+    logger.debug('selectApiClient: Using OpenRouter client');
     // Check if we have a valid model name
     if (!modelName) {
       logger.error('No OpenRouter model specified in environment variables.');

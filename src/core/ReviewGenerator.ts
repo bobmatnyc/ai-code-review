@@ -50,16 +50,14 @@ export async function generateReview(
   options: ReviewOptions,
   apiClientConfig: ApiClientConfig
 ): Promise<ReviewResult> {
-  console.log('[DEBUG] generateReview called');
-  console.log(
-    `[DEBUG] generateReview: apiClientConfig=${JSON.stringify(apiClientConfig)}`
-  );
+  logger.debug('generateReview called');
+  logger.debug(`generateReview: apiClientConfig=${JSON.stringify(apiClientConfig)}`);
 
   // Use the appropriate API client based on the client type
   let result: Promise<ReviewResult>;
 
   if (apiClientConfig.clientType === 'OpenRouter') {
-    console.log('[DEBUG] generateReview: Using OpenRouter client');
+    logger.debug('generateReview: Using OpenRouter client');
     // Use the imported OpenRouter client wrapper
 
     // Initialize the OpenRouter client before using it
