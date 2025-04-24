@@ -40,3 +40,6 @@ Thumbs.db
 /reviews/
 /error-logs/
 /ai-code-review-docs/
+yarn.lock
+.yarn
+
