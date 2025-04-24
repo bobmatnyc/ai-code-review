@@ -171,8 +171,8 @@ export function sanitizeContent(
       return sanitizeJson(content);
     case 'text':
     default:
-      // For plain text, just remove control characters
-      return content.replace(/[\x00-\x1F\x7F]/g, '');
+      // For plain text, just remove control characters except for newlines and tabs
+      return content.replace(/[\x00-\x09\x0B-\x1F\x7F]/g, '');
   }
 }
 

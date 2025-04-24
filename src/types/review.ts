@@ -296,6 +296,16 @@ export interface ReviewResult {
   structuredData?: any; // Will be typed as StructuredReview when parsed
 
   /**
+   * Command line options used for this review
+   */
+  commandOptions?: string;
+
+  /**
+   * Version of the tool used for the review
+   */
+  toolVersion?: string;
+
+  /**
    * Raw response from the API (used in some strategies)
    * @deprecated Use structuredData instead
    */

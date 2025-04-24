@@ -46,17 +46,31 @@ export function formatReviewOutput(
 function formatAsJson(review: ReviewResult): string {
   // Determine model information
   let modelInfo = 'Google Gemini AI';
+  let modelVendor = 'Google';
+  let modelName = 'Gemini AI';
+
+  // Extract model information
   if (review.modelUsed) {
     if (review.modelUsed.startsWith('openrouter:')) {
-      modelInfo = `OpenRouter (${review.modelUsed.substring('openrouter:'.length)})`;
+      modelVendor = 'OpenRouter';
+      modelName = review.modelUsed.substring('openrouter:'.length);
+      modelInfo = `OpenRouter (${modelName})`;
     } else if (review.modelUsed.startsWith('anthropic:')) {
-      modelInfo = `Anthropic (${review.modelUsed.substring('anthropic:'.length)})`;
+      modelVendor = 'Anthropic';
+      modelName = review.modelUsed.substring('anthropic:'.length);
+      modelInfo = `Anthropic (${modelName})`;
     } else if (review.modelUsed.startsWith('openai:')) {
-      modelInfo = `OpenAI (${review.modelUsed.substring('openai:'.length)})`;
+      modelVendor = 'OpenAI';
+      modelName = review.modelUsed.substring('openai:'.length);
+      modelInfo = `OpenAI (${modelName})`;
     } else if (review.modelUsed.startsWith('gemini:')) {
-      modelInfo = `Google Gemini AI (${review.modelUsed.substring('gemini:'.length)})`;
+      modelVendor = 'Google';
+      modelName = review.modelUsed.substring('gemini:'.length);
+      modelInfo = `Google Gemini AI (${modelName})`;
     } else {
-      modelInfo = `Google Gemini AI (${review.modelUsed})`;
+      modelVendor = 'Google';
+      modelName = review.modelUsed;
+      modelInfo = `Google Gemini AI (${modelName})`;
     }
   }
 
@@ -73,12 +87,61 @@ function formatAsJson(review: ReviewResult): string {
     }
   }
 
-  // Create a copy of the review with additional metadata
+  // Parse additional metadata if available
+  let additionalMetadata = {};
+  if (review.metadata) {
+    try {
+      additionalMetadata = typeof review.metadata === 'string' 
+        ? JSON.parse(review.metadata) 
+        : review.metadata;
+    } catch (error) {
+      // Silently continue if metadata parsing fails
+    }
+  }
+
+  // Format path for display
+  let displayPath = review.filePath;
+  if (review.filePath === review.reviewType || review.filePath === 'consolidated') {
+    displayPath = process.cwd() + ' (Current Directory)';
+  }
+
+  // Create enhanced metadata
+  const enhancedMetadata = {
+    model: {
+      provider: modelVendor,
+      name: modelName,
+      fullName: modelInfo
+    },
+    review: {
+      type: review.reviewType,
+      path: displayPath,
+      generatedAt: new Date(review.timestamp).toISOString(),
+      formattedDate: new Date(review.timestamp).toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short'
+      })
+    },
+    cost: review.cost || null,
+    tool: {
+      version: review.toolVersion || process.env.npm_package_version || '2.1.1',
+      commandOptions: review.commandOptions || null,
+      ...additionalMetadata
+    }
+  };
+
+  // Create a copy of the review with enhanced metadata
   const reviewWithMeta = {
     ...review,
     content: sanitizedContent,
     structuredData: parsedStructuredData,
-    meta: {
+    meta: enhancedMetadata,
+    // Legacy metadata field for backward compatibility
+    metadata: {
       model: modelInfo,
       generatedAt: new Date(review.timestamp).toISOString(),
       costEstimation: review.cost
@@ -101,17 +164,30 @@ function formatAsMarkdown(review: ReviewResult): string {
   let modelInfo = 'Google Gemini AI';
 
   // Add specific model information if available
+  let modelVendor = 'Google';
+  let modelName = 'Gemini AI';
+  
   if (review.modelUsed) {
     if (review.modelUsed.startsWith('openrouter:')) {
-      modelInfo = `OpenRouter (${review.modelUsed.substring('openrouter:'.length)})`;
+      modelVendor = 'OpenRouter';
+      modelName = review.modelUsed.substring('openrouter:'.length);
+      modelInfo = `OpenRouter (${modelName})`;
     } else if (review.modelUsed.startsWith('anthropic:')) {
-      modelInfo = `Anthropic (${review.modelUsed.substring('anthropic:'.length)})`;
+      modelVendor = 'Anthropic';
+      modelName = review.modelUsed.substring('anthropic:'.length);
+      modelInfo = `Anthropic (${modelName})`;
     } else if (review.modelUsed.startsWith('openai:')) {
-      modelInfo = `OpenAI (${review.modelUsed.substring('openai:'.length)})`;
+      modelVendor = 'OpenAI';
+      modelName = review.modelUsed.substring('openai:'.length);
+      modelInfo = `OpenAI (${modelName})`;
     } else if (review.modelUsed.startsWith('gemini:')) {
-      modelInfo = `Google Gemini AI (${review.modelUsed.substring('gemini:'.length)})`;
+      modelVendor = 'Google';
+      modelName = review.modelUsed.substring('gemini:'.length);
+      modelInfo = `Google Gemini AI (${modelName})`;
     } else {
-      modelInfo = `Google Gemini AI (${review.modelUsed})`;
+      modelVendor = 'Google';
+      modelName = review.modelUsed;
+      modelInfo = `Google Gemini AI (${modelName})`;
     }
   }
 
@@ -160,6 +236,71 @@ function formatAsMarkdown(review: ReviewResult): string {
     // For consolidated reviews, show the full target directory path
     displayPath = process.cwd() + ' (Current Directory)';
   }
+  
+  // Format metadata
+  const formattedDate = new Date(timestamp).toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short'
+  });
+
+  // Create comprehensive metadata section
+  let metadataSection = `## Metadata
+| Property | Value |
+|----------|-------|
+| Review Type | ${reviewType} |
+| Generated At | ${formattedDate} |
+| Model Provider | ${modelVendor} |
+| Model Name | ${modelName} |`;
+
+  // Add cost information if available
+  if (cost) {
+    metadataSection += `
+| Input Tokens | ${cost.inputTokens.toLocaleString()} |
+| Output Tokens | ${cost.outputTokens.toLocaleString()} |
+| Total Tokens | ${cost.totalTokens.toLocaleString()} |
+| Estimated Cost | ${cost.formattedCost} |`;
+  }
+
+  // Add tool version from the review result or fallback to package.json
+  if (review.toolVersion) {
+    metadataSection += `
+| Tool Version | ${review.toolVersion} |`;
+  }
+
+  // Add command options if available
+  if (review.commandOptions) {
+    metadataSection += `
+| Command Options | \`${review.commandOptions}\` |`;
+  }
+
+  // If we have additional metadata from the review, include it
+  if (review.metadata) {
+    try {
+      const metadata = typeof review.metadata === 'string' ? JSON.parse(review.metadata) : review.metadata;
+      
+      // Add any additional metadata fields that weren't already added
+      if (metadata.commandLineOptions && !review.commandOptions) {
+        metadataSection += `
+| Command Options | \`${metadata.commandLineOptions}\` |`;
+      }
+      
+      if (metadata.version && !review.toolVersion) {
+        metadataSection += `
+| Tool Version | ${metadata.version} |`;
+      }
+    } catch (error) {
+      // Silently continue if metadata parsing fails
+    }
+  }
+
+  // Close the metadata table
+  metadataSection += `
+`;
 
   return `# Code Review: ${displayPath}
 
@@ -168,6 +309,8 @@ function formatAsMarkdown(review: ReviewResult): string {
 > **Reviewed**: ${displayPath}
 
 ---
+
+${metadataSection}
 
 ${sanitizedContent}
 
@@ -184,6 +327,7 @@ ${sanitizedContent}
  * @param timestamp Timestamp of when the review was generated
  * @param costInfo Cost information formatted as Markdown
  * @param modelInfo Model information
+ * @param metadataSection Optional metadata section to include
  * @returns Markdown string
  */
 function formatStructuredReviewAsMarkdown(
@@ -192,7 +336,8 @@ function formatStructuredReviewAsMarkdown(
   reviewType: string,
   timestamp: string,
   costInfo: string,
-  modelInfo: string
+  modelInfo: string,
+  metadataSection?: string
 ): string {
   const { summary, issues, recommendations, positiveAspects } =
     structuredReview;
@@ -260,6 +405,9 @@ function formatStructuredReviewAsMarkdown(
     displayPath = process.cwd() + ' (Current Directory)';
   }
 
+  // Include metadata section if available
+  const metadataContent = metadataSection ? `${metadataSection}\n` : '';
+
   return `# Code Review: ${displayPath}
 
 > **Review Type**: ${reviewType}
@@ -268,7 +416,7 @@ function formatStructuredReviewAsMarkdown(
 
 ---
 
-## Summary
+${metadataContent}## Summary
 
 ${summary}
 

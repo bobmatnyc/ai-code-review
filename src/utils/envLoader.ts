@@ -81,9 +81,7 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
         debugLog(`No .env.local found in any tool directory, falling back to current directory: ${envLocalPath}`);
       }
     }
-    // Default to .env.local in current working directory
-    const envLocalPath =
-      envFilePath || path.resolve(process.cwd(), '.env.local');
+    // envLocalPath is already defined and set above
 
     // Check if the file exists
     try {
