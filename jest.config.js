@@ -1,5 +1,7 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
+  // Disable watch plugins to avoid loading interactive mode (chalk-related) during tests
+  watchPlugins: [],
   preset: 'ts-jest',
   // Override default cache directory to a project-local folder to avoid permission issues
   cacheDirectory: '<rootDir>/node_modules/.cache/jest',
@@ -22,7 +24,8 @@ module.exports = {
   },
   transformIgnorePatterns: [
     // Tell Jest to transpile node_modules packages that use ESM
-    'node_modules/(?!node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill|chalk|ansi-styles|#ansi-styles)'
+    // Exclude chalk from transformation to avoid altering its exports
+    'node_modules/(?!node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill|ansi-styles|#ansi-styles)'
   ],
   moduleNameMapper: {
     // Handle ESM imports
