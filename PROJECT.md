@@ -217,7 +217,7 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
 1. Clone the repository
 2. Install dependencies with `npm install`
 3. Create `.env.local` with required environment variables
-4. Build the project with `npm run build`
+4. Build the project with `npm run build` (uses esbuild for fast bundling)
 
 ### Usage
 // Updated: 2023-07-25

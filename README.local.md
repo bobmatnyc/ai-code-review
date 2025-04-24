@@ -49,6 +49,7 @@ These commands are useful for verifying that your API keys are valid and that yo
 
 To test the built version (simulating the installed npm package):
 
+yarn built-review [target] [options]
 ```bash
 # Using the convenience script
 ./built-ai-review.sh [target] [options]
@@ -56,12 +57,15 @@ To test the built version (simulating the installed npm package):
 # Or using yarn
 yarn built-review [target] [options]
 
+# Or using npm
+npm run build && npm start [target] [options]
+
 # Examples:
 ./built-ai-review.sh src/utils --type security
 ./built-ai-review.sh src/index.ts --interactive
 ```
 
-This first builds the TypeScript code and then runs the JavaScript output, simulating how the package will behave when installed from npm.
+This first runs `npm run build` (which uses esbuild to bundle the source and emit type declarations) and then executes the bundled `dist/index.js`, simulating how the package will behave when installed from npm.
 
 ## Testing Specific Features
 

@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "bin": "dist/index.js",
   "scripts": {
-    "build": "npm run test && tsc",
+    "build": "npm run test && npm run build:types && node scripts/build.js",
+    "build:types": "tsc --emitDeclarationOnly",
     "postbuild": "./scripts/link-global.sh",
     "start": "node dist/index.js",
     "dev": "ts-node --transpile-only src/index.ts",
@@ -110,7 +111,14 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
-    "vitest": "^1.0.4"
+    "vitest": "^1.0.4",
+    "esbuild": "^0.25.3"
+  },
+  "overrides": {
+    "esbuild": "^0.25.3"
+  },
+  "resolutions": {
+    "esbuild": "^0.25.3"
   },
   "packageManager": "yarn@4.9.1"
 }
