@@ -1,4 +1,4 @@
-# Installation Guide for AI Code Review v1.2.0
+# Installation Guide for AI Code Review v2.1.4
 
 This guide will help you install and set up the AI Code Review tool.
 
@@ -31,7 +31,11 @@ This will install the tool as a development dependency in your project.
 
 ## API Key Setup
 
-1. Get an API key from one or more of the following sources:
+1. Copy the sample environment file and fill in your API keys:
+   ```bash
+   cp .env.sample .env.local
+   ```
+2. Get an API key from one or more of the following sources:
    - [Google AI Studio](https://makersuite.google.com/) for Gemini models
    - [Anthropic Console](https://console.anthropic.com/) for Claude models
    - [OpenRouter](https://openrouter.ai/) for access to multiple models
