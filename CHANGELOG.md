@@ -5,9 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2025-04-18
+
+### Fixed
+- Fixed Ruby project signatures in enhanced project type detection module
+- Updated all enhancement modules to maintain feature parity with main codebase
+
+## [2.1.2] - 2025-04-18
+
+### Added
+- Added Ruby/Rails prompt suite with specialized prompts for all review types
+- Added Ruby/Rails test project with typical Rails application structure
+- Added Ruby project type detection for better language-specific analysis
+- Enhanced Ruby file extensions support (.rb, .rake, .gemspec, .ru, .erb)
+- Added Ruby-specific directory exclusions (vendor, tmp) to improve performance
+ 
+### Changed
+- Updated file globbing patterns to include Ruby file extensions
+- Improved project type detection system to accurately identify Ruby on Rails projects
+
 ## [2.1.1] - 2025-04-18
 
 ### Added
+- Added comprehensive metadata headers to each review with model details, token usage, cost, tool version, and command options
+- Added support for both Markdown table format and structured JSON metadata
+- Added test script to verify metadata headers implementation
+- Added Ruby/Rails prompt suite with specialized prompts for all review types
+- Added Ruby/Rails test project with typical Rails application structure
+- Added Ruby project type detection for better language-specific analysis
 - Improved debugging for file extension detection with detailed logging
 - Added version display at startup
 - Added automatic global installation linking after build (postbuild script)
@@ -16,11 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added dedicated `fix-global-command.sh` script to quickly resolve installation issues
 
 ### Changed
-- Enhanced file globbing patterns to better support Python file extensions (.py, .pyc, .pyi, .pyx, .pyd)
+- Enhanced file globbing patterns to better support Python and Ruby file extensions
+- Added Ruby-specific file extensions (.rb, .rake, .gemspec, .ru, .erb)
+- Added Ruby-specific directory exclusions (vendor, tmp) to improve performance
 - Improved logging with stats about file types detected
 - Added postbuild script to ensure global command always uses latest build
+- Improved date formatting in review outputs for better readability
+- Enhanced the ReviewResult interface with new metadata properties
 
 ### Fixed
+- Fixed content sanitization to properly preserve newlines and tabs in the review content
 - Fixed issue where review output did not show full directory path
 - Fixed Python file detection in mixed language projects
 - Fixed TypeScript errors in fileFilters.debug.ts

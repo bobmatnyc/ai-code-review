@@ -49,6 +49,58 @@ interface ProjectTypeSignature {
  * Project type signatures for different languages and frameworks
  */
 const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
+  // Ruby signatures
+  {
+    language: 'ruby',
+    requiredFiles: ['Gemfile'],
+    optionalFiles: ['config/routes.rb', 'app/controllers'],
+    projectType: 'Ruby on Rails',
+    confidence: 'high'
+  },
+  {
+    language: 'ruby',
+    requiredFiles: ['config/routes.rb'],
+    projectType: 'Ruby on Rails',
+    confidence: 'high'
+  },
+  {
+    language: 'ruby',
+    requiredFiles: ['config/application.rb'],
+    projectType: 'Ruby on Rails',
+    confidence: 'high'
+  },
+  {
+    language: 'ruby',
+    requiredFiles: ['config.ru'],
+    optionalFiles: ['Gemfile'],
+    projectType: 'Rack',
+    confidence: 'medium'
+  },
+  {
+    language: 'ruby',
+    requiredFiles: ['.ruby-version'],
+    confidence: 'medium'
+  },
+  {
+    language: 'ruby',
+    requiredFiles: ['Rakefile'],
+    confidence: 'medium'
+  },
+  {
+    language: 'ruby',
+    requiredFiles: [],
+    additionalCheck: async (projectPath: string) => {
+      // Check for .rb files
+      try {
+        const files = await fs.readdir(projectPath);
+        return files.some(file => file.endsWith('.rb'));
+      } catch {
+        return false;
+      }
+    },
+    confidence: 'low'
+  },
+
   // Python signatures
   {
     language: 'python',

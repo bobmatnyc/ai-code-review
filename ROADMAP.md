@@ -81,7 +81,7 @@ This document works in conjunction with [INSTRUCTIONS.md](./INSTRUCTIONS.md), wh
 
 - [x] Add static code analysis integration (ts-prune, eslint) *(Implemented in v2.1.0: Added ts-prune and eslint integration for unused code detection)*
 - [x] Add dependency visualization integration *(Implemented in v2.1.0: Added dependency-cruiser integration for architectural reviews)*
-- [ ] Add metadata headers to each review (model, token cost, timestamp)
+- [x] Add metadata headers to each review (model, token cost, timestamp) *(Implemented in v2.1.1: Added comprehensive metadata headers with model details, token usage, cost, tool version, and command options)*
 - [ ] Embed original code context alongside suggestions
 - [ ] Include model confidence or explanation (if available)
 - [ ] Support HTML and CLI-rendered output options

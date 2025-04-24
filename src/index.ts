@@ -158,7 +158,7 @@ import { listModelConfigs } from './clients/utils/modelLister';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '2.1.1';
+const VERSION = '2.1.3';
 
 // Main function to run the application
 async function main() {

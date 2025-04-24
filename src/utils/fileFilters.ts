@@ -132,10 +132,10 @@ export async function getFilesToReview(
   logger.debug('Running glob in directory:', targetPath);
   
   // Comprehensive glob pattern to ensure all relevant files are included
-  const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md,py,pyc,pyi,pyx,pyd,php,java,rb,go,rs,c,cpp,h,hpp,cs,swift,kt}', {
+  const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md,py,pyc,pyi,pyx,pyd,php,java,rb,rake,gemspec,ru,erb,go,rs,c,cpp,h,hpp,cs,swift,kt}', {
     cwd: targetPath,
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.venv/**', '**/env/**', '**/__pycache__/**']
+    ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.venv/**', '**/env/**', '**/__pycache__/**', '**/vendor/**', '**/tmp/**']
   });
   
   // Log stats about found files by extension

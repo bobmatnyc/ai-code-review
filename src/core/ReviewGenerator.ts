@@ -116,5 +116,44 @@ export async function generateReview(
     );
   }
 
-  return result;
+  // Add metadata to the review result
+  const reviewResult = await result;
+  
+  // Get package version from process.env or hardcoded value
+  const packageVersion = process.env.npm_package_version || '2.1.1';
+  
+  // Create a string representation of the command-line options
+  const commandOptions = Object.entries(options)
+    .filter(([key, value]) => {
+      // Filter out internal options and undefined values
+      if (key.startsWith('_') || value === undefined) return false;
+      
+      // Filter out empty arrays and objects
+      if (Array.isArray(value) && value.length === 0) return false;
+      if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return false;
+      
+      return true;
+    })
+    .map(([key, value]) => {
+      // Format boolean options as flags without values
+      if (typeof value === 'boolean') {
+        return value ? `--${key}` : '';
+      }
+      
+      // Format arrays and objects as JSON strings
+      if (typeof value === 'object' && value !== null) {
+        return `--${key}='${JSON.stringify(value)}'`;
+      }
+      
+      // Format other values normally
+      return `--${key}=${value}`;
+    })
+    .filter(Boolean) // Remove empty strings
+    .join(' ');
+
+  // Add metadata to the review result
+  reviewResult.toolVersion = packageVersion;
+  reviewResult.commandOptions = commandOptions;
+  
+  return reviewResult;
 }
