@@ -4,9 +4,15 @@ description: Identifies unused or dead code that can be safely removed from PHP 
 version: 1.0.0
 author: AI Code Review Tool
 reviewType: unused-code
-tags: cleanup, refactoring, maintenance, php
+tags:
+  - cleanup
+  - refactoring
+  - maintenance
+  - php
 language: php
+lastModified: '2025-04-24'
 ---
+
 
 🧠 **PHP Unused Code Review Prompt**
 

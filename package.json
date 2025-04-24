@@ -13,7 +13,7 @@
     "local": "ts-node --transpile-only -r tsconfig-paths/register src/index.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "jest",
+    "test": "npm run validate:prompts && jest --no-cache",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --collectCoverageFrom='src/**/*.ts'",
     "test:model": "ts-node src/index.ts model-test",
@@ -25,7 +25,9 @@
     "prepublishOnly": "npm run build",
     "local-review": "./local-ai-review.sh",
     "built-review": "./built-ai-review.sh",
-    "cleanup": "tsx scripts/cleanup-dead-code.ts"
+    "cleanup": "tsx scripts/cleanup-dead-code.ts",
+    "validate:prompts": "node scripts/validate-prompts.js",
+    "update:prompts": "node scripts/update-prompts-frontmatter.js"
   },
   "keywords": [
     "code-review",
@@ -101,6 +103,7 @@
     "@typescript-eslint/parser": "^6.15.0",
     "babel-jest": "^29.7.0",
     "dependency-cruiser": "^16.10.1",
+    "esbuild": "^0.25.3",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.0.1",
@@ -112,7 +115,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
     "vitest": "^1.0.4",
-    "esbuild": "^0.25.3"
+    "js-yaml": "^4.1.0"
   },
   "overrides": {
     "esbuild": "^0.25.3"

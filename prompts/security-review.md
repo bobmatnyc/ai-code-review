@@ -3,9 +3,14 @@ name: Security Code Review
 description: Comprehensive security review to identify vulnerabilities and security best practice violations
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: security
-tags: security, vulnerabilities, owasp
+tags:
+  - security
+  - vulnerabilities
+  - owasp
 ---
+
 
 🧠 **Security Code Review Prompt**
 

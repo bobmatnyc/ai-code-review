@@ -2,11 +2,19 @@
 name: Python Architectural Code Review
 description: High-level architectural review for Python projects focusing on code structure, API design, and component organization
 version: 1.0.0
-authors: AI Code Review Tool
 reviewType: architectural
-tags: architecture, design, structure, organization, python
+tags:
+  - architecture
+  - design
+  - structure
+  - organization
+  - python
 language: python
+lastModified: '2025-04-24'
+author: AI Code Review Tool
 ---
+
+
 
 🧠 **Python Architectural Code Review Prompt**
 

@@ -3,9 +3,15 @@ name: Code Tracing Unused Code Finder
 description: Performs deep code tracing to verify unreferenced files and functions
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: unused-code
-tags: code-tracing, static-analysis, dead-code-elimination, multi-pass
+tags:
+  - code-tracing
+  - static-analysis
+  - dead-code-elimination
+  - multi-pass
 ---
+
 
 # Deep Code Tracing for Unused Code Detection
 

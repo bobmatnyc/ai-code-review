@@ -5,8 +5,14 @@ version: 1.0.0
 author: AI Code Review Tool
 language: typescript
 reviewType: architectural
-tags: typescript, architecture, design, structure
+tags:
+  - typescript
+  - architecture
+  - design
+  - structure
+lastModified: '2025-04-24'
 ---
+
 
 🧠 **TypeScript Architectural Code Review Prompt**
 

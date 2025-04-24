@@ -3,9 +3,15 @@ name: Architectural Code Review
 description: High-level architectural review focusing on code structure, API design, and component organization
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: architectural
-tags: architecture, design, structure, organization
+tags:
+  - architecture
+  - design
+  - structure
+  - organization
 ---
+
 
 🧠 **Architectural Code Review Prompt**
 

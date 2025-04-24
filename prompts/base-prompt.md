@@ -3,9 +3,13 @@ name: Base Prompt
 description: Base template for all code review prompts
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: base
-tags: template, base
+tags:
+  - template
+  - base
 ---
+
 
 🧠 **AI Code Review Prompt**
 

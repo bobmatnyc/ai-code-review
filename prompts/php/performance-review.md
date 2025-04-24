@@ -4,9 +4,16 @@ description: Detailed performance review to identify bottlenecks and optimizatio
 version: 1.0.0
 author: AI Code Review Tool
 reviewType: performance
-tags: performance, optimization, efficiency, bottlenecks, php
+tags:
+  - performance
+  - optimization
+  - efficiency
+  - bottlenecks
+  - php
 language: php
+lastModified: '2025-04-24'
 ---
+
 
 🧠 **PHP Performance Code Review Prompt**
 

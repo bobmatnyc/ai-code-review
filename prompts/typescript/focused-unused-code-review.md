@@ -5,8 +5,14 @@ version: 1.0.0
 author: AI Code Review Tool
 reviewType: unused-code
 language: typescript
-tags: typescript, cleanup, static-analysis, dead-code-elimination
+tags:
+  - typescript
+  - cleanup
+  - static-analysis
+  - dead-code-elimination
+lastModified: '2025-04-24'
 ---
+
 
 # TypeScript Unused Code Detector
 

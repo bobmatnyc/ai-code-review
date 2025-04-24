@@ -4,9 +4,16 @@ description: Detailed performance review to identify bottlenecks and optimizatio
 version: 1.0.0
 author: AI Code Review Tool
 reviewType: performance
-tags: performance, optimization, efficiency, bottlenecks, python
+tags:
+  - performance
+  - optimization
+  - efficiency
+  - bottlenecks
+  - python
 language: python
+lastModified: '2025-04-24'
 ---
+
 
 🧠 **Python Performance Code Review Prompt**
 

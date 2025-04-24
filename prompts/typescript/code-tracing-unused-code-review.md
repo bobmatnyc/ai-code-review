@@ -5,8 +5,15 @@ version: 1.0.0
 author: AI Code Review Tool
 reviewType: unused-code
 language: typescript
-tags: typescript, code-tracing, static-analysis, dead-code-elimination, multi-pass
+tags:
+  - typescript
+  - code-tracing
+  - static-analysis
+  - dead-code-elimination
+  - multi-pass
+lastModified: '2025-04-24'
 ---
+
 
 # Code Path Tracing and Unused Code Detection
 

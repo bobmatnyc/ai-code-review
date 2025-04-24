@@ -2,11 +2,19 @@
 name: PHP Architectural Code Review
 description: High-level architectural review for PHP projects focusing on code structure, API design, and component organization
 version: 1.0.0
-authors: AI Code Review Tool
 reviewType: architectural
-tags: architecture, design, structure, organization, php
+tags:
+  - architecture
+  - design
+  - structure
+  - organization
+  - php
 language: php
+lastModified: '2025-04-24'
+author: AI Code Review Tool
 ---
+
+
 
 🧠 **PHP Architectural Code Review Prompt**
 

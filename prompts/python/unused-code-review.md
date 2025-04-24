@@ -4,9 +4,15 @@ description: Identifies unused or dead code that can be safely removed from Pyth
 version: 1.0.0
 author: AI Code Review Tool
 reviewType: unused-code
-tags: cleanup, refactoring, maintenance, python
+tags:
+  - cleanup
+  - refactoring
+  - maintenance
+  - python
 language: python
+lastModified: '2025-04-24'
 ---
+
 
 🧠 **Python Unused Code Review Prompt**
 

@@ -3,9 +3,14 @@ name: Quick Fixes Review
 description: Fast review focused on identifying low-hanging fruit and easy improvements
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: quick-fixes
-tags: quick, fixes, improvements
+tags:
+  - quick
+  - fixes
+  - improvements
 ---
+
 
 🧠 **Quick Fixes Code Review Prompt**
 

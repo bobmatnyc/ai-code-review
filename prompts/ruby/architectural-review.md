@@ -5,8 +5,13 @@ version: 1.0.0
 author: AI Code Review Team
 reviewType: architectural
 language: ruby
-tags: architecture, rails, ruby
+tags:
+  - architecture
+  - rails
+  - ruby
+lastModified: '2025-04-24'
 ---
+
 
 # Ruby/Rails Architectural Code Review
 

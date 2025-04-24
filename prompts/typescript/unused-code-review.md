@@ -5,8 +5,14 @@ version: 1.0.0
 author: AI Code Review Tool
 reviewType: unused-code
 language: typescript
-tags: typescript, cleanup, refactoring, maintenance
+tags:
+  - typescript
+  - cleanup
+  - refactoring
+  - maintenance
+lastModified: '2025-04-24'
 ---
+
 
 🧠 **TypeScript Unused Code Review Prompt**
 

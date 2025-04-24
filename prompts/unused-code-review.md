@@ -3,9 +3,14 @@ name: Unused Code Review
 description: Identifies unused or dead code that can be safely removed
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: unused-code
-tags: cleanup, refactoring, maintenance
+tags:
+  - cleanup
+  - refactoring
+  - maintenance
 ---
+
 
 🧠 **Unused Code Review Prompt**
 

@@ -3,9 +3,14 @@ name: Consolidated Code Review
 description: Comprehensive review that analyzes the entire codebase and provides a single consolidated response
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: consolidated
-tags: comprehensive, codebase, multi-file
+tags:
+  - comprehensive
+  - codebase
+  - multi-file
 ---
+
 
 🧠 **Consolidated Code Review Prompt**
 

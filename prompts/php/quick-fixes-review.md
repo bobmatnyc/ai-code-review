@@ -4,9 +4,15 @@ description: Fast review focused on identifying low-hanging fruit and easy impro
 version: 1.0.0
 author: AI Code Review Tool
 reviewType: quick-fixes
-tags: quick, fixes, improvements, php
+tags:
+  - quick
+  - fixes
+  - improvements
+  - php
 language: php
+lastModified: '2025-04-24'
 ---
+
 
 🧠 **PHP Quick Fixes Code Review Prompt**
 

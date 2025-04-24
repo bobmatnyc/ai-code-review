@@ -5,8 +5,13 @@ version: 1.0.0
 author: AI Code Review Team
 reviewType: security
 language: ruby
-tags: security, rails, ruby
+tags:
+  - security
+  - rails
+  - ruby
+lastModified: '2025-04-24'
 ---
+
 
 # Ruby/Rails Security Code Review
 

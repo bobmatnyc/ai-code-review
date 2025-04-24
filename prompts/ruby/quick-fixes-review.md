@@ -5,8 +5,13 @@ version: 1.0.0
 author: AI Code Review Team
 reviewType: quick-fixes
 language: ruby
-tags: ruby, rails, quick-fixes
+tags:
+  - ruby
+  - rails
+  - quick-fixes
+lastModified: '2025-04-24'
 ---
+
 
 # Ruby/Rails Quick Fixes Code Review
 

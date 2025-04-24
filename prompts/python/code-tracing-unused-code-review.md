@@ -4,9 +4,16 @@ description: Performs deep code tracing to verify unreferenced files and functio
 version: 1.0.0
 author: AI Code Review Tool
 reviewType: unused-code
-tags: code-tracing, static-analysis, dead-code-elimination, multi-pass, python
+tags:
+  - code-tracing
+  - static-analysis
+  - dead-code-elimination
+  - multi-pass
+  - python
 language: python
+lastModified: '2025-04-24'
 ---
+
 
 # Deep Code Tracing for Python Unused Code Detection
 

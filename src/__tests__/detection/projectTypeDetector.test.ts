@@ -13,8 +13,8 @@ describe('detectProjectType', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    // Create a temporary directory for each test
-    tempDir = path.join(os.tmpdir(), `test-project-${Math.random().toString(36).substring(2)}`);
+    // Create a temporary directory for each test under project workspace
+    tempDir = path.join(process.cwd(), 'tmp', `test-project-${Math.random().toString(36).substring(2)}`);
     await fs.mkdir(tempDir, { recursive: true });
   });
 

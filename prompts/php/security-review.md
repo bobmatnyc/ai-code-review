@@ -4,9 +4,14 @@ description: Comprehensive security review to identify vulnerabilities and secur
 version: 1.0.0
 author: AI Code Review Tool
 reviewType: security
-tags: security, vulnerabilities, php
+tags:
+  - security
+  - vulnerabilities
+  - php
 language: php
+lastModified: '2025-04-24'
 ---
+
 
 🧠 **PHP Security Code Review Prompt**
 

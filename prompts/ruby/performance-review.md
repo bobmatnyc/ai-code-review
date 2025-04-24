@@ -5,8 +5,13 @@ version: 1.0.0
 author: AI Code Review Team
 reviewType: performance
 language: ruby
-tags: performance, rails, ruby
+tags:
+  - performance
+  - rails
+  - ruby
+lastModified: '2025-04-24'
 ---
+
 
 # Ruby/Rails Performance Code Review
 

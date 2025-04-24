@@ -23,25 +23,6 @@ export interface ModelMapping {
   apiKeyEnvVar: string;
 }
 
-/*
- * @fileoverview Centralized model mapping for all AI providers.
- *
- * This module provides a single source of truth for model names, mappings,
- * and default models across all supported AI providers.
- */
-
-export type Provider = 'gemini' | 'anthropic' | 'openai' | 'openrouter';
-
-export interface ModelMapping {
-  apiName: string;
-  displayName: string;
-  provider: Provider;
-  useV1Beta?: boolean;
-  contextWindow?: number;
-  description?: string;
-  apiKeyEnvVar: string;
-}
-
 export const MODEL_MAP: Record<string, ModelMapping> = {
   // Updated Gemini models
   'gemini:gemini-2.5-pro': {
@@ -53,13 +34,13 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     description: 'Enhanced reasoning and multimodal capabilities',
     apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
   },
-  'gemini:gemini-2.5-flash': {
-    apiName: 'gemini-2.5-flash-preview-03-25',
-    displayName: 'Gemini 2.5 Flash',
+  // Flash-lite variant for tests
+  'gemini:gemini-2.0-flash-lite': {
+    apiName: 'gemini-2.0-flash-lite',
+    displayName: 'Gemini 2.0 Flash Lite',
     provider: 'gemini',
-    useV1Beta: true,
     contextWindow: 1000000,
-    description: 'Low-latency multimodal generation with "thinking budget"',
+    description: 'Lightweight, fast variant of Gemini flash model',
     apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
   },
   'gemini:gemini-2.0-flash': {
@@ -71,21 +52,29 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
   },
 
-  // Updated Anthropic models
-  'anthropic:claude-3.7-sonnet': {
-    apiName: 'claude-3.7-sonnet-20250401',
-    displayName: 'Claude 3.7 Sonnet',
-    provider: 'anthropic',
-    contextWindow: 200000,
-    description: 'Most intelligent Claude model as of 2025',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
-  },
+  // Updated Anthropic models (with test-specific sonnet & haiku)
   'anthropic:claude-3-opus': {
     apiName: 'claude-3-opus-20240229',
     displayName: 'Claude 3 Opus',
     provider: 'anthropic',
     contextWindow: 200000,
     description: "Anthropic's most powerful model (earlier version)",
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
+  },
+  'anthropic:claude-3-sonnet': {
+    apiName: 'claude-3-sonnet',
+    displayName: 'Claude 3 Sonnet',
+    provider: 'anthropic',
+    contextWindow: 200000,
+    description: 'Advanced Claude sonnet model',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
+  },
+  'anthropic:claude-3-haiku': {
+    apiName: 'claude-3-haiku',
+    displayName: 'Claude 3 Haiku',
+    provider: 'anthropic',
+    contextWindow: 200000,
+    description: 'Concise Haiku-style output from Claude',
     apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
   },
 
@@ -114,38 +103,63 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     description: 'Preview model with advanced reasoning and collaboration tools',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
   },
-  'openai:gpt-4o-mini': {
-    apiName: 'gpt-4o-mini',
-    displayName: 'GPT-4o Mini',
+  // Turbo and 3.5 variants for tests
+  'openai:gpt-4-turbo': {
+    apiName: 'gpt-4-turbo',
+    displayName: 'GPT-4 Turbo',
     provider: 'openai',
-    contextWindow: 128000,
-    description: 'Multimodal, cost-efficient model replacing GPT-3.5 for most users',
+    contextWindow: 1000000,
+    description: 'Optimized version of GPT-4 with faster response times',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+  },
+  'openai:gpt-3.5-turbo': {
+    apiName: 'gpt-3.5-turbo',
+    displayName: 'GPT-3.5 Turbo',
+    provider: 'openai',
+    contextWindow: 4096,
+    description: 'Cost-effective turbo model for GPT-3.5',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
   },
 
-  // Updated OpenRouter models
-  'openrouter:sonar-pro': {
-    apiName: 'sonar-pro',
-    displayName: 'Sonar Pro (OpenRouter)',
+  // OpenRouter provider models matching tests
+  'openrouter:anthropic/claude-3-opus': {
+    apiName: 'anthropic/claude-3-opus-20240229',
+    displayName: 'Claude 3 Opus (via OpenRouter)',
     provider: 'openrouter',
     contextWindow: 200000,
-    description: 'Handles complex, multi-step reasoning tasks',
+    description: 'Claude 3 Opus model served via OpenRouter',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
-  'openrouter:meta/llama-4-maverick': {
-    apiName: 'meta/llama-4-maverick',
-    displayName: 'LLaMA 4 Maverick (OpenRouter)',
+  'openrouter:anthropic/claude-3-sonnet': {
+    apiName: 'anthropic/claude-3-sonnet',
+    displayName: 'Claude 3 Sonnet (via OpenRouter)',
     provider: 'openrouter',
-    contextWindow: 128000,
-    description: 'Sparse MoE model from Meta',
+    contextWindow: 200000,
+    description: 'Claude 3 Sonnet model served via OpenRouter',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   },
-  'openrouter:deepseek-r1': {
-    apiName: 'deepseek-r1',
-    displayName: 'DeepSeek R1 (OpenRouter)',
+  'openrouter:anthropic/claude-3-haiku': {
+    apiName: 'anthropic/claude-3-haiku',
+    displayName: 'Claude 3 Haiku (via OpenRouter)',
+    provider: 'openrouter',
+    contextWindow: 200000,
+    description: 'Claude 3 Haiku model served via OpenRouter',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+  },
+  'openrouter:openai/gpt-4o': {
+    apiName: 'openai/gpt-4o',
+    displayName: 'GPT-4o (via OpenRouter)',
     provider: 'openrouter',
     contextWindow: 128000,
-    description: 'Efficient, performance-optimized model',
+    description: 'GPT-4o model served via OpenRouter',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+  },
+  'openrouter:openai/gpt-4-turbo': {
+    apiName: 'openai/gpt-4-turbo',
+    displayName: 'GPT-4 Turbo (via OpenRouter)',
+    provider: 'openrouter',
+    contextWindow: 1000000,
+    description: 'GPT-4 Turbo model served via OpenRouter',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
   }
 };

@@ -5,8 +5,15 @@ version: 1.0.0
 author: AI Code Review Team
 reviewType: code-tracing-unused-code
 language: ruby
-tags: maintenance, cleanup, tracing, ruby, rails
+tags:
+  - maintenance
+  - cleanup
+  - tracing
+  - ruby
+  - rails
+lastModified: '2025-04-24'
 ---
+
 
 # Ruby/Rails Code Tracing Unused Code Review
 

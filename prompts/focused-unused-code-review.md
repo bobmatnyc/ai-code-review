@@ -3,9 +3,14 @@ name: Focused Unused Code Finder
 description: Identifies code paths, files, functions, and other elements that are never called in the codebase
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: unused-code
-tags: cleanup, static-analysis, dead-code-elimination
+tags:
+  - cleanup
+  - static-analysis
+  - dead-code-elimination
 ---
+
 
 # Unused Code Detector
 

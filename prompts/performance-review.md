@@ -3,9 +3,15 @@ name: Performance Code Review
 description: Detailed performance review to identify bottlenecks and optimization opportunities
 version: 1.0.0
 author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
 reviewType: performance
-tags: performance, optimization, efficiency, bottlenecks
+tags:
+  - performance
+  - optimization
+  - efficiency
+  - bottlenecks
 ---
+
 
 🧠 **Performance Code Review Prompt**
 
