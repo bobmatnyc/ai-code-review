@@ -20,6 +20,7 @@ import {
   ReviewCost,
   ReviewOptions
 } from '../types/review';
+import { getConfig } from '../utils/config';
 import { ProjectDocs } from '../utils/projectDocs';
 import logger from '../utils/logger';
 import {
@@ -64,8 +65,8 @@ function isOpenAIModel(): {
   adapter: string;
   modelName: string;
 } {
-  // Get the model from environment variables
-  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
+  // Get the model from configuration (CLI override or env)
+  const selectedModel = getConfig().selectedModel || '';
 
   // Parse the model name
   const [adapter, modelName] = selectedModel.includes(':')

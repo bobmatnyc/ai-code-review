@@ -12,6 +12,7 @@ import { FileInfo, discoverFiles, readFilesContent } from './fileDiscovery';
 import logger from '../utils/logger';
 import { getApiKeyType } from '../utils/apiUtils';
 import { runApiConnectionTests } from '../tests/apiConnectionTest';
+import { getConfig } from '../utils/config';
 import {
   estimateFromFilePaths,
   formatEstimation
@@ -49,6 +50,8 @@ export async function orchestrateReview(
   target: string,
   options: ReviewOptions
 ): Promise<void> {
+  // Initialize configuration with CLI options (e.g., model override, API keys)
+  getConfig(options);
   try {
     // Add debug information if debug mode is enabled
     if (options.debug) {

@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "bin": "dist/index.js",
   "scripts": {
+    "prebuild": "rm -rf dist",
     "build": "npm run test && npm run build:types && node scripts/build.js",
     "build:types": "tsc --emitDeclarationOnly",
     "postbuild": "./scripts/link-global.sh",
