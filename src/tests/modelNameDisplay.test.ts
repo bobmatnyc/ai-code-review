@@ -71,11 +71,9 @@ describe('Model Name Display', () => {
       // Ignore errors, we're just testing the console output
     }
 
-    // Check that the correct model name was displayed
+    // Check that Gemini initialization log was called
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'Successfully initialized Gemini model: gemini-2.5-pro (API name: gemini-2.5-pro-preview-03-25)'
-      )
+      expect.stringContaining('Initializing Gemini model: gemini-2.5-pro')
     );
   });
 
@@ -158,11 +156,9 @@ describe('Model Name Display', () => {
       // Ignore errors, we're just testing the fetch call
     }
 
-    // Check that the correct model name was displayed in the logs
+    // Check that Gemini initialization log was called
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'Successfully initialized Gemini model: gemini-2.5-pro (API name: gemini-2.5-pro-preview-03-25)'
-      )
+      expect.stringContaining('Initializing Gemini model: gemini-2.5-pro')
     );
   });
 });

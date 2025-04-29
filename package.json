@@ -3,7 +3,9 @@
   "version": "2.1.5",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
-  "bin": "dist/index.js",
+  "bin": {
+    "ai-code-review": "dist/index.js"
+  },
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "npm run test && npm run build:types && node scripts/build.js",
