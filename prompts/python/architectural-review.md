@@ -54,6 +54,7 @@ Act as a **senior Python architect with expertise in modern Python application d
 - Are there virtual environment configurations?
 - Are there any unnecessary or redundant dependencies?
 - Is there a clear strategy for managing package versions?
+- Are there opportunities to leverage established OSS packages (loggers, utilities, etc.) to enhance the codebase or replace custom-built features?
 
 #### 🧩 Component Architecture
 - Are components properly decomposed and reusable?

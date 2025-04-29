@@ -42,6 +42,7 @@ Act as a **senior software architect with expertise in modern application develo
 - Are there any unnecessary or redundant dependencies?
 - Are dependencies properly versioned and maintained?
 - Is there a clear strategy for managing package versions?
+- Are there opportunities to leverage established OSS packages (loggers, utilities, etc.) to enhance the codebase or replace custom-built features?
 
 #### 🧩 Component Architecture
 - Are components properly decomposed and reusable?

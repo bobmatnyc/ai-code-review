@@ -97,12 +97,14 @@ Responsible for:
 // Updated: 2023-07-25
 
 #### Architectural Review
+// Updated: 2025-04-29
 Provides a holistic analysis of the entire codebase, focusing on:
 - Overall code structure and organization
 - API design patterns and consistency
 - Package management and dependencies
 - Component architecture and relationships
 - Integration points and data flow
+- Opportunities to leverage established OSS packages (loggers, utilities, etc.) to enhance the codebase or replace custom-built features
 
 Unlike other review types, architectural reviews analyze all files together to provide a comprehensive evaluation of the system architecture.
 
