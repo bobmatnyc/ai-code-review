@@ -1,0 +1,625 @@
+
+> @bobmatnyc/ai-code-review@2.1.5 prepublishOnly
+> npm run build && npm run test:e2e
+
+
+> @bobmatnyc/ai-code-review@2.1.5 prebuild
+> rm -rf dist
+
+
+> @bobmatnyc/ai-code-review@2.1.5 build
+> npm run test && npm run build:types && node scripts/build.js
+
+
+> @bobmatnyc/ai-code-review@2.1.5 test
+> npm run validate:prompts && jest --no-cache
+
+
+> @bobmatnyc/ai-code-review@2.1.5 validate:prompts
+> node scripts/validate-prompts.js
+
+All prompts validated successfully.
+PASS src/__tests__/modelMaps.test.ts
+  modelMaps
+    MODEL_MAP structure
+      ✓ should have the correct structure (2 ms)
+      ✓ should have the correct number of models (1 ms)
+    Gemini models
+      ✓ should have the correct Gemini models
+    Anthropic models
+      ✓ should have the correct Anthropic models
+    OpenAI models
+      ✓ should have the correct OpenAI models (8 ms)
+    OpenRouter models
+      ✓ should have the correct OpenRouter models (5 ms)
+    MODELS array
+      ✓ should have the correct models for each provider (5 ms)
+    Utility functions
+      getApiNameFromKey
+        ✓ should return the correct API name for a model key
+        ✓ should handle unknown model keys gracefully (1 ms)
+      getModelMapping
+        ✓ should return the correct model mapping for a model key
+        ✓ should return undefined for unknown model keys
+      getModelsByProvider
+        ✓ should return all models for a provider
+      getModels
+        ✓ should return the default models for a provider
+        ✓ should return an empty array for unknown providers
+      parseModelString
+        ✓ should parse a model string with provider
+        ✓ should default to gemini provider if not specified
+        ✓ should throw an error for empty model strings (22 ms)
+      getFullModelKey
+        ✓ should return the full model key
+
+  console.log
+    Loaded environment variables from .env.local
+
+      at Object.log (src/__tests__/apiConnection.test.ts:30:13)
+
+  console.warn
+    No Google Gemini API key found in environment variables
+
+      85 |       // This allows the tests to run in CI environments without API keys
+      86 |       if (!apiKey) {
+    > 87 |         console.warn('No Google Gemini API key found in environment variables');
+         |                 ^
+      88 |       } else {
+      89 |         console.log('Google Gemini API key is available');
+      90 |       }
+
+      at Object.warn (src/__tests__/apiConnection.test.ts:87:17)
+
+  console.warn
+    No OpenRouter API key found in environment variables
+
+      109 |       // This allows the tests to run in CI environments without API keys
+      110 |       if (!apiKey) {
+    > 111 |         console.warn('No OpenRouter API key found in environment variables');
+          |                 ^
+      112 |       } else {
+      113 |         console.log('OpenRouter API key is available');
+      114 |       }
+
+      at Object.warn (src/__tests__/apiConnection.test.ts:111:17)
+
+PASS src/__tests__/apiConnection.test.ts
+  API Connection Tests
+    Google Gemini API
+      ✓ API key is checked (39 ms)
+      ✓ Can connect to Google Gemini API (1 ms)
+    OpenRouter API
+      ✓ API key is checked
+      ✓ Can connect to OpenRouter API (1 ms)
+    Selected Model
+      ✓ CODE_REVIEW_MODEL is properly formatted if present
+
+  console.log
+    Skipping Gemini test - API key not available
+
+      at log (src/tests/integration/reviewFormatting.test.ts:57:15)
+
+  console.log
+    Skipping Anthropic test - API key not available
+
+      at log (src/tests/integration/reviewFormatting.test.ts:109:15)
+
+PASS src/tests/integration/reviewFormatting.test.ts
+  Review Formatting Integration Tests
+    ✓ Gemini model review formatting (83 ms)
+    ✓ Anthropic model review formatting (1 ms)
+
+PASS src/__tests__/commands/testBuild.test.ts
+  testBuildCommand
+    ✓ should be defined
+    ✓ should have the correct description (1 ms)
+    ✓ should have a provider option
+    ✓ should have a fail-on-error option
+    ✓ should have a json option (3 ms)
+
+PASS src/__tests__/validatePath.test.ts
+  validateTargetPath
+    ✓ accepts valid paths within the base directory
+    ✓ rejects paths that are outside the base directory (1 ms)
+    ✓ rejects paths that do not exist
+    ✓ correctly identifies directories
+    ✓ correctly identifies files
+
+PASS src/__tests__/detection/projectTypeDetector.test.ts
+  detectProjectType
+    Python detection
+      ✓ should detect Python project with requirements.txt (10 ms)
+      ✓ should detect Python project with setup.py (4 ms)
+      ✓ should detect Python project with pyproject.toml (4 ms)
+      ✓ should detect Django project (34 ms)
+      ✓ should detect Python by file extension with low confidence (8 ms)
+    PHP detection
+      ✓ should detect PHP project with composer.json (6 ms)
+      ✓ should detect Laravel project (7 ms)
+      ✓ should detect WordPress project (6 ms)
+      ✓ should detect PHP by file extension with low confidence (3 ms)
+    TypeScript detection
+      ✓ should detect TypeScript project with tsconfig.json (5 ms)
+      ✓ should detect TypeScript project with package.json containing typescript (9 ms)
+      ✓ should detect TypeScript by file extension with medium confidence (5 ms)
+    JavaScript detection
+      ✓ should detect JavaScript project with package.json and no TypeScript (3 ms)
+      ✓ should detect JavaScript by file extension with low confidence (4 ms)
+    Fallback behavior
+      ✓ should fallback to statistical detection (5 ms)
+      ✓ should default to typescript with empty directory (2 ms)
+      ✓ should handle multiple languages and detect additional languages (13 ms)
+
+PASS src/__tests__/sanitizer.test.ts
+  sanitizer
+    sanitizeContent
+      ✓ should allow safe HTML content (56 ms)
+      ✓ should remove script tags (2 ms)
+      ✓ should remove event handlers (2 ms)
+      ✓ should remove iframe tags (4 ms)
+      ✓ should handle null or undefined input (1 ms)
+      ✓ should preserve code blocks (24 ms)
+      ✓ should preserve markdown-style formatting (8 ms)
+      ✓ should handle complex nested content (9 ms)
+    sanitizeFilename
+      ✓ should remove invalid characters from filenames
+      ✓ should handle spaces
+      ✓ should handle empty input (1 ms)
+      ✓ should handle null or undefined input (1 ms)
+      ✓ should preserve valid characters (1 ms)
+      ✓ should handle non-ASCII characters (1 ms)
+
+  console.error
+    [90m[2024-04-15T16:30:00.000Z][0m [31mERROR[0m Error reading file /path/to/file.txt: File read error
+
+      118 |         break;
+      119 |       case LogLevel.ERROR:
+    > 120 |         console.error(formattedMessage, ...args);
+          |                      ^
+      121 |         break;
+      122 |     }
+      123 |   }
+
+      at apply (src/utils/logger.ts:120:22)
+      at Object.apply (src/utils/logger.ts:159:6)
+      at error (src/utils/FileReader.ts:24:12)
+      at call (src/utils/FileReader.ts:2:1)
+      at Generator.tryCatch (src/utils/FileReader.ts:2:1)
+      at Generator._invoke [as throw] (src/utils/FileReader.ts:2:1)
+      at asyncGeneratorStep (src/utils/FileReader.ts:2:1)
+      at asyncGeneratorStep (src/utils/FileReader.ts:2:1)
+
+  console.error
+    [90m[2024-04-15T16:30:00.000Z][0m [31mERROR[0m Error writing file /path/to/file.txt: File write error
+
+      118 |         break;
+      119 |       case LogLevel.ERROR:
+    > 120 |         console.error(formattedMessage, ...args);
+          |                      ^
+      121 |         break;
+      122 |     }
+      123 |   }
+
+      at apply (src/utils/logger.ts:120:22)
+      at Object.apply (src/utils/logger.ts:159:6)
+      at error (src/utils/FileWriter.ts:51:12)
+      at call (src/utils/FileWriter.ts:2:1)
+      at Generator.tryCatch (src/utils/FileWriter.ts:2:1)
+      at Generator._invoke [as throw] (src/utils/FileWriter.ts:2:1)
+      at asyncGeneratorStep (src/utils/FileWriter.ts:2:1)
+      at asyncGeneratorStep (src/utils/FileWriter.ts:2:1)
+
+  console.log
+    Rate limit reached. Waiting 60.1 seconds before next request...
+
+      at RateLimiter.log (src/utils/rateLimiter.ts:51:15)
+
+PASS src/__tests__/rateLimiter.test.ts
+  RateLimiter
+    acquireToken
+      ✓ should allow requests within the rate limit (1 ms)
+      ✓ should clean up old request times (1 ms)
+      ✓ should wait when rate limit is reached (4 ms)
+    acquire
+      ✓ should be an alias for acquireToken (1 ms)
+    release
+      ✓ should be a no-op function for compatibility
+    globalRateLimiter
+      ✓ should export a global rate limiter instance
+
+PASS src/__tests__/reviewParser.test.ts
+  reviewParser
+    formatIssueForDisplay
+      ✓ should format a high priority issue correctly (1 ms)
+      ✓ should format a medium priority issue correctly
+      ✓ should format a low priority issue correctly (1 ms)
+
+PASS src/__tests__/fileSystem.test.ts
+  File System Utilities
+    PathValidator
+      pathExists
+        ✓ should return true if path exists (12 ms)
+        ✓ should return false if path does not exist (1 ms)
+      isDirectory
+        ✓ should return true if path is a directory (1 ms)
+        ✓ should return false if path is not a directory
+        ✓ should return false if path does not exist
+      isFile
+        ✓ should return true if path is a file
+        ✓ should return false if path is not a file (1 ms)
+        ✓ should return false if path does not exist
+    FileReader
+      readFile
+        ✓ should read file content (1 ms)
+        ✓ should throw error when reading file fails (69 ms)
+    FileWriter
+      ensureDirectoryExists
+        ✓ should create directory if it does not exist (1 ms)
+        ✓ should not create directory if it already exists
+      writeFile
+        ✓ should write content to file
+        ✓ should throw error when writing file fails (2 ms)
+    PathGenerator
+      generateVersionedOutputPath
+        ✓ should generate a versioned output path with timestamp (1 ms)
+        ✓ should sanitize model and target names (34 ms)
+        ✓ should preserve file extension (5 ms)
+
+PASS src/__tests__/modelTester.test.ts
+  modelTester
+    ✓ exports required functionality (1 ms)
+
+PASS src/__tests__/commands/testModel.test.ts
+  testModelCommand
+    ✓ should be defined (1 ms)
+    ✓ should have the correct description
+    ✓ should have a provider option
+    ✓ should have an all option
+
+PASS src/__tests__/tokenCounter.test.ts
+  tokenCounter
+    estimateTokenCount
+      ✓ should estimate tokens based on character count (2 ms)
+    formatCost
+      ✓ should format cost as a dollar amount
+
+PASS src/tests/modelNameDisplay.test.ts
+  Model Name Display
+    ✓ should display the correct model name for gemini-2.5-pro (2103 ms)
+    ✓ should display the correct model name for gemini-1.5-pro (49 ms)
+    ✓ should use the correct API model name for gemini-2.5-pro (62 ms)
+
+PASS tests/strategies/IndividualReviewStrategy.test.ts
+  IndividualReviewStrategy
+    ✓ execute should call generateReview with correct parameters for Google client (1 ms)
+    ✓ execute should throw an error if no files are provided (15 ms)
+    ✓ execute should handle errors from generateReview
+    ✓ execute should use the correct review type
+
+PASS tests/strategies/ConsolidatedReviewStrategy.test.ts
+  ConsolidatedReviewStrategy
+    ✓ execute should call generateReview with correct parameters (3 ms)
+    ✓ execute should use the correct review type
+    ✓ execute should handle null projectDocs (1 ms)
+    ✓ execute should handle errors from generateReview (9 ms)
+
+PASS tests/strategies/ArchitecturalReviewStrategy.test.ts
+  ArchitecturalReviewStrategy
+    ✓ execute should call generateReview with correct parameters (2 ms)
+    ✓ execute should handle null projectDocs
+    ✓ execute should handle errors from generateReview (8 ms)
+    ✓ strategy should always use architectural review type (1 ms)
+
+PASS tests/strategies/StrategyFactory.test.ts
+  StrategyFactory
+    ✓ createStrategy should return ConsolidatedReviewStrategy for default options (1 ms)
+    ✓ createStrategy should return IndividualReviewStrategy when individual is true
+    ✓ createStrategy should return ArchitecturalReviewStrategy for architectural review type
+    ✓ createStrategy should return custom strategy when strategy option is provided
+    ✓ createStrategy should fall back to default strategy when custom strategy is not found
+
+Test Suites: 18 passed, 18 total
+Tests:       119 passed, 119 total
+Snapshots:   0 total
+Time:        3.916 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+
+> @bobmatnyc/ai-code-review@2.1.5 build:types
+> tsc --emitDeclarationOnly
+
+Successfully added shebang to dist/index.js
+Successfully made dist/index.js executable
+
+> @bobmatnyc/ai-code-review@2.1.5 postbuild
+> ./scripts/link-global.sh
+
+Ensuring ai-code-review global command is up-to-date...
+Found multiple ai-code-review installations:
+/Users/masa/.nvm/versions/node/v20.19.0/bin/ai-code-review
+/Users/masa/.nvm/versions/node/v20.19.0/bin/ai-code-review
+Cleaning up conflicting installations...
+Uninstalling existing global packages...
+
+removed 1 package in 223ms
+Installing package globally from local directory...
+
+added 1 package in 124ms
+Clearing shell command cache...
+✅ Global command updated successfully. You can now use 'ai-code-review' from anywhere.
+🔗 Global executable: /Users/masa/.nvm/versions/node/v20.19.0/bin/ai-code-review
+📦 Version: 2.1.5
+
+NOTE: If you still see errors about missing executables, please run 'hash -r' in your terminal
+or restart your terminal session to clear the command cache.
+
+> @bobmatnyc/ai-code-review@2.1.5 test:e2e
+> node scripts/e2e-test.js
+
+[1m[36mStarting E2E tests for AI Code Review[0m
+
+[1mRunning test: Build verification[0m
+[32m Test passed: Build verification[0m
+
+[1mRunning test: Version flag[0m
+[36m> node dist/index.js -v[0m
+Testing API connections...
+OpenAI API: ⚠️ TEST NOT IMPLEMENTED
+  OpenAI API test not implemented yet
+API connection tests completed.
+[90m[2025-04-29T15:37:26.032Z][0m [32mINFO [0m AI Code Review Tool v2.1.5
+[36m... (output truncated)[0m
+[32m Test passed: Version flag[0m
+
+[1mRunning test: Help flag[0m
+[36m> node dist/index.js --help[0m
+Testing API connections...
+OpenAI API: ⚠️ TEST NOT IMPLEMENTED
+  OpenAI API test not implemented yet
+API connection tests completed.
+[90m[2025-04-29T15:37:26.391Z][0m [32mINFO [0m AI Code Review Tool v2.1.5
+[36m... (output truncated)[0m
+[32m Test passed: Help flag[0m
+
+[1mRunning test: Models flag[0m
+[36m> node dist/index.js --models[0m
+Testing API connections...
+OpenAI API: ⚠️ TEST NOT IMPLEMENTED
+  OpenAI API test not implemented yet
+API connection tests completed.
+[90m[2025-04-29T15:37:26.640Z][0m [32mINFO [0m AI Code Review Tool v2.1.5
+[36m... (output truncated)[0m
+[32m Test passed: Models flag[0m
+
+[1mRunning test: Basic file analysis[0m
+[36m> node dist/index.js /Users/masa/Projects/ai-code-review/temp-test/test.ts --estimate[0m
+Testing API connections...
+OpenAI API: ⚠️ TEST NOT IMPLEMENTED
+  OpenAI API test not implemented yet
+API connection tests completed.
+[90m[2025-04-29T15:37:27.016Z][0m [32mINFO [0m AI Code Review Tool v2.1.5
+[36m... (output truncated)[0m
+[32m Test passed: Basic file analysis[0m
+
+[1mSkipping test: API connection test[0m
+[33m� Test skipped: No API keys available[0m
+
+[1mSkipping test: Simple code review[0m
+[33m� Test skipped: No API keys available[0m
+
+[1mRunning test: Executable test[0m
+[36m> ./dist/index.js -v[0m
+Testing API connections...
+OpenAI API: ⚠️ TEST NOT IMPLEMENTED
+  OpenAI API test not implemented yet
+API connection tests completed.
+[90m[2025-04-29T15:37:27.289Z][0m [32mINFO [0m AI Code Review Tool v2.1.5
+[36m... (output truncated)[0m
+[32m Test passed: Executable test[0m
+
+[1m[36mE2E Test Summary:[0m
+[32mPassed: 6[0m
+[31mFailed: 0[0m
+[33mSkipped: 2[0m
+[32m[1mAll E2E tests passed![0m
+npm notice
+npm notice 📦  @bobmatnyc/ai-code-review@2.1.5
+npm notice Tarball Contents
+npm notice 3.5kB .env.example
+npm notice 13.5kB CHANGELOG.md
+npm notice 2.3kB INSTALL.md
+npm notice 1.1kB LICENSE
+npm notice 3.5kB README.local.md
+npm notice 31.0kB README.md
+npm notice 1.2kB dist/cli/argumentParser.d.ts
+npm notice 2.4kB dist/clients/anthropicClient.d.ts
+npm notice 1.0kB dist/clients/anthropicClientWrapper.d.ts
+npm notice 2.5kB dist/clients/geminiClient.d.ts
+npm notice 2.4kB dist/clients/openaiClient.d.ts
+npm notice 1.5kB dist/clients/openaiClientWrapper.d.ts
+npm notice 2.0kB dist/clients/openRouterClient.d.ts
+npm notice 1.0kB dist/clients/openRouterClientWrapper.d.ts
+npm notice 1.4kB dist/clients/utils/apiKeyValidator.d.ts
+npm notice 557B dist/clients/utils/directoryStructure.d.ts
+npm notice 461B dist/clients/utils/index.d.ts
+npm notice 480B dist/clients/utils/languageDetection.d.ts
+npm notice 1.2kB dist/clients/utils/modelInitializer.d.ts
+npm notice 1.5kB dist/clients/utils/modelLister.d.ts
+npm notice 2.5kB dist/clients/utils/modelMaps.d.ts
+npm notice 1.8kB dist/clients/utils/modelTester.d.ts
+npm notice 1.5kB dist/clients/utils/promptFormatter.d.ts
+npm notice 717B dist/clients/utils/promptLoader.d.ts
+npm notice 2.7kB dist/clients/utils/tokenCounter.d.ts
+npm notice 212B dist/commands/listModels.d.ts
+npm notice 991B dist/commands/reviewCode.d.ts
+npm notice 159B dist/commands/testBuild.d.ts
+npm notice 146B dist/commands/testModel.d.ts
+npm notice 783B dist/core/ApiClientSelector.d.ts
+npm notice 1.1kB dist/core/fileDiscovery.d.ts
+npm notice 1.1kB dist/core/InteractiveDisplayManager.d.ts
+npm notice 797B dist/core/OutputManager.d.ts
+npm notice 1.1kB dist/core/ReviewGenerator.d.ts
+npm notice 1.1kB dist/core/reviewOrchestrator.d.ts
+npm notice 2.3kB dist/estimators/abstractEstimator.d.ts
+npm notice 1.7kB dist/estimators/anthropicEstimator.d.ts
+npm notice 2.4kB dist/estimators/baseEstimator.d.ts
+npm notice 1.2kB dist/estimators/estimatorFactory.d.ts
+npm notice 2.0kB dist/estimators/geminiEstimator.d.ts
+npm notice 2.0kB dist/estimators/index.d.ts
+npm notice 1.7kB dist/estimators/openaiEstimator.d.ts
+npm notice 1.9kB dist/estimators/openRouterEstimator.d.ts
+npm notice 1.1kB dist/formatters/codeTracingUnusedCodeFormatter.d.ts
+npm notice 1.3kB dist/formatters/focusedUnusedCodeFormatter.d.ts
+npm notice 1.2kB dist/formatters/outputFormatter.d.ts
+npm notice 1.3kB dist/formatters/unusedCodeFormatter.d.ts
+npm notice 1.1kB dist/handlers/architecturalReviewHandler.d.ts
+npm notice 1.1kB dist/handlers/consolidatedReviewHandler.d.ts
+npm notice 830B dist/handlers/individualReviewHandler.d.ts
+npm notice 973B dist/index.d.ts
+npm notice 380.9kB dist/index.js
+npm notice 816.8kB dist/index.js.map
+npm notice 31B dist/list-models.d.ts
+npm notice 767B dist/plugins/examples/SecurityFocusedStrategy.d.ts
+npm notice 1.0kB dist/plugins/PluginInterface.d.ts
+npm notice 1.6kB dist/plugins/PluginManager.d.ts
+npm notice 2.5kB dist/prompts/cache/PromptCache.d.ts
+npm notice 2.3kB dist/prompts/examples/improved-quick-fixes-example.d.ts
+npm notice 1.5kB dist/prompts/examples/improved-unused-code-example.d.ts
+npm notice 371B dist/prompts/examples/langchain-usage.d.ts
+npm notice 3.8kB dist/prompts/examples/unused-code-langchain-example.d.ts
+npm notice 3.0kB dist/prompts/meta/PromptOptimizer.d.ts
+npm notice 2.5kB dist/prompts/PromptBuilder.d.ts
+npm notice 4.1kB dist/prompts/PromptManager.d.ts
+npm notice 202.9kB dist/prompts/schemas/code-tracing-unused-code-schema.d.ts
+npm notice 69.2kB dist/prompts/schemas/focused-unused-code-schema.d.ts
+npm notice 55.6kB dist/prompts/schemas/improved-unused-code-schema.d.ts
+npm notice 35.5kB dist/prompts/schemas/quick-fixes-schema.d.ts
+npm notice 25.2kB dist/prompts/schemas/unused-code-schema.d.ts
+npm notice 1.2kB dist/prompts/strategies/AnthropicPromptStrategy.d.ts
+npm notice 1.1kB dist/prompts/strategies/GeminiPromptStrategy.d.ts
+npm notice 2.4kB dist/prompts/strategies/LangChainPromptStrategy.d.ts
+npm notice 1.2kB dist/prompts/strategies/OpenAIPromptStrategy.d.ts
+npm notice 3.6kB dist/prompts/strategies/PromptStrategy.d.ts
+npm notice 1.2kB dist/prompts/strategies/PromptStrategyFactory.d.ts
+npm notice 82.3kB dist/prompts/utils/LangChainUtils.d.ts
+npm notice 1.2kB dist/strategies/ArchitecturalReviewStrategy.d.ts
+npm notice 1.6kB dist/strategies/CodeTracingUnusedCodeReviewStrategy.d.ts
+npm notice 1.3kB dist/strategies/ConsolidatedReviewStrategy.d.ts
+npm notice 1.2kB dist/strategies/FocusedUnusedCodeReviewStrategy.d.ts
+npm notice 1.3kB dist/strategies/ImprovedQuickFixesReviewStrategy.d.ts
+npm notice 1.2kB dist/strategies/IndividualReviewStrategy.d.ts
+npm notice 1.8kB dist/strategies/ReviewStrategy.d.ts
+npm notice 598B dist/strategies/StrategyFactory.d.ts
+npm notice 1.6kB dist/strategies/UnusedCodeReviewStrategy.d.ts
+npm notice 332B dist/test-api-connections.d.ts
+npm notice 31B dist/test-latest.d.ts
+npm notice 31B dist/test-model.d.ts
+npm notice 1.4kB dist/tests/apiConnectionTest.d.ts
+npm notice 204B dist/tests/tokenizer-test.d.ts
+npm notice 3.7kB dist/tokenizers/baseTokenizer.d.ts
+npm notice 941B dist/tokenizers/claudeTokenizer.d.ts
+npm notice 1.1kB dist/tokenizers/geminiTokenizer.d.ts
+npm notice 904B dist/tokenizers/gptTokenizer.d.ts
+npm notice 250B dist/tokenizers/index.d.ts
+npm notice 1.5kB dist/types/common.d.ts
+npm notice 6.8kB dist/types/review.d.ts
+npm notice 15.3kB dist/types/reviewSchema.d.ts
+npm notice 1.8kB dist/types/structuredReview.d.ts
+npm notice 3.5kB dist/utils/api/apiUtils.d.ts
+npm notice 147B dist/utils/api/index.d.ts
+npm notice 1.6kB dist/utils/api/rateLimiter.d.ts
+npm notice 4.8kB dist/utils/apiErrorHandler.d.ts
+npm notice 3.8kB dist/utils/apiUtils.d.ts
+npm notice 3.0kB dist/utils/config.d.ts
+npm notice 1.1kB dist/utils/dependencies/dependencyAnalyzer.d.ts
+npm notice 150B dist/utils/detection/index.d.ts
+npm notice 1.1kB dist/utils/detection/projectTypeDetector.d.ts
+npm notice 2.4kB dist/utils/envLoader.d.ts
+npm notice 1.1kB dist/utils/errorLogger.d.ts
+npm notice 4.6kB dist/utils/estimationUtils.d.ts
+npm notice 1.3kB dist/utils/fileFilters.d.ts
+npm notice 78B dist/utils/fileFilters.debug.d.ts
+npm notice 1.3kB dist/utils/FileReader.d.ts
+npm notice 2.1kB dist/utils/files/fileFilters.d.ts
+npm notice 1.6kB dist/utils/files/fileSystem.d.ts
+npm notice 152B dist/utils/files/index.d.ts
+npm notice 1.0kB dist/utils/files/projectDocs.d.ts
+npm notice 1.4kB dist/utils/fileSystem.d.ts
+npm notice 985B dist/utils/FileWriter.d.ts
+npm notice 1.2kB dist/utils/i18n.d.ts
+npm notice 521B dist/utils/index.d.ts
+npm notice 2.2kB dist/utils/logger.d.ts
+npm notice 188B dist/utils/parsing/index.d.ts
+npm notice 1.3kB dist/utils/parsing/reviewParser.d.ts
+npm notice 1.9kB dist/utils/parsing/sanitizer.d.ts
+npm notice 1.3kB dist/utils/PathGenerator.d.ts
+npm notice 1.3kB dist/utils/PathValidator.d.ts
+npm notice 1.4kB dist/utils/priorityFilter.d.ts
+npm notice 2.4kB dist/utils/projectDocs.d.ts
+npm notice 1.7kB dist/utils/rateLimiter.d.ts
+npm notice 998B dist/utils/removalScriptGenerator.d.ts
+npm notice 2.8kB dist/utils/reviewActionHandler.d.ts
+npm notice 1.3kB dist/utils/reviewParser.d.ts
+npm notice 214B dist/utils/sanitizer.d.ts
+npm notice 1.6kB dist/utils/streamHandler.d.ts
+npm notice 100B dist/utils/tokenCounter.d.ts
+npm notice 3.9kB package.json
+npm notice 3.8kB prompts/architectural-review.md
+npm notice 2.0kB prompts/base-prompt.md
+npm notice 3.7kB prompts/code-tracing-unused-code-review.md
+npm notice 3.2kB prompts/consolidated-review.md
+npm notice 3.0kB prompts/focused-unused-code-review.md
+npm notice 3.4kB prompts/improved-quick-fixes-review.md
+npm notice 4.4kB prompts/improved-unused-code-review.md
+npm notice 3.3kB prompts/performance-review.md
+npm notice 5.0kB prompts/php/architectural-review.md
+npm notice 4.5kB prompts/php/code-tracing-unused-code-review.md
+npm notice 4.1kB prompts/php/performance-review.md
+npm notice 3.4kB prompts/php/quick-fixes-review.md
+npm notice 4.1kB prompts/php/security-review.md
+npm notice 3.4kB prompts/php/unused-code-review.md
+npm notice 4.9kB prompts/python/architectural-review.md
+npm notice 4.3kB prompts/python/code-tracing-unused-code-review.md
+npm notice 4.1kB prompts/python/performance-review.md
+npm notice 3.5kB prompts/python/quick-fixes-review.md
+npm notice 4.1kB prompts/python/security-review.md
+npm notice 3.4kB prompts/python/unused-code-review.md
+npm notice 2.8kB prompts/quick-fixes-review.md
+npm notice 2.1kB prompts/README.md
+npm notice 4.5kB prompts/ruby/architectural-review.md
+npm notice 4.6kB prompts/ruby/code-tracing-unused-code-review.md
+npm notice 5.3kB prompts/ruby/performance-review.md
+npm notice 4.0kB prompts/ruby/quick-fixes-review.md
+npm notice 4.6kB prompts/ruby/security-review.md
+npm notice 4.8kB prompts/ruby/unused-code-review.md
+npm notice 3.1kB prompts/security-review.md
+npm notice 5.5kB prompts/typescript/architectural-review.md
+npm notice 2.0kB prompts/typescript/base-prompt.md
+npm notice 6.6kB prompts/typescript/code-tracing-unused-code-review.md
+npm notice 4.0kB prompts/typescript/consolidated-review.md
+npm notice 3.7kB prompts/typescript/focused-unused-code-review.md
+npm notice 4.0kB prompts/typescript/improved-quick-fixes-review.md
+npm notice 4.8kB prompts/typescript/improved-unused-code-review.md
+npm notice 3.8kB prompts/typescript/performance-review.md
+npm notice 3.4kB prompts/typescript/quick-fixes-review.md
+npm notice 3.7kB prompts/typescript/security-review.md
+npm notice 3.7kB prompts/typescript/unused-code-review.md
+npm notice 2.4kB prompts/unused-code-review.md
+npm notice Tarball Details
+npm notice name: @bobmatnyc/ai-code-review
+npm notice version: 2.1.5
+npm notice filename: bobmatnyc-ai-code-review-2.1.5.tgz
+npm notice package size: 327.6 kB
+npm notice unpacked size: 2.1 MB
+npm notice shasum: b0d15f8c46da0bc26205af3b84b1858d6c0fb79a
+npm notice integrity: sha512-kB/D2aGbahjbi[...]Dlf0dRDNTrzUw==
+npm notice total files: 180
+npm notice
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+npm error code E403
+npm error 403 403 Forbidden - PUT https://registry.npmjs.org/@bobmatnyc%2fai-code-review - You cannot publish over the previously published versions: 2.1.5.
+npm error 403 In most cases, you or one of your dependencies are requesting
+npm error 403 a package version that is forbidden by your security policy, or
+npm error 403 on a server you do not have access to.
+npm error A complete log of this run can be found in: /Users/masa/.npm/_logs/2025-04-29T15_37_18_230Z-debug-0.log
