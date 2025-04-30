@@ -12,16 +12,37 @@ const builtinModules = require('module').builtinModules;
 
 const external = [...builtinModules, ...Object.keys(dependencies || {})];
 
-esbuild.build({
-  entryPoints: ['src/index.ts'],
-  bundle: true,
-  platform: 'node',
-  target: ['node18'],
-  outfile: 'dist/index.js',
-  sourcemap: true,
-  banner: { js: '#!/usr/bin/env node' },
-  external,
-}).catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+async function build() {
+  try {
+    await esbuild.build({
+      entryPoints: ['src/index.ts'],
+      bundle: true,
+      platform: 'node',
+      target: ['node18'],
+      outfile: 'dist/index.js',
+      sourcemap: true,
+      // Don't use banner option for shebang as it sometimes causes issues
+      external,
+    });
+    
+    // Instead, manually add the shebang at the beginning of the file
+    const fs = require('fs');
+    let content = fs.readFileSync('dist/index.js', 'utf8');
+    
+    // Remove any existing shebang and add a new one
+    content = content.replace(/^#!.*\n/, '');
+    content = '#!/usr/bin/env node\n' + content;
+    fs.writeFileSync('dist/index.js', content, 'utf8');
+    console.log('Successfully added shebang to dist/index.js');
+    
+    // Make the file executable
+    fs.chmodSync('dist/index.js', '755');
+    console.log('Successfully made dist/index.js executable');
+    
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+}
+
+build();
