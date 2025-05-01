@@ -1,143 +1,148 @@
-# 🧠 AI Assistant Instructions
-- Updated 4-17-2025
-
-## 🔧 Core Principles
-### ✅ Best Practices
-
-- Always implement using modern, community-validated best practices.
-- Proactively recommend mature, well-supported libraries for core functionality.
-- Explain deviations from best practices and suggest safer or simpler alternatives.
-
-### 🌟 Simplicity and Elegance
-
-- Prioritize simplicity and clarity in all solutions.
-- Choose the minimal working implementation over complex abstractions—especially for MVPs or POCs.
-- Confirm with the user if a request risks over-engineering.
-
-### 🔐 Confirmation & Safety
-
-- Confirm explicitly before changing behavior, logic, or architecture.
-- Validate assumptions with the user before introducing new patterns or abstractions.
-
-### 📝 Documentation
-
-- Document _intent_, not just behavior, for complex or non-obvious logic.
-- All functions must include JSDoc with TypeScript annotations.
-- Annotate all API interactions with clear comments (purpose, input, output, edge cases).
-- Read all relevant existing documentation before suggesting or applying changes.
+# 🧠 AI Assistant Instructions (Next.js + TypeScript Stack)
+_Last updated: 2025-05-01_
 
 ---
 
-## 🧪 Code Quality & Workflow
+## 📌 1. Agent Protocol & Execution Flow
 
-### 🔭 Development Flow
+**Who this is for**: AI agents and human developers collaborating on production-grade code.
 
-- Run linting and typechecking after all changes—non-negotiable.
-- After code editing, always build and verify tests before handing off work to the user.
-- Ensure test coverage for new features; verify all tests pass before completion.
-- Favor project consistency: follow existing conventions and naming patterns.
-- Optimize for clarity, maintainability, and fast onboarding.
-- Simpler is better—prefer straightforward implementations when in doubt.
+### ✅ Protocol Summary
+1. **Validate assumptions** – ask clarifying questions before proceeding.
+2. **Implement with simplicity** – prefer minimal, working code.
+3. **Test and lint rigorously** – `pnpm lint && pnpm typecheck && pnpm test`.
+4. **Document intent** – not just behavior.
+5. **Confirm before architectural shifts or abstractions.**
 
-### 🎮 Playground Apps
-
-- Use real package functionality unless mocks are explicitly required.
-- Demonstrate real-world usage scenarios.
-- Apply the same testing and quality standards as production features.
-- Document test configurations or overrides clearly.
-
-### 🌐 API Integration
-
-- Use structured error handling for all external requests.
-- Respect API token budgeting and performance best practices.
-- Manage environment variables via `.env`, supporting `.env.local` (e.g., in Next.js).
-- Never hardcode secrets or keys.
-
-### 🔄 Automation Support
-
-- Use pre-commit hooks to enforce linting, formatting, and type safety.
-- Integrate CI to run all tests and checks before merging.
-- Document any custom Git workflow (e.g., feature branches, squash merging).
-
-### 🚩 Feature Flags and Experimental Code
-
-- Wrap experimental or in-progress features in flags or annotations.
-- Clearly label blocks that are incomplete or need validation.
-- Use TODO/FIXME comments to prompt human follow-up.
-
-### 🤔 Testing Standards
-
-- Unit tests required for all core logic and utilities.
-- Integration tests for API services or multi-component flows.
-- Use mocks/stubs only when external dependencies are involved.
-- Prefer `Vitest`, `Jest`, or the project's default test runner.
-- All tests must pass with >80% coverage unless justified.
+> You are expected to follow all rules by default. No mocks, hacks, or shortcuts unless explicitly approved.
 
 ---
 
-## 📚 Documentation System
+## 🧠 2. Core Principles
 
-### File Roles
-
-- `README.md`: User/developer-facing commands, usage examples, and architecture overview.
-- `INSTRUCTIONS.md`: AI assistant directives (this document).
-- `PROJECT.md`: Architecture decisions, stack choices, coding standards, and implementation strategy.
-- `PROGRESS.md`: Session logs with status, blockers, tasks, and commits.  Includes TODOS from ongoing work.
-- 'ROADMAP.md': Long term project roadmap and feature prioritization.
-- `ABOUT.md`: Optional narrative-driven description for end users or product context.
-- 'VERSIONS.md': Version history, features, and technical improvements.
-
-### 📄 Updating `PROJECT.md`
-
-Update this file when any of the following occur:
-
-- Dependencies, frameworks, or tools are added/removed
-- Architecture or system design is changed
-- Development practices or conventions are modified
-- Deployment or CI/CD workflows evolve
-- Project requirements shift or expand
-
-> **Each update must:**
->
-> - Be timestamped (e.g., `// Updated: 2025-04-04`)
-> - Maintain chronological order within its section
+- **Build real, test real** – avoid mocks unless directed.
+- **Simplicity > Cleverness** – prefer straight-line solutions.
+- **Validate all assumptions** – ask before introducing new paradigms.
+- **Follow monorepo principles** – workspace isolation, shared utilities.
+- **Document clearly** – capture why, not just how.
 
 ---
 
-### 📈 Managing `PROGRESS.md`
+## 🛠️ 3. Stack-Specific Directives
 
-At the start of every session, add a dated header:
+### TypeScript
+- Must use `strict: true` config (`tsconfig.json`).
+- Avoid `any`. Prefer `unknown`, generics, or well-defined types.
+- Use `Pick`, `Partial`, `Required`, etc. to reduce duplication.
+- All functions and exports must use **JSDoc** with type annotations.
 
-- Log:
-    - Completed tasks
-    - Current status / blockers
-    - Next steps
-    - Git commit references (at end of section)
-- Keep a live "To Do" list at the bottom of the file
+### Next.js (15+)
+- Use the **App Router** (`src/app`) with layout grouping.
+- Prefer **React Server Components** by default.
+- Explicitly define rendering mode (SSG, ISR, SSR, RSC).
+- API routes live in `src/app/api`; use `POST` methods with proper validation.
+
+### React (19+)
+- Use functional components only.
+- State: prefer `useState` → `useReducer` → `useContext` → server state (React Query/Zustand).
+- Embrace `use`, `useOptimistic`, `useTransition` where relevant.
+- Never create unnecessary client boundaries (`'use client'` only where needed).
+
+### Shadcn UI + Tailwind
+- Use official Shadcn components; follow usage rules.
+- Style with Tailwind + `@apply` in `components.css`.
+- Support dark mode and responsive design out of the box.
+- Avoid class-based components; always favor functional + declarative styles.
+
+### Vercel Deployment
+- Optimize imports: use `dynamic()` with `ssr: false` for heavy UI.
+- Use `next/image`, lazy loading, and WebP formats.
+- Use edge functions for global forms/data mutations.
+- Set appropriate cache headers (`stale-while-revalidate` recommended).
 
 ---
 
-### 🔁 Log Rotation Policy
+## 📦 4. Monorepo Workflow
 
-When `PROGRESS.md` exceeds 1000 lines or at the end of the month:
+### Project Structure
+```
+/
+├── apps/
+│   ├── web/
+│   └── admin/
+├── packages/
+│   ├── ui/
+│   ├── utils/
+│   └── config/
+├── tools/
+└── package.json
+```
 
-1. Archive the current file:
-
-   ```bash
-   LATEST=$(ls -1 /logs/PROGRESS-*.md | sort -V | tail -1 | sed 's/.*PROGRESS-\([0-9]*\).*/\1/')
-   NEXT=$((LATEST + 1))
-   cp PROGRESS.md /logs/PROGRESS-$NEXT.md
-   ```
-
-2. Start a fresh `PROGRESS.md`:
-    - Header with current date and session number
-    - Tasks Completed
-    - Implementation Progress
-    - To Do
-    - Reference to the archived file
+### Automation
+- Use `pnpm` for package management, builds, tests, and CI.
+- `pnpm lint && pnpm typecheck && pnpm test` required before merge.
+- Feature branches only. Use squash merges.
 
 ---
 
-## 🧠 Summary
+## 🧪 5. Testing Standards
 
-Build with rigor. Document with clarity. Validate assumptions. Prioritize simplicity and elegance. Treat this assistant as a collaborator, not a script.
+- All utilities and APIs must have unit tests.
+- Use **Vitest** (`pnpm test`).
+- Minimum 80% coverage unless annotated with `@low-test-priority`.
+- Avoid snapshots unless explicitly justified.
+- Prefer real API interactions over mocks.
+
+---
+
+## 📄 6. Documentation Rules
+
+- Use `README.md` for CLI commands and usage docs.
+- Each package must have:
+  - `PROJECT.md` – architecture decisions
+  - `ROADMAP.md` – upcoming milestones
+  - `PROGRESS.md` – per-session implementation log
+
+### Logging Sessions
+- Begin each session in `PROGRESS.md` with a dated header.
+- Track:
+  - Tasks completed
+  - Blockers
+  - Next steps
+  - Git commits (e.g., `commit: 34dfae4`)
+
+### Rotation Policy
+When `PROGRESS.md` exceeds 1000 lines:
+```bash
+LATEST=$(ls logs/PROGRESS-*.md | sort -V | tail -1 | sed 's/.*PROGRESS-\([0-9]*\).*/\1/' || echo 0)
+NEXT=$((LATEST + 1))
+cp PROGRESS.md logs/PROGRESS-$NEXT.md
+```
+
+---
+
+## ⚙️ 7. CI / DevOps
+
+- Pre-commit hooks must run:
+  - Linting (`pnpm lint`)
+  - Type-checking (`pnpm typecheck`)
+  - Tests (`pnpm test`)
+- Do not merge if any check fails.
+- Secrets must go in `.env.local` – never hardcoded.
+- All API clients must include comments: purpose, inputs, outputs.
+
+---
+
+## 🚩 8. Feature Flags
+
+- Use `@todo`, `@in-progress`, or `experimental/*` folders.
+- Wrap incomplete logic in `if (process.env.ENABLE_X)` or Zod feature schemas.
+- Label clearly with TODO/FIXME and include context.
+
+---
+
+## 🧭 9. Final Reminder
+
+> **Your job is not just to write code.** Your job is to write understandable, correct, and maintainable systems that scale—and to help others do the same.
+
+If unsure: validate before changing logic, structure, or direction.
