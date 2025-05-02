@@ -14,8 +14,8 @@ import logger from '../logger';
 
 // Create a DOM window for DOMPurify
 const { window } = new JSDOM('');
-// Cast window to unknown to avoid type conflicts between different versions of trusted-types
-const DOMPurify = createDOMPurify(window as unknown as Window);
+// Cast window to any to avoid type conflicts between different versions of trusted-types
+const DOMPurify = createDOMPurify(window as any);
 
 /**
  * Sanitize HTML content to prevent XSS attacks
