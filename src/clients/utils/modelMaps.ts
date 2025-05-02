@@ -26,8 +26,8 @@ export interface ModelMapping {
 export const MODEL_MAP: Record<string, ModelMapping> = {
   // Updated Gemini models
   'gemini:gemini-2.5-pro': {
-    apiName: 'gemini-2.5-pro-preview-03-25',
-    displayName: 'Gemini 2.5 Pro',
+    apiName: 'gemini-1.5-pro',
+    displayName: 'Gemini 1.5 Pro',
     provider: 'gemini',
     useV1Beta: true,
     contextWindow: 1000000,
