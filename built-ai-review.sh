@@ -8,7 +8,7 @@ echo "🚀 Executing with arguments: $@"
 echo "---------------------------------------------------"
 
 # First build the package
-yarn build
+pnpm run build
 
 # Then run the built version
 node dist/index.js "$@"

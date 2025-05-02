@@ -7,5 +7,5 @@ echo "📝 This is NOT the installed npm package"
 echo "🚀 Executing with arguments: $@"
 echo "---------------------------------------------------"
 
-# Run the local code with yarn
-yarn local "$@"
+# Run the local code with pnpm
+pnpm run local "$@"

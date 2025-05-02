@@ -97,12 +97,14 @@ Responsible for:
 // Updated: 2023-07-25
 
 #### Architectural Review
+// Updated: 2025-04-29
 Provides a holistic analysis of the entire codebase, focusing on:
 - Overall code structure and organization
 - API design patterns and consistency
 - Package management and dependencies
 - Component architecture and relationships
 - Integration points and data flow
+- Opportunities to leverage established OSS packages (loggers, utilities, etc.) to enhance the codebase or replace custom-built features
 
 Unlike other review types, architectural reviews analyze all files together to provide a comprehensive evaluation of the system architecture.
 
@@ -227,8 +229,8 @@ Run the tool using:
 # Using npm
 npm run review -- code-review project-name path/to/file.ts
 
-# Using yarn
-yarn dev code-review project-name path/to/file.ts
+# Using pnpm
+pnpm run dev code-review project-name path/to/file.ts
 ```
 
 Output will be generated in the `/review/[project-name]/` directory, with subdirectories matching the source path structure.
@@ -240,6 +242,6 @@ Output will be generated in the `/review/[project-name]/` directory, with subdir
 3. Ask for confirmation before implementing medium and low priority fixes
 4. Use the following command format for interactive reviews:
    ```bash
-   yarn review this path/to/file.ts --interactive
+   pnpm run dev this path/to/file.ts --interactive
    ```
 5. After implementing fixes, verify changes by running appropriate tests

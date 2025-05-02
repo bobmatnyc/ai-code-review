@@ -78,7 +78,7 @@ describe('Model Name Display', () => {
 
     // Check that the correct API name was used
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('Successfully initialized Gemini model: gemini-2.5-pro (API name: gemini-1.5-pro)')
+      expect.stringContaining('Successfully initialized Gemini model: gemini-2.5-pro (API name: gemini-2.5-pro-preview-03-25)')
     );
   });
 
@@ -168,7 +168,7 @@ describe('Model Name Display', () => {
 
     // Check that the correct API name was used
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('Successfully initialized Gemini model: gemini-2.5-pro (API name: gemini-1.5-pro)')
+      expect.stringContaining('Successfully initialized Gemini model: gemini-2.5-pro (API name: gemini-2.5-pro-preview-03-25)')
     );
   });
 });
