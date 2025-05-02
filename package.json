@@ -1,11 +1,11 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "2.1.4",
+  "version": "2.1.7",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "bin": "dist/index.js",
   "scripts": {
-    "build": "npm run test && npm run build:types && node scripts/build.js",
+    "build": "pnpm run test && pnpm run build:types && node scripts/build.js",
     "build:types": "tsc --emitDeclarationOnly",
     "postbuild": "./scripts/link-global.sh",
     "start": "node dist/index.js",
@@ -13,7 +13,7 @@
     "local": "ts-node --transpile-only -r tsconfig-paths/register src/index.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "npm run validate:prompts && jest --no-cache",
+    "test": "pnpm run validate:prompts && jest --no-cache",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --collectCoverageFrom='src/**/*.ts'",
     "test:model": "ts-node src/index.ts model-test",
@@ -21,8 +21,9 @@
     "list:models": "ts-node src/list-models.ts",
     "test:latest": "ts-node src/test-latest.ts",
     "test:api": "ts-node src/test-api-connections.ts",
+    "validate:models": "node scripts/validate-models.js",
     "prepare-package": "./scripts/prepare-package.sh",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build && pnpm run validate:models",
     "local-review": "./local-ai-review.sh",
     "built-review": "./built-ai-review.sh",
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
@@ -123,5 +124,5 @@
   "resolutions": {
     "esbuild": "^0.25.3"
   },
-  "packageManager": "yarn@4.9.1"
+  "packageManager": "pnpm@8.15.4"
 }

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.7] - 2025-05-02
+
+### Fixed
+- Fixed Gemini model registry to use the correct model name (gemini-1.5-pro instead of gemini-2.5-pro)
+- Added pre-packaging model validation to ensure all models are available and correctly configured
+- Added validation script to test models against their respective APIs
+- Updated package manager from yarn to pnpm for better compatibility
+
+## [2.1.6] - 2025-05-02
+
+### Fixed
+- Fixed prompt template loading issues with architectural reviews
+- Improved template discovery to properly handle language-specific templates
+- Added bundled templates to ensure they're available in the package
+- Enhanced error handling for missing templates with better fallback mechanisms
+- Updated documentation with clearer instructions for template customization
+
 ## [2.1.4] - 2025-04-24
 
 ### Fixed
@@ -24,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Ruby project type detection for better language-specific analysis
 - Enhanced Ruby file extensions support (.rb, .rake, .gemspec, .ru, .erb)
 - Added Ruby-specific directory exclusions (vendor, tmp) to improve performance
- 
+
 ### Changed
 - Updated file globbing patterns to include Ruby file extensions
 - Improved project type detection system to accurately identify Ruby on Rails projects
