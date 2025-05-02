@@ -13,7 +13,8 @@ import logger from '../utils/logger';
 import {
   getGitHubProjectsConfig,
   syncProjectMdToGitHub,
-  syncGitHubToProjectMd
+  syncGitHubToProjectMd,
+  updateReadmeWithProjectMd
 } from '../utils/githubProjectsClient';
 
 /**
@@ -23,6 +24,7 @@ interface SyncGitHubProjectsOptions {
   direction?: 'to-github' | 'from-github';
   projectPath?: string;
   descriptionOnly?: boolean;
+  updateReadme?: boolean;
 }
 
 /**
@@ -35,12 +37,14 @@ export async function syncGitHubProjects(options: SyncGitHubProjectsOptions = {}
     const direction = options.direction || 'to-github';
     const projectPath = options.projectPath || process.cwd();
     const descriptionOnly = options.descriptionOnly || false;
+    const updateReadme = options.updateReadme || false;
 
     // Get GitHub Projects configuration
     const config = getGitHubProjectsConfig();
 
-    // Path to PROJECT.md
+    // Path to PROJECT.md and README.md
     const projectMdPath = path.join(projectPath, 'PROJECT.md');
+    const readmePath = path.join(projectPath, 'README.md');
 
     // Check if PROJECT.md exists
     const projectMdExists = await fileExists(projectMdPath);
@@ -61,11 +65,23 @@ export async function syncGitHubProjects(options: SyncGitHubProjectsOptions = {}
         await syncProjectMdToGitHub(projectMdPath, config, false);
         logger.info('Sync completed successfully');
       }
+
+      // Update README.md if requested
+      if (updateReadme) {
+        logger.info(`Updating README.md with PROJECT.md content...`);
+        await updateReadmeWithProjectMd(projectMdPath, readmePath, config);
+      }
     } else {
       // Sync from GitHub Projects to PROJECT.md
       logger.info(`Syncing GitHub Projects to PROJECT.md...`);
       await syncGitHubToProjectMd(projectMdPath, config);
       logger.info(`Sync completed successfully. PROJECT.md updated at ${projectMdPath}`);
+
+      // Update README.md if requested
+      if (updateReadme) {
+        logger.info(`Updating README.md with PROJECT.md content...`);
+        await updateReadmeWithProjectMd(projectMdPath, readmePath, config);
+      }
     }
   } catch (error) {
     logger.error(`Error syncing with GitHub Projects: ${error instanceof Error ? error.message : String(error)}`);
@@ -75,15 +91,20 @@ export async function syncGitHubProjects(options: SyncGitHubProjectsOptions = {}
 
 /**
  * Command line handler for sync-github-projects command
- * @param args Command line arguments
  */
 export async function handleSyncGitHubProjectsCommand(): Promise<void> {
-  // Import the argument parser here to avoid circular dependencies
-  const { parseGitHubProjectsArguments } = await import('../cli/githubProjectsArgumentParser.js');
-
   try {
-    // Parse command line arguments
-    const options = await parseGitHubProjectsArguments();
+    // Get options from Commander
+    const options: SyncGitHubProjectsOptions = {
+      direction: process.argv.includes('--direction') || process.argv.includes('-d')
+        ? (process.argv[process.argv.indexOf('--direction') + 1] || process.argv[process.argv.indexOf('-d') + 1]) as 'to-github' | 'from-github'
+        : 'to-github',
+      projectPath: process.argv.includes('--project-path') || process.argv.includes('-p')
+        ? (process.argv[process.argv.indexOf('--project-path') + 1] || process.argv[process.argv.indexOf('-p') + 1])
+        : undefined,
+      descriptionOnly: process.argv.includes('--description-only'),
+      updateReadme: process.argv.includes('--update-readme')
+    };
 
     // Run the sync command
     await syncGitHubProjects(options);
@@ -107,6 +128,7 @@ Options:
   --direction, -d     Sync direction: 'to-github' or 'from-github' (default: 'to-github')
   --project-path, -p  Path to the project directory (default: current directory)
   --description-only, --desc  Update only the project readme with PROJECT.md content (default: false)
+  --update-readme     Update README.md with PROJECT.md content (default: false)
   --help, -h          Show this help message
 
 Environment Variables:

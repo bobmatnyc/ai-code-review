@@ -3,7 +3,8 @@
  *
  * This module provides functionality for interacting with GitHub Projects (new version)
  * using the GitHub GraphQL API. It allows for reading and writing project data,
- * syncing PROJECT.md content with GitHub Projects, and managing project items.
+ * syncing PROJECT.md content with GitHub Projects, managing project items, and
+ * updating the repository README.
  */
 
 import fetch from 'node-fetch';
@@ -565,6 +566,58 @@ export async function syncGitHubToProjectMd(
     logger.info('Successfully synced GitHub Projects to PROJECT.md');
   } catch (error) {
     logger.error(`Error syncing GitHub to PROJECT.md: ${error instanceof Error ? error.message : String(error)}`);
+    throw error;
+  }
+}
+
+/**
+ * Update README.md with PROJECT.md content
+ * @param projectMdPath Path to PROJECT.md file
+ * @param readmePath Path to README.md file
+ * @param config GitHub Projects configuration
+ */
+export async function updateReadmeWithProjectMd(
+  projectMdPath: string,
+  readmePath: string,
+  config: GitHubProjectsConfig
+): Promise<void> {
+  try {
+    // Read PROJECT.md content
+    const projectMdContent = await fs.readFile(projectMdPath, 'utf-8');
+
+    // Check if README.md exists
+    let readmeContent = '';
+    try {
+      readmeContent = await fs.readFile(readmePath, 'utf-8');
+    } catch (error) {
+      // If README.md doesn't exist, create it with PROJECT.md content
+      await fs.writeFile(readmePath, projectMdContent, 'utf-8');
+      logger.info(`Created README.md with PROJECT.md content`);
+      return;
+    }
+
+    // Update README.md with PROJECT.md content
+    // Look for a section marked with <!-- PROJECT_MD_START --> and <!-- PROJECT_MD_END -->
+    const projectMdSectionRegex = /<!-- PROJECT_MD_START -->[\s\S]*?<!-- PROJECT_MD_END -->/;
+
+    if (projectMdSectionRegex.test(readmeContent)) {
+      // Replace the existing section
+      const updatedReadmeContent = readmeContent.replace(
+        projectMdSectionRegex,
+        `<!-- PROJECT_MD_START -->\n${projectMdContent}\n<!-- PROJECT_MD_END -->`
+      );
+
+      await fs.writeFile(readmePath, updatedReadmeContent, 'utf-8');
+      logger.info(`Updated PROJECT.md section in README.md`);
+    } else {
+      // Add the section at the end of README.md
+      const updatedReadmeContent = `${readmeContent}\n\n<!-- PROJECT_MD_START -->\n${projectMdContent}\n<!-- PROJECT_MD_END -->`;
+
+      await fs.writeFile(readmePath, updatedReadmeContent, 'utf-8');
+      logger.info(`Added PROJECT.md section to README.md`);
+    }
+  } catch (error) {
+    logger.error(`Error updating README.md with PROJECT.md content: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
