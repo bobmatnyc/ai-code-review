@@ -1,20 +1,31 @@
 /**
  * @fileoverview Utilities for loading prompt templates.
  *
- * This module provides functions for loading prompt templates from the file system,
- * supporting language-specific templates and fallbacks to default templates.
+ * IMPORTANT: This module provides functions for loading prompt templates from BUNDLED PROMPTS ONLY.
+ * The system prioritizes bundled prompts and only falls back to file system prompts if a bundled prompt is not found.
  *
- * This is a compatibility layer that uses the new PromptManager internally.
+ * All core prompts are defined in the bundledPrompts.ts file and accessed through the PromptManager.
+ * This ensures that the system always has access to the prompts it needs, regardless of
+ * where it's installed or how it's packaged.
+ *
+ * This module is a compatibility layer that uses the PromptManager internally.
  */
 
 import { ReviewType, ReviewOptions } from '../../types/review';
 import { PromptManager } from '../../prompts/PromptManager';
 
 /**
- * Load a prompt template from the prompts directory
+ * Load a prompt template
  * @param reviewType Type of review to perform
  * @param options Review options including language
  * @returns Promise resolving to the prompt template
+ *
+ * IMPORTANT: This function prioritizes bundled prompts.
+ * The system will first try to use bundled prompts defined in bundledPrompts.ts.
+ * Only if a bundled prompt is not found will it fall back to custom templates.
+ *
+ * This ensures that the system always has access to the prompts it needs,
+ * regardless of where it's installed or how it's packaged.
  */
 export async function loadPromptTemplate(
   reviewType: ReviewType,
