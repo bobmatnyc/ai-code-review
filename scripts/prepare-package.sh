@@ -12,7 +12,7 @@ rm -rf dist
 
 # Build the package
 echo "Building package..."
-npm run build
+pnpm run build
 
 # Make the CLI executable
 echo "Making CLI executable..."
@@ -27,7 +27,7 @@ fi
 
 # Run tests
 echo "Running tests..."
-npm test
+pnpm test
 
 echo "Package preparation complete!"
-echo "You can now publish the package with: npm publish"
+echo "You can now publish the package with: pnpm publish"
