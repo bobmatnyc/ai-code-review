@@ -1,11 +1,11 @@
-# Installation Guide for AI Code Review v2.1.4
+# Installation Guide for AI Code Review v2.1.7
 
 This guide will help you install and set up the AI Code Review tool.
 
 ## Prerequisites
 
 - Node.js >= 18.0.0
-- npm or yarn
+- npm or pnpm
 - At least one of the following API keys:
   - Google Generative AI API key
   - Anthropic API key

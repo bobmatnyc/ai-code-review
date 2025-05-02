@@ -26,8 +26,8 @@ describe('modelMaps', () => {
       // Check a sample model to ensure the structure is correct
       const sampleModel = MODEL_MAP['gemini:gemini-2.5-pro'];
       expect(sampleModel).toBeDefined();
-      expect(sampleModel.apiName).toBe('gemini-1.5-pro');
-      expect(sampleModel.displayName).toBe('Gemini 1.5 Pro');
+      expect(sampleModel.apiName).toBe('gemini-2.5-pro-preview-03-25');
+      expect(sampleModel.displayName).toBe('Gemini 2.5 Pro');
       expect(sampleModel.provider).toBe('gemini');
       expect(sampleModel.contextWindow).toBe(1000000);
       expect(sampleModel.apiKeyEnvVar).toBe('AI_CODE_REVIEW_GOOGLE_API_KEY');
@@ -64,8 +64,8 @@ describe('modelMaps', () => {
 
       // Verify properties of a specific model
       const gemini25Pro = MODEL_MAP['gemini:gemini-2.5-pro'];
-      expect(gemini25Pro.apiName).toBe('gemini-1.5-pro');
-      expect(gemini25Pro.displayName).toBe('Gemini 1.5 Pro');
+      expect(gemini25Pro.apiName).toBe('gemini-2.5-pro-preview-03-25');
+      expect(gemini25Pro.displayName).toBe('Gemini 2.5 Pro');
       expect(gemini25Pro.useV1Beta).toBe(true);
       expect(gemini25Pro.contextWindow).toBe(1000000);
     });
@@ -174,7 +174,7 @@ describe('modelMaps', () => {
     describe('getApiNameFromKey', () => {
       it('should return the correct API name for a model key', () => {
         expect(getApiNameFromKey('gemini:gemini-2.5-pro')).toBe(
-          'gemini-1.5-pro'
+          'gemini-2.5-pro-preview-03-25'
         );
         expect(getApiNameFromKey('anthropic:claude-3-opus')).toBe(
           'claude-3-opus-20240229'
@@ -192,7 +192,7 @@ describe('modelMaps', () => {
       it('should return the correct model mapping for a model key', () => {
         const mapping = getModelMapping('gemini:gemini-2.5-pro');
         expect(mapping).toBeDefined();
-        expect(mapping?.apiName).toBe('gemini-1.5-pro');
+        expect(mapping?.apiName).toBe('gemini-2.5-pro-preview-03-25');
         expect(mapping?.provider).toBe('gemini');
       });
 

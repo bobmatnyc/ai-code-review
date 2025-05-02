@@ -82,10 +82,27 @@
 - `README.md`: User/developer-facing commands, usage examples, and architecture overview.
 - `INSTRUCTIONS.md`: AI assistant directives (this document).
 - `PROJECT.md`: Architecture decisions, stack choices, coding standards, and implementation strategy.
-- `PROGRESS.md`: Session logs with status, blockers, tasks, and commits.  Includes TODOS from ongoing work.
-- 'ROADMAP.md': Long term project roadmap and feature prioritization.
+- `PROGRESS.md`: Session logs with status, blockers, tasks, and commits. Includes TODOS from ongoing work.
 - `ABOUT.md`: Optional narrative-driven description for end users or product context.
-- 'VERSIONS.md': Version history, features, and technical improvements.
+- `VERSIONS.md`: Version history, features, and technical improvements.
+
+### 🎫 GitHub Issues Management
+
+- **Reading Issues**: Use the GitHub API to fetch issues from the repository.
+- **Creating Issues**: Create well-structured issues with clear titles, descriptions, and appropriate labels.
+- **Updating Issues**: Update existing issues with new information, status changes, or additional context.
+- **Labels**: Always use appropriate labels when creating or updating issues:
+  - `bug`: For issues that represent bugs or defects
+  - `enhancement`: For feature requests or improvements
+  - `documentation`: For documentation-related tasks
+  - `question`: For issues that are questions or need clarification
+  - `good first issue`: For issues suitable for newcomers
+  - `help wanted`: For issues where external help is desired
+  - `wontfix`: For issues that won't be addressed
+  - `duplicate`: For issues that duplicate existing ones
+  - `invalid`: For issues that are not valid or relevant
+
+Note: Users will manually add issues to projects using the GitHub web UI as needed.
 
 ### 📄 Updating `PROJECT.md`
 

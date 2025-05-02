@@ -7,11 +7,20 @@
  */
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { getModelsByProvider, getModelMapping } = require('../dist/clients/utils/modelMaps');
-const { testApiConnections } = require('../dist/tests/apiConnectionTest');
-const dotenv = require('dotenv');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const modelMapsPath = path.resolve(__dirname, '../src/clients/utils/modelMaps.json');
+const MODEL_MAP = JSON.parse(fs.readFileSync(modelMapsPath, 'utf8'));
+
+// Helper functions to mimic the ones from modelMaps.ts
+function getModelsByProvider(provider) {
+  return Object.keys(MODEL_MAP).filter(key => MODEL_MAP[key].provider === provider);
+}
+
+function getModelMapping(modelKey) {
+  return MODEL_MAP[modelKey];
+}
+const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
@@ -140,22 +149,6 @@ async function validateModels() {
   console.log('Validating models...');
 
   try {
-    // Test API connections
-    const results = await testApiConnections();
-
-    // Check if any API connections failed
-    const failedConnections = Object.entries(results)
-      .filter(([_, result]) => !result.success)
-      .map(([provider, result]) => ({ provider, error: result.error }));
-
-    if (failedConnections.length > 0) {
-      console.warn('Failed to connect to the following APIs:');
-      failedConnections.forEach(({ provider, error }) => {
-        console.warn(`- ${provider}: ${error}`);
-      });
-      // Don't exit, just warn
-    }
-
     // Get all models by provider
     const providers = ['gemini', 'anthropic', 'openai', 'openrouter'];
     let hasErrors = false;

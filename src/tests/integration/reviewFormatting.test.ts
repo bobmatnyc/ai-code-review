@@ -59,7 +59,7 @@ describe('Review Formatting Integration Tests', () => {
     }
 
     // Set environment variables for Gemini
-    process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-1.5-pro';
+    process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-2.5-pro';
 
     // Run the review
     execSync(`yarn dev ${TEST_FILE_PATH}`, { stdio: 'inherit' });
@@ -68,7 +68,7 @@ describe('Review Formatting Integration Tests', () => {
     const files = await fs.readdir(OUTPUT_DIR);
     const reviewFile = files.find(
       file =>
-        file.includes('apiKeyValidator') && file.includes('gemini-1.5-pro')
+        file.includes('apiKeyValidator') && file.includes('gemini-2.5-pro')
     );
 
     if (!reviewFile) {
