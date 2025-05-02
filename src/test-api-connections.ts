@@ -7,7 +7,7 @@
  *
  * Usage:
  * ```
- * yarn test-api-connections
+ * pnpm run test:api
  * ```
  */
 

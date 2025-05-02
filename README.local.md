@@ -10,8 +10,8 @@ To run the local development version (TypeScript source code directly without bu
 # Using the convenience script
 ./local-ai-review.sh [target] [options]
 
-# Or using yarn
-yarn local-review [target] [options]
+# Or using pnpm
+pnpm run local [target] [options]
 
 # Examples:
 ./local-ai-review.sh src/utils --type security
@@ -49,13 +49,12 @@ These commands are useful for verifying that your API keys are valid and that yo
 
 To test the built version (simulating the installed npm package):
 
-yarn built-review [target] [options]
 ```bash
 # Using the convenience script
 ./built-ai-review.sh [target] [options]
 
-# Or using yarn
-yarn built-review [target] [options]
+# Or using pnpm
+pnpm run built-review [target] [options]
 
 # Or using npm
 npm run build && npm start [target] [options]
@@ -71,27 +70,27 @@ This first runs `npm run build` (which uses esbuild to bundle the source and emi
 
 ```bash
 # List available models
-yarn list:models
+pnpm run list:models
 
 # Test API connections
-yarn test:api
+pnpm run test:api
 
 # Test all models during build
-yarn test:build
+pnpm run test:build
 
 # Test a specific model
-yarn test:model -- gemini:gemini-1.5-pro
-yarn test:model -- anthropic:claude-3-opus
-yarn test:model -- openai:gpt-4o
+pnpm run test:model -- gemini:gemini-1.5-pro
+pnpm run test:model -- anthropic:claude-3-opus
+pnpm run test:model -- openai:gpt-4o
 
 # Test all models for a specific provider
-yarn test:model -- -p anthropic
+pnpm run test:model -- -p anthropic
 
 # Test all available models
-yarn test:model -- --all
+pnpm run test:model -- --all
 
 # Run tests
-yarn test
+pnpm run test
 ```
 
 ## Publishing
@@ -100,7 +99,7 @@ When you're ready to publish:
 
 ```bash
 # Prepare the package for publishing
-yarn prepare-package
+pnpm run prepare-package
 
 # Publish to npm
 npm publish --access=public

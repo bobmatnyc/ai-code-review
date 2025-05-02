@@ -19,7 +19,7 @@ find "$OUTPUT_DIR" -name "*apiKeyValidator*" -delete
 # Test with Gemini model
 echo "Testing with Gemini model..."
 export AI_CODE_REVIEW_MODEL="gemini:gemini-1.5-pro"
-yarn dev "$TEST_FILE"
+pnpm run dev "$TEST_FILE"
 
 # Check if the review file was generated
 GEMINI_FILE=$(find "$OUTPUT_DIR" -name "*apiKeyValidator*gemini*" | head -n 1)
@@ -56,7 +56,7 @@ echo "Gemini review formatting test PASSED"
 # Test with Anthropic model
 echo "Testing with Anthropic model..."
 export AI_CODE_REVIEW_MODEL="anthropic:claude-3-opus"
-yarn dev "$TEST_FILE"
+pnpm run dev "$TEST_FILE"
 
 # Check if the review file was generated
 ANTHROPIC_FILE=$(find "$OUTPUT_DIR" -name "*apiKeyValidator*claude*" | head -n 1)
