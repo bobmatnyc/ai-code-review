@@ -415,28 +415,7 @@ export class PromptManager {
 
     // Try multiple paths to find the prompt template
     const possiblePaths = [
-      // First try the templates directory (for local development)
-      path.resolve('prompts', 'templates', `${reviewType}-review.md`),
-      // Then try the templates directory relative to the current file (for npm package)
-      path.resolve(
-        __dirname,
-        '..',
-        '..',
-        'prompts',
-        'templates',
-        `${reviewType}-review.md`
-      ),
-      // Then try the templates directory relative to the package root (for global installation)
-      path.resolve(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'prompts',
-        'templates',
-        `${reviewType}-review.md`
-      ),
-      // Then try the language-specific directory (for local development)
+      // First try the language-specific directory (for local development)
       path.resolve('prompts', language, `${reviewType}-review.md`),
       // Then try the language-specific directory relative to the current file (for npm package)
       path.resolve(
@@ -455,6 +434,27 @@ export class PromptManager {
         '..',
         'prompts',
         language,
+        `${reviewType}-review.md`
+      ),
+      // Then try the templates directory (for local development)
+      path.resolve('prompts', 'templates', `${reviewType}-review.md`),
+      // Then try the templates directory relative to the current file (for npm package)
+      path.resolve(
+        __dirname,
+        '..',
+        '..',
+        'prompts',
+        'templates',
+        `${reviewType}-review.md`
+      ),
+      // Then try the templates directory relative to the package root (for global installation)
+      path.resolve(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'prompts',
+        'templates',
         `${reviewType}-review.md`
       ),
       // Fallback to the root prompts directory (for local development)
@@ -550,11 +550,12 @@ export class PromptManager {
     // Create metadata section
     const metadata = `---
 name: ${reviewType}-review
-description: Default prompt template for ${reviewType} code review
+description: Default prompt template for ${reviewType} code review (${language})
 version: 1.0.0
 author: AI Code Review Tool
 reviewType: ${reviewType}
 language: ${language}
+lastModified: ${currentDate}
 tags: default, ${reviewType}, ${language}
 ---`;
 
@@ -581,6 +582,12 @@ Analyze the provided code for architectural issues, focusing on:
 
 ## Language-Specific Context
 {{LANGUAGE_INSTRUCTIONS}}
+
+### ${language.toUpperCase()} Specific Guidelines
+- Focus on ${language.toUpperCase()} best practices and conventions
+- Consider ${language.toUpperCase()}-specific architectural patterns
+- Evaluate use of ${language.toUpperCase()} modules and dependencies
+- Assess code organization according to ${language.toUpperCase()} community standards
 
 ## Response Format
 {{SCHEMA_INSTRUCTIONS}}
@@ -609,6 +616,12 @@ Analyze the provided code for security issues, focusing on:
 ## Language-Specific Context
 {{LANGUAGE_INSTRUCTIONS}}
 
+### ${language.toUpperCase()} Specific Security Guidelines
+- Identify ${language.toUpperCase()}-specific security vulnerabilities
+- Check for insecure use of ${language.toUpperCase()} libraries and frameworks
+- Evaluate security of ${language.toUpperCase()}-specific data handling
+- Assess common security pitfalls in ${language.toUpperCase()} applications
+
 ## Response Format
 {{SCHEMA_INSTRUCTIONS}}
 
@@ -635,6 +648,12 @@ Analyze the provided code for performance issues, focusing on:
 
 ## Language-Specific Context
 {{LANGUAGE_INSTRUCTIONS}}
+
+### ${language.toUpperCase()} Specific Performance Guidelines
+- Identify ${language.toUpperCase()}-specific performance bottlenecks
+- Suggest ${language.toUpperCase()}-specific optimization techniques
+- Evaluate use of ${language.toUpperCase()} standard libraries for performance
+- Recommend ${language.toUpperCase()}-specific profiling and benchmarking approaches
 
 ## Response Format
 {{SCHEMA_INSTRUCTIONS}}
@@ -663,6 +682,12 @@ Analyze the provided code for issues that can be quickly fixed, focusing on:
 
 ## Language-Specific Context
 {{LANGUAGE_INSTRUCTIONS}}
+
+### ${language.toUpperCase()} Specific Guidelines
+- Identify common ${language.toUpperCase()} code smells and anti-patterns
+- Suggest ${language.toUpperCase()} best practices and coding standards
+- Check for proper use of ${language.toUpperCase()} language features
+- Recommend ${language.toUpperCase()}-specific documentation improvements
 
 ## Response Format
 {{SCHEMA_INSTRUCTIONS}}

@@ -324,22 +324,31 @@ Error loading prompt template for architectural (language: typescript): Error: E
 
 Follow these steps:
 
-1. **Check Templates Directory**: Make sure the `prompts/templates/` directory exists in your project
+1. **Check Language-Specific Templates**: For language-specific templates (highest priority)
    ```bash
-   mkdir -p prompts/templates
+   mkdir -p prompts/typescript
+   cp prompts/*.md prompts/typescript/
    ```
 
-2. **Copy Templates**: Ensure all template files are in the templates directory
+2. **Check Templates Directory**: For generic templates (medium priority)
    ```bash
+   mkdir -p prompts/templates
    cp prompts/*.md prompts/templates/
    ```
 
-3. **Verify Templates**: Check that the templates directory contains all required files
+3. **Check Root Prompts Directory**: For fallback templates (lowest priority)
    ```bash
-   ls -la prompts/templates/
+   ls -la prompts/*.md
    ```
 
-4. **Custom Templates**: If using custom templates, make sure they're in the correct location and properly formatted
+4. **Verify Template Hierarchy**:
+   - Language-specific templates: `prompts/<language>/<review-type>-review.md`
+   - Generic templates: `prompts/templates/<review-type>-review.md`
+   - Fallback templates: `prompts/<review-type>-review.md`
+
+5. **Custom Templates**: If using custom templates, make sure they're in the correct location and properly formatted
+
+The tool will automatically search for templates in this order of precedence.
 
 ## Output
 
@@ -448,15 +457,29 @@ You can customize the review process in several ways:
 
 #### Prompt Templates
 
-The tool comes with built-in prompt templates in the `prompts/templates/` directory:
+The tool comes with built-in prompt templates organized in the following directories:
 
+1. **Language-Specific Templates** (`prompts/<language>/`):
+   - Language-specific templates take precedence over generic templates
+   - Supported languages: `typescript`, `python`, `php`, `ruby`
+   - Example: `prompts/typescript/architectural-review.md`
+
+2. **Templates Directory** (`prompts/templates/`):
+   - Generic templates that work for any language
+   - Example: `prompts/templates/architectural-review.md`
+
+3. **Root Prompts Directory** (`prompts/`):
+   - Fallback templates if no language-specific or templates directory version exists
+   - Example: `prompts/architectural-review.md`
+
+Available template types:
 - `quick-fixes-review.md` - For quick fixes reviews
 - `security-review.md` - For security reviews
 - `architectural-review.md` - For architectural reviews
 - `performance-review.md` - For performance reviews
 - `unused-code-review.md` - For unused code reviews
 
-> **Important**: Make sure the `prompts/templates/` directory exists and contains these template files. If you're experiencing errors with template loading, check that these files are present in the templates directory.
+> **Important**: If you're experiencing errors with template loading, make sure at least one of these directories exists and contains the required template files.
 
 #### Custom Prompt Templates
 
