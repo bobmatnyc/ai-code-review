@@ -141,9 +141,38 @@ export class PromptManager {
       try {
         await fs.access(templatesDir);
       } catch (error) {
-        // Silently ignore missing templates directory - this is expected in most cases
-        logger.debug(`Templates directory not found: ${templatesDir}`);
-        return;
+        // Try to create the templates directory if it doesn't exist
+        try {
+          logger.info(`Templates directory not found: ${templatesDir}. Creating it...`);
+          await fs.mkdir(templatesDir, { recursive: true });
+
+          // If this is the templates directory in prompts/, try to copy templates from root
+          if (templatesDir.endsWith('prompts/templates') || templatesDir.endsWith('prompts\\templates')) {
+            logger.info('Copying templates from prompts/ to prompts/templates/...');
+
+            // Get all .md files in the prompts directory
+            const promptsDir = path.dirname(templatesDir);
+            const files = await fs.readdir(promptsDir, { withFileTypes: true });
+
+            for (const file of files) {
+              if (file.isFile() && file.name.endsWith('.md')) {
+                try {
+                  const sourcePath = path.join(promptsDir, file.name);
+                  const destPath = path.join(templatesDir, file.name);
+                  const content = await fs.readFile(sourcePath, 'utf-8');
+                  await fs.writeFile(destPath, content);
+                  logger.info(`Copied ${sourcePath} to ${destPath}`);
+                } catch (copyError) {
+                  logger.warn(`Failed to copy ${file.name}:`, copyError);
+                }
+              }
+            }
+          }
+        } catch (createError) {
+          // If we can't create the directory, log a warning and return
+          logger.warn(`Failed to create templates directory: ${templatesDir}`, createError);
+          return;
+        }
       }
 
       // Read the directory
@@ -275,6 +304,26 @@ export class PromptManager {
   }
 
   /**
+   * List all loaded templates
+   * @returns Array of template metadata
+   */
+  listTemplates(): PromptTemplateMetadata[] {
+    const templates: PromptTemplateMetadata[] = [];
+
+    // Add templates from the templates map
+    for (const template of this.templates.values()) {
+      templates.push(template.metadata);
+    }
+
+    // Add templates from the custom templates map
+    for (const template of this.customTemplates.values()) {
+      templates.push(template.metadata);
+    }
+
+    return templates;
+  }
+
+  /**
    * Get a prompt template
    * @param reviewType Type of review
    * @param options Review options
@@ -366,7 +415,28 @@ export class PromptManager {
 
     // Try multiple paths to find the prompt template
     const possiblePaths = [
-      // First try the language-specific directory (for local development)
+      // First try the templates directory (for local development)
+      path.resolve('prompts', 'templates', `${reviewType}-review.md`),
+      // Then try the templates directory relative to the current file (for npm package)
+      path.resolve(
+        __dirname,
+        '..',
+        '..',
+        'prompts',
+        'templates',
+        `${reviewType}-review.md`
+      ),
+      // Then try the templates directory relative to the package root (for global installation)
+      path.resolve(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'prompts',
+        'templates',
+        `${reviewType}-review.md`
+      ),
+      // Then try the language-specific directory (for local development)
       path.resolve('prompts', language, `${reviewType}-review.md`),
       // Then try the language-specific directory relative to the current file (for npm package)
       path.resolve(
@@ -417,21 +487,192 @@ export class PromptManager {
       }
     }
 
-    // If we couldn't read any file, throw an error
+    // If we couldn't read any file, try to create the templates directory and copy templates
     if (!promptTemplate) {
-      logger.error(
+      logger.warn(
         `Error loading prompt template for ${reviewType} (language: ${language}):`,
         lastError
       );
-      logger.error('Tried the following paths:');
-      possiblePaths.forEach(p => logger.error(`- ${p}`));
-      throw new Error(
-        `Failed to load prompt template for ${reviewType} (language: ${language})`
-      );
+      logger.warn('Tried the following paths:');
+      possiblePaths.forEach(p => logger.warn(`- ${p}`));
+
+      // Try to create a default template
+      try {
+        logger.info('Attempting to create templates directory and default template...');
+
+        // Create templates directory if it doesn't exist
+        const templatesDir = path.resolve('prompts', 'templates');
+        await fs.mkdir(templatesDir, { recursive: true });
+
+        // Check if there's a template in the root prompts directory
+        const rootTemplatePath = path.resolve('prompts', `${reviewType}-review.md`);
+        try {
+          // Try to copy from root prompts directory to templates directory
+          const rootTemplate = await fs.readFile(rootTemplatePath, 'utf-8');
+          const newTemplatePath = path.resolve(templatesDir, `${reviewType}-review.md`);
+          await fs.writeFile(newTemplatePath, rootTemplate);
+
+          logger.info(`Created template at ${newTemplatePath} by copying from ${rootTemplatePath}`);
+          promptTemplate = rootTemplate;
+        } catch (copyError) {
+          // If we can't copy from root, create a basic default template
+          logger.warn(`Could not copy from ${rootTemplatePath}:`, copyError);
+          logger.info('Creating a basic default template...');
+
+          const defaultTemplate = this.createDefaultTemplate(reviewType, language);
+          const newTemplatePath = path.resolve(templatesDir, `${reviewType}-review.md`);
+          await fs.writeFile(newTemplatePath, defaultTemplate);
+
+          logger.info(`Created default template at ${newTemplatePath}`);
+          promptTemplate = defaultTemplate;
+        }
+      } catch (createError) {
+        logger.error('Failed to create default template:', createError);
+        throw new Error(
+          `Failed to load or create prompt template for ${reviewType} (language: ${language}). Please create the prompts/templates directory and add the required template files.`
+        );
+      }
     }
 
     // Process the template
     return await this.processPromptTemplate(promptTemplate, options);
+  }
+
+  /**
+   * Create a default template for a review type
+   * @param reviewType Type of review
+   * @param language Programming language
+   * @returns Default prompt template content
+   */
+  private createDefaultTemplate(reviewType: ReviewType, language: string): string {
+    const currentDate = new Date().toISOString().split('T')[0];
+
+    // Create metadata section
+    const metadata = `---
+name: ${reviewType}-review
+description: Default prompt template for ${reviewType} code review
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: ${reviewType}
+language: ${language}
+tags: default, ${reviewType}, ${language}
+---`;
+
+    // Create template content based on review type
+    let content = '';
+
+    switch (reviewType) {
+      case 'architectural':
+        content = `
+# Architectural Code Review
+
+You are an expert software architect reviewing code for architectural issues.
+
+## Instructions
+
+Analyze the provided code for architectural issues, focusing on:
+
+1. **Design Patterns**: Identify appropriate/inappropriate use of design patterns
+2. **Code Organization**: Evaluate the overall structure and organization
+3. **Modularity**: Assess how well the code is modularized
+4. **Coupling & Cohesion**: Identify tight coupling or low cohesion issues
+5. **Extensibility**: Evaluate how easily the code can be extended
+6. **Maintainability**: Assess long-term maintainability concerns
+
+## Language-Specific Context
+{{LANGUAGE_INSTRUCTIONS}}
+
+## Response Format
+{{SCHEMA_INSTRUCTIONS}}
+
+Provide specific, actionable recommendations for improving the architecture.
+`;
+        break;
+
+      case 'security':
+        content = `
+# Security Code Review
+
+You are an expert security engineer reviewing code for security vulnerabilities.
+
+## Instructions
+
+Analyze the provided code for security issues, focusing on:
+
+1. **Input Validation**: Check for proper validation of all inputs
+2. **Authentication/Authorization**: Verify proper access controls
+3. **Data Protection**: Identify sensitive data handling issues
+4. **Injection Vulnerabilities**: Look for SQL, XSS, command injection, etc.
+5. **Cryptographic Issues**: Identify weak or improper cryptography
+6. **Error Handling**: Check for information leakage in errors
+
+## Language-Specific Context
+{{LANGUAGE_INSTRUCTIONS}}
+
+## Response Format
+{{SCHEMA_INSTRUCTIONS}}
+
+Provide specific, actionable recommendations for fixing security issues.
+`;
+        break;
+
+      case 'performance':
+        content = `
+# Performance Code Review
+
+You are an expert performance engineer reviewing code for performance issues.
+
+## Instructions
+
+Analyze the provided code for performance issues, focusing on:
+
+1. **Algorithmic Efficiency**: Identify inefficient algorithms or data structures
+2. **Resource Usage**: Check for memory leaks or excessive resource consumption
+3. **Concurrency**: Evaluate thread safety and parallelization opportunities
+4. **I/O Operations**: Identify inefficient I/O or network operations
+5. **Caching**: Suggest appropriate caching strategies
+6. **Optimization Opportunities**: Identify code that could benefit from optimization
+
+## Language-Specific Context
+{{LANGUAGE_INSTRUCTIONS}}
+
+## Response Format
+{{SCHEMA_INSTRUCTIONS}}
+
+Provide specific, actionable recommendations for improving performance.
+`;
+        break;
+
+      case 'quick-fixes':
+      default:
+        content = `
+# Quick Fixes Code Review
+
+You are an expert software engineer reviewing code for quick improvements.
+
+## Instructions
+
+Analyze the provided code for issues that can be quickly fixed, focusing on:
+
+1. **Code Quality**: Identify code smells and anti-patterns
+2. **Best Practices**: Check adherence to language-specific best practices
+3. **Error Handling**: Verify proper error handling
+4. **Documentation**: Check for missing or inadequate documentation
+5. **Naming Conventions**: Verify consistent and clear naming
+6. **Simple Optimizations**: Identify easy performance improvements
+
+## Language-Specific Context
+{{LANGUAGE_INSTRUCTIONS}}
+
+## Response Format
+{{SCHEMA_INSTRUCTIONS}}
+
+Provide specific, actionable recommendations for quick improvements.
+`;
+        break;
+    }
+
+    return `${metadata}\n${content}`;
   }
 
   /**

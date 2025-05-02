@@ -154,7 +154,6 @@ import { initI18n, t } from './utils/i18n';
 import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
 import { listModelConfigs } from './clients/utils/modelLister';
-import { handleSyncGitHubProjectsCommand } from './commands/syncGithubProjects';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
@@ -268,7 +267,7 @@ async function main() {
     // Load prompt templates
     const promptManager = PromptManager.getInstance();
 
-    // First try to load templates from the current directory
+    // First try to load templates from the current directory's templates folder
     const localTemplatesDir = path.resolve(
       process.cwd(),
       'prompts',
@@ -276,9 +275,20 @@ async function main() {
     );
     await promptManager.loadTemplates(localTemplatesDir);
 
-    // Then try to load templates from the package directory
-    const packageTemplatesDir = path.resolve(__dirname, 'prompts', 'templates');
+    // Then try to load from the current directory's root prompts folder
+    const localPromptsDir = path.resolve(
+      process.cwd(),
+      'prompts'
+    );
+    await promptManager.loadTemplates(localPromptsDir);
+
+    // Then try to load templates from the package directory's templates folder
+    const packageTemplatesDir = path.resolve(__dirname, '..', 'prompts', 'templates');
     await promptManager.loadTemplates(packageTemplatesDir);
+
+    // Then try to load from the package directory's root prompts folder
+    const packagePromptsDir = path.resolve(__dirname, '..', 'prompts');
+    await promptManager.loadTemplates(packagePromptsDir);
 
     // Log the loaded templates
     const templates = promptManager.listTemplates();
@@ -337,12 +347,6 @@ async function main() {
       modelTestArgs[0] === 'test-build'
     ) {
       program.parse(process.argv);
-      return;
-    }
-
-    // Handle GitHub Projects sync command
-    if (modelTestArgs[0] === 'sync-github-projects') {
-      await handleSyncGitHubProjectsCommand();
       return;
     }
 

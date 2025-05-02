@@ -312,6 +312,35 @@ Options:
   -h, --help              Display help information
 ```
 
+## Troubleshooting
+
+### Prompt Template Loading Issues
+
+If you encounter errors like:
+
+```
+Error loading prompt template for architectural (language: typescript): Error: ENOENT: no such file or directory
+```
+
+Follow these steps:
+
+1. **Check Templates Directory**: Make sure the `prompts/templates/` directory exists in your project
+   ```bash
+   mkdir -p prompts/templates
+   ```
+
+2. **Copy Templates**: Ensure all template files are in the templates directory
+   ```bash
+   cp prompts/*.md prompts/templates/
+   ```
+
+3. **Verify Templates**: Check that the templates directory contains all required files
+   ```bash
+   ls -la prompts/templates/
+   ```
+
+4. **Custom Templates**: If using custom templates, make sure they're in the correct location and properly formatted
+
 ## Output
 
 Review results are stored in the `ai-code-review-docs/` directory. For consolidated reviews, the output follows this naming pattern:
@@ -425,6 +454,9 @@ The tool comes with built-in prompt templates in the `prompts/templates/` direct
 - `security-review.md` - For security reviews
 - `architectural-review.md` - For architectural reviews
 - `performance-review.md` - For performance reviews
+- `unused-code-review.md` - For unused code reviews
+
+> **Important**: Make sure the `prompts/templates/` directory exists and contains these template files. If you're experiencing errors with template loading, check that these files are present in the templates directory.
 
 #### Custom Prompt Templates
 
