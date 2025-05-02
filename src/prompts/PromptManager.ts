@@ -814,25 +814,7 @@ Provide specific, actionable recommendations for quick improvements.
     return promptTemplate;
   }
 
-  /**
-   * List all available prompt templates
-   * @returns Array of prompt template metadata
-   */
-  listTemplates(): PromptTemplateMetadata[] {
-    const allTemplates: PromptTemplateMetadata[] = [];
 
-    // Add built-in templates
-    for (const template of this.templates.values()) {
-      allTemplates.push(template.metadata);
-    }
-
-    // Add custom templates
-    for (const template of this.customTemplates.values()) {
-      allTemplates.push(template.metadata);
-    }
-
-    return allTemplates;
-  }
 
   /**
    * Provide feedback on a prompt
