@@ -127,12 +127,20 @@ This tool analyzes code from specified files or directories in sibling projects 
 ### Global Installation
 
 ```bash
+# Using pnpm (recommended)
+pnpm add -g @bobmatnyc/ai-code-review
+
+# Using npm
 npm install -g @bobmatnyc/ai-code-review
 ```
 
 ### Local Installation
 
 ```bash
+# Using pnpm (recommended)
+pnpm add -D @bobmatnyc/ai-code-review
+
+# Using npm
 npm install --save-dev @bobmatnyc/ai-code-review
 ```
 
@@ -172,7 +180,10 @@ You can get API keys from:
 # Global installation
 ai-code-review [target] [options]
 
-# Local installation
+# Local installation with pnpm
+pnpm exec ai-code-review [target] [options]
+
+# Local installation with npm
 npx ai-code-review [target] [options]
 
 # Note: The tool only works within the current project
@@ -502,7 +513,9 @@ ai-code-review src/components --type quick-fixes --prompt-strategy langchain
 
 ### GitHub Projects Integration
 
-You can integrate your PROJECT.md file with GitHub Projects to better manage your project documentation and tasks. This allows you to maintain your project documentation in both Markdown format and in GitHub's project management interface.
+You can integrate with GitHub Projects and Issues to better manage your project documentation and tasks. This allows you to maintain your project documentation in both Markdown format and in GitHub's project management interface.
+
+### GitHub Projects Integration
 
 ```bash
 # Update GitHub Project readme with PROJECT.md content
@@ -514,27 +527,126 @@ ai-code-review sync-github-projects
 # Sync GitHub Projects to PROJECT.md
 ai-code-review sync-github-projects --direction from-github
 
+# Update README.md with PROJECT.md content
+ai-code-review sync-github-projects --update-readme
+
 # Specify project path
 ai-code-review sync-github-projects --project-path /path/to/project
 ```
 
-To use this feature, add the following to your `.env.local` file:
+### GitHub Issues Management
+
+This project uses the GitHub API directly for issue management. Here are some examples using `curl` to interact with the GitHub API:
+
+```bash
+# Set your GitHub token and repository info
+GITHUB_TOKEN="your_github_token"
+OWNER="bobmatnyc"
+REPO="code-review"
+
+# Create a new issue
+curl -X POST \
+  -H "Authorization: token $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  -d '{"title":"Fix bug in login flow","body":"The login button does not work","labels":["bug"]}' \
+  "https://api.github.com/repos/$OWNER/$REPO/issues"
+
+# List open issues
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  "https://api.github.com/repos/$OWNER/$REPO/issues?state=open"
+
+# Get issue details
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  "https://api.github.com/repos/$OWNER/$REPO/issues/42"
+
+# Add a comment to an issue
+curl -X POST \
+  -H "Authorization: token $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  -d '{"body":"This is fixed in PR #123"}' \
+  "https://api.github.com/repos/$OWNER/$REPO/issues/42/comments"
+
+# Close an issue
+curl -X PATCH \
+  -H "Authorization: token $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  -d '{"state":"closed"}' \
+  "https://api.github.com/repos/$OWNER/$REPO/issues/42"
+
+# Reopen an issue
+curl -X PATCH \
+  -H "Authorization: token $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  -d '{"state":"open"}' \
+  "https://api.github.com/repos/$OWNER/$REPO/issues/42"
+```
+
+You can also use the GitHub REST API with various programming languages. Here's an example using JavaScript/Node.js with the Octokit library:
+
+```javascript
+const { Octokit } = require("octokit");
+
+// Create a new Octokit instance
+const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
+// Create a new issue
+async function createIssue() {
+  const response = await octokit.rest.issues.create({
+    owner: "bobmatnyc",
+    repo: "code-review",
+    title: "Fix bug in login flow",
+    body: "The login button does not work",
+    labels: ["bug"]
+  });
+
+  console.log(`Created issue #${response.data.number}`);
+}
+
+// List open issues
+async function listIssues() {
+  const response = await octokit.rest.issues.listForRepo({
+    owner: "bobmatnyc",
+    repo: "code-review",
+    state: "open"
+  });
+
+  console.log(`Found ${response.data.length} open issues`);
+  response.data.forEach(issue => {
+    console.log(`#${issue.number}: ${issue.title}`);
+  });
+}
+```
+
+To use these features, add the following to your `.env.local` file:
 
 ```
-# GitHub API token for accessing GitHub Projects
+# GitHub API token for accessing GitHub Projects, Issues, PRs, etc.
 GITHUB_TOKEN=your_github_token_here
+
+# GitHub repository owner (default: 'bobmatnyc')
+GITHUB_OWNER=your_github_username
+
+# GitHub repository name (default: 'code-review')
+GITHUB_REPO=your_repository_name
 
 # GitHub Project number (e.g., 1)
 GITHUB_PROJECT_NUMBER=1
-
-# GitHub owner (default: 'bobmatnyc')
-GITHUB_OWNER=your_github_username
 ```
 
-The recommended workflow is to:
+The recommended workflow for GitHub Projects is to:
 1. First update the GitHub Project readme with your PROJECT.md content using the `--description-only` flag
 2. Then use GitHub Projects to create and manage issues and tasks for ongoing work
 3. Optionally sync back to PROJECT.md if you want to keep a local copy
+
+The recommended workflow for GitHub Issues is to:
+1. Create issues for tasks and bugs using the GitHub API
+2. Add task lists (checkboxes) in the issue body to break down complex issues
+3. Use GitHub's web interface or API to monitor for new issues
+4. Reference issues in commit messages and PRs using the #issue_number syntax
+5. Add comments to issues as you make progress
+6. Close issues when they're completed
 
 ### Environment Variables
 

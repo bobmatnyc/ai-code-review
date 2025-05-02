@@ -8,7 +8,7 @@ echo "🛠️  Fixing global ai-code-review command..."
 
 # Remove any existing installations
 echo "📝 Removing any existing global installations..."
-npm uninstall -g @bobmatnyc/ai-code-review 2>/dev/null
+pnpm uninstall -g @bobmatnyc/ai-code-review 2>/dev/null
 
 # Check for and remove Homebrew installation
 if [ -f "/opt/homebrew/bin/ai-code-review" ]; then
@@ -18,7 +18,7 @@ fi
 
 # Install from local directory
 echo "📝 Installing from local directory..."
-npm install -g .
+pnpm install -g .
 
 # Clear shell path cache
 echo "📝 Clearing shell command cache..."
@@ -32,11 +32,11 @@ if [ -z "$GLOBAL_PATH" ]; then
   exit 1
 else
   echo "✅ Global command successfully installed at: $GLOBAL_PATH"
-  
+
   # Check if it's using the correct version
   VERSION=$(ai-code-review --show-version | tail -n 1)
   echo "📦 Version: $VERSION"
-  
+
   echo ""
   echo "✨ Installation successful! You can now use 'ai-code-review' from anywhere."
   echo ""

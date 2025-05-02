@@ -7,10 +7,10 @@ echo "🔧 Emergency Fix for Physical Mac Terminal"
 echo "=========================================="
 
 # Get actual global bin path
-NPM_PREFIX=$(npm prefix -g)
-GLOBAL_BIN="$NPM_PREFIX/bin/ai-code-review"
+PNPM_PREFIX=$(pnpm config get prefix)
+GLOBAL_BIN="$PNPM_PREFIX/bin/ai-code-review"
 
-echo "Global npm prefix: $NPM_PREFIX"
+echo "Global pnpm prefix: $PNPM_PREFIX"
 echo "Global binary path: $GLOBAL_BIN"
 
 # Try to fix PATH issues
@@ -24,14 +24,14 @@ fi
 echo ""
 echo "🔄 Reinstalling the package globally..."
 cd /Users/masa/Projects/ai-code-review
-npm uninstall -g @bobmatnyc/ai-code-review
-npm install -g .
+pnpm uninstall -g @bobmatnyc/ai-code-review
+pnpm install -g .
 
 # Create a direct alias in the user's bin directory
 echo ""
 echo "🔄 Creating a direct alias in ~/bin..."
 mkdir -p ~/bin
-ln -sf "$NPM_PREFIX/bin/ai-code-review" ~/bin/ai-code-review
+ln -sf "$PNPM_PREFIX/bin/ai-code-review" ~/bin/ai-code-review
 chmod +x ~/bin/ai-code-review
 
 echo ""
@@ -49,4 +49,4 @@ echo ""
 echo "Then run: source ~/.bash_profile (or ~/.zshrc)"
 echo ""
 echo "🔍 Alternatively, run this exact command to use the tool:"
-echo "$NPM_PREFIX/bin/ai-code-review"
+echo "$PNPM_PREFIX/bin/ai-code-review"

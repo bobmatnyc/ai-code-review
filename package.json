@@ -6,7 +6,7 @@
   "bin": "dist/index.js",
   "scripts": {
     "prebuild": "rm -rf dist",
-    "build": "npm run test && npm run build:types && node scripts/build.js",
+    "build": "pnpm test && pnpm build:types && node scripts/build.js",
     "build:types": "tsc --emitDeclarationOnly",
     "postbuild": "./scripts/link-global.sh",
     "start": "node dist/index.js",
@@ -14,7 +14,7 @@
     "local": "ts-node --transpile-only -r tsconfig-paths/register src/index.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "npm run validate:prompts && jest --no-cache",
+    "test": "pnpm validate:prompts && jest --no-cache",
     "test:e2e": "node scripts/e2e-test.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --collectCoverageFrom='src/**/*.ts'",
@@ -24,7 +24,7 @@
     "test:latest": "ts-node src/test-latest.ts",
     "test:api": "ts-node src/test-api-connections.ts",
     "prepare-package": "./scripts/prepare-package.sh",
-    "prepublishOnly": "npm run build && npm run test:e2e",
+    "prepublishOnly": "pnpm build && pnpm test:e2e",
     "local-review": "./local-ai-review.sh",
     "built-review": "./built-ai-review.sh",
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
@@ -83,6 +83,7 @@
     "jsdom": "^26.0.0",
     "langchain": "^0.3.21",
     "markdown-it": "^13.0.2",
+    "octokit": "^4.1.3",
     "yargs": "^17.7.2",
     "zod": "^3.24.2"
   },
@@ -122,8 +123,5 @@
   "overrides": {
     "esbuild": "^0.25.3"
   },
-  "resolutions": {
-    "esbuild": "^0.25.3"
-  },
-  "packageManager": "yarn@4.9.1"
+  "packageManager": "pnpm@8.15.4"
 }
