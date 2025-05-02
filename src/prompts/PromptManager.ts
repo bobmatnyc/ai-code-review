@@ -417,6 +417,7 @@ export class PromptManager {
     const possiblePaths = [
       // First try the language-specific directory (for local development)
       path.resolve('prompts', language, `${reviewType}-review.md`),
+
       // Then try the language-specific directory relative to the current file (for npm package)
       path.resolve(
         __dirname,
@@ -426,6 +427,16 @@ export class PromptManager {
         language,
         `${reviewType}-review.md`
       ),
+
+      // Then try the language-specific directory in dist/prompts (for bundled package)
+      path.resolve(
+        __dirname,
+        '..',
+        'prompts',
+        language,
+        `${reviewType}-review.md`
+      ),
+
       // Then try the language-specific directory relative to the package root (for global installation)
       path.resolve(
         __dirname,
@@ -436,8 +447,10 @@ export class PromptManager {
         language,
         `${reviewType}-review.md`
       ),
+
       // Then try the templates directory (for local development)
       path.resolve('prompts', 'templates', `${reviewType}-review.md`),
+
       // Then try the templates directory relative to the current file (for npm package)
       path.resolve(
         __dirname,
@@ -447,6 +460,16 @@ export class PromptManager {
         'templates',
         `${reviewType}-review.md`
       ),
+
+      // Then try the templates directory in dist/prompts (for bundled package)
+      path.resolve(
+        __dirname,
+        '..',
+        'prompts',
+        'templates',
+        `${reviewType}-review.md`
+      ),
+
       // Then try the templates directory relative to the package root (for global installation)
       path.resolve(
         __dirname,
@@ -457,10 +480,16 @@ export class PromptManager {
         'templates',
         `${reviewType}-review.md`
       ),
+
       // Fallback to the root prompts directory (for local development)
       path.resolve('prompts', `${reviewType}-review.md`),
+
       // Fallback to the root prompts directory relative to the current file (for npm package)
       path.resolve(__dirname, '..', '..', 'prompts', `${reviewType}-review.md`),
+
+      // Fallback to the root prompts directory in dist/prompts (for bundled package)
+      path.resolve(__dirname, '..', 'prompts', `${reviewType}-review.md`),
+
       // Fallback to the root prompts directory relative to the package root (for global installation)
       path.resolve(
         __dirname,

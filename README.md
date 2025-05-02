@@ -322,33 +322,71 @@ If you encounter errors like:
 Error loading prompt template for architectural (language: typescript): Error: ENOENT: no such file or directory
 ```
 
-Follow these steps:
+This usually means the bundled templates can't be found. Here are some solutions:
 
-1. **Check Language-Specific Templates**: For language-specific templates (highest priority)
+1. **Reinstall the Package**: The templates should be bundled with the package. Try reinstalling:
    ```bash
-   mkdir -p prompts/typescript
-   cp prompts/*.md prompts/typescript/
+   pnpm add -g @bobmatnyc/ai-code-review@latest
    ```
 
-2. **Check Templates Directory**: For generic templates (medium priority)
+2. **Create Custom Templates**: You can create your own templates in your project:
    ```bash
+   # Create the templates directory
    mkdir -p prompts/templates
-   cp prompts/*.md prompts/templates/
+
+   # Create a basic template
+   cat > prompts/templates/architectural-review.md << 'EOF'
+   ---
+   name: architectural-review
+   description: Architectural review template
+   version: 1.0.0
+   author: AI Code Review Tool
+   reviewType: architectural
+   language: typescript
+   lastModified: 2025-05-02
+   tags: [architectural, review, template]
+   ---
+
+   # Architectural Code Review
+
+   You are an expert software architect reviewing code for architectural issues.
+
+   ## Instructions
+
+   Analyze the provided code for architectural issues, focusing on:
+
+   1. **Design Patterns**: Identify appropriate/inappropriate use of design patterns
+   2. **Code Organization**: Evaluate the overall structure and organization
+   3. **Modularity**: Assess how well the code is modularized
+   4. **Coupling & Cohesion**: Identify tight coupling or low cohesion issues
+   5. **Extensibility**: Evaluate how easily the code can be extended
+   6. **Maintainability**: Assess long-term maintainability concerns
+
+   ## Language-Specific Context
+   {{LANGUAGE_INSTRUCTIONS}}
+
+   ## Response Format
+   {{SCHEMA_INSTRUCTIONS}}
+
+   Provide specific, actionable recommendations for improving the architecture.
+   EOF
    ```
 
-3. **Check Root Prompts Directory**: For fallback templates (lowest priority)
+3. **Check Installation**: Verify the installation directory contains the prompts:
    ```bash
-   ls -la prompts/*.md
+   # Find the global installation directory
+   pnpm list -g --depth=0 @bobmatnyc/ai-code-review
+
+   # Check if prompts directory exists in the package
+   ls -la /path/to/global/node_modules/@bobmatnyc/ai-code-review/prompts
    ```
 
-4. **Verify Template Hierarchy**:
-   - Language-specific templates: `prompts/<language>/<review-type>-review.md`
-   - Generic templates: `prompts/templates/<review-type>-review.md`
-   - Fallback templates: `prompts/<review-type>-review.md`
+4. **Use Debug Mode**: Run with the debug flag to see which paths are being checked:
+   ```bash
+   ai-code-review --type architectural . --debug
+   ```
 
-5. **Custom Templates**: If using custom templates, make sure they're in the correct location and properly formatted
-
-The tool will automatically search for templates in this order of precedence.
+The tool will automatically create default templates if none are found, but it's better to have the proper templates installed.
 
 ## Output
 
@@ -457,7 +495,9 @@ You can customize the review process in several ways:
 
 #### Prompt Templates
 
-The tool comes with built-in prompt templates organized in the following directories:
+The tool comes with built-in prompt templates that are bundled with the package. You don't need to create these files manually - they're included in the installation.
+
+**Template Hierarchy** (in order of precedence):
 
 1. **Language-Specific Templates** (`prompts/<language>/`):
    - Language-specific templates take precedence over generic templates
@@ -472,14 +512,14 @@ The tool comes with built-in prompt templates organized in the following directo
    - Fallback templates if no language-specific or templates directory version exists
    - Example: `prompts/architectural-review.md`
 
-Available template types:
+**Available Template Types**:
 - `quick-fixes-review.md` - For quick fixes reviews
 - `security-review.md` - For security reviews
 - `architectural-review.md` - For architectural reviews
 - `performance-review.md` - For performance reviews
 - `unused-code-review.md` - For unused code reviews
 
-> **Important**: If you're experiencing errors with template loading, make sure at least one of these directories exists and contains the required template files.
+**Custom Templates**: You can override the built-in templates by creating your own in your project directory with the same paths. The tool will use your custom templates instead of the built-in ones if they exist.
 
 #### Custom Prompt Templates
 
