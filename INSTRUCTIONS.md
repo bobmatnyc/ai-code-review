@@ -1,5 +1,5 @@
 # 🧠 AI Assistant Instructions (Next.js + TypeScript Stack)
-_Last updated: 2025-05-01_
+_Last updated: 2025-05-02_
 
 ---
 
@@ -83,6 +83,30 @@ _Last updated: 2025-05-01_
 - `pnpm lint && pnpm typecheck && pnpm test` required before merge.
 - Feature branches only. Use squash merges.
 
+### Git Workflow
+- Create a feature branch for each issue or task
+- Follow the branch naming convention: `feature/issue-{number}-{short-description}`
+- Example: `feature/issue-42-add-dark-mode`
+- For bug fixes: `bugfix/issue-{number}-{short-description}`
+- For documentation: `docs/issue-{number}-{short-description}`
+- Include the branch name in the corresponding GitHub issue
+- Keep branches focused on a single issue or feature
+- Rebase feature branches on develop before creating pull requests
+- Use descriptive commit messages that reference the issue number
+
+### Pull Requests
+- Create a pull request for each feature branch
+- Link the pull request to the corresponding issue
+- Use the PR title format: `[Issue #{number}] {issue-title}`
+- Include in the PR description:
+  - Summary of changes
+  - Screenshots or demos if applicable
+  - Testing instructions
+  - Reference to the issue: `Closes #{number}`
+- Request code reviews from appropriate team members
+- All checks must pass before merging
+- Use squash merging to keep the commit history clean
+
 ---
 
 ## 🧪 5. Testing Standards
@@ -100,8 +124,12 @@ _Last updated: 2025-05-01_
 - Use `README.md` for CLI commands and usage docs.
 - Each package must have:
   - `PROJECT.md` – architecture decisions
-  - `ROADMAP.md` – upcoming milestones
   - `PROGRESS.md` – per-session implementation log
+- Use GitHub Issues for:
+  - Feature requests and roadmap items
+  - Bug tracking
+  - Task management
+  - Milestone planning
 
 ### Logging Sessions
 - Begin each session in `PROGRESS.md` with a dated header.
@@ -118,6 +146,33 @@ LATEST=$(ls logs/PROGRESS-*.md | sort -V | tail -1 | sed 's/.*PROGRESS-\([0-9]*\
 NEXT=$((LATEST + 1))
 cp PROGRESS.md logs/PROGRESS-$NEXT.md
 ```
+
+### GitHub Issues Management
+- Use GitHub Issues for all feature requests, bugs, and tasks
+- Follow these guidelines for issue creation:
+  - **Title**: Clear, concise description of the issue/feature
+  - **Description**: Detailed explanation with context
+  - **Labels**: Apply appropriate labels (bug, enhancement, documentation, etc.)
+  - **Milestones**: Assign to appropriate milestone for roadmap tracking
+  - **Assignees**: Assign to responsible developer(s)
+  - **Branch**: Include the feature branch name that will be used for implementation
+- Link related issues using GitHub's referencing system (#issue-number)
+- Close issues with appropriate commit messages (e.g., "Fixes #123")
+- Update the issue with progress updates as work continues
+
+### GitHub Projects for Roadmap
+- Use GitHub Projects (https://github.com/users/bobmatnyc/projects/1) for roadmap tracking
+- Organize issues into the following views:
+  - **Kanban**: Track progress with To Do, In Progress, Done columns
+  - **Roadmap**: Visualize timeline with milestones and phases
+  - **Table**: Comprehensive view with all metadata
+- Add all new issues to the project
+- Update issue status as work progresses
+- Use project fields to track:
+  - Priority (High, Medium, Low)
+  - Effort (Small, Medium, Large)
+  - Phase (1-5)
+  - Status (Backlog, Ready, In Progress, Review, Done)
 
 ---
 
