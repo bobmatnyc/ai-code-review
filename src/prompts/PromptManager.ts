@@ -1,8 +1,13 @@
 /**
  * @fileoverview Prompt manager for loading and managing prompt templates.
  *
- * This module provides a singleton manager for loading prompt templates from
- * various sources, including the file system and custom user-provided files.
+ * IMPORTANT: This module provides a singleton manager for prompt templates.
+ * All core prompts are bundled with the package in bundledPrompts.ts.
+ * The system prioritizes bundled prompts and only falls back to file system
+ * prompts if a bundled prompt is not found.
+ *
+ * Custom prompts can still be provided via the promptFile option or by
+ * registering custom templates programmatically.
  */
 
 import path from 'path';
@@ -13,6 +18,7 @@ import { getSchemaInstructions } from '../types/reviewSchema';
 import { PromptBuilder } from './PromptBuilder';
 import { PromptCache } from './cache/PromptCache';
 import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
+import { getBundledPrompt } from './bundledPrompts';
 
 /**
  * Interface for prompt template metadata
@@ -132,8 +138,13 @@ export class PromptManager {
   }
 
   /**
-   * Load prompt templates from a directory
+   * Load custom prompt templates from a directory
    * @param templatesDir Directory containing templates
+   *
+   * IMPORTANT: This method is only for loading CUSTOM templates.
+   * Core prompts are bundled with the package in bundledPrompts.ts.
+   * This method should only be used for loading user-provided templates
+   * that extend or override the bundled ones.
    */
   async loadTemplates(templatesDir: string): Promise<void> {
     try {
@@ -142,12 +153,15 @@ export class PromptManager {
         await fs.access(templatesDir);
       } catch (error) {
         // Silently ignore missing templates directory - this is expected in most cases
-        logger.debug(`Templates directory not found: ${templatesDir}`);
+        logger.debug(`Custom templates directory not found: ${templatesDir}`);
         return;
       }
 
       // Read the directory
       const files = await fs.readdir(templatesDir, { withFileTypes: true });
+
+      // Track how many custom templates we load
+      let customTemplatesLoaded = 0;
 
       // Process each file or directory
       for (const file of files) {
@@ -177,21 +191,24 @@ export class PromptManager {
               metadata.language
             );
             this.templates.set(key, template);
-            logger.debug(`Loaded prompt template: ${fullPath}`);
+            customTemplatesLoaded++;
+            logger.debug(`Loaded custom prompt template: ${fullPath}`);
           } catch (error) {
             logger.error(
-              `Error loading prompt template ${fullPath}: ${error instanceof Error ? error.message : String(error)}`
+              `Error loading custom prompt template ${fullPath}: ${error instanceof Error ? error.message : String(error)}`
             );
           }
         }
       }
 
-      logger.info(
-        `Loaded ${this.templates.size} prompt templates from ${templatesDir}`
-      );
+      if (customTemplatesLoaded > 0) {
+        logger.info(
+          `Loaded ${customTemplatesLoaded} custom prompt templates from ${templatesDir}`
+        );
+      }
     } catch (error) {
       logger.error(
-        `Error loading prompt templates: ${error instanceof Error ? error.message : String(error)}`
+        `Error loading custom prompt templates: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
@@ -279,6 +296,15 @@ export class PromptManager {
    * @param reviewType Type of review
    * @param options Review options
    * @returns Promise resolving to the prompt template content
+   *
+   * IMPORTANT: This method prioritizes prompts in the following order:
+   * 1. Custom prompt file specified in options
+   * 2. Custom templates registered programmatically
+   * 3. Bundled prompts (PRIMARY SOURCE)
+   * 4. Custom templates loaded from the file system (FALLBACK ONLY)
+   *
+   * Core functionality should ALWAYS use bundled prompts to ensure
+   * the system works correctly regardless of installation environment.
    */
   async getPromptTemplate(
     reviewType: ReviewType,
@@ -313,11 +339,11 @@ export class PromptManager {
         logger.error(
           `Error loading custom prompt template: ${error instanceof Error ? error.message : String(error)}`
         );
-        logger.warn('Falling back to default prompt template');
+        logger.warn('Falling back to bundled prompt template');
       }
     }
 
-    // Check if we have a custom template registered
+    // Check if we have a custom template registered programmatically
     const customKey = this.getTemplateKey(reviewType, language);
     const customTemplate = this.customTemplates.get(customKey);
     if (customTemplate) {
@@ -327,111 +353,62 @@ export class PromptManager {
       return await this.processPromptTemplate(customTemplate.content, options);
     }
 
-    // Check if we have a template for this review type and language
+    // Use bundled prompts as the primary source
+    const bundledPrompt = getBundledPrompt(reviewType, language);
+    if (bundledPrompt) {
+      logger.debug(`Using bundled prompt template for ${reviewType} (language: ${language})`);
+      return await this.processPromptTemplate(bundledPrompt, options);
+    }
+
+    // Try a generic bundled prompt without language specification
+    const genericBundledPrompt = getBundledPrompt(reviewType);
+    if (genericBundledPrompt) {
+      logger.debug(`Using generic bundled prompt template for ${reviewType}`);
+      return await this.processPromptTemplate(genericBundledPrompt, options);
+    }
+
+    // FALLBACK ONLY: If no bundled prompt is found, check custom templates from file system
+    // This should rarely happen as all core prompts should be bundled
+    logger.warn(`No bundled prompt found for ${reviewType}. Falling back to custom templates.`);
+
+    // Check if we have a custom template for this review type and language
     const key = this.getTemplateKey(reviewType, language);
     const template = this.templates.get(key);
     if (template) {
-      logger.debug(`Using prompt template: ${template.path}`);
+      logger.warn(`Using custom prompt template from file system: ${template.path}`);
       return await this.processPromptTemplate(template.content, options);
     }
 
-    // Try to find a template for this review type without language
+    // Try to find a custom template for this review type without language
     const genericKey = this.getTemplateKey(reviewType);
     const genericTemplate = this.templates.get(genericKey);
     if (genericTemplate) {
-      logger.debug(`Using generic prompt template: ${genericTemplate.path}`);
+      logger.warn(`Using generic custom prompt template from file system: ${genericTemplate.path}`);
       return await this.processPromptTemplate(genericTemplate.content, options);
     }
 
-    // If we still don't have a template, try to load it from the file system
-    return this.loadPromptTemplateFromFileSystem(reviewType, options);
+    // If we still don't have a template, throw an error
+    logger.error(`No prompt template found for ${reviewType} (language: ${language})`);
+    throw new Error(`No prompt template found for ${reviewType} (language: ${language}). Please ensure bundled prompts are properly included in the package.`);
   }
 
   /**
-   * Load a prompt template from the file system
-   * @param reviewType Type of review
-   * @param options Review options
-   * @returns Promise resolving to the prompt template content
+   * IMPORTANT: The loadPromptTemplateFromFileSystem method has been removed.
+   * We now use bundled prompts as the PRIMARY AND ONLY SOURCE for prompts.
+   *
+   * All prompts are defined in the bundledPrompts.ts file and accessed through
+   * the getBundledPrompt function. The system does NOT load prompts from the
+   * file system anymore.
+   *
+   * If you need to add or modify prompts, you must update the bundledPrompts.ts file.
    */
   private async loadPromptTemplateFromFileSystem(
     reviewType: ReviewType,
     options?: ReviewOptions
   ): Promise<string> {
-    // Get the language from options or default to typescript
-    let language = 'typescript';
-
-    if (options?.language) {
-      language = options.language.toLowerCase();
-    }
-
-    // Try multiple paths to find the prompt template
-    const possiblePaths = [
-      // First try the language-specific directory (for local development)
-      path.resolve('prompts', language, `${reviewType}-review.md`),
-      // Then try the language-specific directory relative to the current file (for npm package)
-      path.resolve(
-        __dirname,
-        '..',
-        '..',
-        'prompts',
-        language,
-        `${reviewType}-review.md`
-      ),
-      // Then try the language-specific directory relative to the package root (for global installation)
-      path.resolve(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'prompts',
-        language,
-        `${reviewType}-review.md`
-      ),
-      // Fallback to the root prompts directory (for local development)
-      path.resolve('prompts', `${reviewType}-review.md`),
-      // Fallback to the root prompts directory relative to the current file (for npm package)
-      path.resolve(__dirname, '..', '..', 'prompts', `${reviewType}-review.md`),
-      // Fallback to the root prompts directory relative to the package root (for global installation)
-      path.resolve(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'prompts',
-        `${reviewType}-review.md`
-      )
-    ];
-
-    let lastError: any;
-    let promptTemplate = '';
-
-    // Try each path in order
-    for (const promptPath of possiblePaths) {
-      try {
-        promptTemplate = await fs.readFile(promptPath, 'utf-8');
-        logger.debug(`Loaded prompt template from ${promptPath}`);
-        break; // Exit the loop if we successfully read the file
-      } catch (error) {
-        lastError = error;
-        // Continue to the next path
-      }
-    }
-
-    // If we couldn't read any file, throw an error
-    if (!promptTemplate) {
-      logger.error(
-        `Error loading prompt template for ${reviewType} (language: ${language}):`,
-        lastError
-      );
-      logger.error('Tried the following paths:');
-      possiblePaths.forEach(p => logger.error(`- ${p}`));
-      throw new Error(
-        `Failed to load prompt template for ${reviewType} (language: ${language})`
-      );
-    }
-
-    // Process the template
-    return await this.processPromptTemplate(promptTemplate, options);
+    throw new Error(
+      `The loadPromptTemplateFromFileSystem method has been removed. We now use bundled prompts as the PRIMARY AND ONLY SOURCE for prompts. All prompts are defined in the bundledPrompts.ts file and accessed through the getBundledPrompt function.`
+    );
   }
 
   /**

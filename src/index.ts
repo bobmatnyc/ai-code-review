@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 /**
  * @fileoverview Main entry point for the AI Code Review CLI tool.
@@ -74,7 +73,7 @@ let toolDirectory = '';
 for (const dir of possibleToolDirectories) {
   const envPath = path.resolve(dir, '.env.local');
   debugLog(`Checking for tool .env.local in: ${envPath}`);
-  
+
   try {
     if (fs.existsSync(envPath)) {
       toolEnvPath = envPath;
@@ -116,7 +115,7 @@ if (toolEnvPath) {
   // If not found in any tool directory, fall back to current working directory
   console.log('No .env.local found in tool directory. Looking in current directory...');
   const envLocalPath = path.resolve(process.cwd(), '.env.local');
-  
+
   try {
     const cwdEnvExists = fs.existsSync(envLocalPath);
     if (cwdEnvExists) {
@@ -158,14 +157,14 @@ import { listModelConfigs } from './clients/utils/modelLister';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '2.1.3';
+const VERSION = '2.1.5';
 
 // Main function to run the application
 async function main() {
   try {
     // Always display version at startup
     logger.info(`AI Code Review Tool v${VERSION}`);
-    
+
     // Parse command-line arguments
     const args = await getCommandLineArguments();
 
@@ -189,19 +188,19 @@ async function main() {
       console.log("\n=== API Key Required ===");
       console.log("No API keys were found in environment variables or command-line arguments.");
       console.log("\nTo provide an API key, you can:");
-      
+
       console.log("\n1. Create a .env.local file with one of these entries:");
       console.log("   - AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here");
       console.log("   - AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here");
       console.log("   - AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here");
       console.log("   - AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here");
-      
+
       console.log("\n2. Or specify an API key via command-line flag:");
       console.log("   - --google-api-key=your_google_api_key_here");
       console.log("   - --openrouter-api-key=your_openrouter_api_key_here");
       console.log("   - --anthropic-api-key=your_anthropic_api_key_here");
       console.log("   - --openai-api-key=your_openai_api_key_here");
-      
+
       console.log("\n3. Or set an environment variable in your shell:");
       console.log("   export AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here\n");
       process.exit(1);
@@ -265,10 +264,14 @@ async function main() {
       });
     }
 
-    // Load prompt templates
+    // Initialize the prompt manager
     const promptManager = PromptManager.getInstance();
 
-    // First try to load templates from the current directory
+    // Log that we're using bundled prompts
+    logger.info("Using bundled prompts as the primary source for templates");
+
+    // Optionally load custom templates from the current directory
+    // These are only used as fallbacks if bundled prompts are not available
     const localTemplatesDir = path.resolve(
       process.cwd(),
       'prompts',
@@ -276,14 +279,10 @@ async function main() {
     );
     await promptManager.loadTemplates(localTemplatesDir);
 
-    // Then try to load templates from the package directory
-    const packageTemplatesDir = path.resolve(__dirname, 'prompts', 'templates');
-    await promptManager.loadTemplates(packageTemplatesDir);
-
-    // Log the loaded templates
+    // Log the loaded custom templates
     const templates = promptManager.listTemplates();
     if (templates.length > 0) {
-      logger.info(`Loaded ${templates.length} prompt templates:`);
+      logger.info(`Loaded ${templates.length} custom prompt templates:`);
       templates.forEach(template => {
         logger.info(
           `- ${template.name}: ${template.description} (${template.reviewType})`
