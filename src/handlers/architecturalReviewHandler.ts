@@ -147,16 +147,15 @@ export async function handleArchitecturalReview(
       logger.info(`Using Anthropic API with model: ${modelName}`);
 
       // Dynamically import the Anthropic client to avoid loading it unnecessarily
-      const { generateAnthropicConsolidatedReview, initializeAnthropicClient } =
-        await import('../clients/anthropicClient.js');
+      const { generateArchitecturalAnthropicReview, initializeAnthropicClient } =
+        await import('../clients/anthropicClientWrapper.js');
 
       // Initialize Anthropic model if needed
       await initializeAnthropicClient();
 
-      review = await generateAnthropicConsolidatedReview(
+      review = await generateArchitecturalAnthropicReview(
         fileInfos,
         project,
-        'architectural' as ReviewType,
         projectDocs,
         options
       );
