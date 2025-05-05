@@ -19,8 +19,8 @@ esbuild.build({
   target: ['node18'],
   outfile: 'dist/index.js',
   sourcemap: true,
-  // Do not add a shebang line here, it will be added by the prepare-package.sh script
-  // banner: { js: '#!/usr/bin/env node' },
+  // Add shebang directly in the build process to ensure it's present in the published package
+  banner: { js: '#!/usr/bin/env node' },
   external,
 }).catch((error) => {
   console.error(error);

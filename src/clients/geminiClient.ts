@@ -460,41 +460,45 @@ async function generateGeminiResponse(
     const model = genAI.getGenerativeModel(modelOptions);
 
     // Generate content
-    // Add a prefix to the prompt to instruct the model not to repeat the instructions and to provide structured output
-    const structuredOutputInstructions = `
+    // Add a prefix to the prompt to instruct the model not to repeat the instructions
+    // and to provide output in Markdown format rather than JSON to match other models
+    const outputInstructions = `
 You are a helpful AI assistant that provides code reviews. Focus on providing actionable feedback. Do not repeat the instructions in your response.
 
-IMPORTANT: Your response MUST be in the following JSON format:
+IMPORTANT: Format your response as a well-structured Markdown document with the following sections:
 
-{
-  "summary": "A brief summary of the code review",
-  "issues": [
-    {
-      "title": "Issue title",
-      "priority": "high|medium|low",
-      "type": "bug|security|performance|maintainability|readability|architecture|best-practice|documentation|testing|other",
-      "filePath": "Path to the file",
-      "lineNumbers": "Line number or range (e.g., 10 or 10-15)",
-      "description": "Detailed description of the issue",
-      "codeSnippet": "Relevant code snippet",
-      "suggestedFix": "Suggested code fix",
-      "impact": "Impact of the issue"
-    }
-  ],
-  "recommendations": [
-    "General recommendation 1",
-    "General recommendation 2"
-  ],
-  "positiveAspects": [
-    "Positive aspect 1",
-    "Positive aspect 2"
-  ]
-}
+# Code Review
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.
+## Summary
+A brief summary of the code review.
+
+## Issues
+
+### High Priority
+For each high priority issue:
+- Issue title
+- File path and line numbers
+- Description of the issue
+- Code snippet (if relevant)
+- Suggested fix
+- Impact of the issue
+
+### Medium Priority
+(Same format as high priority)
+
+### Low Priority
+(Same format as high priority)
+
+## General Recommendations
+- List of general recommendations
+
+## Positive Aspects
+- List of positive aspects of the code
+
+Ensure your response is well-formatted Markdown with proper headings, bullet points, and code blocks.
 `;
 
-    const modifiedPrompt = structuredOutputInstructions + '\n\n' + prompt;
+    const modifiedPrompt = outputInstructions + '\n\n' + prompt;
 
     const result = await withRetry(() =>
       model.generateContent({
