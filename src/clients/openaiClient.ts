@@ -11,6 +11,7 @@
  * - Robust error handling and rate limit management
  * - Cost estimation for API usage
  * - Support for different review types
+ * - Tool calling capabilities for enhanced reviews
  */
 
 import {
@@ -35,6 +36,11 @@ import { getCostInfoFromText } from './utils/tokenCounter';
 import { loadPromptTemplate } from './utils/promptLoader';
 import { ApiError } from '../utils/apiErrorHandler';
 import { getLanguageFromExtension } from './utils/languageDetection';
+import { supportsToolCalling as supportsToolCallingFn, getModelMapping } from './utils/modelMaps';
+import { ALL_TOOLS } from './utils/toolCalling';
+import { openAIToolCallingHandler } from './utils/openAIToolCallingHandler';
+import { executeToolCall } from './utils/toolExecutor';
+import { extractPackageInfo } from '../utils/dependencies/packageAnalyzer';
 
 const MAX_TOKENS_PER_REQUEST = 4000;
 
@@ -502,12 +508,307 @@ export async function generateOpenAIArchitecturalReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
-  // Architectural reviews are just consolidated reviews with the architectural review type
-  return generateOpenAIConsolidatedReview(
-    files,
-    projectName,
-    'architectural',
-    projectDocs,
-    options
-  );
+  const { isCorrect, adapter, modelName } = isOpenAIModel();
+
+  // With the improved client selection logic, this function should only be called
+  // with OpenAI models. If not, something went wrong with the client selection.
+  if (!isCorrect) {
+    throw new Error(
+      `OpenAI client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
+      `This is likely a bug in the client selection logic.`
+    );
+  }
+
+  try {
+    // Initialize the model if we haven't already
+    if (!modelInitialized) {
+      await initializeAnyOpenAIModel();
+    }
+
+    // Dependencies are now imported at the top of the file
+
+    // Get API key from environment variables
+    const apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
+
+    let content: string;
+    let cost: ReviewCost | undefined;
+
+    // Load the appropriate prompt template
+    const promptTemplate = await loadPromptTemplate('architectural', options);
+
+    // Format the prompt
+    const prompt = formatConsolidatedReviewPrompt(
+      promptTemplate,
+      projectName,
+      files.map(file => ({
+        relativePath: file.relativePath || '',
+        content: file.content,
+        sizeInBytes: file.content.length
+      })),
+      projectDocs
+    );
+
+    // Check if this model supports tool calling and we're doing an architectural review
+    const supportsToolCalling = getModelMapping(`openai:${modelName}`)?.supportsToolCalling || false;
+    const serpApiConfigured = !!process.env.SERPAPI_KEY;
+
+    try {
+      logger.info(`Generating architectural review with OpenAI ${modelName}...`);
+
+      let response;
+      
+      // Check if we should use tool calling
+      if (supportsToolCalling && serpApiConfigured && options?.type === 'architectural') {
+        // Always extract package information for architectural reviews to analyze dependencies
+        // Even if includeDependencyAnalysis is not explicitly set
+        const packageResults = await extractPackageInfo(process.cwd());
+        
+        // Include package information in the prompt
+        const packageInfo = packageResults.length > 0 
+          ? `\n\n## Dependencies\nThe project uses the following dependencies:\n\n${
+              packageResults.map(result => {
+                let pkgInfo = '';
+                if (result.npm && result.npm.length > 0) {
+                  pkgInfo += `### NPM (JavaScript/TypeScript) Dependencies\n`;
+                  result.npm.forEach(pkg => {
+                    pkgInfo += `- ${pkg.name}${pkg.version ? ` (${pkg.version})` : ''}${pkg.devDependency ? ' (dev)' : ''}\n`;
+                  });
+                }
+                if (result.composer && result.composer.length > 0) {
+                  pkgInfo += `### Composer (PHP) Dependencies\n`;
+                  result.composer.forEach(pkg => {
+                    pkgInfo += `- ${pkg.name}${pkg.constraint ? ` (${pkg.constraint})` : ''}${pkg.devDependency ? ' (dev)' : ''}\n`;
+                  });
+                }
+                if (result.python && result.python.length > 0) {
+                  pkgInfo += `### Python Dependencies\n`;
+                  result.python.forEach(pkg => {
+                    pkgInfo += `- ${pkg.name}${pkg.constraint ? ` (${pkg.constraint})` : ''}${pkg.version ? ` (${pkg.version})` : ''}\n`;
+                  });
+                }
+                if (result.ruby && result.ruby.length > 0) {
+                  pkgInfo += `### Ruby Dependencies\n`;
+                  result.ruby.forEach(pkg => {
+                    pkgInfo += `- ${pkg.name}${pkg.version ? ` (${pkg.version})` : ''}\n`;
+                  });
+                }
+                return pkgInfo;
+              }).join('\n')
+            }`
+          : '';
+        
+        // Prepare the prompt with package information
+        const promptWithPackages = prompt + packageInfo;
+        
+        // Prepare the tools
+        const tools = openAIToolCallingHandler.prepareTools(ALL_TOOLS);
+          
+        // Make the initial request with tools
+        response = await fetchWithRetry(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [
+                {
+                  role: 'system',
+                  content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations. 
+                  
+ESSENTIAL TASK: For ALL major dependencies in the project, you MUST use the available tools to thoroughly check for:
+1. Security vulnerabilities and CVEs
+2. Version updates and recommendations 
+3. Compatibility issues and breaking changes
+4. Deprecation warnings
+5. Maintenance status
+
+Always include a dedicated "Dependency Security Analysis" section in your review that summarizes the findings from your dependency security checks. This is a critical part of the architectural review.`
+                },
+                {
+                  role: 'user',
+                  content: promptWithPackages
+                }
+              ],
+              tools,
+              tool_choice: 'auto',
+              temperature: 0.2,
+              max_tokens: MAX_TOKENS_PER_REQUEST
+            })
+          }
+        );
+
+        const data = await response.json();
+        
+        // Check if there are tool calls
+        const { toolCalls, responseMessage } = openAIToolCallingHandler.processToolCallsFromResponse(data);
+        
+        if (toolCalls.length > 0) {
+          logger.info(`Found ${toolCalls.length} tool calls in the response`);
+          
+          // Execute the tool calls
+          const toolResults = [];
+          for (const toolCall of toolCalls) {
+            const result = await executeToolCall(toolCall.name, toolCall.arguments);
+            toolResults.push({
+              toolName: toolCall.name,
+              result
+            });
+          }
+          
+          // Create the conversation with tool results
+          const conversation = [
+            {
+              role: 'system',
+              content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations.
+              
+ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in your review that summarizes the findings from the dependency security checks. This is a critical part of the architectural review.`
+            },
+            {
+              role: 'user',
+              content: promptWithPackages
+            },
+            {
+              role: 'assistant',
+              content: responseMessage || null,
+              tool_calls: data.choices[0].message.tool_calls
+            }
+          ];
+          
+          // Add the tool results
+          const conversationWithResults = openAIToolCallingHandler.createToolResultsRequest(
+            conversation,
+            toolResults
+          );
+          
+          // Make the final request
+          const finalResponse = await fetchWithRetry(
+            'https://api.openai.com/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`
+              },
+              body: JSON.stringify({
+                model: modelName,
+                messages: conversationWithResults,
+                temperature: 0.2,
+                max_tokens: MAX_TOKENS_PER_REQUEST
+              })
+            }
+          );
+          
+          const finalData = await finalResponse.json();
+          if (!Array.isArray(finalData.choices) || !finalData.choices[0]?.message?.content) {
+            throw new Error(`Invalid response format from OpenAI ${modelName}`);
+          }
+          
+          content = finalData.choices[0].message.content;
+        } else {
+          // If no tool calls, use the original response
+          if (!Array.isArray(data.choices) || !data.choices[0]?.message?.content) {
+            throw new Error(`Invalid response format from OpenAI ${modelName}`);
+          }
+          content = data.choices[0].message.content;
+        }
+      } else {
+        // Regular non-tool calling flow
+        response = await fetchWithRetry(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [
+                {
+                  role: 'system',
+                  content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations.`
+                },
+                {
+                  role: 'user',
+                  content: prompt
+                }
+              ],
+              temperature: 0.2,
+              max_tokens: MAX_TOKENS_PER_REQUEST
+            })
+          }
+        );
+        
+        const data = await response.json();
+        if (!Array.isArray(data.choices) || !data.choices[0]?.message?.content) {
+          throw new Error(`Invalid response format from OpenAI ${modelName}`);
+        }
+        content = data.choices[0].message.content;
+      }
+      
+      logger.info(`Successfully generated architectural review with OpenAI ${modelName}`);
+
+      // Calculate cost information
+      try {
+        cost = getCostInfoFromText(prompt, content, `openai:${modelName}`);
+      } catch (error) {
+        logger.warn(
+          `Failed to calculate cost information: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    } catch (error) {
+      throw new ApiError(
+        `Failed to generate architectural review with OpenAI ${modelName}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+
+    // Try to parse the response as JSON
+    let structuredData = null;
+    try {
+      // First, check if the response is wrapped in a code block
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      const jsonContent = jsonMatch ? jsonMatch[1] : content;
+
+      // Check if the content is valid JSON
+      structuredData = JSON.parse(jsonContent);
+
+      // Validate that it has the expected structure
+      if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
+        logger.warn(
+          'Response is valid JSON but does not have the expected structure'
+        );
+      }
+    } catch (parseError) {
+      logger.warn(
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+      );
+      // Keep the original response as content
+    }
+
+    // Return the review result
+    return {
+      content,
+      cost,
+      modelUsed: `openai:${modelName}`,
+      filePath: 'architectural',
+      reviewType: 'architectural',
+      timestamp: new Date().toISOString(),
+      structuredData
+    };
+  } catch (error) {
+    logger.error(
+      `Error generating architectural review: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    throw error;
+  }
 }
