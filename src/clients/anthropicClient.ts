@@ -738,7 +738,8 @@ export async function generateArchitecturalAnthropicReview(
     if (supportsToolCalling && serpApiConfigured && options?.type === 'architectural') {
       logger.info(`Generating architectural review with tool calling using Anthropic ${modelName}...`);
 
-      // Extract package information from the project
+      // Always extract package information for architectural reviews to analyze dependencies
+      // Even if includeDependencyAnalysis is not explicitly set
       const packageResults = await extractPackageInfo(process.cwd());
       
       // Load the prompt template for architectural review
@@ -816,7 +817,14 @@ You have access to the following tools to help with your review:
 - search_dependency_security: Use this to search for security information about a dependency
 - batch_search_dependency_security: Use this to search for security information about multiple dependencies (up to 5)
 
-For critical dependencies in the project, you should use these tools to check for security vulnerabilities and version recommendations.`;
+ESSENTIAL TASK: For ALL major dependencies in the project, you MUST use these tools to thoroughly check for:
+1. Security vulnerabilities and CVEs
+2. Version updates and recommendations
+3. Compatibility issues and breaking changes
+4. Deprecation warnings
+5. Maintenance status
+
+Always include a dedicated "Dependency Security Analysis" section in your review that summarizes the findings from your dependency security checks. This is a critical part of the architectural review.`;
 
       try {
         // Prepare the tools with the handler
