@@ -128,8 +128,4 @@
     "description": "GPT-4 Turbo model served via OpenRouter",
     "apiKeyEnvVar": "AI_CODE_REVIEW_OPENROUTER_API_KEY"
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> develop
