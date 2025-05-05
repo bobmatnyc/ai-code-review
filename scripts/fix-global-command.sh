@@ -33,6 +33,23 @@ if [ -z "$GLOBAL_PATH" ]; then
 else
   echo "✅ Global command successfully installed at: $GLOBAL_PATH"
   
+  # Check the first line to ensure it has a proper shebang
+  FIRST_LINE=$(head -n 1 "$GLOBAL_PATH")
+  if [[ "$FIRST_LINE" != "#!/usr/bin/env node" ]]; then
+    echo "⚠️  Missing or incorrect shebang line. Fixing now..."
+    # Create a temporary file with the proper shebang line
+    echo '#!/usr/bin/env node' > /tmp/ai-code-review-fixed
+    # Append the rest of the file
+    tail -n +1 "$GLOBAL_PATH" >> /tmp/ai-code-review-fixed
+    # Replace the original file with the fixed version
+    sudo mv /tmp/ai-code-review-fixed "$GLOBAL_PATH"
+    # Make sure it's executable
+    sudo chmod +x "$GLOBAL_PATH"
+    echo "✅ Fixed shebang line in $GLOBAL_PATH"
+  else
+    echo "✅ Shebang line is correctly set."
+  fi
+  
   # Check if it's using the correct version
   VERSION=$(ai-code-review --show-version | tail -n 1)
   echo "📦 Version: $VERSION"
