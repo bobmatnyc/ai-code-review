@@ -21,6 +21,7 @@ import {
   ReviewCost,
   ReviewOptions
 } from '../types/review';
+import { getConfig } from '../utils/config';
 import { ProjectDocs, addProjectDocsToPrompt } from '../utils/projectDocs';
 import logger from '../utils/logger';
 import {
@@ -46,8 +47,8 @@ function isOpenRouterModel(): {
   adapter: string;
   modelName: string;
 } {
-  // Get the model from environment variables
-  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
+  // Get the model from configuration (CLI override or env)
+  const selectedModel = getConfig().selectedModel || '';
 
   // Parse the model name
   const [adapter, modelName] = selectedModel.includes(':')
@@ -119,16 +120,6 @@ export async function generateOpenRouterReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
-  const { isCorrect, adapter, modelName } = isOpenRouterModel();
-
-  // With the improved client selection logic, this function should only be called
-  // with OpenRouter models. If not, something went wrong with the client selection.
-  if (!isCorrect) {
-    throw new Error(
-      `OpenRouter client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-        `This is likely a bug in the client selection logic.`
-    );
-  }
 
   try {
     // Initialize the model if we haven't already
@@ -157,6 +148,8 @@ export async function generateOpenRouterReview(
       filePath,
       projectDocs
     );
+    // Retrieve the configured OpenRouter model name
+    const { modelName } = isOpenRouterModel();
 
     try {
       console.log(`Generating review with OpenRouter ${modelName}...`);
@@ -311,16 +304,6 @@ export async function generateOpenRouterConsolidatedReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
-  const { isCorrect, adapter, modelName } = isOpenRouterModel();
-
-  // With the improved client selection logic, this function should only be called
-  // with OpenRouter models. If not, something went wrong with the client selection.
-  if (!isCorrect) {
-    throw new Error(
-      `OpenRouter client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-        `This is likely a bug in the client selection logic.`
-    );
-  }
 
   try {
     // Initialize the model if we haven't already
@@ -350,6 +333,8 @@ export async function generateOpenRouterConsolidatedReview(
       })),
       projectDocs
     );
+    // Retrieve the configured OpenRouter model name
+    const { modelName } = isOpenRouterModel();
 
     try {
       console.log(

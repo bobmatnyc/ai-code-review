@@ -36,7 +36,7 @@ import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
 import { loadPromptTemplate } from './utils/promptLoader';
 import { getLanguageFromExtension } from './utils/languageDetection';
 import { generateDirectoryStructure } from './utils';
-import { getModelMapping } from './utils/modelMaps';
+// Model mapping has been removed; using raw model name as API name
 import {
   formatSingleFileReviewPrompt,
   formatConsolidatedReviewPrompt
@@ -157,29 +157,14 @@ function initializeGeminiClient(): void {
       'No Gemini model specified. Set AI_CODE_REVIEW_MODEL=gemini:<model_name>.'
     );
   }
-  const modelToUse = modelName;
-  logger.info(`Initializing Gemini model: ${modelToUse}...`);
-
-  // Get the model mapping from the model map
-  const modelKey = `gemini:${modelToUse}`;
-  const modelMapping = getModelMapping(modelKey);
-
-  if (!modelMapping) {
-    throw new Error(
-      `Model ${modelToUse} not found in model map. Please check the model name.`
-    );
-  }
-
+  // Use the specified model name directly as the API model name
+  const apiName = modelName;
+  logger.info(`Initializing Gemini model: ${apiName}...`);
   // Set the selected model
   selectedGeminiModel = {
-    name: modelMapping.apiName,
-    displayName: modelMapping.displayName,
-    useV1Beta: modelMapping.useV1Beta
+    name: apiName,
+    displayName: apiName
   };
-
-  logger.info(
-    `Successfully initialized Gemini model: ${modelToUse} (API name: ${selectedGeminiModel.name})`
-  );
 }
 
 /**

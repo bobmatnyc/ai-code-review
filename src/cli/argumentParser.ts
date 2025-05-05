@@ -36,6 +36,12 @@ export interface CliOptions extends ReviewOptions {
     anthropic?: string;
     openai?: string;
   };
+  githubSync?: {
+    direction?: 'to-github' | 'from-github';
+    projectPath?: string;
+    projectId?: string;
+    projectNumber?: number;
+  };
 }
 import logger from '../utils/logger';
 
@@ -259,21 +265,21 @@ export async function parseArguments(): Promise<CliOptions> {
       try {
         const targetPath = path.resolve(process.cwd(), argv.target || '.');
         logger.debug(`Auto-detecting project language for: ${targetPath}`);
-        
+
         const detection = await detectProjectType(targetPath);
         if (detection) {
-          const confidenceEmoji = 
-            detection.confidence === 'high' ? '✅' : 
+          const confidenceEmoji =
+            detection.confidence === 'high' ? '✅' :
             detection.confidence === 'medium' ? '🔍' : '🔎';
-            
+
           logger.debug(
-            `Detected project language: ${detection.language} (${detection.confidence} confidence)` + 
+            `Detected project language: ${detection.language} (${detection.confidence} confidence)` +
             (detection.projectType ? ` - Project type: ${detection.projectType}` : '')
           );
-          
+
           // Set the detected language in the arguments
           argv.language = detection.language;
-          
+
           // Show info message for medium/high confidence detections
           if (detection.confidence !== 'low') {
             logger.info(
@@ -298,7 +304,7 @@ export async function parseArguments(): Promise<CliOptions> {
         argv.language = 'typescript';
       }
     }
-    
+
     return argv as CliOptions;
   } catch (error) {
     logger.error(

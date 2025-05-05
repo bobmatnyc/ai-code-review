@@ -14,7 +14,6 @@
  */
 
 import { getCostInfoFromText } from './utils/tokenCounter';
-import { getApiNameFromKey } from './utils/modelMaps';
 import {
   ReviewType,
   ReviewOptions,
@@ -29,7 +28,11 @@ import {
   logApiError
 } from '../utils/apiErrorHandler';
 import logger from '../utils/logger';
+// Import model mapping module for potential future use (not required for basic operation)
+const _modelMapsModule = require('./utils/modelMaps');
+const modelMaps = _modelMapsModule.default || _modelMapsModule;
 import { ProjectDocs } from '../utils/projectDocs';
+import { getConfig } from '../utils/config';
 import {
   validateAnthropicApiKey,
   isDebugMode,
@@ -49,11 +52,15 @@ interface AnthropicResponse {
  * @param modelName The model name
  * @returns The API model name
  */
+/**
+ * Resolve the API model name for Anthropic from the model mapping
+ * @param modelName The model name (without provider prefix)
+ * @returns The API model name or the original name if not found
+ */
 async function getApiModelName(modelName: string): Promise<string> {
-  // Use the imported getApiNameFromKey function
-  const apiModelName = getApiNameFromKey(`anthropic:${modelName}`) || modelName;
-  console.log(`[DEBUG] API model name: ${apiModelName}`);
-  return apiModelName;
+  // Use the specified model name directly
+  console.log(`[DEBUG] API model name: ${modelName}`);
+  return modelName;
 }
 
 async function fetchWithRetry(
@@ -104,8 +111,8 @@ function isAnthropicModel(): {
   adapter: string;
   modelName: string;
 } {
-  // Get the model from environment variables
-  const selectedModel = process.env.AI_CODE_REVIEW_MODEL || '';
+  // Get the model from configuration (CLI override or env)
+  const selectedModel = getConfig().selectedModel || '';
 
   console.log(
     `[DEBUG] isAnthropicModel called with AI_CODE_REVIEW_MODEL=${selectedModel}`
@@ -194,11 +201,8 @@ export async function initializeAnthropicClient(): Promise<boolean> {
       `[DEBUG] API key: ${apiKey ? apiKey.substring(0, 10) + '...' : 'not set'}`
     );
 
-    // Get the API name from the model map
-    // Use the imported getApiNameFromKey function
-    const fullModelKey = `anthropic:${modelName}`;
-    const apiModelName = getApiNameFromKey(fullModelKey);
-    console.log(`[DEBUG] Full model key: ${fullModelKey}`);
+    // Use the specified model name directly for initialization
+    const apiModelName = modelName;
     console.log(`[DEBUG] API model name: ${apiModelName}`);
 
     // Prepare the request body

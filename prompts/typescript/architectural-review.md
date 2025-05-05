@@ -45,6 +45,7 @@ Act as a **senior software architect with expertise in modern TypeScript applica
 - Are types properly managed (either bundled or from @types/*)?
 - Are dependencies properly versioned and maintained?
 - Is there a clear strategy for managing package versions?
+- Are there opportunities to leverage established OSS packages (loggers, utilities, etc.) to enhance the codebase or replace custom-built features?
 
 #### 🧩 Component Architecture
 - Are components properly typed with appropriate props/state interfaces?

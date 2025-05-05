@@ -54,6 +54,7 @@ Act as a **senior PHP architect with expertise in modern PHP application develop
 - Are there any unnecessary or redundant dependencies?
 - Is there a clear strategy for managing package versions?
 - Are dev dependencies properly separated from production ones?
+- Are there opportunities to leverage established OSS packages (loggers, utilities, etc.) to enhance the codebase or replace custom-built features?
 
 #### 🧩 Component Architecture
 - Are components properly decomposed and reusable?

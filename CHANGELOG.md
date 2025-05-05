@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.8] - 2025-05-05
+
+### Fixed
+- Fixed issue #10: Implement prompt bundling to ensure all prompts are properly included in the package
+- Enhanced INSTRUCTIONS.md with better formatting, table of contents, and AI assistant guidelines
+- Added wrapper scripts to fix shebang line issues in CLI installations
+- Improved error handling for missing prompts with clearer diagnostics
+- Added robust testing for bundled prompt templates
+
 ## [2.1.7] - 2025-05-02
 
 ### Fixed
@@ -21,6 +30,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added bundled templates to ensure they're available in the package
 - Enhanced error handling for missing templates with better fallback mechanisms
 - Updated documentation with clearer instructions for template customization
+
+## [2.1.5] - 2025-04-29
+
+### Added
+- Enhanced architectural review prompts to evaluate opportunities for leveraging established OSS packages
+- Added specific checks in architectural reviews to identify where existing libraries could replace custom implementations
+- Updated prompts for all supported languages (TypeScript, Python, PHP, Ruby)
+
+### Changed
+- Updated PROJECT.md with new architectural review capabilities
 
 ## [2.1.4] - 2025-04-24
 

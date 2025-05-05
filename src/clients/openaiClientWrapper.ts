@@ -47,3 +47,28 @@ export async function generateOpenAIConsolidatedReview(
     options
   );
 }
+
+/**
+ * Generate a single-file review using the OpenAI API
+ * @param fileContent Content of the file to review
+ * @param filePath Path to the file
+ * @param reviewType Type of review to perform
+ * @param projectDocs Optional project documentation
+ * @param options Review options
+ * @returns Promise resolving to the review result
+ */
+export async function generateOpenAIReview(
+  fileContent: string,
+  filePath: string,
+  reviewType: ReviewType,
+  projectDocs?: ProjectDocs | null,
+  options?: ReviewOptions
+): Promise<ReviewResult> {
+  return openaiClient.generateOpenAIReview(
+    fileContent,
+    filePath,
+    reviewType,
+    projectDocs,
+    options
+  );
+}

@@ -34,6 +34,7 @@ As an expert Ruby and Ruby on Rails developer, please conduct a comprehensive ar
 - Check if concerns, modules, and services are appropriately used
 - Review if complex business logic is extracted into service objects
 - Look for violations of separation of concerns
+- Identify opportunities to leverage established OSS packages (loggers, utilities, etc.) to enhance the codebase or replace custom-built features
 
 ### Database Design
 - Review database schema and relationships

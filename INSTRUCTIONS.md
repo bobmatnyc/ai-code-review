@@ -159,7 +159,33 @@ pnpm build
 
 ---
 
-## ⚙️ 7. CI / DevOps
+## 📄 7. Documentation Rules
+
+- Use `README.md` for CLI commands and usage docs.
+- Each package must have:
+  - `PROJECT.md` – architecture decisions
+  - `ROADMAP.md` – upcoming milestones
+  - `PROGRESS.md` – per-session implementation log
+
+### Logging Sessions
+- Begin each session in `PROGRESS.md` with a dated header.
+- Track:
+  - Tasks completed
+  - Blockers
+  - Next steps
+  - Git commits (e.g., `commit: 34dfae4`)
+
+### Rotation Policy
+When `PROGRESS.md` exceeds 1000 lines:
+```bash
+LATEST=$(ls logs/PROGRESS-*.md | sort -V | tail -1 | sed 's/.*PROGRESS-\([0-9]*\).*/\1/' || echo 0)
+NEXT=$((LATEST + 1))
+cp PROGRESS.md logs/PROGRESS-$NEXT.md
+```
+
+---
+
+## ⚙️ 8. CI / DevOps
 
 * Pre-commit hooks must run:
 
@@ -172,7 +198,7 @@ pnpm build
 
 ---
 
-## 📘 8. Documentation
+## 📘 9. Documentation
 
 * Document *intent* as well as behavior.
 * Use JSDoc with full TypeScript annotations.
@@ -181,7 +207,7 @@ pnpm build
 
 ---
 
-## 🔭 9. Code Quality & Workflow
+## 🔭 10. Code Quality & Workflow
 
 ### Development Flow
 
@@ -209,7 +235,7 @@ pnpm build
 
 ---
 
-## 🔁 10. Git Workflow & Version Control
+## 🔁 11. Git Workflow & Version Control
 
 We treat Git as a tool for **narrating engineering decisions**—not just storing code. Use it intentionally to reflect clarity, atomicity, and collaboration.
 
@@ -284,7 +310,7 @@ git push -u origin feature/new-dashboard
 
 ---
 
-## 🧭 11. GitHub Issue Tracking
+## 🧭 12. GitHub Issue Tracking
 
 We use **GitHub Issues** for all tracked work—features, bugs, ideas, spikes.  
 Submit via GitHub Issues REST API with `GITHUB_TOKEN`. No automation scripts.
@@ -368,7 +394,7 @@ Clear Issues create speed later.
 
 ---
 
-## 🤖 12. AI Assistant Guidelines
+## 🤖 13. AI Assistant Guidelines
 
 This section contains guidelines specifically optimized for AI coding assistants.
 

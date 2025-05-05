@@ -154,6 +154,7 @@ import { initI18n, t } from './utils/i18n';
 import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
 import { listModelConfigs } from './clients/utils/modelLister';
+import { handleSyncGitHubProjectsCommand } from './commands/syncGithubProjects';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
@@ -336,6 +337,12 @@ async function main() {
       modelTestArgs[0] === 'test-build'
     ) {
       program.parse(process.argv);
+      return;
+    }
+
+    // Handle GitHub Projects sync command
+    if (modelTestArgs[0] === 'sync-github-projects') {
+      await handleSyncGitHubProjectsCommand();
       return;
     }
 

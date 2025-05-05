@@ -118,6 +118,7 @@ This tool analyzes code from specified files or directories in sibling projects 
 - **Model Listing**: List all available models with the `--listmodels` flag
 - **Token and Cost Estimation**: Estimate token usage and cost with the `--estimate` flag
 - **Customizable**: Configure review types, output formats, and prompt templates
+- **GitHub Projects Integration**: Sync PROJECT.md content with GitHub Projects for better project management
 - **Memory Optimized**: Process large codebases efficiently with optimized memory usage
 - **Error Recovery**: Robust error handling with graceful recovery
 
@@ -499,6 +500,42 @@ ai-code-review src/utils --type unused-code --prompt-strategy langchain
 ai-code-review src/components --type quick-fixes --prompt-strategy langchain
 ```
 
+### GitHub Projects Integration
+
+You can integrate your PROJECT.md file with GitHub Projects to better manage your project documentation and tasks. This allows you to maintain your project documentation in both Markdown format and in GitHub's project management interface.
+
+```bash
+# Update GitHub Project readme with PROJECT.md content
+ai-code-review sync-github-projects --description-only
+
+# Create GitHub Project items from PROJECT.md sections
+ai-code-review sync-github-projects
+
+# Sync GitHub Projects to PROJECT.md
+ai-code-review sync-github-projects --direction from-github
+
+# Specify project path
+ai-code-review sync-github-projects --project-path /path/to/project
+```
+
+To use this feature, add the following to your `.env.local` file:
+
+```
+# GitHub API token for accessing GitHub Projects
+GITHUB_TOKEN=your_github_token_here
+
+# GitHub Project number (e.g., 1)
+GITHUB_PROJECT_NUMBER=1
+
+# GitHub owner (default: 'bobmatnyc')
+GITHUB_OWNER=your_github_username
+```
+
+The recommended workflow is to:
+1. First update the GitHub Project readme with your PROJECT.md content using the `--description-only` flag
+2. Then use GitHub Projects to create and manage issues and tasks for ongoing work
+3. Optionally sync back to PROJECT.md if you want to keep a local copy
+
 ### Environment Variables
 
 Create a `.env.local` file in the AI Code Review tool directory with your API keys:
@@ -552,7 +589,7 @@ Alternatively, you can manually place your `.env.local` file in one of these loc
    ```
    /path/to/global/node_modules/@bobmatnyc/ai-code-review/.env.local
    ```
-   
+
 2. If you installed via Homebrew:
    ```
    /opt/homebrew/lib/node_modules/@bobmatnyc/ai-code-review/.env.local

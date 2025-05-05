@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "bin": "./dist/index.js",
   "scripts": {
+    "prebuild": "rm -rf dist",
     "build": "pnpm run test && pnpm run build:types && node scripts/build.js",
     "build:types": "tsc --emitDeclarationOnly",
     "postbuild": "./scripts/link-global.sh",
@@ -14,6 +15,7 @@
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "pnpm run validate:prompts && jest --no-cache",
+    "test:e2e": "node scripts/e2e-test.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --collectCoverageFrom='src/**/*.ts'",
     "test:model": "ts-node src/index.ts model-test",

@@ -2,6 +2,16 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [2.1.5] - 2025-04-29
+
+### Added
+- Enhanced architectural review prompts to evaluate opportunities for leveraging established OSS packages
+- Added specific checks in architectural reviews to identify where existing libraries could replace custom implementations
+- Updated prompts for all supported languages (TypeScript, Python, PHP, Ruby)
+
+### Changed
+- Updated PROJECT.md with new architectural review capabilities
+
 ## [2.0.0] - 2024-04-15
 
 ### Added

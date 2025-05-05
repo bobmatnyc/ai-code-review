@@ -41,11 +41,18 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
   const apiKeyType = getApiKeyType();
   logger.debug(`selectApiClient: apiKeyType=${apiKeyType}`);
 
+  // Parse the model string from env var (format: provider:model), default provider = gemini
   const modelEnv = process.env.AI_CODE_REVIEW_MODEL || '';
   logger.debug(`selectApiClient: modelEnv=${modelEnv}`);
-
-  const modelName = modelEnv.includes(':') ? modelEnv.split(':')[1] : '';
-  logger.debug(`selectApiClient: modelName=${modelName}`);
+  let envProvider: string;
+  let envModelName: string;
+  if (modelEnv.includes(':')) {
+    [envProvider, envModelName] = modelEnv.split(':', 2);
+  } else {
+    envProvider = 'gemini';
+    envModelName = modelEnv;
+  }
+  logger.debug(`selectApiClient: envProvider=${envProvider}, envModelName=${envModelName}`);
 
   // Default configuration with no API client
   const config: ApiClientConfig = {
@@ -59,7 +66,7 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
   if (apiKeyType === 'OpenRouter') {
     logger.debug('selectApiClient: Using OpenRouter client');
     // Check if we have a valid model name
-    if (!modelName) {
+    if (!envModelName) {
       logger.error('No OpenRouter model specified in environment variables.');
       logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
       logger.error(
@@ -67,18 +74,20 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
       );
       process.exit(1);
     }
-
-    logger.info(`Using OpenRouter model: ${modelName}`);
-
+    // Build OpenRouter model identifier: if envProvider is openrouter, use raw name; else prefix
+    const openrouterModel =
+      envProvider === 'openrouter'
+        ? envModelName
+        : `${envProvider}/${envModelName}`;
+    logger.info(`Using OpenRouter model: ${openrouterModel}`);
     // Initialize OpenRouter model if needed
     await initializeAnyOpenRouterModel();
-
     config.clientType = 'OpenRouter';
-    config.modelName = modelName;
+    config.modelName = openrouterModel;
     config.initialized = true;
   } else if (apiKeyType === 'Google') {
     // Check if we have a valid model name
-    if (!modelName) {
+    if (!envModelName) {
       logger.error('No Gemini model specified in environment variables.');
       logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
       logger.error('Example: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
@@ -94,14 +103,14 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
       process.exit(1);
     }
 
-    logger.info(`Using Gemini API with model: ${modelName}`);
+    logger.info(`Using Gemini API with model: ${envModelName}`);
 
     config.clientType = 'Google';
-    config.modelName = modelName;
+    config.modelName = envModelName;
     config.initialized = true;
   } else if (apiKeyType === 'Anthropic') {
     // Check if we have a valid model name
-    if (!modelName) {
+    if (!envModelName) {
       logger.error('No Anthropic model specified in environment variables.');
       logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
       logger.error('Example: AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus');
@@ -117,28 +126,28 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
       process.exit(1);
     }
 
-    logger.info(`Using Anthropic API with model: ${modelName}`);
+    logger.info(`Using Anthropic API with model: ${envModelName}`);
 
     // Set the client type and model name without initializing yet
     // The actual initialization will happen when the client is used
     config.clientType = 'Anthropic';
-    config.modelName = modelName;
+    config.modelName = envModelName;
     config.initialized = true;
   } else if (apiKeyType === 'OpenAI') {
     // Check if we have a valid model name
-    if (!modelName) {
+    if (!envModelName) {
       logger.error('No OpenAI model specified in environment variables.');
       logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
       logger.error('Example: AI_CODE_REVIEW_MODEL=openai:gpt-4o');
       process.exit(1);
     }
 
-    logger.info(`Using OpenAI API with model: ${modelName}`);
+    logger.info(`Using OpenAI API with model: ${envModelName}`);
 
     // Set the client type and model name without initializing yet
     // The actual initialization will happen when the client is used
     config.clientType = 'OpenAI';
-    config.modelName = modelName;
+    config.modelName = envModelName;
     config.initialized = true;
   } else {
     // No API keys available

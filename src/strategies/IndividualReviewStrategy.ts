@@ -26,8 +26,10 @@ import { logError } from '../utils/errorLogger';
 import { displayReviewResults } from '../utils/reviewActionHandler';
 import { getPriorityFilterFromArgs } from '../utils/priorityFilter';
 
-// Import only the Gemini client by default
-import { generateReview } from '../clients/geminiClient';
+// Import only the Gemini client by default (fallback)
+import { generateReview as generateGeminiReview } from '../clients/geminiClient';
+// Import the OpenAI wrapper for individual reviews
+import { generateOpenAIReview, initializeAnyOpenAIModel } from '../clients/openaiClientWrapper';
 
 /**
  * Strategy for individual file reviews
@@ -92,7 +94,7 @@ export class IndividualReviewStrategy extends BaseReviewStrategy {
           options
         );
       } else if (apiClientConfig.clientType === 'Google') {
-        review = await generateReview(
+        review = await generateGeminiReview(
           file.content,
           file.path,
           this.reviewType,
@@ -115,14 +117,8 @@ export class IndividualReviewStrategy extends BaseReviewStrategy {
           options
         );
       } else if (apiClientConfig.clientType === 'OpenAI') {
-        // Dynamically import the OpenAI client
-        const { generateOpenAIReview, initializeAnyOpenAIModel } = await import(
-          '../clients/openaiClient.js'
-        );
-
-        // Initialize OpenAI model if needed
+        // Use the OpenAI client wrapper for individual reviews
         await initializeAnyOpenAIModel();
-
         review = await generateOpenAIReview(
           file.content,
           file.path,
@@ -133,7 +129,7 @@ export class IndividualReviewStrategy extends BaseReviewStrategy {
       } else {
         // No API client available, use mock responses
         logger.warn('No API client available. Using mock responses.');
-        review = await generateReview(
+        review = await generateGeminiReview(
           file.content,
           file.path,
           this.reviewType,
