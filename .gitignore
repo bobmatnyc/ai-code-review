@@ -42,4 +42,12 @@ Thumbs.db
 /ai-code-review-docs/
 yarn.lock
 .yarn
+*.tgz
+test-project/
+test-gemini.js
+fix-prompts.js
+fix-prompts.sh
+model-validation-results.json
 
+
+**/.claude/settings.local.json
