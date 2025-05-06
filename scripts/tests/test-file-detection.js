@@ -11,6 +11,10 @@ async function fileExists(filePath) {
   }
 }
 
+// Set project root path for correct file references
+const projectRoot = path.join(__dirname, '../..');
+
+
 async function readFile(filePath) {
   try {
     return await fs.readFile(filePath, 'utf-8');

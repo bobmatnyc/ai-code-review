@@ -60,6 +60,12 @@ export async function reviewCode(
       options.useCache = (options as any)['use-cache'] as boolean;
       delete (options as any)['use-cache'];
     }
+    
+    // Handle include-dependency-analysis option if provided
+    if ((options as any)['include-dependency-analysis'] !== undefined) {
+      options.includeDependencyAnalysis = (options as any)['include-dependency-analysis'] as boolean;
+      delete (options as any)['include-dependency-analysis'];
+    }
 
     // Delegate to the review orchestrator
     await orchestrateReview(target, options);

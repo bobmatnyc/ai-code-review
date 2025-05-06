@@ -131,11 +131,31 @@ export async function getFilesToReview(
   // Use glob to find all files - include code and documentation files
   logger.debug('Running glob in directory:', targetPath);
   
-  // Comprehensive glob pattern to ensure all relevant files are included
-  const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md,py,pyc,pyi,pyx,pyd,php,java,rb,rake,gemspec,ru,erb,go,rs,c,cpp,h,hpp,cs,swift,kt}', {
+  // Comprehensive glob pattern to ensure all relevant executable code files are included
+  // Exclude non-executable files like .md, .txt, .log, .tgz, .json, and .svg
+  const allFiles = await glob('**/*.{ts,tsx,js,jsx,py,pyc,pyi,pyx,pyd,php,java,rb,rake,gemspec,ru,erb,go,rs,c,cpp,h,hpp,cs,swift,kt}', {
     cwd: targetPath,
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.venv/**', '**/env/**', '**/__pycache__/**', '**/vendor/**', '**/tmp/**']
+    ignore: [
+      '**/node_modules/**', 
+      '**/dist/**', 
+      '**/build/**', 
+      '**/.venv/**', 
+      '**/env/**', 
+      '**/__pycache__/**', 
+      '**/vendor/**', 
+      '**/tmp/**',
+      '**/*.md',
+      '**/*.txt',
+      '**/*.log',
+      '**/*.tgz',
+      '**/*.json',
+      '**/*.svg',
+      '**/*.xml',
+      '**/*.yaml',
+      '**/*.yml',
+      '**/*.lock'
+    ]
   });
   
   // Log stats about found files by extension

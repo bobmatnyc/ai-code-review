@@ -206,22 +206,60 @@ function formatAsMarkdown(review: ReviewResult): string {
   // If we have structured data, format it as Markdown
   if (structuredData) {
     try {
-      const structuredReview =
-        typeof structuredData === 'string'
-          ? (JSON.parse(structuredData) as StructuredReview)
-          : (structuredData as StructuredReview);
-
-      return formatStructuredReviewAsMarkdown(
-        structuredReview,
+      let structuredReview: any;
+      
+      if (typeof structuredData === 'string') {
+        try {
+          structuredReview = JSON.parse(structuredData);
+        } catch (parseError) {
+          console.warn('Failed to parse structured data as JSON:', parseError);
+          // If it's not valid JSON, treat it as plain text
+          return formatSimpleMarkdown(
+            content,
+            filePath,
+            reviewType,
+            timestamp,
+            costInfo,
+            modelInfo
+          );
+        }
+      } else {
+        structuredReview = structuredData;
+      }
+      
+      // Validate the parsed data has expected structure
+      if (typeof structuredReview === 'object' && structuredReview !== null) {
+        return formatStructuredReviewAsMarkdown(
+          structuredReview,
+          filePath,
+          reviewType,
+          timestamp,
+          costInfo,
+          modelInfo
+        );
+      } else {
+        console.warn('Structured data is not an object:', typeof structuredReview);
+        // If the data doesn't have the right structure, fall back to plain text
+        return formatSimpleMarkdown(
+          content,
+          filePath,
+          reviewType,
+          timestamp,
+          costInfo,
+          modelInfo
+        );
+      }
+    } catch (error) {
+      console.error('Error processing structured review data:', error);
+      // Fall back to unstructured format
+      return formatSimpleMarkdown(
+        content,
         filePath,
         reviewType,
         timestamp,
         costInfo,
         modelInfo
       );
-    } catch (error) {
-      console.error('Error parsing structured review data:', error);
-      // Fall back to unstructured format
     }
   }
 
@@ -340,15 +378,32 @@ function formatStructuredReviewAsMarkdown(
   modelInfo: string,
   metadataSection?: string
 ): string {
-  const { summary, issues, recommendations, positiveAspects } =
-    structuredReview;
+  // Check if the structuredReview has required properties
+  if (!structuredReview || typeof structuredReview !== 'object') {
+    console.warn('Invalid structured review data, falling back to simple format');
+    return formatSimpleMarkdown(
+      'No structured data available. The review may be in an unsupported format.',
+      filePath,
+      reviewType,
+      timestamp,
+      costInfo,
+      modelInfo,
+      metadataSection
+    );
+  }
+  
+  // Extract properties with fallbacks for missing properties
+  const summary = structuredReview.summary || 'No summary provided';
+  const issues = Array.isArray(structuredReview.issues) ? structuredReview.issues : [];
+  const recommendations = Array.isArray(structuredReview.recommendations) ? structuredReview.recommendations : [];
+  const positiveAspects = Array.isArray(structuredReview.positiveAspects) ? structuredReview.positiveAspects : [];
 
   // Group issues by priority
-  const highPriorityIssues = issues.filter(issue => issue.priority === 'high');
+  const highPriorityIssues = issues.filter(issue => issue && issue.priority === 'high');
   const mediumPriorityIssues = issues.filter(
-    issue => issue.priority === 'medium'
+    issue => issue && issue.priority === 'medium'
   );
-  const lowPriorityIssues = issues.filter(issue => issue.priority === 'low');
+  const lowPriorityIssues = issues.filter(issue => issue && issue.priority === 'low');
 
   // Format issues by priority
   let issuesMarkdown = '';
@@ -431,11 +486,67 @@ ${recommendationsMarkdown}${positiveAspectsMarkdown}---${costInfo}
 }
 
 /**
+ * Format a simple markdown document with just the content
+ * Used as fallback when structured data isn't available
+ * @param content Content to include in the document
+ * @param filePath Path to the reviewed file
+ * @param reviewType Type of review performed
+ * @param timestamp Timestamp of when the review was generated
+ * @param costInfo Cost information formatted as Markdown
+ * @param modelInfo Model information
+ * @param metadataSection Optional metadata section to include
+ * @returns Markdown string
+ */
+function formatSimpleMarkdown(
+  content: string,
+  filePath: string,
+  reviewType: string,
+  timestamp: string,
+  costInfo: string,
+  modelInfo: string,
+  metadataSection?: string
+): string {
+  // Sanitize the content
+  const sanitizedContent = sanitizeContent(content);
+  
+  // Use the actual file path for the review title and the reviewed field
+  let displayPath = filePath;
+  
+  if (filePath === reviewType || filePath === 'consolidated') {
+    // For consolidated reviews, show the full target directory path
+    displayPath = process.cwd() + ' (Current Directory)';
+  }
+  
+  // Include metadata section if available
+  const metadataContent = metadataSection ? `${metadataSection}\n` : '';
+  
+  return `# Code Review: ${displayPath}
+
+> **Review Type**: ${reviewType}
+> **Generated**: ${new Date(timestamp).toLocaleString()}
+> **Reviewed**: ${displayPath}
+
+---
+
+${metadataContent}
+${sanitizedContent}
+
+---${costInfo}
+
+*Generated by Code Review Tool using ${modelInfo}*`;
+}
+
+/**
  * Format a single issue as Markdown
  * @param issue Review issue
  * @returns Markdown string
  */
 function formatIssue(issue: ReviewIssue): string {
+  // Guard against null or undefined issues
+  if (!issue) {
+    return '#### [Error: Issue data missing]';
+  }
+  
   const {
     title,
     type,
@@ -447,7 +558,7 @@ function formatIssue(issue: ReviewIssue): string {
     impact
   } = issue;
 
-  let issueMarkdown = `#### ${title}\n`;
+  let issueMarkdown = `#### ${title || '[Untitled Issue]'}\n`;
 
   if (filePath) {
     issueMarkdown += `- **Location**: \`${filePath}${lineNumbers ? `:${lineNumbers}` : ''}\`\n`;
@@ -457,7 +568,7 @@ function formatIssue(issue: ReviewIssue): string {
     issueMarkdown += `- **Type**: ${type}\n`;
   }
 
-  issueMarkdown += `- **Description**: ${description}\n`;
+  issueMarkdown += `- **Description**: ${description || 'No description provided'}\n`;
 
   if (codeSnippet) {
     issueMarkdown += `- **Code**:\n\`\`\`\n${codeSnippet}\n\`\`\`\n`;

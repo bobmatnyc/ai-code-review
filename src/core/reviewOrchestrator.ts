@@ -194,13 +194,14 @@ export async function orchestrateReview(
     // Get the target name (last part of the path)
     const targetName = path.basename(target || 'unknown');
 
-    // Save the review output
+    // Save the review output with file tree
     const outputPath = await saveReviewOutput(
       review,
       options,
       outputBaseDir,
       apiClientConfig.modelName,
-      targetName
+      targetName,
+      fileInfos
     );
 
     // If interactive mode is enabled, display the review results

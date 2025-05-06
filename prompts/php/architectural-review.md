@@ -1,8 +1,10 @@
 ---
 name: PHP Architectural Code Review
 description: High-level architectural review for PHP projects focusing on code structure, API design, and component organization
-version: 1.0.0
+version: 1.1.0
 reviewType: architectural
+aliases:
+  - arch
 tags:
   - architecture
   - design
@@ -10,7 +12,7 @@ tags:
   - organization
   - php
 language: php
-lastModified: '2025-04-24'
+lastModified: '2025-05-05'
 author: AI Code Review Tool
 ---
 
@@ -81,6 +83,24 @@ Act as a **senior PHP architect with expertise in modern PHP application develop
 - Are there highly coupled modules that should be decoupled?
 - Is the external dependency usage optimal and following PHP best practices?
 
+#### 📊 PHP Ecosystem & Version Compatibility
+- Is the project using an appropriate PHP version for its requirements?
+- Are there compatibility issues between the PHP version and framework/libraries?
+- Would upgrading PHP versions (e.g., to PHP 8.1+, 8.2+) provide meaningful benefits?
+- Are dependencies compatible with each other and the PHP version?
+- For frameworks (Laravel, Symfony, etc.), is the project using an appropriate version?
+- Are there any PHP extensions required that might cause compatibility issues?
+- Is the project leveraging appropriate PHP ecosystem tools (Composer, PHPUnit, etc.)?
+
+#### 🔒 Security & Health Analysis
+- Are there any known security vulnerabilities in the current PHP dependencies?
+- Are there outdated packages with critical security issues?
+- Are there unmaintained or abandoned PHP libraries being used?
+- Is the application following PHP security best practices?
+- Are there any patterns that could lead to security issues (SQL injection, XSS, CSRF, etc.)?
+- Is the project using secure coding practices for sensitive operations?
+- Are proper input validation and sanitization techniques being used?
+
 ---
 
 ### 📤 Output Format
@@ -90,6 +110,19 @@ Provide clear, structured feedback grouped by the checklist categories above. In
 3. **Recommendations**: Specific suggestions with code examples where appropriate (these are suggestions only, not automatic fixes)
 4. **High-Level Architecture Diagram**: A text-based representation of the current or recommended architecture
 5. **Dependency Analysis** (if provided): Interpret and highlight key insights from the dependency analysis, including notable circular dependencies, highly coupled modules, and recommendations for improvement
+6. **PHP Ecosystem Insights**: Provide specific recommendations regarding:
+   - PHP version upgrades (with clear benefits and migration considerations)
+   - Framework version updates where applicable
+   - Dependency security concerns
+   - PHP extension requirements or compatibility issues
+
+When providing PHP ecosystem and version recommendations:
+- Specify exact version numbers (e.g., PHP 8.2.5, Laravel 10.x)
+- Note specific benefits of newer PHP versions (e.g., readonly properties in PHP 8.1)
+- Highlight any breaking changes or migration challenges with version upgrades
+- Consider the hosting environment and deployment constraints
+- Recommend stable, well-supported PHP ecosystem tools and frameworks
+- Address security implications of outdated dependencies
 
 Focus on high-level architectural concerns rather than implementation details or code style issues. Make specific reference to PHP best practices, design patterns, and community standards where appropriate.
 

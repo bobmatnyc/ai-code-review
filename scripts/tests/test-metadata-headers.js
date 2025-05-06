@@ -4,6 +4,11 @@
  * This script tests the implementation of enhanced metadata headers
  * in both Markdown and JSON output formats by checking the formatter directly.
  */
+const path = require('path');
+
+// Set project root path for correct file references
+const projectRoot = path.join(__dirname, '../..');
+
 
 const fs = require('fs');
 const path = require('path');
