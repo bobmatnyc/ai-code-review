@@ -7,7 +7,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { pathExists } from './PathValidator';
+import { pathExists } from './pathValidator';
 import logger from './logger';
 
 /**

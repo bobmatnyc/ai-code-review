@@ -7,8 +7,8 @@
 
 import path from 'path';
 import fs from 'fs/promises';
-import { pathExists } from './PathValidator';
-import { ensureDirectoryExists } from './FileWriter';
+import { pathExists } from './pathValidator';
+import { ensureDirectoryExists } from './fileWriter';
 
 /**
  * Generate a versioned output path for a file
