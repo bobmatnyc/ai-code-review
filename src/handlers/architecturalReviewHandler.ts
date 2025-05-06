@@ -23,6 +23,8 @@ import logger from '../utils/logger';
 // Import the getApiKeyType function from a shared utilities file
 import { getApiKeyType } from '../utils/apiUtils';
 
+// Package security analyzer is dynamically imported
+
 /**
  * Handle architectural review for the entire codebase
  * @param project - The project name
@@ -42,6 +44,9 @@ export async function handleArchitecturalReview(
   originalTarget: string = ''
 ): Promise<void> {
   logger.info('Performing architectural review of the entire codebase...');
+  logger.info('****** DEPENDENCY ANALYSIS WILL BE PERFORMED AUTOMATICALLY ******');
+  logger.info(`Dependency analysis is ${options.includeDependencyAnalysis !== false ? 'ENABLED' : 'DISABLED'}`);
+  logger.info('*****************************************************************');
 
   // Collect file information
   const fileInfos: FileInfo[] = [];
@@ -147,16 +152,15 @@ export async function handleArchitecturalReview(
       logger.info(`Using Anthropic API with model: ${modelName}`);
 
       // Dynamically import the Anthropic client to avoid loading it unnecessarily
-      const { generateAnthropicConsolidatedReview, initializeAnthropicClient } =
-        await import('../clients/anthropicClient.js');
+      const { generateArchitecturalAnthropicReview, initializeAnthropicClient } =
+        await import('../clients/anthropicClientWrapper.js');
 
       // Initialize Anthropic model if needed
       await initializeAnthropicClient();
 
-      review = await generateAnthropicConsolidatedReview(
+      review = await generateArchitecturalAnthropicReview(
         fileInfos,
         project,
-        'architectural' as ReviewType,
         projectDocs,
         options
       );
@@ -211,10 +215,64 @@ export async function handleArchitecturalReview(
       targetName
     );
 
-    // Format and save the review
-    const formattedOutput = formatReviewOutput(review, options.output);
+    // Format with the standard formatter
+    let formattedOutput = formatReviewOutput(review, options.output);
+    
+    // For architectural reviews, dependency analysis is now handled by the OutputManager
+    // This ensures consistent behavior across different review types
+    // The OutputManager will run the dependency analysis after file tree is added
+    // and before the review is written to disk
+    
+    // We keep this flag here for backward compatibility and logging purposes
+    const includeDependencyAnalysis = options.includeDependencyAnalysis !== false;
+    console.log(`=========== DEPENDENCY ANALYSIS ${includeDependencyAnalysis ? 'ENABLED' : 'DISABLED'} ===========`);
+    logger.info(`=========== DEPENDENCY ANALYSIS ${includeDependencyAnalysis ? 'ENABLED' : 'DISABLED'} ===========`);
+    
+    // Check project path for logging purposes
+    if (includeDependencyAnalysis) {
+      if (!projectPath) {
+        logger.error('Project path is undefined or empty for dependency analysis');
+      } else {
+        try {
+          // Check if the directory exists - just for logging/debugging
+          const exists = await fs.access(projectPath).then(() => true).catch(() => false);
+          logger.info(`Project directory exists: ${exists}, path: ${projectPath}`);
+          
+          // Check for package.json as a sanity check
+          const testPath = path.join(projectPath, 'package.json');
+          const packageJsonExists = await fs.access(testPath).then(() => true).catch(() => false);
+          logger.info(`package.json exists: ${packageJsonExists}, path: ${testPath}`);
+          
+          logger.info('Dependency analysis will be performed by OutputManager');
+        } catch (fsError) {
+          logger.error(`File system error checking project path: ${fsError}`);
+        }
+      }
+    } else {
+      logger.info('Dependency analysis is disabled in options');
+    }
+    
+    // Now add file tree using the new helper function in OutputManager
+    try {
+      // Log file info debug info
+      logger.debug(`File info count: ${fileInfos.length}`);
+      fileInfos.forEach((file, i) => {
+        logger.debug(`File ${i+1}: ${file.path} (${file.relativePath || 'no relative path'})`);
+      });
+      
+      // Instead of using a specific formatter, use our generic implementation
+      // that works for all review types
+      const { addFileTreeToReview } = await import('../core/OutputManager.js');
+      formattedOutput = addFileTreeToReview(formattedOutput, fileInfos, options.output);
+      logger.info('Added file tree to architectural review');
+    } catch (error) {
+      // Fall back to standard formatter if file tree addition fails
+      logger.warn(`Could not add file tree to review: ${error instanceof Error ? error.message : String(error)}`);
+      logger.warn(`Error stack: ${error instanceof Error && error.stack ? error.stack : 'No stack available'}`);
+    }
 
     try {
+      
       await fs.writeFile(outputPath, formattedOutput);
       logger.info(`Architectural review saved to: ${outputPath}`);
 
