@@ -258,105 +258,106 @@ export async function createDependencySecuritySection(projectPath: string): Prom
     logger.error(`Error using enhanced dependency analyzer: ${enhancedError}`);
     logger.info('Falling back to standard analyzer...');
     // Continue with the original implementation if enhanced analyzer fails
-  try {
-    // Get tech stack information first, as we'll use it regardless of security analysis method
-    logger.info('Analyzing package stack awareness for project: ' + projectPath);
-    
-    // Validate projectPath
-    if (!projectPath) {
-      logger.error('Project path is undefined or null in createDependencySecuritySection');
-      return "## Project Stack Analysis\n\n❌ Error: Invalid project path provided for dependency analysis.";
-    }
-    
-    // Check if the directory exists
     try {
-      const fs = require('fs');
-      const stats = fs.statSync(projectPath);
-      logger.info(`Project directory exists: ${stats.isDirectory()}`);
-    } catch (err) {
-      logger.error(`Project directory does not exist or is not accessible: ${err.message}`);
-      return "## Project Stack Analysis\n\n❌ Error: Project directory not accessible.";
-    }
-    
-    logger.info('Beginning stack analysis...');
-    const stackAnalysis = await analyzePackagesWithStackAwareness(projectPath);
-    logger.info('Stack analysis completed');
-    
-    // Handle null or undefined stackAnalysis
-    if (!stackAnalysis) {
-      logger.error('Stack analysis returned null or undefined');
-      return "## Project Stack Analysis\n\nNo project dependencies detected.";
-    }
-    
-    logger.info(`Stack analysis results: found ${stackAnalysis.packageResults?.length || 0} package files`);
-    
-    const techStackReport = stackAnalysis && Array.isArray(stackAnalysis.packageResults) ? 
-      formatStackSummary(stackAnalysis) : 
-      "## Project Stack Analysis\n\nNo project dependencies detected.";
-    logger.info('Tech stack report generated successfully');
-
-    // First try to use advanced dependency scanner if available
-    try {
-      console.log('Attempting to use dependency security scanner...');
-      logger.info('Attempting to use dependency security scanner...');
-      const { createDependencySecuritySection } = require('./dependencySecurityScanner');
-      console.log('Scanner module loaded successfully');
-      logger.info('Scanner module loaded successfully');
+      // Get tech stack information first, as we'll use it regardless of security analysis method
+      logger.info('Analyzing package stack awareness for project: ' + projectPath);
       
-      try {
-        logger.info('Executing dependency security scanner...');
-        const securityReport = await createDependencySecuritySection(projectPath);
-        logger.info('✅ Dependency security analysis completed successfully');
-        logger.info(`Security report length: ${securityReport?.length || 0} characters`);
-        return securityReport;
-      } catch (scanError) {
-        logger.error(`❌ Dependency scanner failed: ${scanError}`);
-        logger.error(scanError.stack || 'No stack trace available');
-        // Return just the tech stack info when scanner fails
-        return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Dependency security analysis is not available.\n\nTo enable security scanning, configure a dependency scanner or set SERPAPI_KEY in your environment.`;
+      // Validate projectPath
+      if (!projectPath) {
+        logger.error('Project path is undefined or null in createDependencySecuritySection');
+        return "## Project Stack Analysis\n\n❌ Error: Invalid project path provided for dependency analysis.";
       }
-    } catch (importError) {
-      logger.error(`❌ Scanner module import error: ${importError}`);
-      logger.error(importError.stack || 'No stack trace available');
-      // Return just the tech stack when scanner module fails to load
-    }
-
-    // Fallback to the built-in analyzer
-    logger.info('Falling back to built-in security analyzer...');
-    
-    // Check if SERPAPI is configured
-    if (!hasSerpApiConfig()) {
-      logger.warn('❓ SERPAPI_KEY not found. Security vulnerability analysis requires either a dependency scanner or SERPAPI_KEY.');
       
-      // Return tech stack report with message about missing security analysis tools
-      logger.info('Returning tech stack report with missing tools message');
-      return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Security vulnerability analysis is disabled.\n\nTo enable vulnerability detection:\n\n1. Install a dependency security scanner\n\n   OR\n\n2. Add SERPAPI_KEY to your .env.local file for the built-in analyzer`;
-    }
-    
-    logger.info('Running package security analysis with SERPAPI...');
-    const securityAnalysis = await analyzePackageSecurity(projectPath);
-    logger.info(`Package security analysis completed with ${securityAnalysis.packageCount} packages analyzed`);
-    
-    if (securityAnalysis.missingApiKey) {
-      // This shouldn't happen since we already checked for SERPAPI_KEY, but just in case
-      logger.warn('Missing API key detected in security analysis result');
+      // Check if the directory exists
+      try {
+        const fs = require('fs');
+        const stats = fs.statSync(projectPath);
+        logger.info(`Project directory exists: ${stats.isDirectory()}`);
+      } catch (err) {
+        logger.error(`Project directory does not exist or is not accessible: ${err.message}`);
+        return "## Project Stack Analysis\n\n❌ Error: Project directory not accessible.";
+      }
+      
+      logger.info('Beginning stack analysis...');
+      const stackAnalysis = await analyzePackagesWithStackAwareness(projectPath);
+      logger.info('Stack analysis completed');
+      
+      // Handle null or undefined stackAnalysis
+      if (!stackAnalysis) {
+        logger.error('Stack analysis returned null or undefined');
+        return "## Project Stack Analysis\n\nNo project dependencies detected.";
+      }
+      
+      logger.info(`Stack analysis results: found ${stackAnalysis.packageResults?.length || 0} package files`);
+      
+      const techStackReport = stackAnalysis && Array.isArray(stackAnalysis.packageResults) ? 
+        formatStackSummary(stackAnalysis) : 
+        "## Project Stack Analysis\n\nNo project dependencies detected.";
+      logger.info('Tech stack report generated successfully');
+
+      // First try to use advanced dependency scanner if available
+      try {
+        console.log('Attempting to use dependency security scanner...');
+        logger.info('Attempting to use dependency security scanner...');
+        const { createDependencySecuritySection } = require('./dependencySecurityScanner');
+        console.log('Scanner module loaded successfully');
+        logger.info('Scanner module loaded successfully');
+        
+        try {
+          logger.info('Executing dependency security scanner...');
+          const securityReport = await createDependencySecuritySection(projectPath);
+          logger.info('✅ Dependency security analysis completed successfully');
+          logger.info(`Security report length: ${securityReport?.length || 0} characters`);
+          return securityReport;
+        } catch (scanError) {
+          logger.error(`❌ Dependency scanner failed: ${scanError}`);
+          logger.error(scanError.stack || 'No stack trace available');
+          // Return just the tech stack info when scanner fails
+          return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Dependency security analysis is not available.\n\nTo enable security scanning, configure a dependency scanner or set SERPAPI_KEY in your environment.`;
+        }
+      } catch (importError) {
+        logger.error(`❌ Scanner module import error: ${importError}`);
+        logger.error(importError.stack || 'No stack trace available');
+        // Return just the tech stack when scanner module fails to load
+      }
+
+      // Fallback to the built-in analyzer
+      logger.info('Falling back to built-in security analyzer...');
+      
+      // Check if SERPAPI is configured
+      if (!hasSerpApiConfig()) {
+        logger.warn('❓ SERPAPI_KEY not found. Security vulnerability analysis requires either a dependency scanner or SERPAPI_KEY.');
+        
+        // Return tech stack report with message about missing security analysis tools
+        logger.info('Returning tech stack report with missing tools message');
+        return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Security vulnerability analysis is disabled.\n\nTo enable vulnerability detection:\n\n1. Install a dependency security scanner\n\n   OR\n\n2. Add SERPAPI_KEY to your .env.local file for the built-in analyzer`;
+      }
+      
+      logger.info('Running package security analysis with SERPAPI...');
+      const securityAnalysis = await analyzePackageSecurity(projectPath);
+      logger.info(`Package security analysis completed with ${securityAnalysis.packageCount} packages analyzed`);
+      
+      if (securityAnalysis.missingApiKey) {
+        // This shouldn't happen since we already checked for SERPAPI_KEY, but just in case
+        logger.warn('Missing API key detected in security analysis result');
+        return `${techStackReport}\n\n${securityAnalysis.securityReport}`;
+      }
+      
+      if (securityAnalysis.packageCount === 0) {
+        // Even if no packages were found, include tech stack info
+        logger.info('No packages found for security analysis');
+        return `${techStackReport}\n\n## Package Security Analysis\n\nNo package dependencies found in the project.`;
+      }
+      
+      // Combine tech stack report and security report
+      logger.info('Successfully completed security analysis, returning combined report');
+      logger.info(`Tech stack report length: ${techStackReport.length}, Security report length: ${securityAnalysis.securityReport.length}`);
       return `${techStackReport}\n\n${securityAnalysis.securityReport}`;
+    } catch (error) {
+      logger.error(`Error in dependency security analysis: ${error}`);
+      
+      // If all else fails, return a simple message without failing the entire review process
+      return '## Dependency Security Analysis\n\n⚠️ Unable to perform dependency security analysis due to an internal error.\n\nThe rest of the review is still valid.';
     }
-    
-    if (securityAnalysis.packageCount === 0) {
-      // Even if no packages were found, include tech stack info
-      logger.info('No packages found for security analysis');
-      return `${techStackReport}\n\n## Package Security Analysis\n\nNo package dependencies found in the project.`;
-    }
-    
-    // Combine tech stack report and security report
-    logger.info('Successfully completed security analysis, returning combined report');
-    logger.info(`Tech stack report length: ${techStackReport.length}, Security report length: ${securityAnalysis.securityReport.length}`);
-    return `${techStackReport}\n\n${securityAnalysis.securityReport}`;
-  } catch (error) {
-    logger.error(`Error in dependency security analysis: ${error}`);
-    
-    // If all else fails, return a simple message without failing the entire review process
-    return '## Dependency Security Analysis\n\n⚠️ Unable to perform dependency security analysis due to an internal error.\n\nThe rest of the review is still valid.';
   }
 }
