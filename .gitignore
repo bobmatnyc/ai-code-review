@@ -49,5 +49,27 @@ fix-prompts.js
 fix-prompts.sh
 model-validation-results.json
 
+# Test and temporary files
+test-*/
+test-*.*
+**/test-*.js
+**/test-*.ts
+**/test-*.sh
+dependency-analysis/*.json
+dependency-analysis/*.svg
+*-debug.js
+*-debug.ts
+*.local.md
+TOOL_CALLING_*.md
+IMPLEMENTATION_*.md
+STACK_*.md
+FILE_LIST_*.md
+ENHANCED_*.md
+OWASP_*.md
+SECURITY_*.md
+*-output.md
+fix-*.md
+force-*.sh
+
 
 **/.claude/settings.local.json
