@@ -221,6 +221,81 @@ export async function testOpenRouterConnection(): Promise<{
 }
 
 /**
+ * Test connection to OpenAI API
+ * @returns Promise resolving to a boolean indicating if the connection was successful
+ */
+export async function testOpenAIConnection(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const apiKey =
+    process.env.AI_CODE_REVIEW_OPENAI_API_KEY ||
+    process.env.CODE_REVIEW_OPENAI_API_KEY ||
+    process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    return {
+      success: false,
+      message: 'No OpenAI API key found in environment variables'
+    };
+  }
+
+  try {
+    // Make a simple request to the OpenAI API
+    const response = await fetch(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo', // Use a simple model for testing
+          messages: [{ role: 'user', content: 'Hello, are you working?' }],
+          max_tokens: 10,
+          temperature: 0.2
+        })
+      }
+    );
+
+    if (!response.ok) {
+      let errorMessage = `HTTP status ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = JSON.stringify(errorData);
+      } catch (e) {
+        // If we can't parse the error as JSON, just use the status
+      }
+      
+      return {
+        success: false,
+        message: `OpenAI API returned error: ${errorMessage}`
+      };
+    }
+
+    const data = (await response.json()) as any;
+
+    if (data && data.choices && data.choices.length > 0) {
+      return {
+        success: true,
+        message: `Successfully connected to OpenAI API with model: gpt-3.5-turbo`
+      };
+    } else {
+      return {
+        success: false,
+        message: 'Connected to OpenAI API but received invalid response'
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: `Failed to connect to OpenAI API: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
+}
+
+/**
  * Helper function to determine which API to test based on the model
  */
 function getSelectedApiType():
@@ -293,11 +368,18 @@ export async function runApiConnectionTests(): Promise<void> {
     console.log(`  ${anthropicResult.message}`);
   }
 
-  // Test OpenAI API connection if needed (not implemented yet)
+  // Test OpenAI API connection if needed
   if (apiType === 'openai' || apiType === 'all') {
-    // For now, just log a message
-    console.log(`OpenAI API: ⚠️ TEST NOT IMPLEMENTED`);
-    console.log(`  OpenAI API test not implemented yet`);
+    try {
+      const openAIResult = await testOpenAIConnection();
+      console.log(
+        `OpenAI API: ${openAIResult.success ? '✅ CONNECTED' : '❌ FAILED'}`
+      );
+      console.log(`  ${openAIResult.message}`);
+    } catch (error) {
+      console.log(`OpenAI API: ❌ FAILED`);
+      console.log(`  Error testing OpenAI API: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   console.log('API connection tests completed.');
