@@ -22,6 +22,7 @@ export interface ProjectDocs {
   contributing?: string;
   architecture?: string;
   custom?: Record<string, string>;
+  metadata?: Record<string, string>;
 }
 
 /**
@@ -108,6 +109,21 @@ export async function readProjectDocs(
 }
 
 /**
+ * Add metadata to project documentation
+ * @param docs Project documentation object
+ * @param key Metadata key
+ * @param value Metadata value
+ * @returns Project documentation with added metadata
+ */
+export function addMetadataToProjectDocs(docs: ProjectDocs, key: string, value: string): ProjectDocs {
+  if (!docs.metadata) {
+    docs.metadata = {};
+  }
+  docs.metadata[key] = value;
+  return docs;
+}
+
+/**
  * Format project documentation for inclusion in prompts
  * @param docs Project documentation
  * @returns Formatted documentation string
@@ -141,10 +157,42 @@ export function formatProjectDocs(docs: ProjectDocs): string {
       sections.push(`# docs/${file}\n\n${content}`);
     }
   }
+  
+  // Add metadata if present
+  if (docs.metadata) {
+    for (const [key, content] of Object.entries(docs.metadata)) {
+      // Format the metadata section
+      const title = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+      sections.push(`# ${title}\n\n${content}`);
+    }
+  }
 
   if (sections.length === 0) {
     return '';
   }
 
   return '## Project Documentation\n\n' + sections.join('\n\n---\n\n');
+}
+
+/**
+ * Add project documentation to a prompt
+ * @param prompt The prompt to add documentation to
+ * @param docs Project documentation object
+ * @returns The prompt with documentation added
+ */
+export function addProjectDocsToPrompt(
+  prompt: string,
+  docs: ProjectDocs
+): string {
+  const docsText = formatProjectDocs(docs);
+  if (docsText) {
+    // Try to replace a placeholder if it exists
+    if (prompt.includes('{{PROJECT_DOCS}}')) {
+      return prompt.replace('{{PROJECT_DOCS}}', docsText);
+    } else {
+      // Otherwise, append to the end
+      return `${prompt}\n\n${docsText}`;
+    }
+  }
+  return prompt;
 }

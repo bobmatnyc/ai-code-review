@@ -7,6 +7,7 @@
 
 import { getApiKeyForProvider } from '../config';
 import logger from '../logger';
+import { getConfig } from '../config';
 
 /**
  * Check if an API key is available for a specific provider
@@ -25,26 +26,91 @@ export function hasApiKey(provider: string): boolean {
 }
 
 /**
- * Get the API key type based on available environment variables
+ * Get the available API key type based on the model specified in environment variables
  *
- * This function checks which API keys are available in the environment variables
- * and returns the type of the first available API key in the following order:
- * 1. Google (Gemini)
- * 2. OpenRouter
- * 3. Anthropic
- * 4. OpenAI
+ * This function determines which AI provider to use based on:
+ * 1. The model adapter specified in the AI_CODE_REVIEW_MODEL environment variable
+ * 2. The availability of API keys for different providers
  *
- * If no API keys are available, it returns 'none'.
+ * The function first checks if a specific adapter is specified in the model name
+ * (e.g., 'gemini:gemini-1.5-pro' or 'anthropic:claude-3-opus'). If so, it checks
+ * if the corresponding API key is available. If not, or if no adapter is specified,
+ * it falls back to checking for any available API key in a specific order.
  *
- * @returns The type of API key available ('google', 'openrouter', 'anthropic', 'openai', or 'none')
+ * @returns The type of API key available ('OpenRouter', 'Google', 'Anthropic', 'OpenAI', or null if none)
  * @example
- * // If AI_CODE_REVIEW_GOOGLE_API_KEY is set
- * getApiKeyType() // Returns 'google'
+ * // If AI_CODE_REVIEW_MODEL='gemini:gemini-1.5-pro' and Google API key is available
+ * getApiKeyType() // Returns 'Google'
  *
- * // If no API keys are set
- * getApiKeyType() // Returns 'none'
+ * // If no model is specified but Anthropic API key is available
+ * getApiKeyType() // Returns 'Anthropic'
  */
 export function getApiKeyType():
+  | 'OpenRouter'
+  | 'Google'
+  | 'Anthropic'
+  | 'OpenAI'
+  | null {
+  // Get configuration from the centralized config module
+  const config = getConfig();
+
+  // Get the model adapter from the configuration
+  const selectedModel = config.selectedModel;
+  const adapter = selectedModel
+    ? selectedModel.includes(':')
+      ? selectedModel.split(':')[0]
+      : 'gemini'
+    : '';
+
+  // First check if we have a specific adapter specified in the model
+  // If so, return the corresponding API type regardless of whether we have the API key
+  // This ensures we respect the user's choice of model and provide appropriate error messages
+  if (adapter === 'gemini') {
+    return 'Google';
+  }
+  if (adapter === 'openrouter') {
+    return 'OpenRouter';
+  }
+  if (adapter === 'anthropic') {
+    return 'Anthropic';
+  }
+  if (adapter === 'openai') {
+    return 'OpenAI';
+  }
+
+  // If no specific adapter is specified, check if any API keys are available
+  // Note: We don't have any preference for which API to use - we'll use whatever is available
+  if (adapter === '' || !selectedModel) {
+    // Check for any available API keys
+    if (config.googleApiKey) {
+      return 'Google';
+    }
+    if (config.openRouterApiKey) {
+      return 'OpenRouter';
+    }
+    if (config.anthropicApiKey) {
+      return 'Anthropic';
+    }
+    if (config.openAIApiKey) {
+      return 'OpenAI';
+    }
+  }
+
+  // No API keys available or the specified adapter doesn't have an API key
+  return null;
+}
+
+/**
+ * Get the API key type based on available environment variables (lowercase version)
+ * 
+ * This is an alternative version of getApiKeyType that returns lowercase strings
+ * and 'none' instead of null. This function is maintained for internal usage
+ * within the api utilities module.
+ *
+ * @returns The type of API key available ('google', 'openrouter', 'anthropic', 'openai', or 'none')
+ * @internal
+ */
+export function getApiKeyTypeLowerCase():
   | 'google'
   | 'openrouter'
   | 'anthropic'
