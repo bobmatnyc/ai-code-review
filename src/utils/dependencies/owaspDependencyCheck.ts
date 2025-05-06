@@ -10,6 +10,7 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 import { spawnSync } from 'child_process';
+import os from 'os'; // Added for platform detection
 import logger from '../logger';
 import { detectTechStacks } from './dependencyRegistry';
 import { analyzePackagesWithStackAwareness, formatStackSummary } from './stackAwarePackageAnalyzer';
@@ -108,16 +109,27 @@ export interface SecurityAnalysisResults {
  */
 async function isOwaspDependencyCheckInstalled(): Promise<boolean> {
   try {
+    // Get the appropriate command based on the platform
+    const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
+    console.log(`Checking for OWASP Dependency-Check using command: ${command}`);
+    logger.info(`Checking for OWASP Dependency-Check using command: ${command}`);
+    
     // Try to execute dependency-check script to see if it's installed
-    const result = spawnSync('dependency-check', ['--version'], { 
+    const result = spawnSync(command, ['--version'], { 
       timeout: 10000,
       stdio: 'pipe',
-      encoding: 'utf-8'
+      encoding: 'utf-8',
+      shell: true // Use shell on all platforms for better compatibility
     });
     
-    return result.status === 0;
+    const isInstalled = result.status === 0;
+    console.log(`OWASP Dependency-Check ${isInstalled ? 'is INSTALLED ✅' : 'is NOT INSTALLED ❌'}`);
+    logger.info(`OWASP Dependency-Check ${isInstalled ? 'is INSTALLED ✅' : 'is NOT INSTALLED ❌'}`);
+    
+    return isInstalled;
   } catch (error) {
-    logger.debug('OWASP Dependency-Check not found in PATH');
+    console.log(`OWASP Dependency-Check not found in PATH: ${error}`);
+    logger.info(`OWASP Dependency-Check not found in PATH: ${error}`);
     return false;
   }
 }
@@ -179,12 +191,17 @@ async function runOwaspDependencyCheck(
       args.push('--suppression', mergedConfig.suppressionFile);
     }
     
+    // Get the appropriate command based on the platform
+    const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
+    logger.debug(`Running OWASP Dependency-Check using command: ${command} with args: ${args.join(' ')}`);
+    
     // Run the command
-    const result = spawnSync('dependency-check', args, {
+    const result = spawnSync(command, args, {
       cwd: projectPath,
       timeout: 300000, // 5 minutes timeout
       stdio: 'pipe',
-      encoding: 'utf-8'
+      encoding: 'utf-8',
+      shell: true // Use shell on all platforms for better compatibility
     });
     
     if (result.status !== 0) {
@@ -375,15 +392,25 @@ function createFallbackReport(): string {
  */
 export async function analyzeSecurityWithOwasp(projectPath: string): Promise<SecurityAnalysisResults> {
   try {
+    logger.info('==== OWASP DEPENDENCY CHECK ANALYSIS ====');
+    logger.info(`Checking if OWASP Dependency-Check is installed for project: ${projectPath}`);
+    
     // Check if OWASP Dependency-Check is installed
     const isInstalled = await isOwaspDependencyCheckInstalled();
+    logger.info(`OWASP Dependency-Check installed: ${isInstalled}`);
     
     // Get tech stack information using our existing detection
+    logger.info('Detecting tech stacks for security analysis...');
     const stackAnalysis = await detectTechStacks(projectPath);
-    const techStackReport = formatStackSummary(stackAnalysis);
+    logger.info(`Tech stack detection complete: found ${stackAnalysis?.length || 0} stacks`);
+    
+    const techStackReport = Array.isArray(stackAnalysis) && stackAnalysis.length > 0 
+      ? formatStackSummary(stackAnalysis) 
+      : "## Project Stack Analysis\n\nNo tech stack detected.";
+    logger.info('Tech stack report generated for security analysis');
     
     if (!isInstalled) {
-      logger.warn('OWASP Dependency-Check not installed. Using fallback report.');
+      logger.warn('⚠️ OWASP Dependency-Check not installed. Using fallback report.');
       return {
         techStackReport,
         vulnerabilityReport: createFallbackReport(),
@@ -450,7 +477,9 @@ export async function analyzeSecurityWithOwasp(projectPath: string): Promise<Sec
     // Get tech stack information even if OWASP analysis fails
     try {
       const stackAnalysis = await detectTechStacks(projectPath);
-      const techStackReport = formatStackSummary(stackAnalysis);
+      const techStackReport = Array.isArray(stackAnalysis) && stackAnalysis.length > 0 
+        ? formatStackSummary(stackAnalysis) 
+        : "## Project Stack Analysis\n\nNo tech stack detected.";
       
       return {
         techStackReport,
@@ -492,12 +521,23 @@ export async function analyzeSecurityWithOwasp(projectPath: string): Promise<Sec
  */
 export async function createOwaspSecuritySection(projectPath: string): Promise<string> {
   try {
+    console.log('=========== RUNNING OWASP DEPENDENCY CHECK ===========');
+    console.log(`Project path: ${projectPath}`);
+    logger.info('=========== RUNNING OWASP DEPENDENCY CHECK ===========');
+    logger.info(`Project path: ${projectPath}`);
+    
     const securityAnalysis = await analyzeSecurityWithOwasp(projectPath);
+    logger.info('OWASP Security analysis completed successfully');
+    logger.info(`Tech stack report length: ${securityAnalysis.techStackReport?.length || 0}`);
+    logger.info(`Vulnerability report length: ${securityAnalysis.vulnerabilityReport?.length || 0}`);
     
     // Combine tech stack report and vulnerability report
-    return `${securityAnalysis.techStackReport}\n\n${securityAnalysis.vulnerabilityReport}`;
+    const combinedReport = `${securityAnalysis.techStackReport}\n\n${securityAnalysis.vulnerabilityReport}`;
+    logger.info(`Combined report generated (${combinedReport.length} characters)`);
+    return combinedReport;
   } catch (error) {
     logger.error(`Error creating OWASP security section: ${error}`);
+    logger.error(error.stack || 'No stack trace available');
     return '## Dependency Security Analysis\n\n❌ An error occurred while analyzing dependencies.';
   }
 }
