@@ -295,30 +295,30 @@ export async function createDependencySecuritySection(projectPath: string): Prom
       "## Project Stack Analysis\n\nNo project dependencies detected.";
     logger.info('Tech stack report generated successfully');
 
-    // First try to use OWASP Dependency-Check if available
+    // First try to use advanced dependency scanner if available
     try {
-      console.log('Attempting to use OWASP Dependency-Check for security analysis...');
-      logger.info('Attempting to use OWASP Dependency-Check for security analysis...');
-      const { createOwaspSecuritySection } = require('./owaspDependencyCheck');
-      console.log('OWASP module loaded successfully');
-      logger.info('OWASP module loaded successfully');
+      console.log('Attempting to use dependency security scanner...');
+      logger.info('Attempting to use dependency security scanner...');
+      const { createDependencySecuritySection } = require('./dependencySecurityScanner');
+      console.log('Scanner module loaded successfully');
+      logger.info('Scanner module loaded successfully');
       
       try {
-        logger.info('Executing OWASP Dependency-Check...');
-        const owaspReport = await createOwaspSecuritySection(projectPath);
-        logger.info('✅ OWASP analysis completed successfully');
-        logger.info(`OWASP report length: ${owaspReport?.length || 0} characters`);
-        return owaspReport;
-      } catch (owaspError) {
-        logger.error(`❌ OWASP Dependency-Check failed: ${owaspError}`);
-        logger.error(owaspError.stack || 'No stack trace available');
-        // Return just the tech stack info when OWASP fails
-        return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Dependency security analysis is not available.\n\nTo enable security scanning, install OWASP Dependency-Check or set SERPAPI_KEY in your environment.`;
+        logger.info('Executing dependency security scanner...');
+        const securityReport = await createDependencySecuritySection(projectPath);
+        logger.info('✅ Dependency security analysis completed successfully');
+        logger.info(`Security report length: ${securityReport?.length || 0} characters`);
+        return securityReport;
+      } catch (scanError) {
+        logger.error(`❌ Dependency scanner failed: ${scanError}`);
+        logger.error(scanError.stack || 'No stack trace available');
+        // Return just the tech stack info when scanner fails
+        return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Dependency security analysis is not available.\n\nTo enable security scanning, configure a dependency scanner or set SERPAPI_KEY in your environment.`;
       }
     } catch (importError) {
-      logger.error(`❌ OWASP module import error: ${importError}`);
+      logger.error(`❌ Scanner module import error: ${importError}`);
       logger.error(importError.stack || 'No stack trace available');
-      // Return just the tech stack when OWASP module fails to load
+      // Return just the tech stack when scanner module fails to load
     }
 
     // Fallback to the built-in analyzer
@@ -326,11 +326,11 @@ export async function createDependencySecuritySection(projectPath: string): Prom
     
     // Check if SERPAPI is configured
     if (!hasSerpApiConfig()) {
-      logger.warn('❓ SERPAPI_KEY not found. Security vulnerability analysis requires either OWASP Dependency-Check or SERPAPI_KEY.');
+      logger.warn('❓ SERPAPI_KEY not found. Security vulnerability analysis requires either a dependency scanner or SERPAPI_KEY.');
       
       // Return tech stack report with message about missing security analysis tools
       logger.info('Returning tech stack report with missing tools message');
-      return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Security vulnerability analysis is disabled.\n\nTo enable vulnerability detection:\n\n1. Install OWASP Dependency-Check (recommended): https://owasp.org/www-project-dependency-check/\n\n   OR\n\n2. Add SERPAPI_KEY to your .env.local file for the built-in analyzer`;
+      return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Security vulnerability analysis is disabled.\n\nTo enable vulnerability detection:\n\n1. Install a dependency security scanner\n\n   OR\n\n2. Add SERPAPI_KEY to your .env.local file for the built-in analyzer`;
     }
     
     logger.info('Running package security analysis with SERPAPI...');

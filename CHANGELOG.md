@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Enhanced dependency analysis with automated vulnerability checks
-- Added comprehensive OWASP dependency scanning
+- Added improved dependency scanning capabilities
 - Added stack-aware package analysis for better context
 - Added SERP API integration for security vulnerability intelligence
 - Added tooling for enhanced dependency analysis

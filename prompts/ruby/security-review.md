@@ -85,7 +85,7 @@ For each security issue found, please include:
 1. **Vulnerability**: A clear name and description of the vulnerability
 2. **Severity**: Critical / High / Medium / Low / Info
 3. **Location**: Exact file, class, method, and line numbers affected
-4. **OWASP Category**: The relevant OWASP Top 10 or OWASP API Top 10 category
+4. **Category**: The relevant security category (e.g., Injection, Broken Authentication, Sensitive Data Exposure)
 5. **Impact**: What could happen if this vulnerability is exploited
 6. **Description**: Detailed explanation of the vulnerability
 7. **Proof of Concept**: How the vulnerability could be exploited (if applicable)
