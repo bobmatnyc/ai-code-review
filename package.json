@@ -103,6 +103,7 @@
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "babel-jest": "^29.7.0",
+    "depcheck": "^1.4.7",
     "dependency-cruiser": "^16.10.1",
     "esbuild": "^0.25.3",
     "eslint": "^8.56.0",
