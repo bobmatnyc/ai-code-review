@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.10] - 2025-05-05
+
+### Fixed
+- Fixed issue where Gemini reviews were returning JSON format instead of Markdown
+- Modified the prompt instructions in GeminiClient to explicitly request Markdown output
+- Ensured consistent output format across all model providers (Gemini, Anthropic, OpenAI)
+
 ## [2.1.9] - 2025-05-05
 
 ### Fixed

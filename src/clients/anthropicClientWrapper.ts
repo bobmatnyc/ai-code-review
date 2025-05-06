@@ -47,3 +47,25 @@ export async function generateAnthropicConsolidatedReview(
     options
   );
 }
+
+/**
+ * Generate an architectural review using the Anthropic API with optional tool calling
+ * @param fileInfos Array of file information objects
+ * @param project Project name
+ * @param projectDocs Optional project documentation
+ * @param options Review options
+ * @returns Promise resolving to the review result
+ */
+export async function generateArchitecturalAnthropicReview(
+  fileInfos: FileInfo[],
+  project: string,
+  projectDocs: ProjectDocs | null,
+  options: ReviewOptions
+): Promise<ReviewResult> {
+  return anthropicClient.generateArchitecturalAnthropicReview(
+    fileInfos,
+    project,
+    projectDocs,
+    options
+  );
+}

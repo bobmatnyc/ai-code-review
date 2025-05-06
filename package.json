@@ -1,11 +1,11 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "2.1.9",
+  "version": "2.2.0",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "bin": "./dist/index.js",
   "scripts": {
-    "build": "pnpm run test && pnpm run build:types && node scripts/build.js",
+    "build": "pnpm run test && pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
     "build:types": "tsc --emitDeclarationOnly",
     "postbuild": "./scripts/link-global.sh",
     "start": "node dist/index.js",
@@ -103,6 +103,7 @@
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "babel-jest": "^29.7.0",
+    "depcheck": "^1.4.7",
     "dependency-cruiser": "^16.10.1",
     "esbuild": "^0.25.3",
     "eslint": "^8.56.0",
