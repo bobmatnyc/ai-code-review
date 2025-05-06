@@ -22,6 +22,31 @@ esbuild.build({
   // Add shebang directly in the build process to ensure it's present in the published package
   banner: { js: '#!/usr/bin/env node' },
   external,
+}).then(() => {
+  // Post-processing to fix specific issues
+  const fs = require('fs');
+  const path = require('path');
+  const outputPath = path.resolve(__dirname, '../dist/index.js');
+  
+  // Read the bundle
+  let bundleContent = fs.readFileSync(outputPath, 'utf8');
+  
+  // Fix the OpenAI API test implementation message
+  bundleContent = bundleContent.replace(
+    /console\.log\(`OpenAI API: \\u26A0\\uFE0F TEST NOT IMPLEMENTED`\);[\s\S]*?console\.log\(`  OpenAI API test not implemented yet`\);/,
+    'try {\n' +
+    '    const openAIResult = await testOpenAIConnection();\n' +
+    '    console.log(`OpenAI API: ${openAIResult.success ? "\\u2705 CONNECTED" : "\\u274C FAILED"}`);\n' +
+    '    console.log(`  ${openAIResult.message}`);\n' +
+    '  } catch (error) {\n' +
+    '    console.log(`OpenAI API: \\u274C FAILED`);\n' +
+    '    console.log(`  Error testing OpenAI API: ${error instanceof Error ? error.message : String(error)}`);\n' +
+    '  }'
+  );
+  
+  // Write the updated bundle
+  fs.writeFileSync(outputPath, bundleContent);
+  console.log('✅ Post-processing completed');
 }).catch((error) => {
   console.error(error);
   process.exit(1);
