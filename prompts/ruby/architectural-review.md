@@ -1,15 +1,17 @@
 ---
 name: Ruby Architectural Review
 description: Reviews Ruby/Rails code architecture, focusing on patterns, best practices, and overall design
-version: 1.0.0
+version: 1.1.0
 author: AI Code Review Team
 reviewType: architectural
+aliases:
+  - arch
 language: ruby
 tags:
   - architecture
   - rails
   - ruby
-lastModified: '2025-04-24'
+lastModified: '2025-05-05'
 ---
 
 
@@ -71,6 +73,24 @@ As an expert Ruby and Ruby on Rails developer, please conduct a comprehensive ar
 - Check authentication/authorization for API endpoints
 - Analyze error handling and response formats
 
+### Ruby/Rails Ecosystem & Version Compatibility
+- Evaluate if the project is using an appropriate Ruby version (2.7+, 3.0+, 3.1+)
+- Assess if the Rails version is appropriate and current (6.x, 7.x)
+- Check for deprecated gem usage or APIs that will cause issues in future upgrades
+- Review Gemfile for appropriate version specifications and constraints
+- Evaluate compatibility between key gems and the Ruby/Rails versions
+- Identify opportunities to leverage newer Ruby/Rails features
+- Assess if the application is ready for upcoming Ruby/Rails versions
+
+### Dependency Health & Security Analysis
+- Identify any gems with known security vulnerabilities
+- Check for outdated or unmaintained gems
+- Evaluate the impact of security issues in current dependencies
+- Review gems for appropriate security practices (e.g., strong params usage)
+- Check for overuse of third-party gems where Ruby/Rails standard libraries would suffice
+- Analyze potential licensing issues with current dependencies
+- Review for secrets or credentials management best practices
+
 ## Output Format
 
 Please provide a thorough review with the following sections:
@@ -89,7 +109,25 @@ Please provide a thorough review with the following sections:
 
 5. **Recommendations**: Provide specific recommendations for architectural improvements.
 
-6. **Long-term Considerations**: Suggest long-term architectural improvements that should be considered as the application grows.
+6. **Ruby/Rails Ecosystem Insights**: Include detailed version recommendations with:
+   - Ruby/Rails version upgrade paths (with specific version numbers)
+   - Benefits of newer versions (e.g., pattern matching in Ruby 3.0)
+   - Key gem updates needed and their compatibility considerations
+   - Security vulnerability mitigations
+   - Performance improvements available in newer versions
+
+7. **Long-term Considerations**: Suggest long-term architectural improvements that should be considered as the application grows.
+
+## Version Recommendations Guidance
+
+When providing Ruby/Rails ecosystem and version recommendations:
+- Specify exact version numbers (e.g., Ruby 3.1.2, Rails 7.0.4)
+- Note specific benefits of newer Ruby versions (e.g., performance improvements in Ruby 3.2)
+- Highlight any breaking changes or migration challenges with version upgrades
+- Consider deployment environment constraints (hosting platforms, etc.)
+- Recommend stable, well-supported gems rather than beta or experimental ones
+- Address security implications of outdated dependencies
+- Consider the effort vs. benefit ratio for version upgrades
 
 ## Additional Ruby/Rails-Specific Guidance
 
@@ -104,3 +142,5 @@ Please provide a thorough review with the following sections:
 Focus on providing actionable feedback that will help improve the architecture of the codebase while maintaining the spirit and best practices of Ruby and Ruby on Rails development.
 
 Use English for all headings and content. Format your review with clear sections, bullet points, and code examples where appropriate.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

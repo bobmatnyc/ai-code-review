@@ -1,21 +1,6 @@
 # 🔧 INSTRUCTIONS (GitHub-Centric Workflow)
 
-Updated: 2025-05-04
-
-## 📋 Table of Contents
-
-- [1. Agent Protocol & Execution Flow](#-1-agent-protocol--execution-flow)
-- [2. Core Principles](#-2-core-principles)
-- [3. Stack-Specific Directives](#-3-stack-specific-directives)
-- [4. Monorepo Workflow](#-4-monorepo-workflow)
-- [5. Best Practices](#-5-best-practices)
-- [6. Testing Standards](#-6-testing-standards)
-- [7. CI / DevOps](#-7-ci--devops)
-- [8. Documentation](#-8-documentation)
-- [9. Code Quality & Workflow](#-9-code-quality--workflow)
-- [10. Git Workflow & Version Control](#-10-git-workflow--version-control)
-- [11. GitHub Issue Tracking](#-11-github-issue-tracking)
-- [12. AI Assistant Guidelines](#-12-ai-assistant-guidelines)
+Updated: 5-05-2025
 
 ---
 
@@ -107,131 +92,104 @@ Updated: 2025-05-04
 * `pnpm lint && pnpm typecheck && pnpm test` required before merge.
 * Feature branches only. Use squash merges.
 
-### Common Commands
-
-```bash
-# Install dependencies
-pnpm install
-
-# Run linting
-pnpm lint
-
-# Run type checks
-pnpm typecheck
-
-# Run tests
-pnpm test
-
-# Run build
-pnpm build
-```
-
 ---
 
 ## ✅ 5. Best Practices
 
-### Modern Standards
-
 * Use modern, community-validated standards.
 * Prefer mature, well-supported libraries.
 * Explain any deviations from best practices.
-
-### Simplicity and Elegance
-
-* Prioritize clarity over cleverness.
-* Favor minimal, working implementations.
-* Confirm with users when there's a risk of over-engineering.
-
-### Confirmation & Safety
-
 * Confirm before changing behavior, logic, or architecture.
-* Validate assumptions before introducing new patterns.
 
 ---
 
 ## 🧪 6. Testing Standards
 
 * All utilities and APIs must have unit tests.
-* Use **[Vitest](https://vitest.dev/)** (`pnpm test`).
+* Use **Vitest** (`pnpm test`).
 * Minimum 80% coverage unless annotated with `@low-test-priority`.
 * Avoid snapshots unless explicitly justified.
 * Prefer real API interactions over mocks.
 
 ---
 
-## 📄 7. Documentation Rules
+## ⚙️ 7. CI / DevOps
 
-- Use `README.md` for CLI commands and usage docs.
-- Each package must have:
-  - `PROJECT.md` – architecture decisions
-  - `ROADMAP.md` – upcoming milestones
-  - `PROGRESS.md` – per-session implementation log
-
-### Logging Sessions
-- Begin each session in `PROGRESS.md` with a dated header.
-- Track:
-  - Tasks completed
-  - Blockers
-  - Next steps
-  - Git commits (e.g., `commit: 34dfae4`)
-
-### Rotation Policy
-When `PROGRESS.md` exceeds 1000 lines:
-```bash
-LATEST=$(ls logs/PROGRESS-*.md | sort -V | tail -1 | sed 's/.*PROGRESS-\([0-9]*\).*/\1/' || echo 0)
-NEXT=$((LATEST + 1))
-cp PROGRESS.md logs/PROGRESS-$NEXT.md
-```
-
----
-
-## ⚙️ 8. CI / DevOps
-
-* Pre-commit hooks must run:
-
-  * Linting (`pnpm lint`)
-  * Type-checking (`pnpm typecheck`)
-  * Tests (`pnpm test`)
+* Pre-commit hooks must run lint, type-check, and tests.
 * Do not merge if any check fails.
 * Secrets must go in `.env.local` – never hardcoded.
 * All API clients must include comments: purpose, inputs, outputs.
 
 ---
 
-## 📘 9. Documentation
+## 📘 8. Documentation
 
 * Document *intent* as well as behavior.
 * Use JSDoc with full TypeScript annotations.
 * Comment all API interactions clearly.
-* Read existing docs, particularly JSDocs before editing or suggesting changes.
 
 ---
 
-## 🔭 10. Code Quality & Workflow
-
-### Development Flow
+## 🔭 9. Code Quality & Workflow
 
 * Run linting and type checks after every change.
 * Build and verify tests before handing off code.
-* Ensure test coverage for all new features.
 * Follow existing conventions and naming patterns.
-* Optimize for clarity and maintainability.
-* Prefer straightforward implementations.
 
-### Playground Apps
+---
 
-* Use real packages unless mocks are requested.
-* Show real-world usage scenarios.
-* Follow production-level testing standards.
-* Document any test overrides or configs.
+## 📝 10. Design Documents
 
-### API Integration
+Design documents live in `doc/design/` and are required for all substantial features, architecture changes, or systems work. They provide a persistent source of truth for human and AI collaborators.
 
-* Use structured error handling.
-* Budget for API tokens and performance.
-* Log request/response with trace IDs.
-* Validate inputs at the boundary.
-* Code defensively against upstream services.
+### 📌 Purpose
+
+Design docs should:
+- Capture **intent** and **trade-offs** before implementation.
+- Guide decisions, discussions, and downstream work (testing, docs, API boundaries).
+- Serve as onboarding material for new engineers or agents picking up the system.
+
+### 📄 Structure
+
+```md
+# Feature Name or System Title
+
+## Summary
+What is this and why are we doing it?
+
+## Problem
+The pain point, friction, or opportunity this addresses.
+
+## Goals & Non-goals
+Explicit scope boundaries.
+
+## Product Considerations
+User needs, performance, accessibility, regulatory impacts.
+
+## Technical Design
+Architecture, key components, protocols, libraries, and rationale.
+
+## Implementation Plan
+Phased rollout or sequencing steps.
+
+## Open Questions
+Unresolved items or future revisits.
+
+## References
+Link related issues, PRs, or past work.
+```
+
+### 🔗 Workflow Expectations
+
+- Each major issue in `PROJECT.md` **must reference a design doc** in `doc/design/` unless trivial.
+- GitHub Issues proposing large features must either embed or link to the doc.
+- Revisit/update the design doc post-launch with a closing summary.
+
+---
+
+## 🔁 11. Git Workflow & Version Control
+
+... (TRUNCATED TO FIT CHARACTER LIMIT) ...
 
 ---
 
@@ -315,7 +273,7 @@ git push -u origin feature/new-dashboard
 We use **GitHub Issues** for all tracked work—features, bugs, ideas, spikes.  
 Submit via GitHub Issues REST API with `GITHUB_TOKEN`. No automation scripts.
 
-Each issue answers: *What are we doing, why does it matter, and how will we know it's done?*
+Each issue answers: *What are we doing, why does it matter, and how will we know it’s done?*
 
 ### Issue Fields to Fill
 
@@ -324,6 +282,7 @@ Each issue answers: *What are we doing, why does it matter, and how will we know
 - **Labels** – use taxonomy below
 - **Assignee** – assign only when actively in progress
 - **Milestone** – for cycles/themes
+- **References** – include links to **design docs** where applicable
 
 ### Label Taxonomy
 
@@ -335,183 +294,72 @@ Each issue answers: *What are we doing, why does it matter, and how will we know
 | Effort    | `size:`   | `size:xs`, `size:m`, `size:xl`           |
 | Type      | `type:`   | `type:bug`, `type:feature`, `type:chore` |
 
-Use emojis in titles for quick scan: `🧠`, `🐛`, `🚀`, `📌`, etc.
+---
 
-### 📅 Milestones = Roadmap Buckets
+## 📅 13. Milestones = Roadmap Buckets
 
 Milestones replace a static `ROADMAP.md`. Use them to group issues by cycle or theme.
 
 - Examples: `May 2025`, `LLM Infra`, `Billing Cleanup`
 - Include: goal (1–2 lines), timeframe, and summary
 - Optionally close with a wrap-up issue
+- Design docs should be linked for each milestone initiative
 
-### 📌 Decision Logs
+---
 
-Capture important architectural decisions as `type:decision` issues.
+## 📌 14. Decision Logs
 
-- Title format: `📌 Decision: Move to Mastra`
-- Rationale and trade-offs should be added in comments
+Capture important design or architectural decisions as `type:decision` issues.
 
-### 🧾 How to Write Good Issues
+* Use titles like `📌 Decision: Move to Mastra`
+* Include rationale and resolution in comments
+* Reference relevant **design documents** if one informed the decision
 
-- Start with **why** – always ground in context
-- Use checklists for deliverables
-- Reference code, PRs, and past issues with links
-- Break up large problems into discrete sub-issues when possible
+---
 
-### 🚀 Proposing New Work
+## 🧾 15. How to Write Good Issues
+
+* Start with **why**
+* Use checklists if multiple deliverables
+* Use code blocks and links to previous Issues/PRs
+* Link relevant design docs from `doc/design/`
+
+---
+
+## 🚀 16. Proposing New Work
 
 Anyone can open an Issue. Use this template:
 
 ```md
 ### Summary
-What's the idea or problem?
+What’s the idea or problem?
 
 ### Why it matters
 Why now? What impact does it have?
 
 ### Proposal (if known)
-How might we tackle this?
+How might we tackle this? Link to any relevant design doc in `doc/design/`.
 
 ### Success Criteria
-What does "done" look like?
+What does “done” look like?
 ```
 
 Apply appropriate `type:` and `theme:` labels.
 
-### 🔁 Replaces These Docs
+---
+
+## 🔁 17. Replaces These Docs
 
 * `ROADMAP.md` → use Milestones
 * `PROGRESS.md` → use Labels + Issues
-* Task trackers (Notion, Google Docs) → link Issues directly
-
-### 👁️ Final Note
-
-Issues aren't just tasks—they're **shared context**.
-Write them like you're briefing a future teammate (or future you).
-
-Clear Issues create speed later.
+* Task trackers (Notion, Google Docs) → link Issues and **Design Docs**
 
 ---
 
-## 🤖 13. AI Assistant Guidelines
+## 👁️ Final Note
 
-This section contains guidelines specifically optimized for AI coding assistants.
+Issues aren't just tasks—they're **shared context**.  
+Design docs make that context durable.
 
-### 🔧 Machine-Readable Project Configuration
-
-```json
-{
-  "projectType": "monorepo",
-  "language": "typescript",
-  "strictMode": true,
-  "testFramework": "vitest",
-  "packageManager": "pnpm",
-  "commitStyle": "conventional",
-  "lintCommand": "pnpm lint",
-  "testCommand": "pnpm test",
-  "typeCheckCommand": "pnpm typecheck",
-  "buildCommand": "pnpm build",
-  "branchNamingPattern": "^(feature|fix|chore|docs|refactor|test|perf|ci)/[a-z0-9-]+$",
-  "commitMessagePattern": "^(feat|fix|chore|docs|refactor|test|perf|ci)(\\([a-z-]+\\))?: .{1,72}$"
-}
-```
-
-### 📁 Directory Purpose Annotations
-
-- `/src`: Core application code
-  - `/cli`: Command-line interfaces
-  - `/clients`: API client implementations
-  - `/commands`: Command handlers
-  - `/core`: Business logic
-  - `/estimators`: Token estimation utilities
-  - `/formatters`: Output formatting
-  - `/handlers`: Event handlers
-  - `/plugins`: Extension system
-  - `/prompts`: LLM prompt templates
-  - `/strategies`: Implementation strategies
-  - `/tokenizers`: Token counting
-  - `/types`: TypeScript definitions
-  - `/utils`: Shared utilities
-
-### 📏 Code Style Patterns
-
-**Function Signatures:**
-
-```ts
-/**
- * Description of what the function does
- * @param param1 - Description of param1
- * @returns Description of return value
- */
-function functionName(param1: Type1, param2?: Type2): ReturnType {
-  // Implementation
-}
-```
-
-**Error Handling:**
-
-```ts
-try {
-  // Operation that might fail
-} catch (error) {
-  errorLogger.logError('Context of operation', error);
-  throw new AppError('Human-readable message', { cause: error });
-}
-```
-
-**Type Definitions:**
-
-```ts
-/**
- * Description of this type
- */
-interface TypeName {
-  /** Property description */
-  requiredProp: string;
-  /** Optional property description */
-  optionalProp?: number;
-}
-```
-
-### 🧪 Test Case Patterns
-
-```ts
-describe('ModuleName', () => {
-  describe('functionName', () => {
-    it('should handle the happy path', () => {
-      // Arrange
-      const input = {};
-      // Act
-      const result = functionName(input);
-      // Assert
-      expect(result).toEqual(expected);
-    });
-
-    it('should handle error cases', () => {
-      // Test error scenarios
-    });
-  });
-});
-```
-
-### 📊 Decision Making Framework
-
-For dependencies:
-1. First use existing project utilities
-2. Then consider built-in Node.js modules
-3. Then use existing project dependencies
-4. Only then propose new dependencies, with justification
-
-For algorithms:
-1. Prioritize readability over performance unless proven bottleneck
-2. Prefer functional patterns with proper error handling
-3. Include type guards for runtime safety
-
-### 🔄 Prompt Bundling
-
-When working with AI prompts in this project:
-1. All prompts must be bundled via `src/prompts/bundledPrompts.ts`
-2. Run `pnpm build` to ensure prompt bundling works correctly
-3. Test any prompt changes with the test harness (`pnpm test`)
-4. Update schemas when prompt structure changes
+Write them like you're briefing a future teammate (or future you).  
+Clear Issues and thoughtful docs create speed later.

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-05-06
+
+### Added
+- Enhanced dependency analysis with automated vulnerability checks
+- Added comprehensive OWASP dependency scanning
+- Added stack-aware package analysis for better context
+- Added SERP API integration for security vulnerability intelligence
+- Added tooling for enhanced dependency analysis
+
+### Fixed
+- Fixed issue where Gemini reviews were returning JSON format instead of Markdown
+- Modified the prompt instructions in GeminiClient to explicitly request Markdown output
+- Ensured consistent output format across all model providers (Gemini, Anthropic, OpenAI)
+
+## [2.1.9] - 2025-05-05
+
+### Fixed
+- Fixed critical bug in global CLI installation where the executable was missing the shebang line
+- Modified build process to ensure shebang line is always included in the bundled output
+- Improved global installation reliability across different environments
+
 ## [2.1.8] - 2025-05-05
 
 ### Fixed
@@ -13,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added wrapper scripts to fix shebang line issues in CLI installations
 - Improved error handling for missing prompts with clearer diagnostics
 - Added robust testing for bundled prompt templates
+- Fixed minor issues with model validation during builds
+- Enhanced error reporting for missing API keys
 
 ## [2.1.7] - 2025-05-02
 

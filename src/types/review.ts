@@ -24,6 +24,7 @@ import { OutputFormat, ProgrammingLanguage, PriorityFilter } from './common';
  */
 export type ReviewType =
   | 'architectural'
+  | 'arch'         // Alias for architectural
   | 'quick-fixes'
   | 'security'
   | 'performance'

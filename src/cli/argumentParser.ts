@@ -107,7 +107,7 @@ export async function parseArguments(): Promise<CliOptions> {
       .option('include-dependency-analysis', {
         type: 'boolean',
         default: true,
-        describe: 'Include dependency analysis in architectural reviews'
+        describe: 'Include dependency analysis in architectural and security reviews'
       })
       .option('debug', {
         type: 'boolean',
@@ -327,6 +327,12 @@ export function validateArguments(options: CliOptions): CliOptions {
       'Interactive mode is not compatible with JSON output. Switching to markdown output.'
     );
     options.output = 'markdown';
+  }
+
+  // Handle review type aliases
+  if (options.type === 'arch') {
+    options.type = 'architectural';
+    logger.debug('Mapped review type alias "arch" to "architectural"');
   }
 
   // Validate review type
