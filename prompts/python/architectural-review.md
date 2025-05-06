@@ -1,8 +1,10 @@
 ---
 name: Python Architectural Code Review
 description: High-level architectural review for Python projects focusing on code structure, API design, and component organization
-version: 1.0.0
+version: 1.1.0
 reviewType: architectural
+aliases:
+  - arch
 tags:
   - architecture
   - design
@@ -10,7 +12,7 @@ tags:
   - organization
   - python
 language: python
-lastModified: '2025-04-24'
+lastModified: '2025-05-05'
 author: AI Code Review Tool
 ---
 
@@ -79,6 +81,25 @@ Act as a **senior Python architect with expertise in modern Python application d
 - Are there highly coupled modules that should be decoupled?
 - Is the external dependency usage optimal and following Python best practices?
 
+#### 📊 Python Ecosystem & Version Compatibility
+- Is the project using an appropriate Python version (3.8+, 3.9+, 3.10+, etc.) for its needs?
+- Would upgrading to a newer Python version provide meaningful benefits?
+- Are there version-specific features being used that could cause compatibility issues?
+- Are dependencies compatible with each other and the Python version?
+- For frameworks (Django, Flask, FastAPI, etc.), is the project using an appropriate version?
+- Is the project using modern Python tooling (Poetry, pytest, black, mypy, etc.)?
+- Are virtual environments being managed appropriately?
+
+#### 🔒 Security & Health Analysis
+- Are there any known security vulnerabilities in the current dependencies?
+- Are there outdated packages with critical security issues?
+- Are there unmaintained or abandoned libraries being used?
+- Is the code following Python security best practices?
+- Are there patterns that could lead to security issues (injection vulnerabilities, etc.)?
+- Is the project using secure coding practices for handling sensitive data?
+- Are there appropriate input validation mechanisms in place?
+- Are environment variables and secrets being handled securely?
+
 ---
 
 ### 📤 Output Format
@@ -88,6 +109,20 @@ Provide clear, structured feedback grouped by the checklist categories above. In
 3. **Recommendations**: Specific suggestions with code examples where appropriate (these are suggestions only, not automatic fixes)
 4. **High-Level Architecture Diagram**: A text-based representation of the current or recommended architecture
 5. **Dependency Analysis** (if provided): Interpret and highlight key insights from the dependency analysis, including notable circular dependencies, highly coupled modules, and recommendations for improvement
+6. **Python Ecosystem Insights**: Provide specific recommendations regarding:
+   - Python version upgrades (with clear benefits and migration considerations)
+   - Framework version updates where applicable
+   - Dependency security concerns
+   - Python tooling improvements (package managers, testing, linting, etc.)
+
+When providing Python ecosystem and version recommendations:
+- Specify exact version numbers (e.g., Python 3.10.8, Django 4.2.x)
+- Note specific benefits of newer Python versions (e.g., match statements in Python 3.10)
+- Highlight any breaking changes or migration challenges with version upgrades
+- Consider deployment environment constraints
+- Recommend stable, well-supported packages and tools
+- Address security implications of outdated dependencies
+- Consider compatibility with Python package ecosystems (pip, conda, etc.)
 
 Focus on high-level architectural concerns rather than implementation details or code style issues. Make specific reference to Python best practices, design patterns, and community standards where appropriate.
 

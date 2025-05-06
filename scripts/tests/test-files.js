@@ -5,6 +5,11 @@ const { glob } = require('glob');
 // Function to test file detection
 async function testFileDetection(targetPath) {
   console.log('Testing file detection for:', targetPath);
+const path = require('path');
+
+// Set project root path for correct file references
+const projectRoot = path.join(__dirname, '../..');
+
   
   try {
     // Get all files matching the patterns

@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+const path = require('path');
+
+// Set project root path for correct file references
+const projectRoot = path.join(__dirname, '../../..');
+
 
 /**
  * Simple test script for verifying tool calling implementation
@@ -8,7 +13,7 @@
  */
 
 // Import necessary packages
-const { hasSerpApiConfig } = require('./src/utils/dependencies/serpApiHelper');
+const { hasSerpApiConfig } = require('../../../src/utils/dependencies/serpApiHelper');
 const path = require('path');
 const fs = require('fs');
 

@@ -9,6 +9,10 @@ function listFiles(directory, extension, callback) {
       callback(error, null);
       return;
     }
+
+// Set project root path for correct file references
+const projectRoot = path.join(__dirname, '../..');
+
     
     const files = stdout.trim().split('\n').filter(Boolean);
     callback(null, files);

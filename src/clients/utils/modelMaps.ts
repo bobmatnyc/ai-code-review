@@ -21,6 +21,7 @@ export interface ModelMapping {
   contextWindow?: number;
   description?: string;
   apiKeyEnvVar: string;
+  supportsToolCalling?: boolean;
 }
 
 export const MODEL_MAP: Record<string, ModelMapping> = {
@@ -32,7 +33,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     useV1Beta: true,
     contextWindow: 1000000,
     description: 'Enhanced reasoning and multimodal capabilities',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY',
+    supportsToolCalling: false
   },
   // Flash-lite variant for tests
   'gemini:gemini-2.0-flash-lite': {
@@ -41,7 +43,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'gemini',
     contextWindow: 1000000,
     description: 'Lightweight, fast variant of Gemini flash model',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY',
+    supportsToolCalling: false
   },
   'gemini:gemini-2.0-flash': {
     apiName: 'gemini-2.0-flash',
@@ -49,7 +52,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'gemini',
     contextWindow: 1000000,
     description: 'Balanced performance and quality',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_GOOGLE_API_KEY',
+    supportsToolCalling: false
   },
 
   // Updated Anthropic models (with test-specific sonnet & haiku)
@@ -59,7 +63,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'anthropic',
     contextWindow: 200000,
     description: "Anthropic's most powerful model (earlier version)",
-    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
+    supportsToolCalling: true
   },
   'anthropic:claude-3-sonnet': {
     apiName: 'claude-3-sonnet',
@@ -67,7 +72,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'anthropic',
     contextWindow: 200000,
     description: 'Advanced Claude sonnet model',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
+    supportsToolCalling: true
   },
   'anthropic:claude-3-haiku': {
     apiName: 'claude-3-haiku',
@@ -75,7 +81,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'anthropic',
     contextWindow: 200000,
     description: 'Concise Haiku-style output from Claude',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
+    supportsToolCalling: true
   },
 
   // Updated OpenAI models
@@ -85,7 +92,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openai',
     contextWindow: 1000000,
     description: 'Latest coding-oriented GPT model',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY',
+    supportsToolCalling: true
   },
   'openai:gpt-4o': {
     apiName: 'gpt-4o',
@@ -93,7 +101,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openai',
     contextWindow: 128000,
     description: 'Multimodal model with native image/audio/text support',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY',
+    supportsToolCalling: true
   },
   'openai:gpt-4.5': {
     apiName: 'gpt-4.5',
@@ -101,7 +110,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openai',
     contextWindow: 128000,
     description: 'Preview model with advanced reasoning and collaboration tools',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY',
+    supportsToolCalling: true
   },
   // Turbo and 3.5 variants for tests
   'openai:gpt-4-turbo': {
@@ -110,7 +120,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openai',
     contextWindow: 1000000,
     description: 'Optimized version of GPT-4 with faster response times',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY',
+    supportsToolCalling: true
   },
   'openai:gpt-3.5-turbo': {
     apiName: 'gpt-3.5-turbo',
@@ -118,7 +129,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openai',
     contextWindow: 4096,
     description: 'Cost-effective turbo model for GPT-3.5',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENAI_API_KEY',
+    supportsToolCalling: false
   },
 
   // OpenRouter provider models matching tests
@@ -128,7 +140,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openrouter',
     contextWindow: 200000,
     description: 'Claude 3 Opus model served via OpenRouter',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+    supportsToolCalling: false
   },
   'openrouter:anthropic/claude-3-sonnet': {
     apiName: 'anthropic/claude-3-sonnet',
@@ -136,7 +149,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openrouter',
     contextWindow: 200000,
     description: 'Claude 3 Sonnet model served via OpenRouter',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+    supportsToolCalling: false
   },
   'openrouter:anthropic/claude-3-haiku': {
     apiName: 'anthropic/claude-3-haiku',
@@ -144,7 +158,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openrouter',
     contextWindow: 200000,
     description: 'Claude 3 Haiku model served via OpenRouter',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+    supportsToolCalling: false
   },
   'openrouter:openai/gpt-4o': {
     apiName: 'openai/gpt-4o',
@@ -152,7 +167,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openrouter',
     contextWindow: 128000,
     description: 'GPT-4o model served via OpenRouter',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+    supportsToolCalling: false
   },
   'openrouter:openai/gpt-4-turbo': {
     apiName: 'openai/gpt-4-turbo',
@@ -160,7 +176,8 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     provider: 'openrouter',
     contextWindow: 1000000,
     description: 'GPT-4 Turbo model served via OpenRouter',
-    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+    supportsToolCalling: false
   }
 };
 
@@ -253,4 +270,14 @@ export function parseModelString(modelString: string): {
  */
 export function getFullModelKey(provider: Provider, modelName: string): string {
   return `${provider}:${modelName}`;
+}
+
+/**
+ * Check if a model supports tool calling
+ * @param modelKey The full model key (e.g., 'openai:gpt-4o')
+ * @returns True if the model supports tool calling, false otherwise
+ */
+export function supportsToolCalling(modelKey: string): boolean {
+  const mapping = getModelMapping(modelKey);
+  return mapping?.supportsToolCalling || false;
 }

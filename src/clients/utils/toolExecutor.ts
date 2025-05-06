@@ -26,23 +26,44 @@ import {
  */
 export async function executeToolCall(toolName: string, args: any): Promise<any> {
   logger.debug(`Executing tool call: ${toolName} with arguments: ${JSON.stringify(args)}`);
+  logger.info(`Executing dependency analysis tool: ${toolName}`);
   
   // Ensure SERPAPI_KEY is available
   if (!hasSerpApiConfig()) {
+    logger.error(`SERPAPI_KEY not found in environment variables. Tool calling requires this key to be set.`);
     return 'No SERPAPI_KEY configured. Tool call execution skipped.';
   }
   
+  logger.debug(`SERPAPI_KEY is configured, proceeding with tool execution`);
+  
   try {
+    // Log detailed information about the call
+    logger.info(`Tool call context: ${JSON.stringify({
+      toolName,
+      argumentsProvided: Object.keys(args),
+      serpApiConfigured: hasSerpApiConfig(),
+      environmentVarsAvailable: Object.keys(process.env)
+        .filter(key => key.startsWith('SERPAPI') || key.includes('API_KEY'))
+        .join(', ')
+    })}`);
+    
     switch (toolName) {
       case 'search_dependency_security':
-        return await executeDependencySecuritySearch(args);
+        const securityResult = await executeDependencySecuritySearch(args);
+        logger.info(`Dependency security search completed for ${args.package_name}`);
+        return securityResult;
+        
       case 'batch_search_dependency_security':
-        return await executeBatchDependencySecuritySearch(args);
+        const batchResult = await executeBatchDependencySecuritySearch(args);
+        logger.info(`Batch dependency security search completed for ${args.packages?.length || 0} packages`);
+        return batchResult;
+        
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
   } catch (error) {
     logger.error(`Error executing tool call ${toolName}: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(`Error details: ${error instanceof Error && error.stack ? error.stack : 'No stack trace available'}`);
     return `Error executing tool call: ${error instanceof Error ? error.message : 'Unknown error'}`;
   }
 }

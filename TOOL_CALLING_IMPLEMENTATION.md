@@ -84,7 +84,63 @@ The tool calling implementation can be tested using two approaches:
 1. **Mock Testing**: Using mock data to simulate tool calling without making actual API calls.
 2. **Integration Testing**: Using real API keys to test the full functionality.
 
-The `test-mock-data.js` script provides a standalone simulation of the tool calling workflow.
+### Test Scripts
+
+All test scripts are located in the `scripts/tests` directory, with tool calling-specific tests in the `scripts/tests/tool-calling` subdirectory.
+
+To run any test script:
+
+```bash
+./scripts/run-tests.sh <test-name>
+```
+
+For example:
+
+```bash
+# Run mock data test
+./scripts/run-tests.sh tool-calling/test-mock-data.js
+
+# Run mock SERPAPI test
+./scripts/run-tests.sh tool-calling/test-mock-serpapi.js
+```
+
+To run all tool calling tests at once:
+
+```bash
+./scripts/tests/run-all-tool-tests.sh
+```
+
+To list all available tests:
+
+```bash
+./scripts/run-tests.sh
+```
+
+### Available Test Scripts
+
+#### Main Test Scripts
+
+- `standalone-test.js`: Detailed simulation of the tool calling flow for both providers
+- `test-tool-calling.js`: General test for tool calling
+- `test-simple-tool-calling.js`: Simple test for tool calling functionality
+- `test-code-tracing.sh`: Tests code tracing for unused code reviews
+- `test-file-detection.js`: Tests file discovery and filtering
+- `test-files.js`: Tests file system utilities
+- `test-metadata-headers.js`: Tests metadata handling in prompts
+- `real-world-test-improved.js`: Improved real-world test with mock responses
+
+#### Tool Calling Specific Scripts
+
+- `test-mock-data.js`: Standalone simulation of the tool calling workflow
+- `test-mock-serpapi.js`: Test with mock SERPAPI implementation
+- `test-tool-calling-local.js`: Test with ts-node for local development
+- `real-world-test.js`: Test with real project dependencies
+- `run-live-test.js`: Test with live API and SERPAPI calls
+- `run-mock-test.js`: Run tool calling test with mock API responses
+- `direct-test.js` and `direct-test.mjs`: Direct tests of the SERPAPI functionality
+- `test-gemini.js`: Test Gemini model connectivity
+
+All these tests help ensure that the tool calling implementation works correctly across different providers and scenarios.
 
 ## Configuration
 

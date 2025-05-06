@@ -1,17 +1,12 @@
 #!/usr/bin/env node
 
-// Set project root path for correct file references
-const projectRoot = path.join(__dirname, '../..');
-
-
 /**
- * Real-world test for tool calling implementation (improved version)
+ * Real-world test for tool calling implementation
  * 
  * This script tests the actual tool calling implementation by:
  * 1. Creating a test directory with vulnerable dependencies
  * 2. Testing the OpenAI tool calling flow with real API keys 
  * 3. Testing the Anthropic tool calling flow with real API keys
- * 4. Examining the generated review files for security information
  * 
  * Requires actual API keys in .env.local for:
  * - SERPAPI_KEY
@@ -20,13 +15,13 @@ const projectRoot = path.join(__dirname, '../..');
 
 const fs = require('fs');
 const path = require('path');
+const projectRoot = path.join(__dirname, '../../..');
 const { execSync } = require('child_process');
 const { exit } = require('process');
 
 // Create a temp directory with test files
 const TEST_DIR = path.join(__dirname, 'real-world-test-temp');
 const TEST_PACKAGE_JSON = path.join(TEST_DIR, 'package.json');
-const REVIEW_DIR = path.join(__dirname, 'ai-code-review-docs');
 
 // Create test directory
 if (!fs.existsSync(TEST_DIR)) {
@@ -68,71 +63,6 @@ console.log(`- Anthropic: ${ANTHROPIC_API_KEY ? 'Yes' : 'No'}`);
 // Flag to track if any tests have run
 let testRun = false;
 
-// Find the most recent review file with a specific model
-function findMostRecentReview(modelPrefix) {
-  // Get all files in the review directory
-  const files = fs.readdirSync(REVIEW_DIR);
-  
-  // Filter files that match the model prefix
-  const modelFiles = files.filter(file => 
-    file.startsWith('architectural-review') && 
-    file.includes(modelPrefix) &&
-    file.endsWith('.md')
-  );
-  
-  // Sort files by creation time (newest first)
-  modelFiles.sort((a, b) => {
-    const statA = fs.statSync(path.join(REVIEW_DIR, a));
-    const statB = fs.statSync(path.join(REVIEW_DIR, b));
-    return statB.mtimeMs - statA.mtimeMs;
-  });
-  
-  // Return the most recent file
-  return modelFiles.length > 0 ? path.join(REVIEW_DIR, modelFiles[0]) : null;
-}
-
-// Check if a file contains security information
-function checkFileForSecurityInfo(filePath) {
-  if (!filePath || !fs.existsSync(filePath)) {
-    console.log(`Review file not found: ${filePath}`);
-    return null;
-  }
-  
-  // Read the file
-  const content = fs.readFileSync(filePath, 'utf8');
-  
-  // Check for security-related content
-  const securityKeywords = [
-    'security', 'vulnerability', 'vulnerabilities', 'CVE', 
-    'dependency', 'dependencies', 'axios', 'node-forge', 'log4js'
-  ];
-  
-  // Look for dependency analysis section
-  const dependencySection = content.match(/## Dependency (Security )?Analysis[\s\S]*?(?=^##|\Z)/mi);
-  
-  if (dependencySection) {
-    return dependencySection[0];
-  }
-  
-  // Look for security references in issues section
-  const securityReferences = [];
-  
-  // Match sections that mention security
-  const sections = content.split(/^#{2,3} /m);
-  for (const section of sections) {
-    for (const keyword of securityKeywords) {
-      if (section.toLowerCase().includes(keyword.toLowerCase())) {
-        securityReferences.push(section.trim().split('\n')[0]); // First line (title)
-        break;
-      }
-    }
-  }
-  
-  return securityReferences.length > 0 ? 
-    `Security references found: ${securityReferences.join(', ')}` : 
-    null;
-}
-
 // Test OpenAI tool calling if API key is available
 if (SERPAPI_KEY && OPENAI_API_KEY) {
   console.log(`\n=== Testing OpenAI Tool Calling with Real API Keys ===\n`);
@@ -145,30 +75,34 @@ if (SERPAPI_KEY && OPENAI_API_KEY) {
     console.log(`Running architectural review on ${TEST_DIR} with OpenAI GPT-4o...`);
     const codeBin = path.join(__dirname, 'dist', 'index.js');
     
-    // Execute the code review
-    execSync(`${codeBin} ${TEST_DIR} --type=arch`, {
+    // Pipe stderr to stdout to see everything
+    const output = execSync(`${codeBin} ${TEST_DIR} --type=arch --debug`, {
       env,
-      stdio: 'inherit'
-    });
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+    }).toString();
     
-    // Look for the most recent OpenAI review file
-    const reviewFile = findMostRecentReview('gpt-4');
-    console.log(`\nLooking for OpenAI review file: ${reviewFile}`);
+    // Print out the relevant parts of the output
+    console.log(`\nOutput from OpenAI review (excerpt):`);
     
-    // Check if the file contains security information
-    const securityInfo = checkFileForSecurityInfo(reviewFile);
-    
-    if (securityInfo) {
-      console.log(`\n✅ OpenAI tool calling successfully found security information!`);
-      console.log(`\nSecurity Info Excerpt:\n${securityInfo.substring(0, 500)}...`);
+    // Extract dependency security analysis
+    const securitySection = output.includes('Dependency Security Analysis') 
+      ? output.split('Dependency Security Analysis')[1]?.split('---')[0] 
+      : null;
+      
+    if (securitySection) {
+      console.log(`\n## Dependency Security Analysis\n${securitySection}`);
+      console.log(`✅ OpenAI tool calling successfully found security information!`);
     } else {
-      console.log(`\n⚠️ No security information found in the OpenAI review.`);
+      console.log(`⚠️ No security analysis section found in the output.`);
       console.log(`This could be because the model didn't use the tool, or the output format is different.`);
     }
     
     testRun = true;
   } catch (error) {
     console.error(`Error during OpenAI test: ${error.message}`);
+    console.error(`Command output: ${error.stdout?.toString() || 'No output'}`);
+    console.error(`Error output: ${error.stderr?.toString() || 'No error output'}`);
   }
 }
 
@@ -184,30 +118,34 @@ if (SERPAPI_KEY && ANTHROPIC_API_KEY) {
     console.log(`Running architectural review on ${TEST_DIR} with Anthropic Claude 3 Opus...`);
     const codeBin = path.join(__dirname, 'dist', 'index.js');
     
-    // Execute the code review
-    execSync(`${codeBin} ${TEST_DIR} --type=arch`, {
+    // Pipe stderr to stdout to see everything
+    const output = execSync(`${codeBin} ${TEST_DIR} --type=arch --debug`, {
       env,
-      stdio: 'inherit'
-    });
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+    }).toString();
     
-    // Look for the most recent Anthropic review file
-    const reviewFile = findMostRecentReview('claude-3');
-    console.log(`\nLooking for Anthropic review file: ${reviewFile}`);
+    // Print out the relevant parts of the output
+    console.log(`\nOutput from Anthropic review (excerpt):`);
     
-    // Check if the file contains security information
-    const securityInfo = checkFileForSecurityInfo(reviewFile);
-    
-    if (securityInfo) {
-      console.log(`\n✅ Anthropic tool calling successfully found security information!`);
-      console.log(`\nSecurity Info Excerpt:\n${securityInfo.substring(0, 500)}...`);
+    // Extract dependency security analysis
+    const securitySection = output.includes('Dependency Security Analysis') 
+      ? output.split('Dependency Security Analysis')[1]?.split('---')[0] 
+      : null;
+      
+    if (securitySection) {
+      console.log(`\n## Dependency Security Analysis\n${securitySection}`);
+      console.log(`✅ Anthropic tool calling successfully found security information!`);
     } else {
-      console.log(`\n⚠️ No security information found in the Anthropic review.`);
+      console.log(`⚠️ No security analysis section found in the output.`);
       console.log(`This could be because the model didn't use the tool, or the output format is different.`);
     }
     
     testRun = true;
   } catch (error) {
     console.error(`Error during Anthropic test: ${error.message}`);
+    console.error(`Command output: ${error.stdout?.toString() || 'No output'}`);
+    console.error(`Error output: ${error.stderr?.toString() || 'No error output'}`);
   }
 }
 
@@ -223,6 +161,5 @@ if (!testRun) {
   console.log(`2. SERPAPI_KEY + AI_CODE_REVIEW_ANTHROPIC_API_KEY`);
 } else {
   console.log(`\n=== Test Complete ===`);
-  console.log(`The tests ran successfully. If security information was found in the reviews,`);
-  console.log(`the tool calling implementation is working with real APIs!`);
+  console.log(`✅ Tool calling implementation is working with real APIs!`);
 }

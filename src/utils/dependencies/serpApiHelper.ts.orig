@@ -37,14 +37,7 @@ export interface DependencySecurityInfo {
  * @returns True if SerpAPI is available, false otherwise
  */
 export function hasSerpApiConfig(): boolean {
-  const hasKey = !!process.env.SERPAPI_KEY;
-  logger.debug(`SERPAPI_KEY available: ${hasKey ? 'YES' : 'NO'}`);
-  if (hasKey) {
-    logger.debug(`SERPAPI_KEY first 5 chars: ${process.env.SERPAPI_KEY?.substring(0, 5)}...`);
-  } else {
-    logger.warn('SERPAPI_KEY not found in environment variables. Set this key to enable package security analysis.');
-  }
-  return hasKey;
+  return !!process.env.SERPAPI_KEY;
 }
 
 /**
