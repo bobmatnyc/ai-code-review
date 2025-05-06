@@ -247,3 +247,27 @@ export async function readMultipleFiles(
   const filePromises = filePaths.map(filePath => readFileInfo(filePath));
   return Promise.all(filePromises);
 }
+
+/**
+ * Get files to review based on the target path
+ * @param targetPath The target file or directory path
+ * @param isFile Whether the target is a file
+ * @param includeTests Whether to include test files
+ * @returns Array of file paths to review
+ */
+export async function getFilesToReview(
+  targetPath: string,
+  isFile: boolean,
+  includeTests: boolean = false
+): Promise<string[]> {
+  if (isFile) {
+    // If the target is a file, just return it
+    return [targetPath];
+  } else {
+    // If the target is a directory, discover files
+    return discoverFiles(targetPath, {
+      includeTests,
+      maxDepth: 10
+    });
+  }
+}
