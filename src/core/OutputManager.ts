@@ -139,33 +139,46 @@ export async function saveReviewOutput(
       formattedOutput = addFileTreeToReview(formattedOutput, files, options.output);
     }
 
-    // If this is a security review and dependency analysis is enabled, add package security information
-    if (options.type === 'security' && options.includeDependencyAnalysis) {
+    // For architectural and security reviews, dependency analysis is ON by default unless explicitly disabled
+    const reviewTypeNeedsDependencyAnalysis = ['architectural', 'security'].includes(options.type);
+    if (reviewTypeNeedsDependencyAnalysis && options.includeDependencyAnalysis !== false) {
+      console.log(`=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`);
+      logger.info(`=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`);
       try {
-        const { createDependencySecuritySection } = require('../utils/dependencies/packageSecurityAnalyzer');
-        logger.info('Performing package security analysis for security review...');
-        const securitySection = await createDependencySecuritySection(path.resolve(process.cwd()));
+        // Import the module directly to avoid require() issues
+        const packageSecurityAnalyzer = await import('../utils/dependencies/packageSecurityAnalyzer');
+        logger.info(`Performing enhanced dependency analysis for ${options.type} review...`);
         
-        // Append security section to the review
+        // Use project directory path instead of current working directory to ensure correct analysis
+        const projectPath = files && files.length > 0 ? path.dirname(files[0].path) : path.resolve(process.cwd());
+        console.log(`Project path for dependency analysis: ${projectPath}`);
+        logger.info(`Project path for dependency analysis: ${projectPath}`);
+        
+        // Run the enhanced dependency analysis
+        const securitySection = await packageSecurityAnalyzer.createDependencySecuritySection(projectPath);
+        
+        // Append dependency analysis section to the review
         if (options.output === 'json') {
           try {
-            // Parse JSON, add security section, and stringify again
+            // Parse JSON, add dependency analysis section, and stringify again
             const reviewObj = JSON.parse(formattedOutput);
-            reviewObj.packageSecurityAnalysis = securitySection;
+            reviewObj.dependencyAnalysis = securitySection;
             formattedOutput = JSON.stringify(reviewObj, null, 2);
+            logger.info('Enhanced dependency analysis added to JSON review output');
           } catch (error) {
-            logger.warn(`Error adding security section to JSON review: ${error}`);
+            logger.warn(`Error adding dependency analysis section to JSON review: ${error}`);
             // If JSON parsing fails, append as text
             formattedOutput += `\n\n${securitySection}`;
+            logger.info('Enhanced dependency analysis appended as text to JSON review (JSON parsing failed)');
           }
         } else {
           // For markdown, append at the end
           formattedOutput += `\n\n${securitySection}`;
+          logger.info('Enhanced dependency analysis added to markdown review output');
         }
-        
-        logger.info('Package security analysis added to security review');
       } catch (error) {
-        logger.error(`Error performing package security analysis for security review: ${error}`);
+        logger.error(`Error performing enhanced dependency analysis for ${options.type} review: ${error}`);
+        logger.error(error instanceof Error ? error.stack : 'No stack trace available');
       }
     }
 

@@ -23,8 +23,7 @@ import logger from '../utils/logger';
 // Import the getApiKeyType function from a shared utilities file
 import { getApiKeyType } from '../utils/apiUtils';
 
-// Import the package security analyzer
-import { createDependencySecuritySection } from '../utils/dependencies/packageSecurityAnalyzer';
+// Package security analyzer is dynamically imported
 
 /**
  * Handle architectural review for the entire codebase
@@ -45,6 +44,9 @@ export async function handleArchitecturalReview(
   originalTarget: string = ''
 ): Promise<void> {
   logger.info('Performing architectural review of the entire codebase...');
+  logger.info('****** DEPENDENCY ANALYSIS WILL BE PERFORMED AUTOMATICALLY ******');
+  logger.info(`Dependency analysis is ${options.includeDependencyAnalysis !== false ? 'ENABLED' : 'DISABLED'}`);
+  logger.info('*****************************************************************');
 
   // Collect file information
   const fileInfos: FileInfo[] = [];
@@ -216,6 +218,40 @@ export async function handleArchitecturalReview(
     // Format with the standard formatter
     let formattedOutput = formatReviewOutput(review, options.output);
     
+    // For architectural reviews, dependency analysis is now handled by the OutputManager
+    // This ensures consistent behavior across different review types
+    // The OutputManager will run the dependency analysis after file tree is added
+    // and before the review is written to disk
+    
+    // We keep this flag here for backward compatibility and logging purposes
+    const includeDependencyAnalysis = options.includeDependencyAnalysis !== false;
+    console.log(`=========== DEPENDENCY ANALYSIS ${includeDependencyAnalysis ? 'ENABLED' : 'DISABLED'} ===========`);
+    logger.info(`=========== DEPENDENCY ANALYSIS ${includeDependencyAnalysis ? 'ENABLED' : 'DISABLED'} ===========`);
+    
+    // Check project path for logging purposes
+    if (includeDependencyAnalysis) {
+      if (!projectPath) {
+        logger.error('Project path is undefined or empty for dependency analysis');
+      } else {
+        try {
+          // Check if the directory exists - just for logging/debugging
+          const exists = await fs.access(projectPath).then(() => true).catch(() => false);
+          logger.info(`Project directory exists: ${exists}, path: ${projectPath}`);
+          
+          // Check for package.json as a sanity check
+          const testPath = path.join(projectPath, 'package.json');
+          const packageJsonExists = await fs.access(testPath).then(() => true).catch(() => false);
+          logger.info(`package.json exists: ${packageJsonExists}, path: ${testPath}`);
+          
+          logger.info('Dependency analysis will be performed by OutputManager');
+        } catch (fsError) {
+          logger.error(`File system error checking project path: ${fsError}`);
+        }
+      }
+    } else {
+      logger.info('Dependency analysis is disabled in options');
+    }
+    
     // Now add file tree using the new helper function in OutputManager
     try {
       // Log file info debug info
@@ -236,34 +272,6 @@ export async function handleArchitecturalReview(
     }
 
     try {
-      // If dependency analysis is enabled, add package security information
-      if (options.includeDependencyAnalysis) {
-        try {
-          logger.info('Performing package security analysis...');
-          const securitySection = await createDependencySecuritySection(projectPath);
-          
-          // Append security section to the review
-          if (options.output === 'json') {
-            try {
-              // Parse JSON, add security section, and stringify again
-              const reviewObj = JSON.parse(formattedOutput);
-              reviewObj.packageSecurityAnalysis = securitySection;
-              formattedOutput = JSON.stringify(reviewObj, null, 2);
-            } catch (error) {
-              logger.warn(`Error adding security section to JSON review: ${error}`);
-              // If JSON parsing fails, append as text
-              formattedOutput += `\n\n${securitySection}`;
-            }
-          } else {
-            // For markdown, append at the end
-            formattedOutput += `\n\n${securitySection}`;
-          }
-          
-          logger.info('Package security analysis added to review');
-        } catch (error) {
-          logger.error(`Error performing package security analysis: ${error}`);
-        }
-      }
       
       await fs.writeFile(outputPath, formattedOutput);
       logger.info(`Architectural review saved to: ${outputPath}`);
