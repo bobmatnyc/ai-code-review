@@ -72,3 +72,4 @@ fix-*.md
 force-*.sh
 
 **/.claude/settings.local.json
+test-projects/typescript
