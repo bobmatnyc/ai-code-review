@@ -18,7 +18,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileExists, readFile, writeFile } from './fileSystem';
 import readline from 'readline';
-import { parseReviewJson, displayStructuredReview } from './reviewParser';
+import { parseReviewJson, displayStructuredReview } from './parsing/reviewParser';
 import logger from './logger';
 
 /**

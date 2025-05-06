@@ -5,3 +5,4 @@
  */
 
 export * from './apiUtils';
+export * from './rateLimiter';
