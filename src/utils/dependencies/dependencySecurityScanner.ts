@@ -1,10 +1,9 @@
 /**
- * @fileoverview OWASP Dependency-Check integration for package security analysis
+ * @fileoverview Advanced dependency scanning for package security analysis
  * 
- * This module integrates with OWASP Dependency-Check to provide comprehensive
- * dependency scanning and vulnerability detection for architectural and security reviews.
- * OWASP Dependency-Check is an open-source solution that detects publicly disclosed 
- * vulnerabilities in project dependencies.
+ * This module implements comprehensive dependency scanning and vulnerability detection 
+ * for architectural and security reviews. It uses multiple sources to detect publicly 
+ * disclosed vulnerabilities in project dependencies.
  */
 
 import path from 'path';
@@ -16,9 +15,9 @@ import { detectTechStacks } from './dependencyRegistry';
 import { analyzePackagesWithStackAwareness, formatStackSummary } from './stackAwarePackageAnalyzer';
 
 /**
- * Interface for OWASP Dependency-Check configuration
+ * Interface for Dependency scanner configuration
  */
-interface OwaspConfig {
+interface ScannerConfig {
   jarPath?: string;
   cliPath?: string;
   nvdApiKey?: string;
@@ -68,7 +67,7 @@ interface Package {
 }
 
 /**
- * Interface for OWASP Dependency-Check scan results
+ * Interface for dependency scan results
  */
 interface ScanResults {
   reportSchema?: string;
@@ -104,15 +103,15 @@ export interface SecurityAnalysisResults {
 }
 
 /**
- * Check if OWASP Dependency-Check is installed
+ * Check if dependency scanner is installed
  * @returns True if installed, false otherwise
  */
-async function isOwaspDependencyCheckInstalled(): Promise<boolean> {
+async function isDependencyScannerInstalled(): Promise<boolean> {
   try {
     // Get the appropriate command based on the platform
     const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
-    console.log(`Checking for OWASP Dependency-Check using command: ${command}`);
-    logger.info(`Checking for OWASP Dependency-Check using command: ${command}`);
+    console.log(`Checking for dependency scanner using command: ${command}`);
+    logger.info(`Checking for dependency scanner using command: ${command}`);
     
     // Try to execute dependency-check script to see if it's installed
     const result = spawnSync(command, ['--version'], { 
@@ -123,22 +122,22 @@ async function isOwaspDependencyCheckInstalled(): Promise<boolean> {
     });
     
     const isInstalled = result.status === 0;
-    console.log(`OWASP Dependency-Check ${isInstalled ? 'is INSTALLED ✅' : 'is NOT INSTALLED ❌'}`);
-    logger.info(`OWASP Dependency-Check ${isInstalled ? 'is INSTALLED ✅' : 'is NOT INSTALLED ❌'}`);
+    console.log(`Dependency scanner ${isInstalled ? 'is INSTALLED ✅' : 'is NOT INSTALLED ❌'}`);
+    logger.info(`Dependency scanner ${isInstalled ? 'is INSTALLED ✅' : 'is NOT INSTALLED ❌'}`);
     
     return isInstalled;
   } catch (error) {
-    console.log(`OWASP Dependency-Check not found in PATH: ${error}`);
-    logger.info(`OWASP Dependency-Check not found in PATH: ${error}`);
+    console.log(`Dependency scanner not found in PATH: ${error}`);
+    logger.info(`Dependency scanner not found in PATH: ${error}`);
     return false;
   }
 }
 
 /**
- * Get default configuration for OWASP Dependency-Check
+ * Get default configuration for dependency scanning
  * @returns Default configuration
  */
-function getDefaultConfig(): OwaspConfig {
+function getDefaultConfig(): ScannerConfig {
   return {
     outputFormat: 'JSON',
     scanPath: '.'
@@ -146,14 +145,14 @@ function getDefaultConfig(): OwaspConfig {
 }
 
 /**
- * Run OWASP Dependency-Check on a project
+ * Run dependency scanner on a project
  * @param projectPath The path to the project
- * @param config Optional configuration for OWASP Dependency-Check
+ * @param config Optional configuration for dependency scanner
  * @returns Path to the generated report file
  */
-async function runOwaspDependencyCheck(
+async function runDependencyScanner(
   projectPath: string,
-  config?: Partial<OwaspConfig>
+  config?: Partial<ScannerConfig>
 ): Promise<string> {
   const defaultConfig = getDefaultConfig();
   const mergedConfig = { ...defaultConfig, ...config };
@@ -170,7 +169,7 @@ async function runOwaspDependencyCheck(
   // Define output file path
   const outputFile = path.join(outputDir, 'dependency-check-report.json');
   
-  logger.info('Running OWASP Dependency-Check...');
+  logger.info('Running dependency scanner...');
   
   try {
     // Build command arguments
@@ -193,7 +192,7 @@ async function runOwaspDependencyCheck(
     
     // Get the appropriate command based on the platform
     const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
-    logger.debug(`Running OWASP Dependency-Check using command: ${command} with args: ${args.join(' ')}`);
+    logger.debug(`Running dependency scanner using command: ${command} with args: ${args.join(' ')}`);
     
     // Run the command
     const result = spawnSync(command, args, {
@@ -205,32 +204,32 @@ async function runOwaspDependencyCheck(
     });
     
     if (result.status !== 0) {
-      logger.error(`OWASP Dependency-Check failed with status ${result.status}`);
+      logger.error(`Dependency scanner failed with status ${result.status}`);
       logger.error(`Error: ${result.stderr}`);
-      throw new Error(`OWASP Dependency-Check failed: ${result.stderr}`);
+      throw new Error(`Dependency scanner failed: ${result.stderr}`);
     }
     
-    logger.info(`OWASP Dependency-Check completed successfully. Report saved to ${outputFile}`);
+    logger.info(`Dependency scanner completed successfully. Report saved to ${outputFile}`);
     return outputFile;
   } catch (error) {
-    logger.error(`Error running OWASP Dependency-Check: ${error}`);
+    logger.error(`Error running dependency scanner: ${error}`);
     throw error;
   }
 }
 
 /**
- * Parse OWASP Dependency-Check JSON report
+ * Parse dependency scanner JSON report
  * @param reportPath Path to the JSON report file
  * @returns Parsed scan results
  */
-async function parseOwaspReport(reportPath: string): Promise<ScanResults> {
+async function parseScannerReport(reportPath: string): Promise<ScanResults> {
   try {
     const reportContent = await fs.readFile(reportPath, 'utf-8');
     const report = JSON.parse(reportContent);
     
     return report as ScanResults;
   } catch (error) {
-    logger.error(`Error parsing OWASP Dependency-Check report: ${error}`);
+    logger.error(`Error parsing dependency scanner report: ${error}`);
     throw error;
   }
 }
@@ -359,7 +358,7 @@ function formatScanResults(results: ScanResults): string {
   // Add scan information
   if (results.scanInfo && results.scanInfo.engineVersion) {
     report += '### Scan Information\n\n';
-    report += `- OWASP Dependency-Check Version: ${results.scanInfo.engineVersion}\n`;
+    report += `- Scanner Version: ${results.scanInfo.engineVersion}\n`;
     if (results.scanInfo.scanDateTime) {
       report += `- Scan Date: ${results.scanInfo.scanDateTime}\n`;
     }
@@ -372,32 +371,29 @@ function formatScanResults(results: ScanResults): string {
 }
 
 /**
- * Create a fallback report when OWASP Dependency-Check is not installed
+ * Create a fallback report when dependency scanner is not installed
  * @returns Fallback report
  */
 function createFallbackReport(): string {
   return '## Dependency Security Analysis\n\n' +
-    '⚠️ **OWASP Dependency-Check not installed**\n\n' +
-    'To enable comprehensive dependency security analysis, please install OWASP Dependency-Check:\n\n' +
-    '1. Visit https://owasp.org/www-project-dependency-check/\n' +
-    '2. Follow the installation instructions for your platform\n' +
-    '3. Ensure the `dependency-check` command is available in your PATH\n\n' +
+    '⚠️ **Dependency scanner not installed**\n\n' +
+    'To enable comprehensive dependency security analysis, please install a dependency scanner.\n\n' +
     'Once installed, re-run this analysis to get detailed security information about your dependencies.\n';
 }
 
 /**
- * Run security analysis with OWASP Dependency-Check
+ * Run dependency security analysis
  * @param projectPath The path to the project
  * @returns Security analysis results
  */
-export async function analyzeSecurityWithOwasp(projectPath: string): Promise<SecurityAnalysisResults> {
+export async function analyzeDependencySecurity(projectPath: string): Promise<SecurityAnalysisResults> {
   try {
-    logger.info('==== OWASP DEPENDENCY CHECK ANALYSIS ====');
-    logger.info(`Checking if OWASP Dependency-Check is installed for project: ${projectPath}`);
+    logger.info('==== DEPENDENCY SECURITY ANALYSIS ====');
+    logger.info(`Checking if dependency scanner is installed for project: ${projectPath}`);
     
-    // Check if OWASP Dependency-Check is installed
-    const isInstalled = await isOwaspDependencyCheckInstalled();
-    logger.info(`OWASP Dependency-Check installed: ${isInstalled}`);
+    // Check if dependency scanner is installed
+    const isInstalled = await isDependencyScannerInstalled();
+    logger.info(`Dependency scanner installed: ${isInstalled}`);
     
     // Get tech stack information using our existing detection
     logger.info('Detecting tech stacks for security analysis...');
@@ -410,7 +406,7 @@ export async function analyzeSecurityWithOwasp(projectPath: string): Promise<Sec
     logger.info('Tech stack report generated for security analysis');
     
     if (!isInstalled) {
-      logger.warn('⚠️ OWASP Dependency-Check not installed. Using fallback report.');
+      logger.warn('⚠️ Dependency scanner not installed. Using fallback report.');
       return {
         techStackReport,
         vulnerabilityReport: createFallbackReport(),
@@ -422,15 +418,15 @@ export async function analyzeSecurityWithOwasp(projectPath: string): Promise<Sec
         lowVulnerabilities: 0,
         unmappedVulnerabilities: 0,
         scanSuccessful: false,
-        error: 'OWASP Dependency-Check not installed'
+        error: 'Dependency scanner not installed'
       };
     }
     
-    // Run OWASP Dependency-Check
-    const reportPath = await runOwaspDependencyCheck(projectPath);
+    // Run dependency scanner
+    const reportPath = await runDependencyScanner(projectPath);
     
     // Parse the report
-    const scanResults = await parseOwaspReport(reportPath);
+    const scanResults = await parseScannerReport(reportPath);
     
     // Count vulnerabilities by severity
     let totalVulnerabilities = 0;
@@ -472,9 +468,9 @@ export async function analyzeSecurityWithOwasp(projectPath: string): Promise<Sec
       scanSuccessful: true
     };
   } catch (error) {
-    logger.error(`Error analyzing security with OWASP: ${error}`);
+    logger.error(`Error analyzing dependency security: ${error}`);
     
-    // Get tech stack information even if OWASP analysis fails
+    // Get tech stack information even if dependency analysis fails
     try {
       const stackAnalysis = await detectTechStacks(projectPath);
       const techStackReport = Array.isArray(stackAnalysis) && stackAnalysis.length > 0 
@@ -519,15 +515,15 @@ export async function analyzeSecurityWithOwasp(projectPath: string): Promise<Sec
  * @param projectPath The path to the project
  * @returns Security information formatted for inclusion in reviews
  */
-export async function createOwaspSecuritySection(projectPath: string): Promise<string> {
+export async function createDependencySecuritySection(projectPath: string): Promise<string> {
   try {
-    console.log('=========== RUNNING OWASP DEPENDENCY CHECK ===========');
+    console.log('=========== RUNNING DEPENDENCY SECURITY ANALYSIS ===========');
     console.log(`Project path: ${projectPath}`);
-    logger.info('=========== RUNNING OWASP DEPENDENCY CHECK ===========');
+    logger.info('=========== RUNNING DEPENDENCY SECURITY ANALYSIS ===========');
     logger.info(`Project path: ${projectPath}`);
     
-    const securityAnalysis = await analyzeSecurityWithOwasp(projectPath);
-    logger.info('OWASP Security analysis completed successfully');
+    const securityAnalysis = await analyzeDependencySecurity(projectPath);
+    logger.info('Dependency security analysis completed successfully');
     logger.info(`Tech stack report length: ${securityAnalysis.techStackReport?.length || 0}`);
     logger.info(`Vulnerability report length: ${securityAnalysis.vulnerabilityReport?.length || 0}`);
     
@@ -536,7 +532,7 @@ export async function createOwaspSecuritySection(projectPath: string): Promise<s
     logger.info(`Combined report generated (${combinedReport.length} characters)`);
     return combinedReport;
   } catch (error) {
-    logger.error(`Error creating OWASP security section: ${error}`);
+    logger.error(`Error creating dependency security section: ${error}`);
     logger.error(error.stack || 'No stack trace available');
     return '## Dependency Security Analysis\n\n❌ An error occurred while analyzing dependencies.';
   }

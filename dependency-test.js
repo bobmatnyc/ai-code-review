@@ -8,11 +8,11 @@
 const path = require('path');
 const fs = require('fs').promises;
 
-// Same OWASP check logic used in the main app 
-async function isOwaspDependencyCheckInstalled() {
+// Check for dependency scanner in the main app 
+async function isDependencyScannerInstalled() {
   const os = require('os');
   try {
-    console.log('Checking if OWASP Dependency-Check is installed...');
+    console.log('Checking if dependency scanner is installed...');
     // Get the appropriate command based on the platform
     const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
     
@@ -26,7 +26,7 @@ async function isOwaspDependencyCheckInstalled() {
     });
     
     const isInstalled = result.status === 0;
-    console.log(`OWASP Dependency-Check ${isInstalled ? 'is INSTALLED ✅' : 'is NOT INSTALLED ❌'}`);
+    console.log(`Dependency scanner ${isInstalled ? 'is INSTALLED ✅' : 'is NOT INSTALLED ❌'}`);
     if (result.stderr) {
       console.log(`STDERR: ${result.stderr}`);
     }
@@ -36,7 +36,7 @@ async function isOwaspDependencyCheckInstalled() {
     
     return isInstalled;
   } catch (error) {
-    console.log(`OWASP Dependency-Check not found in PATH: ${error}`);
+    console.log(`Dependency scanner not found in PATH: ${error}`);
     return false;
   }
 }
@@ -96,16 +96,16 @@ async function analyzeDependencies(projectPath) {
   const stack = await detectTechStack(projectPath);
   console.log(`Detected stack: ${stack ? stack.tech : 'Unknown'}`);
   
-  // Check if OWASP is installed
-  const owaspInstalled = await isOwaspDependencyCheckInstalled();
+  // Check if dependency scanner is installed
+  const scannerInstalled = await isDependencyScannerInstalled();
   
-  if (owaspInstalled) {
-    console.log('Running OWASP Dependency Check...');
+  if (scannerInstalled) {
+    console.log('Running dependency security scanner...');
     // Implementation would go here
-    console.log('✅ OWASP analysis complete');
+    console.log('✅ Security analysis complete');
   } else {
-    console.log('⚠️ OWASP Dependency-Check not installed. Using basic analysis instead.');
-    console.log('To install OWASP Dependency Check, visit: https://owasp.org/www-project-dependency-check/');
+    console.log('⚠️ Dependency scanner not installed. Using basic analysis instead.');
+    console.log('To enable enhanced security scanning, install a dependency security scanner.');
   }
   
   console.log('=========== DEPENDENCY ANALYSIS COMPLETED ===========');

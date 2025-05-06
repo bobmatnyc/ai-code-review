@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-// This script fixes the OWASP dependency check by modifying how it handles stack analysis
+// This script fixes the dependency security scanner by modifying how it handles stack analysis
 
 const path = require('path');
 const fs = require('fs');
 
-console.log('Fixing OWASP dependency check...');
+console.log('Fixing dependency scanner...');
 
 // Path to the package security analyzer
 const packageSecurityAnalyzerPath = path.join(__dirname, 'packageSecurityAnalyzer.ts');
@@ -77,18 +77,17 @@ fs.writeFileSync(packageSecurityAnalyzerPath, modifiedContent);
 
 console.log('Fixed packageSecurityAnalyzer.ts');
 
-// Also fix the owaspDependencyCheck.ts to handle null stackAnalysis
-const owaspDependencyCheckPath = path.join(__dirname, 'owaspDependencyCheck.ts');
+// Also fix the dependencySecurityScanner.ts to handle null stackAnalysis
+const securityScannerPath = path.join(__dirname, 'dependencySecurityScanner.ts');
 
 // Add import for os module
-let owaspContent = fs.readFileSync(owaspDependencyCheckPath, 'utf8');
-owaspContent = `/**
- * @fileoverview OWASP Dependency-Check integration for package security analysis
+let scannerContent = fs.readFileSync(securityScannerPath, 'utf8');
+scannerContent = `/**
+ * @fileoverview Advanced dependency scanning for package security analysis
  * 
- * This module integrates with OWASP Dependency-Check to provide comprehensive
- * dependency scanning and vulnerability detection for architectural and security reviews.
- * OWASP Dependency-Check is an open-source solution that detects publicly disclosed 
- * vulnerabilities in project dependencies.
+ * This module implements comprehensive dependency scanning and vulnerability detection 
+ * for architectural and security reviews. It uses multiple sources to detect publicly 
+ * disclosed vulnerabilities in project dependencies.
  */
 
 import path from 'path';
@@ -99,11 +98,11 @@ import logger from '../logger';
 import { detectTechStacks } from './dependencyRegistry';
 import { analyzePackagesWithStackAwareness, formatStackSummary } from './stackAwarePackageAnalyzer';
 
-` + owaspContent.substring(owaspContent.indexOf('/**\n * Interface for OWASP'));
+` + scannerContent.substring(scannerContent.indexOf('/**\n * Interface for'));
 
 // Fix the run function to use proper platform detection
-owaspContent = owaspContent.replace(
-  `async function isOwaspDependencyCheckInstalled(): Promise<boolean> {
+scannerContent = scannerContent.replace(
+  `async function isDependencyScannerInstalled(): Promise<boolean> {
   try {
     // Try to execute dependency-check script to see if it's installed
     const result = spawnSync('dependency-check', ['--version'], { 
@@ -114,15 +113,15 @@ owaspContent = owaspContent.replace(
     
     return result.status === 0;
   } catch (error) {
-    logger.debug('OWASP Dependency-Check not found in PATH');
+    logger.debug('Dependency scanner not found in PATH');
     return false;
   }
 }`,
-  `async function isOwaspDependencyCheckInstalled(): Promise<boolean> {
+  `async function isDependencyScannerInstalled(): Promise<boolean> {
   try {
     // Get the appropriate command based on the platform
     const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
-    logger.debug(\`Checking for OWASP Dependency-Check using command: \${command}\`);
+    logger.debug(\`Checking for dependency scanner using command: \${command}\`);
     
     // Try to execute dependency-check script to see if it's installed
     const result = spawnSync(command, ['--version'], { 
@@ -132,17 +131,17 @@ owaspContent = owaspContent.replace(
       shell: true // Use shell on all platforms for better compatibility
     });
     
-    logger.debug(\`OWASP Dependency-Check check result: status=\${result.status}, stderr=\${result.stderr}\`);
+    logger.debug(\`Dependency scanner check result: status=\${result.status}, stderr=\${result.stderr}\`);
     return result.status === 0;
   } catch (error) {
-    logger.debug(\`OWASP Dependency-Check not found in PATH: \${error}\`);
+    logger.debug(\`Dependency scanner not found in PATH: \${error}\`);
     return false;
   }
 }`
 );
 
-// Fix the run function for OWASP to handle platform differences
-owaspContent = owaspContent.replace(
+// Fix the run function to handle platform differences
+scannerContent = scannerContent.replace(
   `    // Run the command
     const result = spawnSync('dependency-check', args, {
       cwd: projectPath,
@@ -152,7 +151,7 @@ owaspContent = owaspContent.replace(
     });`,
   `    // Get the appropriate command based on the platform
     const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
-    logger.debug(\`Running OWASP Dependency-Check using command: \${command} with args: \${args.join(' ')}\`);
+    logger.debug(\`Running dependency scanner using command: \${command} with args: \${args.join(' ')}\`);
     
     // Run the command
     const result = spawnSync(command, args, {
@@ -165,7 +164,7 @@ owaspContent = owaspContent.replace(
 );
 
 // Write the modified content back to the file
-fs.writeFileSync(owaspDependencyCheckPath, owaspContent);
+fs.writeFileSync(securityScannerPath, scannerContent);
 
-console.log('Fixed owaspDependencyCheck.ts');
+console.log('Fixed dependencySecurityScanner.ts');
 console.log('All fixes completed!');

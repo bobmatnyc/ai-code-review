@@ -66,7 +66,7 @@ Provide clear, structured feedback grouped by severity (Critical/High/Medium/Low
 2. **Location**: File and line number(s)
 3. **Risk**: Potential impact if exploited
 4. **Recommended Fix**: Code snippet or description of how to address the issue
-5. **Reference**: Link to relevant security standard or best practice (OWASP, CWE, etc.)
+5. **Reference**: Link to relevant security standard or best practice
 
 Focus on providing actionable security recommendations. Be thorough but practical - prioritize fixes based on risk level.
 

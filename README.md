@@ -16,11 +16,11 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 
 - **Enhanced Reviews**: Added file list and comprehensive dependency security analysis
   - Automatically includes a list of all files analyzed in architectural reviews
-  - Performs security vulnerability analysis on package dependencies using OWASP Dependency-Check
+  - Performs security vulnerability analysis on package dependencies
   - Detects technology stack (Next.js, Laravel, Django, Rails, etc.) for framework-specific analysis
   - Identifies security issues with severity ratings, CVE IDs, and recommended updates
   - Improves visibility into what was examined during the review
-  - See [ENHANCED_REVIEW.md](ENHANCED_REVIEW.md), [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md), [STACK_DETECTION.md](STACK_DETECTION.md), and [OWASP_INTEGRATION.md](OWASP_INTEGRATION.md) for usage details
+  - See [ENHANCED_REVIEW.md](ENHANCED_REVIEW.md), [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md), and [STACK_DETECTION.md](STACK_DETECTION.md) for usage details
 
 ## What's New in v2.1.1
 
