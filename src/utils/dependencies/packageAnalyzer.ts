@@ -44,8 +44,10 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
     // Try to find package.json (Node.js)
     const packageJsonPath = path.join(projectPath, 'package.json');
     try {
+      logger.info(`Analyzing package.json at ${packageJsonPath}...`);
       const packageJsonContent = await fs.readFile(packageJsonPath, 'utf8');
       const packageJsonResult = await parsePackageJson(packageJsonContent, packageJsonPath);
+      logger.info(`Found ${packageJsonResult.npm?.length || 0} npm dependencies in package.json`);
       results.push(packageJsonResult);
     } catch (error) {
       // package.json not found or invalid
