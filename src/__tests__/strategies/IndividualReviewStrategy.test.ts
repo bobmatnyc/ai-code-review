@@ -2,17 +2,17 @@
  * @fileoverview Tests for the IndividualReviewStrategy class.
  */
 
-import { IndividualReviewStrategy } from '../../src/strategies/IndividualReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewType } from '../../src/types/review';
-import { ApiClientConfig } from '../../src/core/ApiClientSelector';
-import { ProjectDocs } from '../../src/utils/projectDocs';
+import { IndividualReviewStrategy } from '../../strategies/IndividualReviewStrategy';
+import { FileInfo, ReviewOptions, ReviewType } from '../../types/review';
+import { ApiClientConfig } from '../../core/ApiClientSelector';
+import { ProjectDocs } from '../../utils/projectDocs';
 
 // Mock dependencies
-jest.mock('../../src/clients/geminiClient');
-jest.mock('../../src/utils/logger');
+jest.mock('../../clients/geminiClient');
+jest.mock('../../utils/logger');
 
 // Import the mocked module
-import { generateReview } from '../../src/clients/geminiClient';
+import { generateReview } from '../../clients/geminiClient';
 
 describe('IndividualReviewStrategy', () => {
   let strategy: IndividualReviewStrategy;

@@ -5,22 +5,22 @@
  * backward compatibility while adhering to the Single Responsibility Principle.
  *
  * The original functionality has been split into:
- * - PathValidator: For path validation and security checks
- * - FileReader: For reading file operations
- * - FileWriter: For writing file operations
- * - PathGenerator: For generating output paths
+ * - pathValidator: For path validation and security checks
+ * - fileReader: For reading file operations
+ * - fileWriter: For writing file operations
+ * - pathGenerator: For generating output paths
  */
 
-// Import from PathValidator for aliases
+// Import from pathValidator for aliases
 import {
   validateTargetPath,
   pathExists,
   isDirectory,
   isFile,
   isPathWithinCwd
-} from './PathValidator';
+} from './pathValidator';
 
-// Re-export from PathValidator
+// Re-export from pathValidator
 export { validateTargetPath, pathExists, isDirectory, isFile, isPathWithinCwd };
 
 // Aliases for backward compatibility
@@ -28,22 +28,22 @@ export const fileExists = pathExists;
 export const directoryExists = isDirectory;
 export const validatePath = validateTargetPath;
 
-// Re-export from FileReader
+// Re-export from fileReader
 export {
   readFile,
   readFileWithInfo,
   readFilesWithInfo,
   readFilesInDirectory as findFilesInDirectory
-} from './FileReader';
+} from './fileReader';
 
-// Import from FileWriter for aliases
+// Import from fileWriter for aliases
 import {
   ensureDirectoryExists,
   writeFile as writeFileImpl,
   appendFile as appendFileImpl
-} from './FileWriter';
+} from './fileWriter';
 
-// Re-export from FileWriter
+// Re-export from fileWriter
 export {
   ensureDirectoryExists,
   writeFileImpl as writeFile,
@@ -53,9 +53,9 @@ export {
 // Alias for backward compatibility
 export const createDirectory = ensureDirectoryExists;
 
-// Re-export from PathGenerator
+// Re-export from pathGenerator
 export {
   generateVersionedOutputPath,
   generateUniqueOutputPath,
   generateTempFilePath
-} from './PathGenerator';
+} from './pathGenerator';
