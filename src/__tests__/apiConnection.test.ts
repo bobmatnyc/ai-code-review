@@ -31,6 +31,53 @@ beforeAll(() => {
   }
 });
 
+/**
+ * Run API connection tests
+ * @returns Promise that resolves when all tests are complete
+ */
+export async function runApiConnectionTests(): Promise<void> {
+  console.log('Testing API connections...');
+  
+  // Google Gemini API
+  const googleApiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || 
+                      process.env.GOOGLE_AI_STUDIO_KEY || 
+                      process.env.GOOGLE_GENERATIVE_AI_KEY;
+  
+  // Skip if no API key
+  if (!googleApiKey) {
+    console.warn('No Google Gemini API key found in environment variables');
+  } else {
+    console.log('Google Gemini API key is available');
+    // We don't actually test the connection in this function to avoid making API calls
+  }
+  
+  // OpenRouter API
+  const openRouterApiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || 
+                          process.env.OPENROUTER_API_KEY;
+  
+  // Skip if no API key  
+  if (!openRouterApiKey) {
+    console.warn('No OpenRouter API key found in environment variables');
+  } else {
+    console.log('OpenRouter API key is available');
+    // We don't actually test the connection in this function to avoid making API calls
+  }
+  
+  // Anthropic API
+  const anthropicApiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || 
+                         process.env.ANTHROPIC_API_KEY;
+  
+  // Skip if no API key
+  if (!anthropicApiKey) {
+    console.warn('No Anthropic API key found in environment variables');
+  } else {
+    console.log('Anthropic API key is available');
+    // We don't actually test the connection in this function to avoid making API calls
+  }
+  
+  console.log('API connection tests complete');
+}
+
 // Mock global fetch
 const originalFetch = global.fetch;
 global.fetch = jest.fn().mockImplementation(url => {

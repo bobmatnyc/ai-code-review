@@ -11,7 +11,7 @@ import { ReviewOptions } from '../types/review';
 import { FileInfo, discoverFiles, readFilesContent } from './fileDiscovery';
 import logger from '../utils/logger';
 import { getApiKeyType } from '../utils/apiUtils';
-import { runApiConnectionTests } from '../tests/apiConnectionTest';
+import { runApiConnectionTests } from '../__tests__/apiConnection.test';
 import { getConfig } from '../utils/config';
 import {
   estimateFromFilePaths,
