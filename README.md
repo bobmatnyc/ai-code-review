@@ -14,6 +14,14 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
   - Comprehensive Rails security review capabilities
   - Performance analysis focused on ActiveRecord and Rails optimizations
 
+- **Enhanced Reviews**: Added file list and comprehensive dependency security analysis
+  - Automatically includes a list of all files analyzed in architectural reviews
+  - Performs security vulnerability analysis on package dependencies using OWASP Dependency-Check
+  - Detects technology stack (Next.js, Laravel, Django, Rails, etc.) for framework-specific analysis
+  - Identifies security issues with severity ratings, CVE IDs, and recommended updates
+  - Improves visibility into what was examined during the review
+  - See [ENHANCED_REVIEW.md](ENHANCED_REVIEW.md), [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md), [STACK_DETECTION.md](STACK_DETECTION.md), and [OWASP_INTEGRATION.md](OWASP_INTEGRATION.md) for usage details
+
 ## What's New in v2.1.1
 
 ### Fixes and Improvements in v2.1.1
@@ -120,6 +128,7 @@ This tool analyzes code from specified files or directories in sibling projects 
 - **Customizable**: Configure review types, output formats, and prompt templates
 - **Memory Optimized**: Process large codebases efficiently with optimized memory usage
 - **Error Recovery**: Robust error handling with graceful recovery
+- **Code Focus**: Analyzes executable code files only, excluding configuration and documentation files
 
 ## Installation
 
@@ -186,13 +195,14 @@ ai-code-review src/index.ts
 # Review an entire directory with interactive mode
 ai-code-review src/utils --interactive
 
-# Perform an architectural review with dependency analysis
+# Perform an architectural review with file list and dependency security analysis
 ai-code-review src --type architectural
 
 # Review a Ruby on Rails application with Rails-specific analysis
 ai-code-review app --type architectural --language ruby
 
-# Find security vulnerabilities in a Rails application
+# Find security vulnerabilities in a Rails application with package security analysis
+ai-code-review app --type security
 ai-code-review app/controllers --type security --language ruby
 
 # Find unused code that can be safely removed
@@ -515,6 +525,9 @@ AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # For OpenAI models directly
 AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here
+
+# For dependency security analysis in architectural reviews
+SERPAPI_KEY=your_serpapi_api_key_here
 ```
 
 #### Global Installation

@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+const path = require('path');
+
+// Set project root path for correct file references
+const projectRoot = path.join(__dirname, '../..');
+
 
 /**
  * Standalone test for tool calling implementation

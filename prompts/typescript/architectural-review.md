@@ -1,16 +1,18 @@
 ---
 name: TypeScript Architectural Review
 description: Architectural review prompt optimized for TypeScript codebases
-version: 1.0.0
+version: 1.1.0
 author: AI Code Review Tool
 language: typescript
 reviewType: architectural
+aliases:
+  - arch
 tags:
   - typescript
   - architecture
   - design
   - structure
-lastModified: '2025-04-24'
+lastModified: '2025-05-05'
 ---
 
 
@@ -78,6 +80,21 @@ Act as a **senior software architect with expertise in modern TypeScript applica
 - Are advanced TypeScript patterns used appropriately (discriminated unions, conditional types, etc.)?
 - Is the TypeScript configuration optimal for the project needs?
 
+#### 📊 TypeScript Ecosystem & Version Compatibility
+- Is the project using an appropriate TypeScript version for its needs?
+- Are the Node.js/runtime version and TypeScript version compatible?
+- Are there TypeScript-specific libraries that should be upgraded or replaced?
+- Would upgrading the TypeScript version provide meaningful benefits?
+- Are there compatibility issues between the TypeScript version and other tools (ESLint, Babel, etc.)?
+- Is the project leveraging appropriate TypeScript ecosystem tools (ts-node, tsc-watch, etc.)?
+
+#### 🔒 Security & Health Analysis
+- Are there any known security vulnerabilities in the current TypeScript dependencies?
+- Are there outdated types packages (@types/*) that could lead to type inconsistencies?
+- Are there unmaintained or abandoned TypeScript libraries being used?
+- Are type definitions being properly used for secure coding (avoiding 'any', etc.)?
+- Are there any TypeScript patterns that could lead to security issues (improper type assertions, etc.)?
+
 ---
 
 ### 📤 Output Format
@@ -92,6 +109,18 @@ Provide clear, structured feedback grouped by the checklist categories above. In
    - Note modules with excessive external dependencies
    - Suggest architectural improvements based on the dependency graph
    - Identify potential code organization issues revealed by the dependency structure
+6. **TypeScript Ecosystem Insights**: Provide specific recommendations regarding:
+   - TypeScript version upgrades (with clear benefits and migration considerations)
+   - Type definition packages that should be updated
+   - TypeScript tooling improvements
+   - Security concerns related to types or TypeScript-specific libraries
+
+When providing TypeScript ecosystem and version recommendations:
+- Specify exact version numbers for TypeScript and major tools
+- Note any breaking changes or migration challenges with version upgrades
+- Reference specific benefits of newer TypeScript versions (e.g., template literal types in TS 4.1+)
+- Recommend stable, well-supported TypeScript ecosystem tools
+- Consider compatibility with Node.js versions and other runtime environments
 
 Focus on high-level architectural concerns rather than implementation details or code style issues. Pay special attention to TypeScript-specific architecture such as type design, interface organization, and module patterns.
 

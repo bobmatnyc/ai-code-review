@@ -20,9 +20,11 @@ const { execSync } = require('child_process');
 // Then copy the mock file to serpApiHelper.ts
 console.log('\x1b[36mSetting up mock SERPAPI helper for testing...\x1b[0m');
 
-const serpApiHelperPath = path.join(__dirname, 'src/utils/dependencies/serpApiHelper.ts');
-const serpApiHelperBackupPath = path.join(__dirname, 'src/utils/dependencies/serpApiHelper.ts.bak');
-const serpApiHelperMockPath = path.join(__dirname, 'src/utils/dependencies/serpApiHelper.mock.ts');
+// Adjust paths for running from scripts/tests directory
+const projectRoot = path.join(__dirname, '../..');
+const serpApiHelperPath = path.join(projectRoot, 'src/utils/dependencies/serpApiHelper.ts');
+const serpApiHelperBackupPath = path.join(projectRoot, 'src/utils/dependencies/serpApiHelper.ts.bak');
+const serpApiHelperMockPath = path.join(projectRoot, 'src/utils/dependencies/serpApiHelper.mock.ts');
 
 try {
   // Backup the original file if not already backed up
@@ -60,7 +62,7 @@ try {
 }
 
 // Default target directory for the test
-const testDir = path.join(__dirname, 'test-env');
+const testDir = path.join(projectRoot, 'test-env');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -95,7 +97,7 @@ if (testOpenAI) {
       process.env.AI_CODE_REVIEW_MODEL = 'openai:gpt-4o';
       
       // Run the test with verbose output
-      const output = execSync(`node ${path.join(__dirname, 'src/index.js')} ${testDir} --type=arch --verbose`, {
+      const output = execSync(`node ${path.join(projectRoot, 'src/index.js')} ${testDir} --type=arch --verbose`, {
         env: process.env,
         stdio: 'inherit'
       });
@@ -122,7 +124,7 @@ if (testAnthropic) {
       process.env.AI_CODE_REVIEW_MODEL = 'anthropic:claude-3-opus';
       
       // Run the test with verbose output
-      const output = execSync(`node ${path.join(__dirname, 'src/index.js')} ${testDir} --type=arch --verbose`, {
+      const output = execSync(`node ${path.join(projectRoot, 'src/index.js')} ${testDir} --type=arch --verbose`, {
         env: process.env,
         stdio: 'inherit'
       });

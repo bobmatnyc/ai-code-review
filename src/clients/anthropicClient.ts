@@ -733,6 +733,11 @@ export async function generateArchitecturalAnthropicReview(
     const serpApiConfigured = !!process.env.SERPAPI_KEY;
 
     logger.debug(`Using model: ${modelName}, supportsToolCalling: ${supportsToolCalling}, serpApiConfigured: ${serpApiConfigured}`);
+    // Add more debug logs to troubleshoot tool calling issues
+    logger.debug(`SERPAPI_KEY configured: ${serpApiConfigured ? 'YES' : 'NO'}`);
+    logger.debug(`Model supports tool calling: ${supportsToolCalling ? 'YES' : 'NO'}`);
+    logger.debug(`Review type is architectural: ${options?.type === 'architectural' ? 'YES' : 'NO'}`);
+    logger.debug(`Tool calling enabled for this review: ${(supportsToolCalling && serpApiConfigured && options?.type === 'architectural') ? 'YES' : 'NO'}`);
 
     // Tool calling implementation
     if (supportsToolCalling && serpApiConfigured && options?.type === 'architectural') {
@@ -863,12 +868,24 @@ Always include a dedicated "Dependency Security Analysis" section in your review
           logger.info(`Executing ${toolCalls.length} tool calls for architectural review...`);
           
           // Execute each tool call
-          const toolResults = await Promise.all(
-            toolCalls.map(async (toolCall) => ({
-              toolName: toolCall.name,
-              result: await executeToolCall(toolCall.name, toolCall.arguments)
-            }))
-          );
+          const toolResults = [];
+          for (const toolCall of toolCalls) {
+            logger.info(`Executing tool call: ${toolCall.name} with arguments: ${JSON.stringify(toolCall.arguments)}`);
+            try {
+              const result = await executeToolCall(toolCall.name, toolCall.arguments);
+              logger.info(`Tool call result received for ${toolCall.name}`);
+              toolResults.push({
+                toolName: toolCall.name,
+                result
+              });
+            } catch (error) {
+              logger.error(`Error executing tool call ${toolCall.name}: ${error instanceof Error ? error.message : String(error)}`);
+              toolResults.push({
+                toolName: toolCall.name,
+                result: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+              });
+            }
+          }
           
           // Build a conversation with the tool results
           const initialMessage = { role: 'user', content: userPrompt };

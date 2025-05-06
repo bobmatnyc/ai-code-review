@@ -13,9 +13,15 @@ import { FileInfo } from '../../types/review';
 import logger from '../logger';
 
 /**
- * Supported file extensions for code review
+ * Supported file extensions for code review - focus on executable code only
+ * Exclude non-executable files like .md, .txt, .log, .tgz, .json, and .svg
  */
-const SUPPORTED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.json', '.md'];
+const SUPPORTED_EXTENSIONS = [
+  '.ts', '.tsx', '.js', '.jsx', 
+  '.py', '.pyc', '.pyi', '.pyx', '.pyd',
+  '.php', '.java', '.rb', '.rake', '.gemspec', '.ru', '.erb',
+  '.go', '.rs', '.c', '.cpp', '.h', '.hpp', '.cs', '.swift', '.kt'
+];
 
 /**
  * Check if a file is a test file

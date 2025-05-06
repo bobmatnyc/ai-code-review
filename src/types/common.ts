@@ -84,6 +84,7 @@ export const PRIORITY_FILTER_DESCRIPTIONS: Record<PriorityFilter, string> = {
  */
 export const VALID_REVIEW_TYPES: ReviewType[] = [
   'architectural',
+  'arch',         // Alias for architectural
   'quick-fixes',
   'security',
   'performance',
@@ -101,6 +102,8 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<
 > = {
   architectural:
     'Architectural review focusing on design patterns and structure',
+  arch:
+    'Alias for architectural review (design patterns and structure)',
   'quick-fixes':
     'Quick fixes review focusing on common issues and best practices',
   security:

@@ -52,6 +52,9 @@ AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here
 # For OpenRouter models (Claude, GPT-4, etc.)
 AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
 
+# For dependency security analysis in architectural reviews (optional)
+SERPAPI_KEY=your_serpapi_api_key_here
+
 # Model configuration (examples)
 AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
 # or
@@ -86,6 +89,9 @@ ai-code-review src --interactive
 
 # Run a security review
 ai-code-review src --type security
+
+# Run an architectural review with package security analysis
+ai-code-review src --type architectural
 
 # List available models
 ai-code-review --listmodels
