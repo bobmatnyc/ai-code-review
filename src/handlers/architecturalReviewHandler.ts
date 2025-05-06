@@ -23,6 +23,9 @@ import logger from '../utils/logger';
 // Import the getApiKeyType function from a shared utilities file
 import { getApiKeyType } from '../utils/apiUtils';
 
+// Import the package security analyzer
+import { createDependencySecuritySection } from '../utils/dependencies/packageSecurityAnalyzer';
+
 /**
  * Handle architectural review for the entire codebase
  * @param project - The project name
@@ -210,10 +213,58 @@ export async function handleArchitecturalReview(
       targetName
     );
 
-    // Format and save the review
-    const formattedOutput = formatReviewOutput(review, options.output);
+    // Format with the standard formatter
+    let formattedOutput = formatReviewOutput(review, options.output);
+    
+    // Now add file tree using the new helper function in OutputManager
+    try {
+      // Log file info debug info
+      logger.debug(`File info count: ${fileInfos.length}`);
+      fileInfos.forEach((file, i) => {
+        logger.debug(`File ${i+1}: ${file.path} (${file.relativePath || 'no relative path'})`);
+      });
+      
+      // Instead of using a specific formatter, use our generic implementation
+      // that works for all review types
+      const { addFileTreeToReview } = await import('../core/OutputManager.js');
+      formattedOutput = addFileTreeToReview(formattedOutput, fileInfos, options.output);
+      logger.info('Added file tree to architectural review');
+    } catch (error) {
+      // Fall back to standard formatter if file tree addition fails
+      logger.warn(`Could not add file tree to review: ${error instanceof Error ? error.message : String(error)}`);
+      logger.warn(`Error stack: ${error instanceof Error && error.stack ? error.stack : 'No stack available'}`);
+    }
 
     try {
+      // If dependency analysis is enabled, add package security information
+      if (options.includeDependencyAnalysis) {
+        try {
+          logger.info('Performing package security analysis...');
+          const securitySection = await createDependencySecuritySection(projectPath);
+          
+          // Append security section to the review
+          if (options.output === 'json') {
+            try {
+              // Parse JSON, add security section, and stringify again
+              const reviewObj = JSON.parse(formattedOutput);
+              reviewObj.packageSecurityAnalysis = securitySection;
+              formattedOutput = JSON.stringify(reviewObj, null, 2);
+            } catch (error) {
+              logger.warn(`Error adding security section to JSON review: ${error}`);
+              // If JSON parsing fails, append as text
+              formattedOutput += `\n\n${securitySection}`;
+            }
+          } else {
+            // For markdown, append at the end
+            formattedOutput += `\n\n${securitySection}`;
+          }
+          
+          logger.info('Package security analysis added to review');
+        } catch (error) {
+          logger.error(`Error performing package security analysis: ${error}`);
+        }
+      }
+      
       await fs.writeFile(outputPath, formattedOutput);
       logger.info(`Architectural review saved to: ${outputPath}`);
 
