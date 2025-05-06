@@ -148,7 +148,7 @@ import {
 import { reviewCode } from './commands/reviewCode';
 import { testModelCommand } from './commands/testModel';
 import { testBuildCommand } from './commands/testBuild';
-import { runApiConnectionTests } from './tests/apiConnectionTest';
+import { runApiConnectionTests } from './__tests__/apiConnection.test';
 import { getCommandLineArguments } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
 import { PluginManager } from './plugins/PluginManager';
