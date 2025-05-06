@@ -6,7 +6,7 @@
  * the specified base directory.
  */
 
-import { validateTargetPath } from '../utils/PathValidator';
+import { validateTargetPath } from '../utils/pathValidator';
 import path from 'path';
 import fs from 'fs';
 

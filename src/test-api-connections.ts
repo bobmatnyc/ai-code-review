@@ -11,7 +11,7 @@
  * ```
  */
 
-import { runApiConnectionTests } from './tests/apiConnectionTest';
+import { runApiConnectionTests } from './__tests__/apiConnection.test';
 
 // Run the API connection tests
 runApiConnectionTests().catch(error => {

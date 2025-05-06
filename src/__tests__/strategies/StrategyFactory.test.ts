@@ -2,16 +2,16 @@
  * @fileoverview Tests for the StrategyFactory class.
  */
 
-import { StrategyFactory } from '../../src/strategies/StrategyFactory';
-import { ConsolidatedReviewStrategy } from '../../src/strategies/ConsolidatedReviewStrategy';
-import { IndividualReviewStrategy } from '../../src/strategies/IndividualReviewStrategy';
-import { ArchitecturalReviewStrategy } from '../../src/strategies/ArchitecturalReviewStrategy';
-import { ReviewOptions } from '../../src/types/review';
-import { PluginManager } from '../../src/plugins/PluginManager';
+import { StrategyFactory } from '../../strategies/StrategyFactory';
+import { ConsolidatedReviewStrategy } from '../../strategies/ConsolidatedReviewStrategy';
+import { IndividualReviewStrategy } from '../../strategies/IndividualReviewStrategy';
+import { ArchitecturalReviewStrategy } from '../../strategies/ArchitecturalReviewStrategy';
+import { ReviewOptions } from '../../types/review';
+import { PluginManager } from '../../plugins/PluginManager';
 
 // Mock dependencies
-jest.mock('../../src/plugins/PluginManager');
-jest.mock('../../src/utils/logger');
+jest.mock('../../plugins/PluginManager');
+jest.mock('../../utils/logger');
 
 describe('StrategyFactory', () => {
   beforeEach(() => {
