@@ -26,8 +26,8 @@
     "validate:models": "node scripts/validate-models.js",
     "prepare-package": "./scripts/prepare-package.sh",
     "prepublishOnly": "pnpm run build && pnpm run validate:models",
-    "local-review": "./local-ai-review.sh",
-    "built-review": "./built-ai-review.sh",
+    "local-review": "./scripts/runners/local-ai-review.sh",
+    "built-review": "./scripts/runners/built-ai-review.sh",
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
     "validate:prompts": "node scripts/validate-prompts.js",
     "update:prompts": "node scripts/update-prompts-frontmatter.js"
