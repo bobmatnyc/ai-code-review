@@ -177,8 +177,8 @@ export async function saveReviewOutput(
           logger.info('Enhanced dependency analysis added to markdown review output');
         }
       } catch (error) {
-        logger.error(`Error performing enhanced dependency analysis for ${options.type} review: ${error}`);
-        logger.error(error instanceof Error ? error.stack : 'No stack trace available');
+        logger.error(`Error performing enhanced dependency analysis for ${options.type} review: ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(error instanceof Error && error.stack ? error.stack : 'No stack trace available');
       }
     }
 

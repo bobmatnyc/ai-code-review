@@ -138,6 +138,20 @@ if (toolEnvPath) {
   }
 }
 
+// Re-initialize the logger with the environment variables now loaded
+// This ensures that AI_CODE_REVIEW_LOG_LEVEL from .env.local is applied
+if (process.env.AI_CODE_REVIEW_LOG_LEVEL || process.argv.includes('--debug')) {
+  let logLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase() || 'info';
+  
+  // Force debug level if debug flag is present
+  if (process.argv.includes('--debug')) {
+    logLevel = 'debug';
+  }
+  
+  console.log(`Setting log level to: ${logLevel.toUpperCase()}`);
+  logger.setLogLevel(logLevel);
+}
+
 // Import other dependencies after environment setup
 import {
   getConfig,

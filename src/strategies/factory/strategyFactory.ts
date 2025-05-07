@@ -12,9 +12,67 @@ import {
   ConsolidatedReviewStrategy,
   IndividualReviewStrategy
 } from '../implementations';
-import { ReviewOptions } from '../../types/review';
+import { ReviewOptions, ReviewType, FileInfo, ReviewResult } from '../../types/review';
 import { PluginManager } from '../../plugins/PluginManager';
+import { ApiClientConfig } from '../../core/ApiClientSelector';
+import { ProjectDocs } from '../../utils/projectDocs';
 import logger from '../../utils/logger';
+import { IReviewStrategy } from '../ReviewStrategy';
+
+/**
+ * Adapter that converts an IReviewStrategy to an AbstractStrategy
+ */
+class StrategyAdapter extends AbstractStrategy {
+  private strategy: IReviewStrategy;
+
+  /**
+   * Create a new adapter
+   * @param strategy The IReviewStrategy to adapt
+   * @param reviewType The review type
+   */
+  constructor(strategy: IReviewStrategy, reviewType: ReviewType) {
+    super(reviewType);
+    this.strategy = strategy;
+  }
+
+  /**
+   * Execute the strategy
+   * @param files Array of file information objects
+   * @param projectName Name of the project
+   * @param projectDocs Optional project documentation
+   * @param options Review options
+   * @param apiClientConfig API client configuration
+   * @returns Promise resolving to the review result
+   */
+  public async execute(
+    files: FileInfo[],
+    projectName: string,
+    projectDocs: ProjectDocs | null,
+    options: ReviewOptions,
+    apiClientConfig: ApiClientConfig
+  ): Promise<ReviewResult> {
+    this.logExecutionStart(files, projectName);
+    
+    try {
+      if (!this.validateInput(files, projectName)) {
+        throw new Error('Invalid input for review');
+      }
+      
+      const result = await this.strategy.execute(
+        files,
+        projectName,
+        projectDocs,
+        options,
+        apiClientConfig
+      );
+      
+      this.logExecutionCompletion(result);
+      return result;
+    } catch (error) {
+      return this.handleError(error, 'execution');
+    }
+  }
+}
 
 /**
  * Factory for creating review strategies
@@ -35,7 +93,8 @@ export class StrategyFactory {
       const customStrategy = pluginManager.getPlugin(options.strategy);
       
       if (customStrategy) {
-        return customStrategy;
+        // Create an adapter that wraps the IReviewStrategy with AbstractStrategy
+        return new StrategyAdapter(customStrategy, options.type || 'quick-fixes');
       }
       
       logger.warn(`Custom strategy '${options.strategy}' not found, falling back to default strategy`);

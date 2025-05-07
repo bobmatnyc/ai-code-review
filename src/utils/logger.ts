@@ -40,12 +40,22 @@ const COLORS = {
 // Get the current log level from environment variables
 function getCurrentLogLevel(): LogLevel {
   const envLogLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase();
+  
+  console.error(`Debug: getCurrentLogLevel called, AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL}`);
+  
+  // Force debug level if CLI flag is set
+  if (process.argv.includes('--debug')) {
+    console.error('Debug: Debug flag found in process.argv, forcing DEBUG level');
+    return LogLevel.DEBUG;
+  }
 
   if (envLogLevel && envLogLevel in LOG_LEVEL_MAP) {
+    console.error(`Debug: Returning log level ${envLogLevel} -> ${LOG_LEVEL_MAP[envLogLevel]}`);
     return LOG_LEVEL_MAP[envLogLevel];
   }
 
   // Default to INFO if not specified
+  console.error('Debug: No valid log level found, defaulting to INFO');
   return LogLevel.INFO;
 }
 
@@ -57,15 +67,19 @@ let currentLogLevel = getCurrentLogLevel();
  * @param level The log level to set
  */
 export function setLogLevel(level: LogLevel | string): void {
+  console.error(`Debug: setLogLevel called with ${level}`);
+  
   if (typeof level === 'string') {
     const levelLower = level.toLowerCase();
     if (levelLower in LOG_LEVEL_MAP) {
       currentLogLevel = LOG_LEVEL_MAP[levelLower];
+      console.error(`Debug: Log level set to ${levelLower} -> ${currentLogLevel}`);
     } else {
       console.warn(`Invalid log level: ${level}. Using default.`);
     }
   } else {
     currentLogLevel = level;
+    console.error(`Debug: Log level set to numeric value ${level}`);
   }
 }
 
@@ -120,6 +134,9 @@ function log(
         console.error(formattedMessage, ...args);
         break;
     }
+  } else if (level === LogLevel.DEBUG) {
+    // Extra debug for debugging logger itself
+    console.error(`Suppressing DEBUG log because currentLogLevel=${currentLogLevel}, message was: ${message}`);
   }
 }
 

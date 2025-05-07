@@ -70,9 +70,16 @@ export async function parseArguments(): Promise<CliOptions> {
       })
       .option('type', {
         alias: 't',
-        choices: VALID_REVIEW_TYPES.filter(
-          type => type !== 'consolidated'
-        ) as readonly ReviewType[],
+        choices: [
+          'architectural',
+          'arch',
+          'quick-fixes',
+          'security',
+          'performance',
+          'unused-code',
+          'code-tracing-unused-code',
+          'best-practices'
+        ] as readonly ReviewType[],
         default: 'quick-fixes' as ReviewType,
         describe: 'Type of review to perform'
       })

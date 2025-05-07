@@ -173,9 +173,9 @@ async function runDependencyScanner(
   
   try {
     // Build command arguments
-    const args = [
+    const args: string[] = [
       '--project', path.basename(projectPath),
-      '--format', mergedConfig.outputFormat,
+      '--format', mergedConfig.outputFormat as string,
       '--out', outputDir,
       '--scan', mergedConfig.scanPath || projectPath
     ];
@@ -400,8 +400,18 @@ export async function analyzeDependencySecurity(projectPath: string): Promise<Se
     const stackAnalysis = await detectTechStacks(projectPath);
     logger.info(`Tech stack detection complete: found ${stackAnalysis?.length || 0} stacks`);
     
+    // Create a minimal StackAwarePackageAnalysisResult to pass to formatStackSummary
+    const stackAnalysisResult = {
+      detectedStacks: stackAnalysis,
+      packageResults: [],
+      allPackages: [],
+      productionPackages: [],
+      devPackages: [],
+      frameworkPackages: []
+    };
+    
     const techStackReport = Array.isArray(stackAnalysis) && stackAnalysis.length > 0 
-      ? formatStackSummary(stackAnalysis) 
+      ? formatStackSummary(stackAnalysisResult) 
       : "## Project Stack Analysis\n\nNo tech stack detected.";
     logger.info('Tech stack report generated for security analysis');
     
@@ -473,8 +483,19 @@ export async function analyzeDependencySecurity(projectPath: string): Promise<Se
     // Get tech stack information even if dependency analysis fails
     try {
       const stackAnalysis = await detectTechStacks(projectPath);
+      
+      // Create a minimal StackAwarePackageAnalysisResult to pass to formatStackSummary
+      const stackAnalysisResult = {
+        detectedStacks: stackAnalysis,
+        packageResults: [],
+        allPackages: [],
+        productionPackages: [],
+        devPackages: [],
+        frameworkPackages: []
+      };
+      
       const techStackReport = Array.isArray(stackAnalysis) && stackAnalysis.length > 0 
-        ? formatStackSummary(stackAnalysis) 
+        ? formatStackSummary(stackAnalysisResult) 
         : "## Project Stack Analysis\n\nNo tech stack detected.";
       
       return {
@@ -531,9 +552,12 @@ export async function createDependencySecuritySection(projectPath: string): Prom
     const combinedReport = `${securityAnalysis.techStackReport}\n\n${securityAnalysis.vulnerabilityReport}`;
     logger.info(`Combined report generated (${combinedReport.length} characters)`);
     return combinedReport;
-  } catch (error) {
-    logger.error(`Error creating dependency security section: ${error}`);
-    logger.error(error.stack || 'No stack trace available');
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error && error.stack ? error.stack : 'No stack trace available';
+    
+    logger.error(`Error creating dependency security section: ${errorMessage}`);
+    logger.error(errorStack);
     return '## Dependency Security Analysis\n\n❌ An error occurred while analyzing dependencies.';
   }
 }

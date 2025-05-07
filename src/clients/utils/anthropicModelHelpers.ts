@@ -11,6 +11,9 @@ import logger from '../../utils/logger';
 import { validateAnthropicApiKey, isDebugMode } from './index';
 import { testAnthropicApiAccess } from './anthropicApiClient';
 
+// Re-export the function for clients that need it
+export { testAnthropicApiAccess };
+
 // Track if we've initialized a model successfully
 let modelInitialized = false;
 
@@ -64,9 +67,36 @@ export function isAnthropicModel(): AnthropicModelResult {
  * @returns The API model name or the original name if not found
  */
 export async function getApiModelName(modelName: string): Promise<string> {
-  // For Anthropic, we use the model name directly without modification
-  logger.debug(`API model name: ${modelName}`);
-  return modelName;
+  // Import model maps to get the correct API model name
+  const { getModelMapping } = await import('./modelMaps');
+  
+  try {
+    // First, try to get the full model name directly from the configuration
+    let fullModelName: string;
+    
+    // If the model name starts with "anthropic:", it's already in the right format for mapping
+    if (modelName.startsWith('anthropic:')) {
+      fullModelName = modelName;
+    } else {
+      // If it doesn't have the provider prefix, add it
+      fullModelName = `anthropic:${modelName}`;
+    }
+    
+    // Look up the model in the configuration
+    const modelConfig = getModelMapping(fullModelName);
+    
+    if (modelConfig && modelConfig.apiName) {
+      logger.debug(`Using API model name from configuration: ${modelConfig.apiName} for ${modelName}`);
+      return modelConfig.apiName;
+    }
+    
+    // If the model wasn't found, log a warning and return the original name
+    logger.warn(`Model "${modelName}" not found in configuration. This may cause API errors.`);
+    return modelName;
+  } catch (error) {
+    logger.error(`Error getting API model name: ${error}`);
+    return modelName;
+  }
 }
 
 /**

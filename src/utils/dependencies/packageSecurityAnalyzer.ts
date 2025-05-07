@@ -254,8 +254,9 @@ export async function createDependencySecuritySection(projectPath: string): Prom
     const { createDependencyAnalysisSection } = await import('./enhancedDependencyAnalyzer');
     logger.info('Using enhanced dependency analyzer with visualization and unused dependency detection');
     return await createDependencyAnalysisSection(projectPath);
-  } catch (enhancedError) {
-    logger.error(`Error using enhanced dependency analyzer: ${enhancedError}`);
+  } catch (enhancedError: unknown) {
+    const errorMessage = enhancedError instanceof Error ? enhancedError.message : String(enhancedError);
+    logger.error(`Error using enhanced dependency analyzer: ${errorMessage}`);
     logger.info('Falling back to standard analyzer...');
     // Continue with the original implementation if enhanced analyzer fails
     try {
@@ -273,8 +274,9 @@ export async function createDependencySecuritySection(projectPath: string): Prom
         const fs = require('fs');
         const stats = fs.statSync(projectPath);
         logger.info(`Project directory exists: ${stats.isDirectory()}`);
-      } catch (err) {
-        logger.error(`Project directory does not exist or is not accessible: ${err.message}`);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        logger.error(`Project directory does not exist or is not accessible: ${errorMessage}`);
         return "## Project Stack Analysis\n\n❌ Error: Project directory not accessible.";
       }
       
@@ -309,15 +311,19 @@ export async function createDependencySecuritySection(projectPath: string): Prom
           logger.info('✅ Dependency security analysis completed successfully');
           logger.info(`Security report length: ${securityReport?.length || 0} characters`);
           return securityReport;
-        } catch (scanError) {
-          logger.error(`❌ Dependency scanner failed: ${scanError}`);
-          logger.error(scanError.stack || 'No stack trace available');
+        } catch (scanError: unknown) {
+          const errorMessage = scanError instanceof Error ? scanError.message : String(scanError);
+          const errorStack = scanError instanceof Error && scanError.stack ? scanError.stack : 'No stack trace available';
+          logger.error(`❌ Dependency scanner failed: ${errorMessage}`);
+          logger.error(errorStack);
           // Return just the tech stack info when scanner fails
           return `${techStackReport}\n\n## Dependency Security Analysis\n\n⚠️ Dependency security analysis is not available.\n\nTo enable security scanning, configure a dependency scanner or set SERPAPI_KEY in your environment.`;
         }
-      } catch (importError) {
-        logger.error(`❌ Scanner module import error: ${importError}`);
-        logger.error(importError.stack || 'No stack trace available');
+      } catch (importError: unknown) {
+        const errorMessage = importError instanceof Error ? importError.message : String(importError);
+        logger.error(`❌ Scanner module import error: ${errorMessage}`);
+        const errorStack = importError instanceof Error && importError.stack ? importError.stack : 'No stack trace available';
+        logger.error(errorStack);
         // Return just the tech stack when scanner module fails to load
       }
 

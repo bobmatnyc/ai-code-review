@@ -162,9 +162,9 @@ async function runOwaspDependencyCheck(
   
   try {
     // Build command arguments
-    const args = [
+    const args: string[] = [
       '--project', path.basename(projectPath),
-      '--format', mergedConfig.outputFormat,
+      '--format', mergedConfig.outputFormat as string,
       '--out', outputDir,
       '--scan', mergedConfig.scanPath || projectPath
     ];
@@ -380,7 +380,18 @@ export async function analyzeSecurityWithOwasp(projectPath: string): Promise<Sec
     
     // Get tech stack information using our existing detection
     const stackAnalysis = await detectTechStacks(projectPath);
-    const techStackReport = formatStackSummary(stackAnalysis);
+    
+    // Create a minimal StackAwarePackageAnalysisResult to pass to formatStackSummary
+    const stackAnalysisResult = {
+      detectedStacks: stackAnalysis,
+      packageResults: [],
+      allPackages: [],
+      productionPackages: [],
+      devPackages: [],
+      frameworkPackages: []
+    };
+    
+    const techStackReport = formatStackSummary(stackAnalysisResult);
     
     if (!isInstalled) {
       logger.warn('OWASP Dependency-Check not installed. Using fallback report.');
@@ -450,7 +461,18 @@ export async function analyzeSecurityWithOwasp(projectPath: string): Promise<Sec
     // Get tech stack information even if OWASP analysis fails
     try {
       const stackAnalysis = await detectTechStacks(projectPath);
-      const techStackReport = formatStackSummary(stackAnalysis);
+      
+      // Create a minimal StackAwarePackageAnalysisResult to pass to formatStackSummary
+      const stackAnalysisResult = {
+        detectedStacks: stackAnalysis,
+        packageResults: [],
+        allPackages: [],
+        productionPackages: [],
+        devPackages: [],
+        frameworkPackages: []
+      };
+      
+      const techStackReport = formatStackSummary(stackAnalysisResult);
       
       return {
         techStackReport,

@@ -46,8 +46,8 @@ export async function getContextualRecommendations(
       const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8');
       const packageJson = JSON.parse(packageJsonContent);
       
-      const dependencies = { ...packageJson.dependencies } || {};
-      const devDependencies = { ...packageJson.devDependencies } || {};
+      const dependencies = packageJson.dependencies ? { ...packageJson.dependencies } : {};
+      const devDependencies = packageJson.devDependencies ? { ...packageJson.devDependencies } : {};
       
       // Check for TypeScript projects
       const isTypeScriptProject = await fs.access(path.join(projectPath, 'tsconfig.json'))

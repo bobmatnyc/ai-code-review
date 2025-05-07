@@ -10,7 +10,7 @@ import { createEnhancedDependencyAnalysis } from './enhancedDependencyAnalyzer';
 import logger from '../logger';
 
 // Set log level to debug for more verbose output
-logger.level = 'debug';
+logger.setLogLevel('debug');
 
 async function runTest() {
   console.log('=========== STARTING ENHANCED DEPENDENCY ANALYSIS TEST ===========');

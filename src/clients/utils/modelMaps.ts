@@ -57,31 +57,58 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     supportsToolCalling: false
   },
 
-  // Updated Anthropic models (with test-specific sonnet & haiku)
+  // Updated Anthropic models
+  'anthropic:claude-3.7-sonnet': {
+    apiName: 'claude-3-7-sonnet-20250219',
+    displayName: 'Claude 3.7 Sonnet',
+    provider: 'anthropic',
+    contextWindow: 200000,
+    description: 'Latest hybrid reasoning model with enhanced capabilities',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
+    supportsToolCalling: true
+  },
+  'anthropic:claude-3.5-sonnet': {
+    apiName: 'claude-3-5-sonnet-20241022',
+    displayName: 'Claude 3.5 Sonnet v2',
+    provider: 'anthropic',
+    contextWindow: 200000,
+    description: 'Improved version of Claude 3.5 Sonnet',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
+    supportsToolCalling: true
+  },
+  'anthropic:claude-3.5-haiku': {
+    apiName: 'claude-3-5-haiku-20241022',
+    displayName: 'Claude 3.5 Haiku',
+    provider: 'anthropic',
+    contextWindow: 200000,
+    description: 'Fast and lightweight model',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
+    supportsToolCalling: true
+  },
   'anthropic:claude-3-opus': {
     apiName: 'claude-3-opus-20240229',
     displayName: 'Claude 3 Opus',
     provider: 'anthropic',
     contextWindow: 200000,
-    description: "Anthropic's most powerful model (earlier version)",
+    description: 'High-performance model for complex tasks',
     apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
     supportsToolCalling: true
   },
   'anthropic:claude-3-sonnet': {
-    apiName: 'claude-3-sonnet',
+    apiName: 'claude-3-sonnet-20240229',
     displayName: 'Claude 3 Sonnet',
     provider: 'anthropic',
     contextWindow: 200000,
-    description: 'Advanced Claude sonnet model',
+    description: 'Balanced model for general-purpose use',
     apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
     supportsToolCalling: true
   },
   'anthropic:claude-3-haiku': {
-    apiName: 'claude-3-haiku',
+    apiName: 'claude-3-haiku-20240307',
     displayName: 'Claude 3 Haiku',
     provider: 'anthropic',
     contextWindow: 200000,
-    description: 'Concise Haiku-style output from Claude',
+    description: 'Optimized for speed and efficiency',
     apiKeyEnvVar: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
     supportsToolCalling: true
   },
@@ -136,11 +163,38 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
 
   // OpenRouter provider models matching tests
   'openrouter:anthropic/claude-3-opus': {
-    apiName: 'anthropic/claude-3-opus-20240229',
+    apiName: 'anthropic/claude-3-opus',
     displayName: 'Claude 3 Opus (via OpenRouter)',
     provider: 'openrouter',
     contextWindow: 200000,
     description: 'Claude 3 Opus model served via OpenRouter',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+    supportsToolCalling: false
+  },
+  'openrouter:anthropic/claude-3-7-sonnet': {
+    apiName: 'anthropic/claude-3.7-sonnet',
+    displayName: 'Claude 3.7 Sonnet (via OpenRouter)',
+    provider: 'openrouter',
+    contextWindow: 200000,
+    description: 'Latest hybrid reasoning model with enhanced capabilities via OpenRouter',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+    supportsToolCalling: false
+  },
+  'openrouter:anthropic/claude-3-5-sonnet': {
+    apiName: 'anthropic/claude-3.5-sonnet',
+    displayName: 'Claude 3.5 Sonnet (via OpenRouter)',
+    provider: 'openrouter',
+    contextWindow: 200000,
+    description: 'Improved version of Claude 3.5 Sonnet via OpenRouter',
+    apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+    supportsToolCalling: false
+  },
+  'openrouter:anthropic/claude-3-5-haiku': {
+    apiName: 'anthropic/claude-3.5-haiku',
+    displayName: 'Claude 3.5 Haiku (via OpenRouter)',
+    provider: 'openrouter',
+    contextWindow: 200000,
+    description: 'Fast and lightweight model via OpenRouter',
     apiKeyEnvVar: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
     supportsToolCalling: false
   },

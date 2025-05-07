@@ -7,12 +7,14 @@
  * the Anthropic API without dealing with the HTTP details.
  */
 
-import logger from '../../utils/logger';
+import logger, { LogLevel } from '../../utils/logger';
 import {
   handleFetchResponse,
   safeJsonParse,
   ApiError
 } from '../../utils/apiErrorHandler';
+
+// The logger will be properly initialized at the application level
 
 /**
  * Maximum tokens to request from the API for a single response
@@ -40,18 +42,52 @@ export async function fetchWithRetry(
 ): Promise<Response> {
   for (let i = 0; i < retries; i++) {
     try {
-      logger.debug(`Anthropic API request attempt ${i + 1}/${retries}`);
+      console.error(`\n\n==== ANTHROPIC API REQUEST ====`);
+      console.error(`Attempt: ${i + 1}/${retries}`);
+      console.error(`URL: ${url}`);
+      console.error(`Method: ${options.method}`);
+      console.error(`Headers: ${JSON.stringify(options.headers, null, 2)}`);
+      console.error(`Body (first 500 chars): ${String(options.body).substring(0, 500)}...`);
+      console.error(`==== END REQUEST ====\n`);
+      
       const res = await fetch(url, options);
-      logger.debug(`Anthropic API response status: ${res.status}`);
+      
+      console.error(`\n\n==== ANTHROPIC API RESPONSE ====`);
+      console.error(`Status: ${res.status}`);
+      console.error(`Status Text: ${res.statusText}`);
+      console.error(`Headers: ${JSON.stringify(Object.fromEntries([...res.headers.entries()]), null, 2)}`);
+      console.error(`==== END RESPONSE HEADERS ====\n`);
 
       if (res.ok) return res;
 
       // Try to get more detailed error information
       try {
         const errorText = await res.text();
-        logger.debug(`Anthropic API error response: ${errorText}`);
+        console.error(`\n\n==== ANTHROPIC API ERROR DETAILS ====`);
+        console.error(`Error response body: ${errorText}`);
+        
+        // Attempt to parse and log structured error information
+        try {
+          const errorJson = JSON.parse(errorText);
+          console.error(`Error type: ${errorJson.type || 'unknown'}`);
+          console.error(`Error message: ${errorJson.message || 'unknown'}`);
+          if (errorJson.error) {
+            console.error(`Detailed error: ${JSON.stringify(errorJson.error, null, 2)}`);
+          }
+        } catch (jsonError) {
+          console.error(`Error response is not valid JSON: ${jsonError.message}`);
+        }
+        
+        console.error(`==== END ERROR DETAILS ====\n\n`);
+        
+        // Clone the response with the error text since we've consumed the stream
+        return new Response(errorText, { 
+          status: res.status, 
+          statusText: res.statusText,
+          headers: res.headers
+        });
       } catch (readError) {
-        logger.debug(`Could not read error response: ${readError}`);
+        console.error(`Could not read error response: ${readError}`);
       }
 
       if (res.status === 429 || res.status >= 500) {
@@ -60,7 +96,7 @@ export async function fetchWithRetry(
       } else {
         logger.debug(`Non-retryable error status: ${res.status}`);
         throw new Error(
-          `Anthropic API request failed with status ${res.status}`
+          `Anthropic API request failed with status ${res.status}: ${res.statusText}`
         );
       }
     } catch (error) {
@@ -84,11 +120,28 @@ export async function testAnthropicApiAccess(
   modelName: string
 ): Promise<boolean> {
   try {
+    // DIRECT CONSOLE OUTPUT - bypassing logger completely
+    console.error("\n\n==== ANTHROPIC API DEBUG ====");
+    console.error(`Testing model: ${modelName}`);
+    console.error(`API URL: https://api.anthropic.com/v1/messages`);
+    console.error(`API Version: 2023-06-01`);
+    console.error(`============================\n`);
+    
+    // Regular logging
     logger.info(`Initializing Anthropic model: ${modelName}...`);
 
-    // Prepare the request body
+    // IMPORTANT: Get proper API model name from model mappings
+    const { getApiModelName } = await import('./anthropicModelHelpers');
+    
+    // Look up the API-friendly model name from our model mappings
+    const apiModelName = await getApiModelName(modelName);
+    
+    logger.debug(`Test API access using model: ${apiModelName} (from ${modelName})`);
+    console.error(`Test API access using model: ${apiModelName} (from ${modelName})`);
+    
+    // Prepare the request body with the mapped model name
     const requestBody = {
-      model: modelName,
+      model: apiModelName, // Use the format from our configuration
       system: 'You are a helpful AI assistant.',
       messages: [
         {
@@ -99,16 +152,37 @@ export async function testAnthropicApiAccess(
       max_tokens: 100
     };
 
+    // Detailed request logging
+    logger.info(`Testing Anthropic API with model: ${apiModelName}`);
+    logger.debug(`Request URL: https://api.anthropic.com/v1/messages`);
+    logger.debug(`Request headers: Content-Type: application/json, anthropic-version: 2023-06-01, anthropic-beta: messages-2023-12-15`);
     logger.debug(`Request body: ${JSON.stringify(requestBody, null, 2)}`);
 
+    // Direct console logging to help debug issues
+    console.log(`\n\n==== ANTHROPIC API REQUEST ====`);
+    console.log(`URL: https://api.anthropic.com/v1/messages`);
+    console.log(`API Version: 2023-06-01`);
+    console.log(`API Beta: messages-2023-12-15`);
+    console.log(`Converted model: ${modelName} → ${apiModelName}`);
+    console.log(`API Key exists: ${apiKey ? 'YES' : 'NO'}`);
+    console.log(`API Key first 5 chars: ${apiKey?.substring(0, 5)}...`);
+    console.log(`============================\n`);
+    
+    // Use the standard messages endpoint
+    let apiEndpoint = 'https://api.anthropic.com/v1/messages';
+    
+    console.log(`API Endpoint: ${apiEndpoint}`);
+    
     const response = await fetchWithRetry(
-      'https://api.anthropic.com/v1/messages',
+      apiEndpoint,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey || '',
-          'anthropic-version': '2023-06-01'
+          'anthropic-version': '2023-06-01', // Using stable API version from June 2023
+          'anthropic-beta': 'messages-2023-12-15', // Add beta header for messages endpoint
+          'Accept': 'application/json'
         },
         body: JSON.stringify(requestBody)
       }
@@ -119,6 +193,12 @@ export async function testAnthropicApiAccess(
       logger.debug(`Response status: ${response.status}`);
       const responseText = await response.text();
       logger.debug(`Response text: ${responseText}`);
+      // Additional detailed logging for debugging Anthropic API issues
+      logger.debug(`==== ANTHROPIC DEBUG ====`);
+      logger.debug(`Request to Anthropic API for model: ${modelName}`);
+      logger.debug(`Response status: ${response.status}`);
+      logger.debug(`Response text: ${responseText}`);
+      logger.debug(`========================`);
 
       if (!response.ok) {
         logger.error(
@@ -172,9 +252,16 @@ export async function makeAnthropicRequest(
   temperature: number = 0.2,
   tools?: any[]
 ): Promise<AnthropicResponse> {
+  // Get proper API model name from model mappings
+  const { getApiModelName } = await import('./anthropicModelHelpers');
+  
+  // Look up the API-friendly model name from our model mappings
+  const apiModelName = await getApiModelName(modelName);
+  logger.debug(`makeAnthropicRequest: Using model ${apiModelName} from mappings (model: ${modelName})`);
+  
   // Prepare the request options
   const requestOptions: Record<string, any> = {
-    model: modelName,
+    model: apiModelName, // Use the format from our configuration
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }],
     temperature,
@@ -187,14 +274,22 @@ export async function makeAnthropicRequest(
   }
 
   // Make the API request
+  // Use the standard messages endpoint for all Claude models
+  const apiEndpoint = 'https://api.anthropic.com/v1/messages';
+  logger.debug(`Using API endpoint: ${apiEndpoint} for model: ${apiModelName}`);
+  
+  logger.debug(`API Endpoint: ${apiEndpoint}`);
+  
   const response = await fetchWithRetry(
-    'https://api.anthropic.com/v1/messages',
+    apiEndpoint,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey || '',
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01', // Using stable API version
+        'anthropic-beta': 'messages-2023-12-15', // Add beta header for messages endpoint
+        'Accept': 'application/json'
       },
       body: JSON.stringify(requestOptions)
     }
@@ -221,18 +316,33 @@ export async function makeAnthropicConversationRequest(
   messages: Array<{ role: string; content: any }>,
   temperature: number = 0.2
 ): Promise<AnthropicResponse> {
+  // Get proper API model name from model mappings
+  const { getApiModelName } = await import('./anthropicModelHelpers');
+  
+  // Look up the API-friendly model name from our model mappings
+  const apiModelName = await getApiModelName(modelName);
+  logger.debug(`makeAnthropicConversationRequest: Using model ${apiModelName} from mappings (model: ${modelName})`);
+  
   // Make the API request
+  // Use the standard messages endpoint for all Claude models
+  const apiEndpoint = 'https://api.anthropic.com/v1/messages';
+  logger.debug(`Using API endpoint: ${apiEndpoint} for model: ${apiModelName}`);
+  
+  logger.debug(`API Endpoint: ${apiEndpoint}`);
+  
   const response = await fetchWithRetry(
-    'https://api.anthropic.com/v1/messages',
+    apiEndpoint,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey || '',
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01', // Using stable API version
+        'anthropic-beta': 'messages-2023-12-15', // Add beta header for messages endpoint
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
-        model: modelName,
+        model: apiModelName, // Use the properly formatted model name
         messages,
         temperature,
         max_tokens: MAX_TOKENS_PER_REQUEST
@@ -249,3 +359,7 @@ export async function makeAnthropicConversationRequest(
   // Parse and return the response
   return response.json();
 }
+
+// Restore original log level after all functions are defined
+// Note: This is a simplification as the module could be imported multiple times
+// Process-wide log level will be retained

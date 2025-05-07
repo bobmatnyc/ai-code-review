@@ -34,14 +34,14 @@ export {
   readFileWithInfo,
   readFilesWithInfo,
   readFilesInDirectory as findFilesInDirectory
-} from './fileReader';
+} from './FileReader';
 
 // Import from fileWriter for aliases
 import {
   ensureDirectoryExists,
   writeFile as writeFileImpl,
   appendFile as appendFileImpl
-} from './fileWriter';
+} from './FileWriter';
 
 // Re-export from fileWriter
 export {
@@ -58,4 +58,4 @@ export {
   generateVersionedOutputPath,
   generateUniqueOutputPath,
   generateTempFilePath
-} from './pathGenerator';
+} from './PathGenerator';
