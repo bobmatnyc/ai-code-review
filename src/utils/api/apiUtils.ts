@@ -56,47 +56,56 @@ export function getApiKeyType():
 
   // Get the model adapter from the configuration
   const selectedModel = config.selectedModel;
-  const adapter = selectedModel
-    ? selectedModel.includes(':')
-      ? selectedModel.split(':')[0]
-      : 'gemini'
-    : '';
+  // Default to 'gemini' if no adapter is specified
+  const adapter = selectedModel && selectedModel.includes(':')
+    ? selectedModel.split(':')[0].toLowerCase() // Normalize to lowercase
+    : 'gemini';
+  
+  // Add debug logging to track model selection
+  logger.debug(`getApiKeyType: selectedModel=${selectedModel}, adapter=${adapter}`);
 
   // First check if we have a specific adapter specified in the model
   // If so, return the corresponding API type regardless of whether we have the API key
   // This ensures we respect the user's choice of model and provide appropriate error messages
-  if (adapter === 'gemini') {
+  switch (adapter) {
+    case 'gemini':
+      logger.debug('getApiKeyType: Using Google API based on model adapter');
+      return 'Google';
+    case 'openrouter':
+      logger.debug('getApiKeyType: Using OpenRouter API based on model adapter');
+      return 'OpenRouter';
+    case 'anthropic':
+      logger.debug('getApiKeyType: Using Anthropic API based on model adapter');
+      return 'Anthropic';
+    case 'openai':
+      logger.debug('getApiKeyType: Using OpenAI API based on model adapter');
+      return 'OpenAI';
+  }
+
+  // If no specific adapter is specified or the adapter wasn't recognized,
+  // check if any API keys are available
+  logger.debug('getApiKeyType: No recognized adapter, checking available API keys');
+  
+  // Check for any available API keys
+  if (config.googleApiKey) {
+    logger.debug('getApiKeyType: Found Google API key');
     return 'Google';
   }
-  if (adapter === 'openrouter') {
+  if (config.openRouterApiKey) {
+    logger.debug('getApiKeyType: Found OpenRouter API key');
     return 'OpenRouter';
   }
-  if (adapter === 'anthropic') {
+  if (config.anthropicApiKey) {
+    logger.debug('getApiKeyType: Found Anthropic API key');
     return 'Anthropic';
   }
-  if (adapter === 'openai') {
+  if (config.openAIApiKey) {
+    logger.debug('getApiKeyType: Found OpenAI API key');
     return 'OpenAI';
   }
 
-  // If no specific adapter is specified, check if any API keys are available
-  // Note: We don't have any preference for which API to use - we'll use whatever is available
-  if (adapter === '' || !selectedModel) {
-    // Check for any available API keys
-    if (config.googleApiKey) {
-      return 'Google';
-    }
-    if (config.openRouterApiKey) {
-      return 'OpenRouter';
-    }
-    if (config.anthropicApiKey) {
-      return 'Anthropic';
-    }
-    if (config.openAIApiKey) {
-      return 'OpenAI';
-    }
-  }
-
   // No API keys available or the specified adapter doesn't have an API key
+  logger.debug('getApiKeyType: No API keys available');
   return null;
 }
 

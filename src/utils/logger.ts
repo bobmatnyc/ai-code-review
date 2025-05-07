@@ -37,14 +37,24 @@ const COLORS = {
   time: '\x1b[90m' // Gray
 };
 
+// Track if we're initializing to avoid circular dependencies
+let isInitializing = false;
+
 // Get the current log level from environment variables
 function getCurrentLogLevel(): LogLevel {
-  // Direct console.error for debugging the logger itself
-  console.error(`Debug: getCurrentLogLevel called, AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL}`);
+  // Avoid debug logs during initialization to prevent overwhelming output
+  const shouldLog = process.argv.includes('--trace-logger') && !isInitializing;
+  
+  if (shouldLog) {
+    // Only print when explicitly requested with --trace-logger
+    console.error(`Debug: getCurrentLogLevel called, AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL}`);
+  }
   
   // Always check CLI flags first - highest priority
   if (process.argv.includes('--debug')) {
-    console.error('Debug: Debug flag found in process.argv, forcing DEBUG level');
+    if (shouldLog) {
+      console.error('Debug: Debug flag found in process.argv, forcing DEBUG level');
+    }
     return LogLevel.DEBUG;
   }
   
@@ -52,20 +62,26 @@ function getCurrentLogLevel(): LogLevel {
   const envLogLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase();
   
   if (envLogLevel) {
-    console.error(`Debug: Found AI_CODE_REVIEW_LOG_LEVEL environment variable: ${envLogLevel}`);
+    if (shouldLog) {
+      console.error(`Debug: Found AI_CODE_REVIEW_LOG_LEVEL environment variable: ${envLogLevel}`);
+    }
     
     if (envLogLevel in LOG_LEVEL_MAP) {
-      console.error(`Debug: Mapped log level ${envLogLevel} -> ${LOG_LEVEL_MAP[envLogLevel]}`);
+      if (shouldLog) {
+        console.error(`Debug: Mapped log level ${envLogLevel} -> ${LOG_LEVEL_MAP[envLogLevel]}`);
+      }
       return LOG_LEVEL_MAP[envLogLevel];
-    } else {
+    } else if (shouldLog) {
       console.error(`Debug: Invalid log level: ${envLogLevel}, valid options are: ${Object.keys(LOG_LEVEL_MAP).join(', ')}`);
     }
-  } else {
+  } else if (shouldLog) {
     console.error('Debug: AI_CODE_REVIEW_LOG_LEVEL environment variable not found');
   }
 
   // Default to INFO if not specified
-  console.error('Debug: No valid log level found, defaulting to INFO');
+  if (shouldLog) {
+    console.error('Debug: No valid log level found, defaulting to INFO');
+  }
   return LogLevel.INFO;
 }
 
@@ -77,19 +93,28 @@ let currentLogLevel = getCurrentLogLevel();
  * @param level The log level to set
  */
 export function setLogLevel(level: LogLevel | string): void {
-  console.error(`Debug: setLogLevel called with ${level}`);
+  // Only log when explicitly requested with --trace-logger
+  const shouldLog = process.argv.includes('--trace-logger');
+  
+  if (shouldLog) {
+    console.error(`Debug: setLogLevel called with ${level}`);
+  }
   
   if (typeof level === 'string') {
     const levelLower = level.toLowerCase();
     if (levelLower in LOG_LEVEL_MAP) {
       currentLogLevel = LOG_LEVEL_MAP[levelLower];
-      console.error(`Debug: Log level set to ${levelLower} -> ${currentLogLevel}`);
+      if (shouldLog) {
+        console.error(`Debug: Log level set to ${levelLower} -> ${currentLogLevel}`);
+      }
     } else {
       console.warn(`Invalid log level: ${level}. Using default.`);
     }
   } else {
     currentLogLevel = level;
-    console.error(`Debug: Log level set to numeric value ${level}`);
+    if (shouldLog) {
+      console.error(`Debug: Log level set to numeric value ${level}`);
+    }
   }
 }
 
@@ -144,8 +169,8 @@ function log(
         console.error(formattedMessage, ...args);
         break;
     }
-  } else if (level === LogLevel.DEBUG) {
-    // Extra debug for debugging logger itself
+  } else if (level === LogLevel.DEBUG && process.argv.includes('--trace-logger')) {
+    // Only show debug suppression messages when explicitly requested
     console.error(`Suppressing DEBUG log because currentLogLevel=${currentLogLevel}, message was: ${message}`);
   }
 }
