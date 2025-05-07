@@ -59,6 +59,7 @@ export async function loadGitignorePatterns(projectDir: string): Promise<string[
       await fs.access(gitignorePath);
     } catch (error) {
       // File doesn't exist
+      logger.debug(`No .gitignore file found at ${gitignorePath}`);
       return [];
     }
     
@@ -165,6 +166,12 @@ export function getLanguageForFile(filePath: string): string {
  * @returns True if the file is supported
  */
 export function isSupportedFile(filePath: string): boolean {
+  // Skip files that start with a dot (hidden files)
+  const fileName = path.basename(filePath);
+  if (fileName.startsWith('.')) {
+    return false;
+  }
+  
   const ext = path.extname(filePath).toLowerCase();
   return SUPPORTED_EXTENSIONS.includes(ext);
 }
@@ -203,8 +210,9 @@ export async function discoverFiles(
     for (const entry of entries) {
       const entryPath = path.join(dirPath, entry.name);
 
-      // Skip excluded files
+      // Skip excluded files (from .gitignore)
       if (shouldExcludeFile(entryPath, excludePatterns)) {
+        logger.debug(`Skipping path: ${entryPath} (matched by .gitignore pattern)`);
         continue;
       }
 
@@ -225,13 +233,21 @@ export async function discoverFiles(
 
         files.push(...subFiles);
       } else if (entry.isFile()) {
+        // Skip dot files
+        if (entry.name.startsWith('.')) {
+          logger.debug(`Skipping file: ${entry.name} (hidden file)`);
+          continue;
+        }
+        
         // Skip test files if not including tests
         if (!includeTests && isTestFile(entryPath)) {
+          logger.debug(`Skipping file: ${entryPath} (test file)`);
           continue;
         }
 
         // Skip unsupported files
         if (!isSupportedFile(entryPath)) {
+          logger.debug(`Skipping file: ${entryPath} (unsupported file type)`);
           continue;
         }
 
