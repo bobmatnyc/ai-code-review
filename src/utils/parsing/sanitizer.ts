@@ -18,9 +18,25 @@ const { window } = new JSDOM('');
 const DOMPurify = createDOMPurify(window as any);
 
 /**
- * Sanitize HTML content to prevent XSS attacks
- * @param content HTML content to sanitize
- * @returns Sanitized HTML content
+ * Sanitizes HTML content to prevent Cross-Site Scripting (XSS) attacks.
+ * 
+ * This function uses DOMPurify to clean HTML content by:
+ * 1. Allowing only safe HTML tags (h1-h6, p, lists, tables, etc.)
+ * 2. Allowing only safe attributes (href, class, id, etc.)
+ * 3. Explicitly forbidding dangerous tags (script, iframe, svg, etc.)
+ * 4. Explicitly forbidding dangerous attributes (onerror, onclick, etc.)
+ * 
+ * If sanitization fails for any reason, it returns an empty string for safety.
+ * 
+ * @param {string} content - The HTML content to sanitize
+ * @returns {string} Sanitized HTML with potentially dangerous content removed
+ * 
+ * @example
+ * const unsafeHtml = '<div>Safe content</div><script>alert("XSS")</script>';
+ * const safeHtml = sanitizeHtml(unsafeHtml);
+ * // Returns: "<div>Safe content</div>"
+ * 
+ * @throws Catches internally and returns empty string if DOMPurify fails
  */
 export function sanitizeHtml(content: string): string {
   try {
@@ -154,10 +170,31 @@ export function sanitizeJson(content: string): string {
 }
 
 /**
- * Sanitize content based on its type
- * @param content Content to sanitize
- * @param contentType Type of content (html, markdown, json, text)
- * @returns Sanitized content
+ * Sanitizes content based on its type to prevent security vulnerabilities.
+ * 
+ * This function acts as a dispatcher that routes the content to the appropriate
+ * specialized sanitization function based on the content type. It supports
+ * HTML, Markdown, JSON, and plain text formats, each with type-specific
+ * sanitization rules.
+ * 
+ * @param {string} content - The content to sanitize
+ * @param {('html'|'markdown'|'json'|'text')} [contentType='text'] - The type of content
+ * @returns {string} Sanitized content safe for rendering or storage
+ * 
+ * @example
+ * // Sanitize HTML content
+ * const safeHtml = sanitizeContent('<script>alert("XSS")</script><p>Hello</p>', 'html');
+ * // Returns: "<p>Hello</p>"
+ * 
+ * @example
+ * // Sanitize Markdown content
+ * const safeMarkdown = sanitizeContent('# Title\n<script>alert("XSS")</script>', 'markdown');
+ * // Returns: "# Title\n"
+ * 
+ * @example
+ * // Sanitize JSON content
+ * const safeJson = sanitizeContent('{"key": "value"}', 'json');
+ * // Returns: '{"key":"value"}'
  */
 export function sanitizeContent(
   content: string,

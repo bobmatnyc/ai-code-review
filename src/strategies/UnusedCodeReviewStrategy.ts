@@ -1,8 +1,19 @@
 /**
- * @fileoverview Strategy for unused code review.
+ * @fileoverview Strategy for identifying and removing unused/dead code.
  *
- * This module implements the strategy for unused code review, which identifies
- * and suggests removal of unused or dead code.
+ * This module implements a comprehensive strategy for detecting and recommending
+ * removal of unused code, including functions, variables, classes, and entire files.
+ * It integrates with static analysis tools like ts-prune and ESLint to provide
+ * additional insights and improve detection accuracy.
+ *
+ * Key responsibilities:
+ * - Running static analysis tools (ts-prune, ESLint) to identify unused code
+ * - Generating AI-based unused code reviews using specialized prompts
+ * - Reformatting reviews into user-friendly output
+ * - Generating removal scripts for easy cleanup
+ * 
+ * The strategy leverages LangChain for improved prompting and can use either
+ * standard or enhanced unused code review templates based on availability.
  */
 
 import { BaseReviewStrategy } from './ReviewStrategy';
@@ -25,7 +36,20 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 /**
- * Strategy for unused code review
+ * Strategy for detecting and suggesting removal of unused code.
+ * 
+ * This strategy combines AI-based code analysis with static analysis tools
+ * to identify unused code with high confidence. It can utilize ts-prune
+ * for finding unused exports and ESLint for detecting unused variables.
+ * 
+ * The strategy prioritizes findings by impact level (high, medium, low)
+ * and can generate removal scripts to help with cleanup.
+ * 
+ * @example
+ * const strategy = new UnusedCodeReviewStrategy();
+ * const result = await strategy.execute(files, projectName, projectDocs, options, apiConfig);
+ * 
+ * @extends {BaseReviewStrategy}
  */
 export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
   /**
@@ -64,8 +88,26 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
   }
   
   /**
-   * Run ts-prune to find unused exports
-   * @returns Results from ts-prune
+   * Executes ts-prune to find unused TypeScript exports in the project.
+   * 
+   * This method runs the ts-prune tool via npx, which analyzes TypeScript
+   * files to identify exports that are not imported anywhere else in the project.
+   * The output is parsed into a structured format for use in the review.
+   * 
+   * @returns {Promise<any>} Object containing:
+   *   - unusedExports: Array of objects with file, line, export name, and notes
+   *   - totalCount: Total number of unused exports found
+   * 
+   * @throws Will reject with an error if ts-prune execution fails
+   * @example
+   * const tsPruneData = await strategy.runTsPrune();
+   * // Example result:
+   * // {
+   * //   unusedExports: [
+   * //     { file: "src/utils/helpers.ts", line: 42, export: "unusedFunction", note: null }
+   * //   ],
+   * //   totalCount: 1
+   * // }
    */
   private async runTsPrune(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -150,13 +192,24 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
   }
 
   /**
-   * Execute the unused code review strategy
-   * @param files Files to review
-   * @param projectName Project name
-   * @param projectDocs Project documentation
-   * @param options Review options
-   * @param apiClientConfig API client configuration
-   * @returns Promise resolving to review result
+   * Performs a comprehensive unused code review on the provided files.
+   * 
+   * This method:
+   * 1. Runs static analysis tools if configured (ts-prune, ESLint)
+   * 2. Enhances review options with language-specific settings
+   * 3. Applies specialized LangChain prompt strategies
+   * 4. Generates an AI-based review of unused code
+   * 5. Post-processes the result to format it for user consumption
+   * 6. Generates removal scripts for identified unused code
+   * 
+   * @param {FileInfo[]} files - Array of files to analyze for unused code
+   * @param {string} projectName - Name of the project being reviewed
+   * @param {ProjectDocs | null} projectDocs - Project documentation or null if not available
+   * @param {ReviewOptions} options - Configuration options for the review
+   * @param {ApiClientConfig} apiClientConfig - Configuration for the AI API client
+   * @returns {Promise<ReviewResult>} Review result with detailed unused code findings
+   * 
+   * @throws Will log but not throw errors from static analysis tools
    */
   async execute(
     files: FileInfo[],

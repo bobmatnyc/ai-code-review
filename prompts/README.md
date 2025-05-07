@@ -1,62 +1,78 @@
- # Prompts Directory
+# Prompts Directory
 
- This directory contains the Markdown templates used to generate AI-driven code review prompts.
+This directory contains reference prompt templates for AI-driven code reviews.
 
- ## Structure
- - `prompts/` (root): language-agnostic prompt templates.
- - `prompts/<language>/`: language-specific overrides. If a template file exists here, it will be used instead of the root version.
- 
- Supported languages:
- - `typescript`
- - `python`
- - `php`
- - `ruby`
+> **IMPORTANT**: As of version 2.0, all production prompts are now bundled directly in the codebase via `src/prompts/bundledPrompts.ts`. These file-based prompts are maintained primarily for reference and customization.
 
- ## Frontmatter Schema
- Each prompt file begins with YAML frontmatter, delimited by `---`. Required fields:
- - `name`: string, prompt display name.
- - `description`: string, one-line summary.
- - `version`: string, prompt template version.
- - `author`: string, template author.
- - `lastModified`: string, ISO date when the prompt was last updated.
- - `reviewType`: string, e.g., `quick-fixes`, `security`, `architectural`.
- - `tags`: array of strings, categorization tags.
+## Structure
 
- Example:
- ```yaml
- ---
- name: Quick Fixes Review
- description: Fast review focusing on low-hanging improvements
- version: 1.0.0
- author: AI Code Review Tool
- lastModified: 2025-04-24
- reviewType: quick-fixes
- tags:
-   - quick
-   - fixes
-   - improvements
- ---
- ```
+- `/prompts/` (root): Language-agnostic prompt templates for different review types
+- `/prompts/<language>/`: Language-specific overrides (typescript, python, php, ruby)
+- `/prompts/reference/`: Historical/specialized prompt variants (not actively used)
+- `/prompts/best-practices/`: Templates for best practices reviews by language
 
- ## Placeholders
- Prompts may include placeholders that are replaced at runtime:
- - `{{LANGUAGE_INSTRUCTIONS}}`: language-specific guidance.
- - `{{SPECIALIZATION}}`: area of expertise.
- - `{{CONTEXT}}`: contextual description.
- - `{{CHECKLIST}}`: evaluation checklist items.
- - `{{OUTPUT_FORMAT}}`: required output formatting.
- - `{{SCHEMA_INSTRUCTIONS}}`: instructions for interactive mode (if any).
+## Core Review Types
 
- ## Fallback Rules
- When loading a prompt:
- 1. If `prompts/<language>/<prompt-file>.md` exists, use that.
- 2. Otherwise, fall back to `prompts/<prompt-file>.md`.
+The system supports these review types (defined in `src/types/review.ts`):
 
- ## Adding a New Prompt or Language
- 1. Create a new Markdown file in `prompts/` with the required frontmatter.
- 2. To override for a specific language, copy the file into `prompts/<language>/`.
- 3. Update `version` and `lastModified` when making changes.
- 4. Ensure `tags` are maintained as a YAML list.
+1. `architectural` (alias: `arch`): High-level architecture and design patterns
+2. `quick-fixes`: Simple, high-impact improvements
+3. `security`: Security vulnerabilities and best practices
+4. `performance`: Performance issues and optimizations
+5. `consolidated`: Comprehensive review across all aspects
+6. `unused-code`: Identification of dead/unused code
+7. `code-tracing-unused-code`: Enhanced unused code detection with tracing
+8. `best-practices`: Language-specific idioms and patterns
 
- ## Validation
- Run `npm run validate:prompts` to check frontmatter consistency.
+## Frontmatter Schema
+
+Each prompt file begins with YAML frontmatter, delimited by `---`. Required fields:
+- `name`: string, prompt display name
+- `description`: string, one-line summary
+- `version`: string, prompt template version
+- `author`: string, template author
+- `lastModified`: string, ISO date when the prompt was last updated
+- `reviewType`: string, matching one of the core review types
+- `tags`: array of strings, categorization tags
+
+Example:
+```yaml
+---
+name: Quick Fixes Review
+description: Fast review focusing on low-hanging improvements
+version: 1.0.0
+author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
+reviewType: quick-fixes
+tags:
+  - quick
+  - fixes
+  - improvements
+---
+```
+
+## Placeholders
+
+Prompts may include placeholders that are replaced at runtime:
+- `{{LANGUAGE_INSTRUCTIONS}}`: Language-specific guidance
+- `{{SPECIALIZATION}}`: Area of expertise
+- `{{CONTEXT}}`: Contextual description
+- `{{CHECKLIST}}`: Evaluation checklist items
+- `{{OUTPUT_FORMAT}}`: Required output formatting
+- `{{SCHEMA_INSTRUCTIONS}}`: Instructions for interactive mode
+
+## Adding Custom Prompts
+
+To add a custom prompt:
+
+1. Create a new Markdown file in the appropriate directory
+2. Include valid frontmatter with required fields
+3. Reference it using the `--promptFile` option:
+
+```bash
+code-review --path /path/to/code --promptFile /path/to/custom-prompt.md
+```
+
+## Validation
+
+Run `npm run validate:prompts` to check frontmatter consistency across all prompt files.

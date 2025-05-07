@@ -30,7 +30,8 @@ export type ReviewType =
   | 'performance'
   | 'consolidated'
   | 'unused-code'
-  | 'code-tracing-unused-code';
+  | 'code-tracing-unused-code'
+  | 'best-practices';
 
 /**
  * Options for the review command
