@@ -78,12 +78,14 @@ describe('modelMaps', () => {
       );
 
       // Verify we have the expected number of Anthropic models
-      expect(anthropicModels.length).toBe(3);
+      expect(anthropicModels.length).toBe(5);
 
       // Verify specific model keys exist
       expect(anthropicModels).toContain('anthropic:claude-3-opus');
-      expect(anthropicModels).toContain('anthropic:claude-3-sonnet');
+      expect(anthropicModels).toContain('anthropic:claude-3.7-sonnet');
+      expect(anthropicModels).toContain('anthropic:claude-3.5-sonnet');
       expect(anthropicModels).toContain('anthropic:claude-3-haiku');
+      expect(anthropicModels).toContain('anthropic:claude-3.5-haiku');
 
       // Verify properties of a specific model
       const claude3Opus = MODEL_MAP['anthropic:claude-3-opus'];
@@ -157,8 +159,9 @@ describe('modelMaps', () => {
       expect(MODELS.gemini).toContain('gemini:gemini-2.0-flash');
 
       // Check Anthropic models
-      expect(MODELS.anthropic.length).toBe(3);
+      expect(MODELS.anthropic.length).toBe(5);
       expect(MODELS.anthropic).toContain('anthropic:claude-3-opus');
+      expect(MODELS.anthropic).toContain('anthropic:claude-3.7-sonnet');
 
       // Check OpenAI models
       expect(MODELS.openai.length).toBe(5);
@@ -208,8 +211,9 @@ describe('modelMaps', () => {
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModelsByProvider('anthropic');
-        expect(anthropicModels.length).toBe(3);
+        expect(anthropicModels.length).toBe(5);
         expect(anthropicModels).toContain('anthropic:claude-3-opus');
+        expect(anthropicModels).toContain('anthropic:claude-3.7-sonnet');
       });
     });
 
@@ -220,8 +224,9 @@ describe('modelMaps', () => {
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModels('anthropic');
-        expect(anthropicModels.length).toBe(3);
+        expect(anthropicModels.length).toBe(5);
         expect(anthropicModels).toContain('anthropic:claude-3-opus');
+        expect(anthropicModels).toContain('anthropic:claude-3.7-sonnet');
       });
 
       it('should return an empty array for unknown providers', () => {

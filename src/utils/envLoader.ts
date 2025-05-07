@@ -17,11 +17,19 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 import fs from 'fs/promises';
 
-// Helper function for debug logging
+// Helper function for debug logging - always visible to help diagnose environment variable loading issues
 function debugLog(message: string): void {
-  if (process.argv.includes('--debug')) {
-    console.log(`\x1b[36m[DEBUG]\x1b[0m ${message}`);
+  if (process.argv.includes('--debug') || process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase() === 'debug') {
+    console.log(`\x1b[36m[DEBUG:ENV]\x1b[0m ${message}`);
   }
+}
+
+// Special diagnostic logging for tracking environment variable loading
+// This is a separate function to make it clear when we're specifically
+// tracing environment variable loading issues
+function traceEnvVarLoading(message: string): void {
+  // This will always be visible, regardless of log level
+  console.log(`\x1b[35m[ENV-TRACE]\x1b[0m ${message}`);
 }
 
 /**
@@ -89,7 +97,7 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
     } catch (error) {
       // Don't fail if we can't find the .env.local file
       // Just return a warning message instead
-      debugLog(`Environment file not found: ${envLocalPath}. Continuing without it.`);
+      traceEnvVarLoading(`Environment file not found: ${envLocalPath}. Continuing without it.`);
       return {
         success: true,
         message: `No .env.local file found. You may need to set API keys via environment variables or command line options.`
@@ -98,10 +106,11 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
 
 
     // Load environment variables
-    debugLog(`Attempting to load environment variables from: ${envLocalPath}`);
+    traceEnvVarLoading(`Attempting to load environment variables from: ${envLocalPath}`);
     const result = dotenv.config({ path: envLocalPath });
 
     if (result.error) {
+      traceEnvVarLoading(`Error loading environment variables: ${result.error.message}`);
       return {
         success: false,
         message: `Error loading environment variables: ${result.error.message}`,
@@ -110,15 +119,21 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
     }
 
     // Log success without exposing values
-    debugLog(`Successfully loaded environment variables from ${envLocalPath}`);
+    traceEnvVarLoading(`Successfully loaded environment variables from ${envLocalPath}`);
 
     // Log which variables were found (names only, not values)
     const envVarNames = Object.keys(result.parsed || {});
     if (envVarNames.length > 0) {
-      debugLog('Variables found in .env.local (names only):');
+      traceEnvVarLoading('Variables found in .env.local (names only):');
+      // Specifically check for log level
+      if (envVarNames.includes('AI_CODE_REVIEW_LOG_LEVEL')) {
+        traceEnvVarLoading(`AI_CODE_REVIEW_LOG_LEVEL is set to: ${process.env.AI_CODE_REVIEW_LOG_LEVEL}`);
+      } else {
+        traceEnvVarLoading('AI_CODE_REVIEW_LOG_LEVEL is NOT present in .env.local');
+      }
       debugLog(envVarNames.join(', '));
     } else {
-      debugLog('No variables found in .env.local');
+      traceEnvVarLoading('No variables found in .env.local');
     }
 
     return {

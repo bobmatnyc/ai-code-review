@@ -39,19 +39,29 @@ const COLORS = {
 
 // Get the current log level from environment variables
 function getCurrentLogLevel(): LogLevel {
-  const envLogLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase();
-  
+  // Direct console.error for debugging the logger itself
   console.error(`Debug: getCurrentLogLevel called, AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL}`);
   
-  // Force debug level if CLI flag is set
+  // Always check CLI flags first - highest priority
   if (process.argv.includes('--debug')) {
     console.error('Debug: Debug flag found in process.argv, forcing DEBUG level');
     return LogLevel.DEBUG;
   }
-
-  if (envLogLevel && envLogLevel in LOG_LEVEL_MAP) {
-    console.error(`Debug: Returning log level ${envLogLevel} -> ${LOG_LEVEL_MAP[envLogLevel]}`);
-    return LOG_LEVEL_MAP[envLogLevel];
+  
+  // Next check environment variable
+  const envLogLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase();
+  
+  if (envLogLevel) {
+    console.error(`Debug: Found AI_CODE_REVIEW_LOG_LEVEL environment variable: ${envLogLevel}`);
+    
+    if (envLogLevel in LOG_LEVEL_MAP) {
+      console.error(`Debug: Mapped log level ${envLogLevel} -> ${LOG_LEVEL_MAP[envLogLevel]}`);
+      return LOG_LEVEL_MAP[envLogLevel];
+    } else {
+      console.error(`Debug: Invalid log level: ${envLogLevel}, valid options are: ${Object.keys(LOG_LEVEL_MAP).join(', ')}`);
+    }
+  } else {
+    console.error('Debug: AI_CODE_REVIEW_LOG_LEVEL environment variable not found');
   }
 
   // Default to INFO if not specified

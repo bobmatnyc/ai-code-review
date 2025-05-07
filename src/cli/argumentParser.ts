@@ -243,6 +243,11 @@ export async function parseArguments(): Promise<CliOptions> {
         type: 'string',
         describe: 'Override the OpenAI API key'
       })
+      .option('which-dir', {
+        type: 'boolean',
+        default: false,
+        describe: 'Show the tool installation directory and environment file locations'
+      })
       .strict() // Report errors for unknown options
       .help()
       .parseAsync();

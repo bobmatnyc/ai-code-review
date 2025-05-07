@@ -38,16 +38,7 @@
   },
   "anthropic:claude-3.7-sonnet": {
     "apiName": "claude-3-7-sonnet-20250219",
-    "displayName": "Claude 3.7 Sonnet",
-    "provider": "anthropic",
-    "contextWindow": 200000,
-    "description": "Latest hybrid reasoning model with enhanced capabilities",
-    "apiKeyEnvVar": "AI_CODE_REVIEW_ANTHROPIC_API_KEY",
-    "supportsToolCalling": true
-  },
-  "anthropic:claude-3-7-sonnet": {
-    "apiName": "claude-3-7-sonnet-20250219",
-    "displayName": "Claude 3.7 Sonnet",
+    "displayName": "Claude 3.7 Sonnet (hyphen format)",
     "provider": "anthropic",
     "contextWindow": 200000,
     "description": "Latest hybrid reasoning model with enhanced capabilities",
@@ -143,15 +134,6 @@
     "description": "Claude 3 Sonnet model served via OpenRouter",
     "apiKeyEnvVar": "AI_CODE_REVIEW_OPENROUTER_API_KEY",
     "supportsToolCalling": false
-  },
-  "anthropic:claude-3-sonnet": {
-    "apiName": "claude-3-sonnet-20240229",
-    "displayName": "Claude 3 Sonnet",
-    "provider": "anthropic",
-    "contextWindow": 200000,
-    "description": "Claude 3 Sonnet model",
-    "apiKeyEnvVar": "AI_CODE_REVIEW_ANTHROPIC_API_KEY",
-    "supportsToolCalling": true
   },
   "openrouter:anthropic/claude-3-haiku": {
     "apiName": "anthropic/claude-3-haiku",

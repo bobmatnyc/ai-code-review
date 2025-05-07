@@ -25,29 +25,42 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 
-// Import logger after dotenv so it can use environment variables
-import logger, { LogLevel } from './utils/logger';
+// Start diagnostic logging immediately
+console.log('\x1b[35m[ENV-TRACE]\x1b[0m Starting application - checking environment variables');
 
-// Check if debug mode is enabled
+// Before loading any modules that depend on environment variables,
+// ensure we check for CLI debugging flag
 const isDebugMode = process.argv.includes('--debug');
+const debugEnvVar = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase() === 'debug';
+
+if (isDebugMode) {
+  console.log('\x1b[35m[ENV-TRACE]\x1b[0m Debug mode enabled via --debug CLI flag');
+} 
+
+if (debugEnvVar) {
+  console.log('\x1b[35m[ENV-TRACE]\x1b[0m Debug mode enabled via AI_CODE_REVIEW_LOG_LEVEL environment variable');
+}
+
+// Import logger after initial environment check
+import logger, { LogLevel } from './utils/logger';
 
 // Helper function for debug logging
 function debugLog(message: string): void {
-  if (isDebugMode) {
-    logger.debug(message);
+  if (isDebugMode || debugEnvVar) {
+    console.log(`\x1b[36m[DEBUG:STARTUP]\x1b[0m ${message}`);
   }
 }
 
-// Set log level based on debug mode
+// Set log level explicitly - first based on command line
 if (isDebugMode) {
+  debugLog('Setting log level to DEBUG (from command line flag)');
   logger.setLogLevel(LogLevel.DEBUG);
 } else {
-  // In production builds, ensure we're at INFO level or higher
-  // This prevents DEBUG messages from showing in production
+  // Check current log level for diagnostic purposes
   const currentLevel = logger.getLogLevel();
-  if (currentLevel < LogLevel.INFO) {
-    logger.setLogLevel(LogLevel.INFO);
-  }
+  debugLog(`Initial log level: ${LogLevel[currentLevel]}`);
+  
+  // We'll update this again after loading .env.local
 }
 
 // First try to load from the tool's directory (not the target project directory)
@@ -125,6 +138,17 @@ if (toolEnvPath) {
         debugLog(`Parse error: ${result.error.message}`);
       } else {
         debugLog(`Successfully loaded environment variables from ${envLocalPath}`);
+        
+        // Check if AI_CODE_REVIEW_LOG_LEVEL was loaded
+        if (result.parsed && result.parsed.AI_CODE_REVIEW_LOG_LEVEL) {
+          debugLog(`Found AI_CODE_REVIEW_LOG_LEVEL in .env.local: ${result.parsed.AI_CODE_REVIEW_LOG_LEVEL}`);
+        }
+        
+        // Dump all environment variables for debugging (not values)
+        if (isDebugMode) {
+          const envVars = Object.keys(result.parsed || {});
+          debugLog(`Loaded ${envVars.length} variables from .env.local: ${envVars.join(', ')}`);
+        }
       }
     } else {
       // Give a clearer message when no env files are found
@@ -140,16 +164,31 @@ if (toolEnvPath) {
 
 // Re-initialize the logger with the environment variables now loaded
 // This ensures that AI_CODE_REVIEW_LOG_LEVEL from .env.local is applied
-if (process.env.AI_CODE_REVIEW_LOG_LEVEL || process.argv.includes('--debug')) {
-  let logLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase() || 'info';
-  
-  // Force debug level if debug flag is present
-  if (process.argv.includes('--debug')) {
-    logLevel = 'debug';
-  }
-  
-  console.log(`Setting log level to: ${logLevel.toUpperCase()}`);
+console.log('Current environment variables for logging:');
+console.log(`- AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL || 'not set'}`);
+console.log(`- Debug flag in arguments: ${process.argv.includes('--debug')}`);
+
+// Now that environment variables are fully loaded, make sure we apply them
+// Force debug level if debug flag is present (highest priority)
+if (process.argv.includes('--debug')) {
+  console.log('Setting log level to DEBUG (from command line flag)');
+  logger.setLogLevel('debug');
+} else if (process.env.AI_CODE_REVIEW_LOG_LEVEL) {
+  // Apply environment variable log level
+  const logLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL.toLowerCase();
+  console.log(`Setting log level to: ${logLevel.toUpperCase()} (from environment variable)`);
   logger.setLogLevel(logLevel);
+} else {
+  // Verify current log level
+  const currentLevel = logger.getLogLevel();
+  console.log(`Current log level: ${LogLevel[currentLevel]} (default)`);
+  
+  // In production builds, ensure we're at INFO level or higher
+  // This prevents DEBUG messages from showing in production
+  if (currentLevel < LogLevel.INFO) {
+    console.log(`Adjusting log level to INFO (from ${LogLevel[currentLevel]})`);
+    logger.setLogLevel(LogLevel.INFO);
+  }
 }
 
 // Import other dependencies after environment setup
@@ -186,6 +225,44 @@ async function main() {
     // Check for version flag first, before any other processing
     if (args.version || (args as any)['show-version']) {
       console.log(VERSION);
+      return;
+    }
+
+    // Check for which-dir flag to show installation directory
+    if ((args as any)['which-dir']) {
+      console.log('\nAI Code Review Tool Installation Directory:');
+      console.log('------------------------------------------');
+      
+      // Find all possible env file locations
+      const possibleLocations = [
+        path.resolve(__dirname, '..'), // Local development or npm link
+        path.resolve(__dirname, '..', '..'), // Global npm installation
+        '/opt/homebrew/lib/node_modules/@bobmatnyc/ai-code-review' // Homebrew global installation
+      ];
+      
+      // Tool directory (where index.js is located)
+      console.log(`Tool executable directory: ${__dirname}`);
+      
+      // Check each possible location for .env.local
+      for (const dir of possibleLocations) {
+        const envPath = path.join(dir, '.env.local');
+        try {
+          if (fs.existsSync(envPath)) {
+            console.log(`\nFound .env.local at:`);
+            console.log(envPath);
+            console.log(`\nThis is the correct location for your environment variables.`);
+            console.log(`Add AI_CODE_REVIEW_LOG_LEVEL=debug to this file for debug logging.`);
+            break;
+          }
+        } catch (err) {
+          // Skip errors
+        }
+      }
+      
+      // Also show current directory
+      console.log(`\nCurrent working directory: ${process.cwd()}`);
+      console.log(`You can also create .env.local in this directory.`);
+      
       return;
     }
 
