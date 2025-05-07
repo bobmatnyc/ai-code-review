@@ -250,7 +250,7 @@ export function listModelConfigs(): void {
       console.log(
         `  ${chalk.cyan(model.displayName)} (${chalk.yellow(model.name)})`
       );
-      console.log(`    ${chalk.dim('API Name:')} ${model.apiName}`);
+      console.log(`    ${chalk.dim('API Identifier:')} ${model.apiIdentifier}`);
       if (model.description) {
         console.log(`    ${chalk.dim('Description:')} ${model.description}`);
       }

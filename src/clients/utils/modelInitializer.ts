@@ -20,8 +20,8 @@ export function getApiModelName(provider: Provider, modelName: string): string {
   // Get the model mapping
   const modelMapping = getModelMapping(fullModelKey);
 
-  // Return the API name if available, otherwise return the original model name
-  return modelMapping?.apiName || modelName;
+  // Return the API identifier if available, otherwise return the original model name
+  return modelMapping?.apiIdentifier || modelName;
 }
 
 /**

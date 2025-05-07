@@ -155,13 +155,13 @@ export async function getApiModelName(modelName: string): Promise<string> {
     
     if (modelConfig) {
       logger.debug(`Found model configuration for ${fullModelName}:`);
-      logger.debug(`- apiName: ${modelConfig.apiName}`);
+      logger.debug(`- apiIdentifier: ${modelConfig.apiIdentifier}`);
       logger.debug(`- displayName: ${modelConfig.displayName}`);
       logger.debug(`- provider: ${modelConfig.provider}`);
       
-      if (modelConfig.apiName) {
-        logger.debug(`Using API model name from configuration: ${modelConfig.apiName} for ${modelName}`);
-        return modelConfig.apiName;
+      if (modelConfig.apiIdentifier) {
+        logger.debug(`Using API model name from configuration: ${modelConfig.apiIdentifier} for ${modelName}`);
+        return modelConfig.apiIdentifier;
       }
     }
     
@@ -172,16 +172,16 @@ export async function getApiModelName(modelName: string): Promise<string> {
     
     logger.debug(`Trying alternative format (dots to hyphens): ${alternativeKey1}`);
     const altConfig1 = getModelMapping(alternativeKey1);
-    if (altConfig1 && altConfig1.apiName) {
-      logger.debug(`Found match with alternative format (dots to hyphens): ${alternativeKey1} -> ${altConfig1.apiName}`);
-      return altConfig1.apiName;
+    if (altConfig1 && altConfig1.apiIdentifier) {
+      logger.debug(`Found match with alternative format (dots to hyphens): ${alternativeKey1} -> ${altConfig1.apiIdentifier}`);
+      return altConfig1.apiIdentifier;
     }
     
     logger.debug(`Trying alternative format (hyphens to dots): ${alternativeKey2}`);
     const altConfig2 = getModelMapping(alternativeKey2);
-    if (altConfig2 && altConfig2.apiName) {
-      logger.debug(`Found match with alternative format (hyphens to dots): ${alternativeKey2} -> ${altConfig2.apiName}`);
-      return altConfig2.apiName;
+    if (altConfig2 && altConfig2.apiIdentifier) {
+      logger.debug(`Found match with alternative format (hyphens to dots): ${alternativeKey2} -> ${altConfig2.apiIdentifier}`);
+      return altConfig2.apiIdentifier;
     }
     
     // Special handling for models with date versions in the name
@@ -195,7 +195,7 @@ export async function getApiModelName(modelName: string): Promise<string> {
       logger.debug(`Checking base model without date: ${baseModelName}`);
       
       const baseModelConfig = getModelMapping(baseModelName);
-      if (baseModelConfig && baseModelConfig.apiName) {
+      if (baseModelConfig && baseModelConfig.apiIdentifier) {
         // In this case, we'll return the original model name with date as the API name
         // This is because we want to preserve the explicit version the user requested
         logger.debug(`Found base model mapping for ${baseModelName}, but using original name with date as API name`);
@@ -211,7 +211,7 @@ export async function getApiModelName(modelName: string): Promise<string> {
       logger.debug(`Checking base model with dots converted to hyphens: ${baseHyphenModelName}`);
       
       const baseModelConfig = getModelMapping(baseHyphenModelName);
-      if (baseModelConfig && baseModelConfig.apiName) {
+      if (baseModelConfig && baseModelConfig.apiIdentifier) {
         // Convert the whole model name to hyphen format for the API
         logger.debug(`Found base model mapping for ${baseHyphenModelName}, converting full name to hyphen format`);
         const hyphenModelName = fullModelName.replace(/\./g, '-');
@@ -226,7 +226,7 @@ export async function getApiModelName(modelName: string): Promise<string> {
       logger.debug(`Checking base model without provider and date: ${fullBaseModelName}`);
       
       const baseModelConfig = getModelMapping(fullBaseModelName);
-      if (baseModelConfig && baseModelConfig.apiName) {
+      if (baseModelConfig && baseModelConfig.apiIdentifier) {
         logger.debug(`Found base model mapping for ${fullBaseModelName}, using hyphen format of original name`);
         return hyphenModelName;
       }
