@@ -2,7 +2,12 @@
 
 /**
  * Script to copy JSON files to the dist directory.
- * This ensures that files like modelMaps.json are available at runtime.
+ * 
+ * NOTE: This script is currently NOT needed in the build process as we've moved
+ * all model definitions to TypeScript. However, it's kept for potential future use
+ * if other JSON files need to be copied during build.
+ * 
+ * The modelMaps.json file has been replaced by hardcoded definitions in modelMaps.ts.
  */
 
 const fs = require('fs');

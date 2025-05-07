@@ -10,7 +10,7 @@ After extensive testing, we identified the issue:
 
 1. The Anthropic API requires specific model name formats that include date suffixes (e.g., `claude-3-7-sonnet-20250219`).
 2. Models without date suffixes (e.g., `claude-3-sonnet` or `claude-3.7-sonnet`) were returning 404 errors.
-3. Our model mapping system had duplicated model definitions in both `modelMaps.ts` and `modelMaps.json`, leading to inconsistencies.
+3. Our model mapping system previously had duplicated model definitions in both `modelMaps.ts` and `modelMaps.json`, leading to inconsistencies.
 4. The system wasn't handling different format variations consistently (dots vs hyphens, with/without provider prefix).
 
 ## Solution
@@ -27,26 +27,25 @@ After extensive testing, we identified the issue:
    }
    ```
 
-2. **Single Source of Truth**: Ensured `modelMaps.json` is the single source of truth for model mappings:
+2. **Single Source of Truth**: Eliminated dual model definitions by moving all model mappings directly into `modelMaps.ts` as hardcoded values:
    ```typescript
-   // Load model mappings from JSON file
-   function loadModelMappings(): Record<string, ModelMapping> {
-     try {
-       // Attempt to read from the JSON file
-       const jsonPath = path.resolve(__dirname, 'modelMaps.json');
-       const jsonContent = fs.readFileSync(jsonPath, 'utf-8');
-       const modelMap = JSON.parse(jsonContent);
-       
-       if (Object.keys(modelMap).length === 0) {
-         throw new Error('Empty model map loaded from JSON');
-       }
-       
-       return modelMap;
-     } catch (error) {
-       logger.error(`Failed to load model mappings from JSON: ${error}`);
-       return {};
-     }
-   }
+   // Hard-coded model mappings to avoid relying on external JSON files
+   export const MODEL_MAP: Record<string, ModelMapping> = {
+     "gemini:gemini-2.5-pro": {
+       "apiName": "gemini-2.5-pro-preview-03-25",
+       "displayName": "Gemini 2.5 Pro",
+       "provider": "gemini",
+       "useV1Beta": true,
+       ...
+     },
+     "anthropic:claude-3.7-sonnet": {
+       "apiName": "claude-3-7-sonnet-20250219",
+       "displayName": "Claude 3.7 Sonnet (hyphen format)",
+       "provider": "anthropic",
+       ...
+     },
+     ...
+   };
    ```
 
 3. **Format Handling**: Enhanced the model mapping function to handle different format variations:
@@ -99,3 +98,8 @@ You can test the fix using the provided scripts:
 1. **API Version Updates**: Monitor Anthropic API changes and update date suffixes when new model versions are released.
 2. **Automated Testing**: Add automated tests to CI pipeline to catch model mapping issues early.
 3. **Error Handling**: Improve error messages when API calls fail due to model format issues.
+4. **Synchronization Solution**: The current approach requires maintaining parallel model definitions in two places:
+   - The main TypeScript module (`modelMaps.ts`) for runtime use
+   - A JavaScript version (`scripts/model-maps.js`) for use in Node.js scripts
+   
+   We should consider implementing a build-time generation of the JavaScript file from the TypeScript source to avoid manual synchronization.

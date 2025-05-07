@@ -1,4 +1,10 @@
-{
+/**
+ * @fileoverview Node.js version of the modelMaps.ts file.
+ * This file contains the model mappings for the validation scripts.
+ */
+
+// Model map from modelMaps.ts
+const MODEL_MAP = {
   "gemini:gemini-2.5-pro": {
     "apiName": "gemini-2.5-pro-preview-03-25",
     "displayName": "Gemini 2.5 Pro",
@@ -162,4 +168,31 @@
     "apiKeyEnvVar": "AI_CODE_REVIEW_OPENROUTER_API_KEY",
     "supportsToolCalling": false
   }
+};
+
+// Helper functions equivalent to modelMaps.ts
+function getModelsByProvider(provider) {
+  return Object.keys(MODEL_MAP).filter(key => MODEL_MAP[key].provider === provider);
 }
+
+function getModelMapping(modelKey) {
+  return MODEL_MAP[modelKey];
+}
+
+function getApiNameFromKey(modelKey) {
+  return MODEL_MAP[modelKey]?.apiName || modelKey.split(':')[1] || modelKey;
+}
+
+function supportsToolCalling(modelKey) {
+  const mapping = getModelMapping(modelKey);
+  return mapping?.supportsToolCalling || false;
+}
+
+// Export for Node.js
+module.exports = {
+  MODEL_MAP,
+  getModelsByProvider,
+  getModelMapping,
+  getApiNameFromKey,
+  supportsToolCalling
+};

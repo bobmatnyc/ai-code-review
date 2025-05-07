@@ -234,7 +234,7 @@ export async function getApiModelName(modelName: string): Promise<string> {
     
     // If the model wasn't found, log a warning and return the original name
     logger.warn(`Model "${modelName}" (fullModelName: ${fullModelName}) not found in configuration. This may cause API errors.`);
-    logger.warn('Make sure the model name is listed in modelMaps.json with the correct format');
+    logger.warn('Make sure the model name is defined in MODEL_MAP within modelMaps.ts with the correct format');
     return modelName;
   } catch (error) {
     logger.error(`Error getting API model name: ${error}`);

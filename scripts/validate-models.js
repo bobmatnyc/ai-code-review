@@ -9,17 +9,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const fs = require('fs');
 const path = require('path');
-const modelMapsPath = path.resolve(__dirname, '../src/clients/utils/modelMaps.json');
-const MODEL_MAP = JSON.parse(fs.readFileSync(modelMapsPath, 'utf8'));
-
-// Helper functions to mimic the ones from modelMaps.ts
-function getModelsByProvider(provider) {
-  return Object.keys(MODEL_MAP).filter(key => MODEL_MAP[key].provider === provider);
-}
-
-function getModelMapping(modelKey) {
-  return MODEL_MAP[modelKey];
-}
+// Import model definitions from the JS version of modelMaps.ts
+// This file is kept in sync with src/clients/utils/modelMaps.ts
+const { MODEL_MAP, getModelsByProvider, getModelMapping } = require('./model-maps');
 const dotenv = require('dotenv');
 
 // Load environment variables
