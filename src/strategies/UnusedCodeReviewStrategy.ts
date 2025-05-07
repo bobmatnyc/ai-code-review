@@ -19,6 +19,7 @@
 import { BaseReviewStrategy } from './ReviewStrategy';
 import { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
+import { addMetadataToProjectDocs } from '../utils/files/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
 import logger from '../utils/logger';
@@ -226,8 +227,9 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
     let toolingMetadata = {};
     if (options.useTsPrune || options.useEslint) {
       toolingMetadata = await this.getToolingData(options);
-      if (projectDocs?.addMetadata) {
-        projectDocs.addMetadata('unusedCodeTooling', 
+      // Use the addMetadataToProjectDocs function if projectDocs exists
+      if (projectDocs) {
+        addMetadataToProjectDocs(projectDocs, 'unusedCodeTooling', 
           `## Static Analysis Tool Results\n\n${JSON.stringify(toolingMetadata, null, 2)}`);
       }
     }

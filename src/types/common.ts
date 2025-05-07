@@ -90,7 +90,8 @@ export const VALID_REVIEW_TYPES: ReviewType[] = [
   'performance',
   'consolidated',
   'unused-code',
-  'code-tracing-unused-code'
+  'code-tracing-unused-code',
+  'best-practices'
 ];
 
 /**
@@ -112,5 +113,7 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<
   'unused-code':
     'Unused code review focusing on identifying and removing dead code',
   'code-tracing-unused-code':
-    'Deep code tracing for high-confidence unused code detection'
+    'Deep code tracing for high-confidence unused code detection',
+  'best-practices':
+    'Best practices review focusing on language-specific idioms and patterns'
 };
