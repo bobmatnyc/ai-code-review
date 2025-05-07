@@ -163,7 +163,8 @@ function initializeGeminiClient(): void {
   
   // Try to get the API identifier from the model mapping
   try {
-    // Use the imported getModelMapping function
+    // Import dynamically to prevent circular imports
+    const { getModelMapping } = await import('./utils/modelMaps');
     const fullModelKey = `gemini:${modelName}`;
     const modelMapping = getModelMapping(fullModelKey);
     
