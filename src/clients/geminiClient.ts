@@ -42,6 +42,7 @@ import {
   formatConsolidatedReviewPrompt
 } from './utils/promptFormatter';
 import { getConfig, getApiKeyForProvider } from '../utils/config';
+import { getModelMapping } from './utils/modelMaps';
 
 /**
  * Default safety settings for Gemini API calls
@@ -162,8 +163,7 @@ function initializeGeminiClient(): void {
   
   // Try to get the API identifier from the model mapping
   try {
-    // Import dynamically to prevent circular imports
-    const { getModelMapping } = await import('./utils/modelMaps');
+    // Use the imported getModelMapping function
     const fullModelKey = `gemini:${modelName}`;
     const modelMapping = getModelMapping(fullModelKey);
     

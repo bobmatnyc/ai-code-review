@@ -49,17 +49,17 @@ jest.mock('../../clients/utils/modelMaps', () => ({
     .mockReturnValue(['test:model1', 'test:model2']),
   MODEL_MAP: {
     'test:model1': {
-      apiName: 'model1-api',
+      apiIdentifier: 'model1-api',
       displayName: 'Test Model 1',
       provider: 'test'
     },
     'test:model2': {
-      apiName: 'model2-api',
+      apiIdentifier: 'model2-api',
       displayName: 'Test Model 2',
       provider: 'test'
     },
     'gemini:gemini-1.5-pro': {
-      apiName: 'gemini-1.5-pro',
+      apiIdentifier: 'gemini-1.5-pro',
       displayName: 'Gemini 1.5 Pro',
       provider: 'gemini'
     }
