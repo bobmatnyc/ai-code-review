@@ -11,6 +11,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { FileInfo } from '../../types/review';
 import logger from '../logger';
+import { promises as fsPromises } from 'fs';
 
 /**
  * Supported file extensions for code review - focus on executable code only
@@ -42,6 +43,35 @@ export function isTestFile(filePath: string): boolean {
     filePath.includes('/test/') ||
     filePath.includes('/tests/')
   );
+}
+
+/**
+ * Load gitignore patterns from a project directory
+ * @param projectDir Project directory path
+ * @returns Array of gitignore patterns
+ */
+export async function loadGitignorePatterns(projectDir: string): Promise<string[]> {
+  try {
+    const gitignorePath = path.join(projectDir, '.gitignore');
+    
+    // Check if .gitignore exists
+    try {
+      await fs.access(gitignorePath);
+    } catch (error) {
+      // File doesn't exist
+      return [];
+    }
+    
+    // Read and parse .gitignore
+    const content = await fs.readFile(gitignorePath, 'utf-8');
+    return content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'));
+  } catch (error) {
+    logger.error(`Error reading .gitignore: ${error}`);
+    return [];
+  }
 }
 
 /**
@@ -179,8 +209,9 @@ export async function discoverFiles(
       }
 
       if (entry.isDirectory()) {
-        // Skip node_modules and .git directories
-        if (entry.name === 'node_modules' || entry.name === '.git') {
+        // Skip node_modules, .git directories, and directories starting with '.'
+        if (entry.name === 'node_modules' || entry.name === '.git' || entry.name.startsWith('.')) {
+          logger.debug(`Skipping directory: ${entry.name} (hidden or excluded)`);
           continue;
         }
 
@@ -258,14 +289,23 @@ export async function readMultipleFiles(
 export async function getFilesToReview(
   targetPath: string,
   isFile: boolean,
-  includeTests: boolean = false
+  includeTests: boolean = false,
+  excludePatterns: string[] = []
 ): Promise<string[]> {
   if (isFile) {
     // If the target is a file, just return it
     return [targetPath];
   } else {
+    // If it's a directory, load .gitignore patterns if not already provided
+    let patterns = excludePatterns;
+    if (patterns.length === 0) {
+      patterns = await loadGitignorePatterns(targetPath);
+      logger.debug(`Loaded ${patterns.length} patterns from .gitignore`);
+    }
+    
     // If the target is a directory, discover files
     return discoverFiles(targetPath, {
+      excludePatterns: patterns,
       includeTests,
       maxDepth: 10
     });

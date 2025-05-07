@@ -8,7 +8,10 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { pathExists, isDirectory, isPathWithinCwd } from '../utils/fileSystem';
-import { getFilesToReview as getFilteredFiles } from '../utils/fileFilters';
+import { 
+  getFilesToReview as getFilteredFiles, 
+  loadGitignorePatterns 
+} from '../utils/fileFilters';
 import logger from '../utils/logger';
 
 /**
@@ -54,11 +57,16 @@ export async function discoverFiles(
       throw new Error(`Target not found: ${target}`);
     }
 
+    // Load gitignore patterns
+    const gitignorePatterns = await loadGitignorePatterns(projectPath);
+    logger.debug(`Loaded ${gitignorePatterns.length} patterns from .gitignore in ${projectPath}`);
+    
     // Get files to review using the existing filter utility
     const filesToReview = await getFilteredFiles(
       targetPath,
       isFileTarget,
-      includeTests
+      includeTests,
+      gitignorePatterns
     );
 
     if (filesToReview.length === 0) {
