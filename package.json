@@ -6,7 +6,7 @@
   "bin": "./dist/index.js",
   "scripts": {
     "prebuild": "rm -rf dist",
-    "build": "pnpm run test && pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
+    "build": "pnpm run test && pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js && node scripts/copy-json-files.js",
     "build:types": "tsc --emitDeclarationOnly",
     "postbuild": "./scripts/link-global.sh",
     "start": "node dist/index.js",
@@ -30,7 +30,8 @@
     "built-review": "./scripts/runners/built-ai-review.sh",
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
     "validate:prompts": "node scripts/validate-prompts.js",
-    "update:prompts": "node scripts/update-prompts-frontmatter.js"
+    "update:prompts": "node scripts/update-prompts-frontmatter.js",
+    "quick-build": "pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js && node scripts/copy-json-files.js"
   },
   "keywords": [
     "code-review",
