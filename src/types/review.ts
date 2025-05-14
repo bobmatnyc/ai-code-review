@@ -219,6 +219,11 @@ export interface ReviewOptions {
    * Represents proportion of context window reserved for maintaining state
    */
   contextMaintenanceFactor?: number;
+  
+  /**
+   * Skip confirmation when multi-pass review is automatically enabled
+   */
+  noConfirm?: boolean;
 }
 
 /**
