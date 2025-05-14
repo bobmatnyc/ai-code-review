@@ -38,6 +38,18 @@ const OUTPUT_TO_INPUT_RATIO = {
 const REVIEW_OVERHEAD_TOKENS = 1500;
 
 /**
+ * Context maintenance overhead factor for multi-pass reviews
+ * This factor is applied to estimate additional tokens needed for maintaining context
+ */
+const MULTI_PASS_CONTEXT_MAINTENANCE_FACTOR = 0.15;
+
+/**
+ * Additional overhead tokens per pass in multi-pass reviews
+ * This accounts for pass management, coordination, and state tracking
+ */
+const MULTI_PASS_OVERHEAD_PER_PASS = 800;
+
+/**
  * Estimate the number of output tokens based on input tokens and review type
  * @param inputTokens Number of input tokens
  * @param reviewType Type of review
@@ -234,4 +246,187 @@ export async function estimateFromFilePaths(
 
   // Estimate cost
   return await estimateReviewCost(files, reviewType, modelName);
+}
+
+/**
+ * Estimate token usage and cost for a multi-pass review
+ *
+ * This function extends the standard token estimation by accounting for the overhead
+ * of multi-pass reviews, including context maintenance between passes and additional
+ * overhead for each pass.
+ *
+ * @param files Array of file information objects containing file content and metadata
+ * @param reviewType Type of review (quick, security, architectural, performance)
+ * @param modelName Name of the model to use (e.g., 'gemini:gemini-1.5-pro')
+ * @param options Additional estimation options
+ * @param options.passCount Number of passes to estimate (if known)
+ * @param options.contextMaintenanceFactor Factor for context maintenance overhead (0-1)
+ * @returns Estimated token usage and cost information for multi-pass review
+ */
+export async function estimateMultiPassReviewCost(
+  files: FileInfo[],
+  reviewType: string,
+  modelName: string = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro',
+  options: {
+    passCount?: number;
+    contextMaintenanceFactor?: number;
+  } = {}
+): Promise<{
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  estimatedCost: number;
+  formattedCost: string;
+  fileCount: number;
+  totalFileSize: number;
+  passCount: number;
+  perPassCosts: {
+    passNumber: number;
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+    estimatedCost: number;
+  }[];
+}> {
+  // Calculate total input tokens from all files
+  let totalFileTokens = 0;
+  let totalFileSize = 0;
+
+  for (const file of files) {
+    const fileTokens = estimateTokenCount(file.content);
+    totalFileTokens += fileTokens;
+    totalFileSize += file.content.length;
+  }
+
+  // Calculate or determine the number of passes
+  const contextMaintenanceFactor = options.contextMaintenanceFactor || MULTI_PASS_CONTEXT_MAINTENANCE_FACTOR;
+  
+  // Get a rough estimate of context window size based on the model
+  // This is a simplified approach - in production we'd get this from modelMaps.ts
+  const getContextWindow = (model: string): number => {
+    if (model.includes('claude')) return 200000;
+    if (model.includes('gpt-4o')) return 128000;
+    if (model.includes('gpt-4')) return 128000;
+    if (model.includes('gemini')) return 1000000;
+    return 100000; // Default
+  };
+  
+  const contextWindow = getContextWindow(modelName);
+  const effectiveContextSize = Math.floor(contextWindow * (1 - contextMaintenanceFactor));
+  
+  // Determine number of passes if not provided
+  const passCount = options.passCount || Math.max(1, Math.ceil(totalFileTokens / effectiveContextSize));
+  
+  // Calculate tokens per pass (roughly equal distribution for estimation)
+  const tokensPerPass = totalFileTokens / passCount;
+  
+  // Calculate per-pass costs
+  const perPassCosts = [];
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+  let totalEstimatedCost = 0;
+  
+  for (let i = 0; i < passCount; i++) {
+    // Each pass has standard overhead plus context maintenance overhead
+    const passInputTokens = Math.ceil(tokensPerPass + REVIEW_OVERHEAD_TOKENS + MULTI_PASS_OVERHEAD_PER_PASS);
+    
+    // For passes after the first, add context from previous passes
+    const contextTokens = i > 0 ? Math.ceil(i * MULTI_PASS_OVERHEAD_PER_PASS * 1.5) : 0;
+    const totalPassInputTokens = passInputTokens + contextTokens;
+    
+    // Estimate output tokens
+    const passOutputTokens = estimateOutputTokens(totalPassInputTokens, reviewType);
+    
+    // Calculate cost for this pass
+    const passCostInfo = getCostInfo(totalPassInputTokens, passOutputTokens, modelName);
+    
+    perPassCosts.push({
+      passNumber: i + 1,
+      inputTokens: totalPassInputTokens,
+      outputTokens: passOutputTokens,
+      totalTokens: totalPassInputTokens + passOutputTokens,
+      estimatedCost: passCostInfo.estimatedCost
+    });
+    
+    // Accumulate totals
+    totalInputTokens += totalPassInputTokens;
+    totalOutputTokens += passOutputTokens;
+    totalEstimatedCost += passCostInfo.estimatedCost;
+  }
+  
+  return {
+    inputTokens: totalInputTokens,
+    outputTokens: totalOutputTokens,
+    totalTokens: totalInputTokens + totalOutputTokens,
+    estimatedCost: totalEstimatedCost,
+    formattedCost: formatCost(totalEstimatedCost),
+    fileCount: files.length,
+    totalFileSize,
+    passCount,
+    perPassCosts
+  };
+}
+
+/**
+ * Format multi-pass estimation results as a human-readable string
+ *
+ * @param estimation Multi-pass estimation results
+ * @param reviewType Type of review
+ * @param modelName Name of the model being used
+ * @returns Formatted estimation string
+ */
+export function formatMultiPassEstimation(
+  estimation: ReturnType<typeof estimateMultiPassReviewCost> extends Promise<infer T>
+    ? T
+    : never,
+  reviewType: string,
+  modelName: string
+): string {
+  // Extract provider and model if available
+  const [provider, model] = modelName.includes(':')
+    ? modelName.split(':')
+    : [undefined, modelName];
+  const displayModel = model || modelName;
+  const displayProvider = provider
+    ? `${provider.charAt(0).toUpperCase() + provider.slice(1)}`
+    : 'Unknown';
+  const fileSizeInKB = (estimation.totalFileSize / 1024).toFixed(2);
+  const averageFileSize =
+    estimation.fileCount > 0
+      ? (estimation.totalFileSize / estimation.fileCount / 1024).toFixed(2)
+      : '0.00';
+
+  let output = `
+=== Multi-Pass Token Usage and Cost Estimation ===
+
+Review Type: ${reviewType}
+Provider: ${displayProvider}
+Model: ${displayModel}
+Files: ${estimation.fileCount} (${fileSizeInKB} KB total, ${averageFileSize} KB average)
+Passes: ${estimation.passCount}
+
+Total Token Usage:
+  Input Tokens: ${estimation.inputTokens.toLocaleString()}
+  Estimated Output Tokens: ${estimation.outputTokens.toLocaleString()}
+  Total Tokens: ${estimation.totalTokens.toLocaleString()}
+
+Estimated Total Cost: ${estimation.formattedCost}
+
+Per-Pass Breakdown:
+`;
+
+  estimation.perPassCosts.forEach(passCost => {
+    output += `  Pass ${passCost.passNumber}:
+    Input Tokens: ${passCost.inputTokens.toLocaleString()}
+    Output Tokens: ${passCost.outputTokens.toLocaleString()}
+    Cost: ${formatCost(passCost.estimatedCost)}
+`;
+  });
+
+  output += `
+Note: This is an estimate based on approximate token counts and may vary
+      based on the actual content and model behavior.
+`;
+
+  return output;
 }

@@ -14,20 +14,20 @@ export type Provider = 'gemini' | 'anthropic' | 'openai' | 'openrouter';
  * Interface for model mapping information
  */
 export interface ModelMapping {
-  apiName: string;
-  displayName: string;
-  provider: Provider;
-  useV1Beta?: boolean;
-  contextWindow?: number;
-  description?: string;
-  apiKeyEnvVar: string;
-  supportsToolCalling?: boolean;
+  apiIdentifier: string; // API-specific model identifier used when making API calls
+  displayName: string;   // Human-readable model name for display
+  provider: Provider;    // Provider identifier (gemini, anthropic, openai, openrouter)
+  useV1Beta?: boolean;   // Whether to use v1beta API version
+  contextWindow?: number; // Maximum context window size
+  description?: string;   // Model description
+  apiKeyEnvVar: string;   // Environment variable name for the API key
+  supportsToolCalling?: boolean; // Whether model supports tool calling
 }
 
 // Hard-coded model mappings to avoid relying on external JSON files
 export const MODEL_MAP: Record<string, ModelMapping> = {
   "gemini:gemini-2.5-pro": {
-    "apiName": "gemini-2.5-pro-preview-03-25",
+    "apiIdentifier": "gemini-2.5-pro-preview-03-25",
     "displayName": "Gemini 2.5 Pro",
     "provider": "gemini",
     "useV1Beta": true,
@@ -37,7 +37,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": false
   },
   "gemini:gemini-2.0-flash-lite": {
-    "apiName": "gemini-2.0-flash-lite",
+    "apiIdentifier": "gemini-2.0-flash-lite",
     "displayName": "Gemini 2.0 Flash Lite",
     "provider": "gemini",
     "contextWindow": 1000000,
@@ -46,7 +46,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": false
   },
   "gemini:gemini-2.0-flash": {
-    "apiName": "gemini-2.0-flash",
+    "apiIdentifier": "gemini-2.0-flash",
     "displayName": "Gemini 2.0 Flash",
     "provider": "gemini",
     "contextWindow": 1000000,
@@ -55,7 +55,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": false
   },
   "anthropic:claude-3-opus": {
-    "apiName": "claude-3-opus-20240229",
+    "apiIdentifier": "claude-3-opus-20240229",
     "displayName": "Claude 3 Opus",
     "provider": "anthropic",
     "contextWindow": 200000,
@@ -64,7 +64,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "anthropic:claude-3.7-sonnet": {
-    "apiName": "claude-3-7-sonnet-20250219",
+    "apiIdentifier": "claude-3-7-sonnet-20250219",
     "displayName": "Claude 3.7 Sonnet (hyphen format)",
     "provider": "anthropic",
     "contextWindow": 200000,
@@ -73,7 +73,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "anthropic:claude-3.5-sonnet": {
-    "apiName": "claude-3-5-sonnet-20241022",
+    "apiIdentifier": "claude-3-5-sonnet-20241022",
     "displayName": "Claude 3.5 Sonnet v2",
     "provider": "anthropic",
     "contextWindow": 200000,
@@ -82,7 +82,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "anthropic:claude-3-haiku": {
-    "apiName": "claude-3-haiku-20240307",
+    "apiIdentifier": "claude-3-haiku-20240307",
     "displayName": "Claude 3 Haiku",
     "provider": "anthropic",
     "contextWindow": 200000,
@@ -91,7 +91,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "anthropic:claude-3.5-haiku": {
-    "apiName": "claude-3-5-haiku-20241022",
+    "apiIdentifier": "claude-3-5-haiku-20241022",
     "displayName": "Claude 3.5 Haiku",
     "provider": "anthropic",
     "contextWindow": 200000,
@@ -100,7 +100,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "openai:gpt-4.1": {
-    "apiName": "gpt-4.1",
+    "apiIdentifier": "gpt-4.1",
     "displayName": "GPT-4.1",
     "provider": "openai",
     "contextWindow": 1000000,
@@ -109,7 +109,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "openai:gpt-4o": {
-    "apiName": "gpt-4o",
+    "apiIdentifier": "gpt-4o",
     "displayName": "GPT-4o",
     "provider": "openai",
     "contextWindow": 128000,
@@ -118,7 +118,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "openai:gpt-4.5": {
-    "apiName": "gpt-4.5",
+    "apiIdentifier": "gpt-4.5",
     "displayName": "GPT-4.5",
     "provider": "openai",
     "contextWindow": 128000,
@@ -127,7 +127,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "openai:gpt-4-turbo": {
-    "apiName": "gpt-4-turbo",
+    "apiIdentifier": "gpt-4-turbo",
     "displayName": "GPT-4 Turbo",
     "provider": "openai",
     "contextWindow": 1000000,
@@ -136,7 +136,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "openai:gpt-3.5-turbo": {
-    "apiName": "gpt-3.5-turbo",
+    "apiIdentifier": "gpt-3.5-turbo",
     "displayName": "GPT-3.5 Turbo",
     "provider": "openai",
     "contextWindow": 4096,
@@ -145,7 +145,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": false
   },
   "openrouter:anthropic/claude-3-opus": {
-    "apiName": "anthropic/claude-3-opus-20240229",
+    "apiIdentifier": "anthropic/claude-3-opus-20240229",
     "displayName": "Claude 3 Opus (via OpenRouter)",
     "provider": "openrouter",
     "contextWindow": 200000,
@@ -154,7 +154,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": false
   },
   "openrouter:anthropic/claude-3-sonnet": {
-    "apiName": "anthropic/claude-3-sonnet",
+    "apiIdentifier": "anthropic/claude-3-sonnet",
     "displayName": "Claude 3 Sonnet (via OpenRouter)",
     "provider": "openrouter",
     "contextWindow": 200000,
@@ -163,7 +163,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": false
   },
   "openrouter:anthropic/claude-3-haiku": {
-    "apiName": "anthropic/claude-3-haiku",
+    "apiIdentifier": "anthropic/claude-3-haiku",
     "displayName": "Claude 3 Haiku (via OpenRouter)",
     "provider": "openrouter",
     "contextWindow": 200000,
@@ -172,7 +172,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": false
   },
   "openrouter:openai/gpt-4o": {
-    "apiName": "openai/gpt-4o",
+    "apiIdentifier": "openai/gpt-4o",
     "displayName": "GPT-4o (via OpenRouter)",
     "provider": "openrouter",
     "contextWindow": 128000,
@@ -181,7 +181,7 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": false
   },
   "openrouter:openai/gpt-4-turbo": {
-    "apiName": "openai/gpt-4-turbo",
+    "apiIdentifier": "openai/gpt-4-turbo",
     "displayName": "GPT-4 Turbo (via OpenRouter)",
     "provider": "openrouter",
     "contextWindow": 1000000,
@@ -215,7 +215,7 @@ export const MODELS: Record<Provider, string[]> = {
  * @returns The API name for the model, or the original model name if not found
  */
 export function getApiNameFromKey(modelKey: string): string {
-  return MODEL_MAP[modelKey]?.apiName || modelKey.split(':')[1] || modelKey;
+  return MODEL_MAP[modelKey]?.apiIdentifier || modelKey.split(':')[1] || modelKey;
 }
 
 /**

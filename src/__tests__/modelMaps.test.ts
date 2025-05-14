@@ -26,7 +26,7 @@ describe('modelMaps', () => {
       // Check a sample model to ensure the structure is correct
       const sampleModel = MODEL_MAP['gemini:gemini-2.5-pro'];
       expect(sampleModel).toBeDefined();
-      expect(sampleModel.apiName).toBe('gemini-2.5-pro-preview-03-25');
+      expect(sampleModel.apiIdentifier).toBe('gemini-2.5-pro-preview-03-25');
       expect(sampleModel.displayName).toBe('Gemini 2.5 Pro');
       expect(sampleModel.provider).toBe('gemini');
       expect(sampleModel.contextWindow).toBe(1000000);
@@ -64,7 +64,7 @@ describe('modelMaps', () => {
 
       // Verify properties of a specific model
       const gemini25Pro = MODEL_MAP['gemini:gemini-2.5-pro'];
-      expect(gemini25Pro.apiName).toBe('gemini-2.5-pro-preview-03-25');
+      expect(gemini25Pro.apiIdentifier).toBe('gemini-2.5-pro-preview-03-25');
       expect(gemini25Pro.displayName).toBe('Gemini 2.5 Pro');
       expect(gemini25Pro.useV1Beta).toBe(true);
       expect(gemini25Pro.contextWindow).toBe(1000000);
@@ -89,7 +89,7 @@ describe('modelMaps', () => {
 
       // Verify properties of a specific model
       const claude3Opus = MODEL_MAP['anthropic:claude-3-opus'];
-      expect(claude3Opus.apiName).toBe('claude-3-opus-20240229');
+      expect(claude3Opus.apiIdentifier).toBe('claude-3-opus-20240229');
       expect(claude3Opus.displayName).toBe('Claude 3 Opus');
       expect(claude3Opus.contextWindow).toBe(200000);
       expect(claude3Opus.apiKeyEnvVar).toBe('AI_CODE_REVIEW_ANTHROPIC_API_KEY');
@@ -113,7 +113,7 @@ describe('modelMaps', () => {
 
       // Verify properties of a specific model
       const gpt4o = MODEL_MAP['openai:gpt-4o'];
-      expect(gpt4o.apiName).toBe('gpt-4o');
+      expect(gpt4o.apiIdentifier).toBe('gpt-4o');
       expect(gpt4o.displayName).toBe('GPT-4o');
       expect(gpt4o.contextWindow).toBe(128000);
       expect(gpt4o.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENAI_API_KEY');
@@ -140,7 +140,7 @@ describe('modelMaps', () => {
 
       // Verify properties of a specific model
       const openrouterClaude = MODEL_MAP['openrouter:anthropic/claude-3-opus'];
-      expect(openrouterClaude.apiName).toBe('anthropic/claude-3-opus-20240229');
+      expect(openrouterClaude.apiIdentifier).toBe('anthropic/claude-3-opus-20240229');
       expect(openrouterClaude.displayName).toBe(
         'Claude 3 Opus (via OpenRouter)'
       );
@@ -175,7 +175,7 @@ describe('modelMaps', () => {
 
   describe('Utility functions', () => {
     describe('getApiNameFromKey', () => {
-      it('should return the correct API name for a model key', () => {
+      it('should return the correct API identifier for a model key', () => {
         expect(getApiNameFromKey('gemini:gemini-2.5-pro')).toBe(
           'gemini-2.5-pro-preview-03-25'
         );
@@ -195,7 +195,7 @@ describe('modelMaps', () => {
       it('should return the correct model mapping for a model key', () => {
         const mapping = getModelMapping('gemini:gemini-2.5-pro');
         expect(mapping).toBeDefined();
-        expect(mapping?.apiName).toBe('gemini-2.5-pro-preview-03-25');
+        expect(mapping?.apiIdentifier).toBe('gemini-2.5-pro-preview-03-25');
         expect(mapping?.provider).toBe('gemini');
       });
 
