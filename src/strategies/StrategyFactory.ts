@@ -14,6 +14,7 @@ import { UnusedCodeReviewStrategy } from './UnusedCodeReviewStrategy';
 import { FocusedUnusedCodeReviewStrategy } from './FocusedUnusedCodeReviewStrategy';
 import { CodeTracingUnusedCodeReviewStrategy } from './CodeTracingUnusedCodeReviewStrategy';
 import { ImprovedQuickFixesReviewStrategy } from './ImprovedQuickFixesReviewStrategy';
+import { MultiPassReviewStrategy } from './MultiPassReviewStrategy';
 import { PluginManager } from '../plugins/PluginManager';
 import logger from '../utils/logger';
 
@@ -45,6 +46,12 @@ export class StrategyFactory {
     // Use default strategies if no custom strategy is specified or if the custom strategy is not found
     const reviewType = options.type as ReviewType;
 
+    // Check if multi-pass mode is explicitly requested
+    if (options.multiPass) {
+      logger.info('Using Multi-Pass Review Strategy');
+      return new MultiPassReviewStrategy(reviewType);
+    }
+    
     if (options.individual) {
       return new IndividualReviewStrategy(reviewType);
     } else if (reviewType === 'architectural') {
