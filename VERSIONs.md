@@ -2,6 +2,34 @@
 
 This document tracks the version history of the AI Code Review Tool.
 
+## [3.0.0] - 2025-05-14
+
+### Added
+- Multi-pass review confirmation with token usage and cost estimates
+- New `--no-confirm` flag to skip confirmation for multi-pass reviews
+- Improved command documentation and organization
+- Comprehensive test suite for command-line options
+- Migration plan for future Jest to Vitest transition
+
+### Changed
+- Updated Gemini model mappings for latest API identifiers
+- Enhanced command-line interface with better option descriptions
+- Improved JSON parsing to handle code blocks with different language markers
+
+### Fixed
+- Fixed API version selection issues with model providers
+- Addressed model mapping problems for the latest Gemini 2.5 Pro model
+
+## [2.2.0] - 2025-05-06
+
+### Added
+- Enhanced dependency analysis with automated vulnerability checks
+- Stack-aware package analysis
+- SERP API integration for security vulnerability intelligence
+
+### Fixed
+- Fixed output format inconsistencies across model providers
+
 ## [2.1.5] - 2025-04-29
 
 ### Added

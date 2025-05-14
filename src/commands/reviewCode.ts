@@ -66,6 +66,12 @@ export async function reviewCode(
       options.includeDependencyAnalysis = (options as any)['include-dependency-analysis'] as boolean;
       delete (options as any)['include-dependency-analysis'];
     }
+    
+    // Handle confirm option if provided (inverse logic for noConfirm)
+    if ((options as any)['confirm'] !== undefined) {
+      options.noConfirm = !(options as any)['confirm'] as boolean;
+      delete (options as any)['confirm'];
+    }
 
     // Delegate to the review orchestrator
     await orchestrateReview(target, options);

@@ -311,14 +311,79 @@ Note: This is an estimate based on approximate token counts and may vary
         
         const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
         
-        // If chunking is recommended, enable multi-pass mode automatically
+        // If chunking is recommended, provide analysis and ask for confirmation unless noConfirm is true
         if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {
-          logger.info('Content exceeds model context window. Enabling multi-pass review automatically.');
-          logger.info(`Total tokens: ${tokenAnalysis.estimatedTotalTokens.toLocaleString()}, Context window: ${tokenAnalysis.contextWindowSize.toLocaleString()}`);
-          logger.info(`Estimated passes needed: ${tokenAnalysis.estimatedPassesNeeded}`);
+          // Get cost estimate based on token analysis
+          const { estimateMultiPassReviewCost, formatMultiPassEstimation } = await import('../utils/estimationUtils');
           
-          // Enable multi-pass mode
-          options.multiPass = true;
+          const costEstimation = await estimateMultiPassReviewCost(
+            fileInfos,
+            options.type,
+            apiClientConfig.modelName,
+            {
+              passCount: tokenAnalysis.estimatedPassesNeeded,
+              contextMaintenanceFactor: tokenAnalysisOptions.contextMaintenanceFactor
+            }
+          );
+          
+          // Get provider and model information
+          const providerInfo = getProviderDisplayInfo(apiClientConfig.modelName);
+          
+          // Display token analysis and cost estimation
+          logger.info(`
+=== Multi-Pass Review Required ===
+
+Content exceeds model context window. Multi-pass review is recommended.
+
+Provider: ${providerInfo.provider}
+Model: ${providerInfo.model}
+Files: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)
+
+Token Information:
+  Estimated Total Tokens: ${tokenAnalysis.estimatedTotalTokens.toLocaleString()}
+  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}
+  Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
+
+Multi-Pass Analysis:
+  Reason: ${tokenAnalysis.chunkingRecommendation.reason}
+  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}
+
+Estimated Cost: ${costEstimation.formattedCost}
+`);
+          
+          // Ask for confirmation unless noConfirm flag is set
+          if (!options.noConfirm) {
+            try {
+              const readline = require('readline');
+              const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+              });
+              
+              const answer = await new Promise<string>((resolve) => {
+                rl.question('Proceed with multi-pass review? (y/N): ', (answer: string) => {
+                  resolve(answer.trim().toLowerCase());
+                  rl.close();
+                });
+              });
+              
+              if (answer === 'y' || answer === 'yes') {
+                logger.info('Proceeding with multi-pass review...');
+                options.multiPass = true;
+              } else {
+                logger.info('Multi-pass review cancelled. To proceed without confirmation, use the --no-confirm flag.');
+                process.exit(0);
+              }
+            } catch (error) {
+              // If there's an error with the readline interface, fall back to automatic mode
+              logger.warn('Could not get user confirmation. Proceeding with multi-pass review automatically.');
+              options.multiPass = true;
+            }
+          } else {
+            // If noConfirm flag is set, proceed automatically
+            logger.info('Proceeding with multi-pass review automatically (--no-confirm flag is set).');
+            options.multiPass = true;
+          }
         }
       } catch (error) {
         // If token analysis fails, log the error but continue with standard review

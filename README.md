@@ -1,10 +1,26 @@
-# AI Code Review v2.1.2
+# AI Code Review v3.0.0
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, OpenAI models, and OpenRouter API (Claude, GPT-4, etc.) with LangChain integration for enhanced prompt management.
 
-## What's New in v2.1.2
+## What's New in v3.0.0
 
-### Added in v2.1.2
+### Major Features in v3.0.0
+
+- **Smart Multi-Pass Reviews**: Added intelligent confirmation for multi-pass reviews showing token usage, estimated passes, and cost
+- **Improved CLI Experience**: Enhanced command-line interface with better organization and clearer documentation
+- **Enhanced Model Support**: Updated support for the latest Gemini 2.5 Pro models and API specifications
+- **Comprehensive Test Suite**: Added extensive test coverage for command-line options
+
+### Added in v3.0.0
+
+- **Multi-Pass Confirmation**: Added interactive confirmation before proceeding with multi-pass reviews
+- **--no-confirm Flag**: Skip confirmation for multi-pass reviews when automated processing is needed
+- **Cost Estimation**: Show detailed token usage and cost estimates before large multi-pass operations
+- **Improved Documentation**: Better organized and more detailed command documentation
+
+## What's New in v2.2.0
+
+### Added in v2.2.0
 
 - **Ruby/Rails Support**: Complete support for Ruby and Ruby on Rails projects
   - Specialized Ruby/Rails prompt templates for all review types
@@ -257,6 +273,9 @@ ai-code-review src/index.ts --prompt-strategy anthropic
 # Estimate token usage and cost without performing a review
 ai-code-review src/utils --estimate
 
+# Skip confirmation for multi-pass reviews (automatically proceed when content exceeds context window)
+ai-code-review src/utils --no-confirm
+
 # Check the version of the tool
 ai-code-review --version
 
@@ -274,28 +293,47 @@ ai-code-review src/utils -q
 
 ```
 Options:
+  # Basic Options
   -t, --type <type>       Type of review (architectural, quick-fixes, security, performance, unused-code) (default: "quick-fixes")
-  --include-tests         Include test files in the review (default: false)
   -o, --output <format>   Output format (markdown, json) (default: "markdown")
-  -d, --include-project-docs  Include project documentation in the context (default: true)
-  --include-dependency-analysis Include dependency analysis in architectural reviews (default: true)
-  -c, --consolidated      Generate a single consolidated review (default: true)
-  --individual            Generate individual file reviews (default: false)
   -i, --interactive       Process review results interactively (default: false)
-  --auto-fix              Automatically implement high priority fixes (default: true)
-  --prompt-all            Prompt for confirmation on all fixes (default: false)
-  --test-api              Test API connections before running the review (default: false)
-  --debug                 Enable debug mode with additional logging (default: false)
-  -q, --quiet             Suppress non-essential output (default: false)
-  --listmodels            List all available models (default: false)
-  --models                List all supported models with their configuration names (default: false)
-  --trace-code            Use deep code tracing for high-confidence unused code detection (default: false)
-  --use-ts-prune          Use ts-prune static analysis to detect unused exports in unused-code reviews (default: false)
-  --use-eslint            Use eslint static analysis to detect unused variables in unused-code reviews (default: false)
-  --prompt-strategy       Prompt strategy to use (anthropic, gemini, openai, langchain) (optional)
   -e, --estimate          Estimate token usage and cost without performing the review (default: false)
   -v, --version           Output the current version
   -h, --help              Display help information
+
+  # Review Content Options
+  --include-tests         Include test files in the review (normally excluded by default) (default: false)
+  -d, --include-project-docs  Include README.md and other project docs in the AI context for better understanding (default: true)
+  --include-dependency-analysis Include dependency analysis in architectural reviews (default: true)
+  -c, --consolidated      Generate a single consolidated review (default: true)
+  --individual            Generate separate reviews for each file instead of one consolidated review (default: false)
+  
+  # Interactive Mode Options
+  --auto-fix              Automatically implement high-priority fixes without confirmation in interactive mode (default: true)
+  --prompt-all            Ask for confirmation on all fixes, including high priority ones (overrides --auto-fix) (default: false)
+  
+  # Model Options
+  --listmodels            Display all available AI models based on your configured API keys (default: false)
+  --models                Show all supported AI models and their configuration details, regardless of API key availability (default: false)
+  --test-api              Verify AI provider API connections before starting the review (default: false)
+  --no-confirm            Skip confirmation for multi-pass reviews and proceed automatically (default: false)
+  
+  # Unused Code Detection Options (for --type unused-code)
+  --trace-code            Enable deep code tracing for high-confidence unused code detection (default: false)
+  --use-ts-prune          Use ts-prune static analysis to detect unused exports (default: false)
+  --use-eslint            Use eslint static analysis to detect unused variables (default: false)
+  
+  # Prompt Customization Options
+  --strategy              Custom review strategy to use (plugin name or path to plugin module)
+  --prompt-file, --prompt Path to a custom prompt template file (overrides built-in prompts)
+  --prompt-fragment       Custom instructions to inject into the AI prompt (focuses the review)
+  --prompt-fragment-position Position of the prompt fragment (start, middle, end) (default: middle) 
+  --prompt-strategy       Prompt formatting strategy to use (anthropic, gemini, openai, langchain)
+  --use-cache             Enable prompt template caching for faster execution (use --no-use-cache to disable) (default: true)
+  
+  # Debug Options
+  --debug                 Enable detailed debug logging for troubleshooting (default: false)
+  -q, --quiet             Suppress non-essential output (default: false)
 ```
 
 ### Model Testing Options

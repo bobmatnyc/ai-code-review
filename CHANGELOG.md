@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-05-14
+
+### Added
+- **Multi-Pass Review Confirmation**: Added confirmation step for multi-pass reviews showing token usage, estimated passes, and cost.
+- **--no-confirm Flag**: Added a new flag to skip the confirmation step for multi-pass reviews.
+- **Command Documentation**: Improved documentation and organization of command-line options in README.
+- **Comprehensive Tests**: Added unit tests for command-line options including the new confirmation feature.
+- **Future Migration Plan**: Created a plan for migrating from Jest to Vitest in a future release.
+
+### Changed
+- **Improved CLI Options**: Enhanced clarity and consistency of all command-line option descriptions.
+- **Command Grouping**: Reorganized CLI options documentation into logical groups for better usability.
+- **Model Mapping**: Updated Gemini model mappings to use the latest API identifiers.
+
+### Fixed
+- **JSON Parsing**: Fixed JSON parsing in responses that use language-specific code blocks.
+- **API Versioning**: Fixed issues with API version selection in different model providers.
+
 ## [2.2.0] - 2025-05-06
 
 ### Added

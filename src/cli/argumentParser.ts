@@ -99,17 +99,17 @@ export async function parseArguments(): Promise<CliOptions> {
         type: 'boolean',
         default: false,
         describe:
-          'Process each file individually instead of a consolidated review'
+          'Generate separate reviews for each file instead of one consolidated review'
       })
       .option('include-tests', {
         type: 'boolean',
         default: false,
-        describe: 'Include test files in the review'
+        describe: 'Include test files in the review (normally excluded by default)'
       })
       .option('include-project-docs', {
         type: 'boolean',
         default: false,
-        describe: 'Include project documentation in the review context'
+        describe: 'Include README.md and other project docs in the AI context for better understanding'
       })
       .option('include-dependency-analysis', {
         type: 'boolean',
@@ -119,22 +119,22 @@ export async function parseArguments(): Promise<CliOptions> {
       .option('debug', {
         type: 'boolean',
         default: false,
-        describe: 'Enable debug logging'
+        describe: 'Enable detailed debug logging for troubleshooting'
       })
       .option('test-api', {
         type: 'boolean',
         default: false,
-        describe: 'Test API connections before starting the review'
+        describe: 'Verify AI provider API connections before starting the review'
       })
       .option('auto-fix', {
         type: 'boolean',
         default: false,
-        describe: 'Automatically implement suggested fixes in interactive mode'
+        describe: 'Automatically implement high-priority fixes without confirmation in interactive mode'
       })
       .option('prompt-all', {
         type: 'boolean',
         default: false,
-        describe: 'Prompt for all fixes, including high priority ones'
+        describe: 'Ask for confirmation on all fixes, including high priority ones (overrides --auto-fix)'
       })
       // Configure version handling
       .version(false) // Disable automatic version handling
@@ -157,12 +157,12 @@ export async function parseArguments(): Promise<CliOptions> {
       .option('listmodels', {
         type: 'boolean',
         default: false,
-        describe: 'List all available models based on configured API keys'
+        describe: 'Display all available AI models based on your configured API keys'
       })
       .option('models', {
         type: 'boolean',
         default: false,
-        describe: 'List all supported models and their configuration names'
+        describe: 'Show all supported AI models and their configuration details, regardless of API key availability'
       })
       .option('strategy', {
         type: 'string',
@@ -171,11 +171,11 @@ export async function parseArguments(): Promise<CliOptions> {
       .option('prompt-file', {
         alias: 'prompt',
         type: 'string',
-        describe: 'Path to a custom prompt template file'
+        describe: 'Path to a custom prompt template file (overrides built-in prompts)'
       })
       .option('prompt-fragment', {
         type: 'string',
-        describe: 'Custom prompt fragment to inject into the prompt'
+        describe: 'Custom instructions to inject into the AI prompt (focuses the review)'
       })
       .option('prompt-fragment-position', {
         choices: ['start', 'middle', 'end'],
@@ -184,30 +184,35 @@ export async function parseArguments(): Promise<CliOptions> {
       })
       .option('prompt-strategy', {
         type: 'string',
-        describe: 'Prompt strategy to use (e.g., anthropic, gemini, openai)'
+        describe: 'Prompt formatting strategy to use (anthropic, gemini, openai, langchain)'
       })
       .option('use-cache', {
         type: 'boolean',
         default: true,
-        describe: 'Whether to use cached prompts'
+        describe: 'Enable prompt template caching for faster execution (use --no-use-cache to disable)'
       })
       .option('trace-code', {
         type: 'boolean',
         default: false,
         describe:
-          'Use deep code tracing for high-confidence unused code detection'
+          'Enable deep code tracing for high-confidence unused code detection (used with --type unused-code)'
       })
       .option('use-ts-prune', {
         type: 'boolean',
         default: false,
         describe:
-          'Use ts-prune static analysis to detect unused exports in unused-code reviews'
+          'Use ts-prune static analysis to detect unused exports (used with --type unused-code)'
       })
       .option('use-eslint', {
         type: 'boolean',
         default: false,
         describe:
-          'Use eslint static analysis to detect unused variables in unused-code reviews'
+          'Use eslint static analysis to detect unused variables (used with --type unused-code)'
+      })
+      .option('confirm', {
+        type: 'boolean',
+        default: true,
+        describe: 'Prompt for confirmation before proceeding with multi-pass reviews (use --no-confirm to skip)'
       })
       .option('ui-language', {
         choices: SUPPORTED_LANGUAGES,
@@ -389,6 +394,12 @@ export function validateArguments(options: CliOptions): CliOptions {
   if ((options as any)['ui-language']) {
     options.uiLanguage = (options as any)['ui-language'];
     delete (options as any)['ui-language'];
+  }
+
+  // Map confirm option to noConfirm property (inverse logic)
+  if ((options as any)['confirm'] !== undefined) {
+    options.noConfirm = !(options as any)['confirm'];
+    delete (options as any)['confirm'];
   }
 
   return options;
