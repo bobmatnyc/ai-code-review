@@ -18,9 +18,17 @@ import { getCostInfoFromText } from '../utils/tokenCounter';
  */
 export function extractStructuredData(content: string): any | null {
   try {
-    // Check if the response is wrapped in a code block
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    const jsonContent = jsonMatch ? jsonMatch[1] : content;
+    // Check if the response is wrapped in any code block (handling any language marker)
+    const codeBlockMatch = content.match(/```(?:\w*)?\s*([\s\S]*?)\s*```/);
+    let jsonContent = '';
+    
+    if (codeBlockMatch) {
+      // If we have a code block, use its content
+      jsonContent = codeBlockMatch[1];
+    } else {
+      // No code block, use the raw content
+      jsonContent = content;
+    }
 
     // Parse the JSON content
     const structuredData = JSON.parse(jsonContent);

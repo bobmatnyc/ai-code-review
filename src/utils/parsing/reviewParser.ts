@@ -22,8 +22,11 @@ import logger from '../logger';
 export function parseReviewJson(jsonString: string): ReviewSchema | null {
   try {
     // Try to extract JSON from the response
-    const jsonMatch =
-      jsonString.match(/```json\s*({[\s\S]*?})\s*```/) ||
+    // First, check for code blocks with any language marker
+    const codeBlockMatch = jsonString.match(/```(?:\w*)\s*({[\s\S]*?})\s*```/);
+    
+    // If no code block match, try other patterns
+    const jsonMatch = codeBlockMatch ||
       jsonString.match(/({[\s\S]*?"review"[\s\S]*?})\s*$/) ||
       jsonString.match(/({[\s\S]*})\s*$/);
 
