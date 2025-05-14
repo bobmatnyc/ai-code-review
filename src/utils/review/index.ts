@@ -33,3 +33,8 @@ export {
   displayReviewResults,
   processReviewResults
 } from './interactiveProcessing';
+
+// Export progress tracking utilities for multi-pass reviews
+export {
+  MultiPassProgressTracker
+} from './progressTracker';
