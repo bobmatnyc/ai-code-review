@@ -303,11 +303,20 @@ export async function initializeAnthropicClient(): Promise<boolean> {
  */
 export function parseJsonResponse(content: string): any | null {
   try {
-    // First, check if the response is wrapped in a code block
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    const jsonContent = jsonMatch ? jsonMatch[1] : content;
+    // First, check if the response is wrapped in any code block (regardless of language marker)
+    const codeBlockMatch = content.match(/```(?:\w+)?\s*([\s\S]*?)\s*```/);
+    
+    let jsonContent = '';
+    
+    if (codeBlockMatch) {
+      // If we have a code block, try its content
+      jsonContent = codeBlockMatch[1];
+    } else {
+      // No code block, use the raw content
+      jsonContent = content;
+    }
 
-    // Check if the content is valid JSON
+    // Try to parse the content as JSON
     const structuredData = JSON.parse(jsonContent);
 
     // Validate that it has the expected structure
