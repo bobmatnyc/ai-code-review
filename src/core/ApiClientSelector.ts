@@ -61,7 +61,9 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
   const config: ApiClientConfig = {
     clientType: 'None',
     modelName: '',
-    initialized: false
+    initialized: false,
+    provider: 'none',
+    apiKey: ''
   };
   logger.debug(`selectApiClient: initial config=${JSON.stringify(config)}`);
 
