@@ -554,7 +554,6 @@ function formatSimpleMarkdown(
 
 > **Review Type**: ${reviewType}
 > **Generated**: ${new Date(timestamp).toLocaleString()}
-> **Reviewed**: ${displayPath}
 
 ---
 
