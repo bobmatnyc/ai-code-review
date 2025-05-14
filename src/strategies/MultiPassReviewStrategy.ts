@@ -527,9 +527,20 @@ Remember to use the grading system as described in your instructions.`;
           // Dynamically import the Google AI SDK to avoid dependency issues
           const { GoogleGenerativeAI } = await import('@google/generative-ai');
           
+          // Get the API model name from the model mapping
+          const { getModelMapping } = await import('../clients/utils/modelMaps');
+          const fullModelKey = `gemini:${apiClientConfig.modelName}`;
+          const modelMapping = getModelMapping(fullModelKey);
+          const modelId = modelMapping?.apiIdentifier || apiClientConfig.modelName;
+          
+          logger.info(`Using Gemini model for consolidation: ${modelId}`);
+          
           // Initialize the Google AI client
           const genAI = new GoogleGenerativeAI(apiClientConfig.apiKey);
-          const model = genAI.getGenerativeModel({ model: apiClientConfig.modelName });
+          const model = genAI.getGenerativeModel({ 
+            model: modelId,
+            apiVersion: modelMapping?.useV1Beta ? 'v1beta' : undefined
+          });
           
           // Generate content
           const result = await model.generateContent({
@@ -549,6 +560,7 @@ Remember to use the grading system as described in your instructions.`;
           consolidatedContent = result.response.text();
         } catch (error) {
           logger.error(`Error using Gemini API for consolidation: ${error instanceof Error ? error.message : String(error)}`);
+          logger.error('Make sure your model mapping in modelMaps.ts has the correct API identifier');
           return undefined;
         }
       } else {
