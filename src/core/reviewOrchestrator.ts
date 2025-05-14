@@ -130,20 +130,50 @@ export async function orchestrateReview(
       const modelName =
         process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 
-      // Estimate token usage and cost
-      const estimation = await estimateFromFilePaths(
-        filesToReview,
-        options.type,
-        modelName
-      );
+      try {
+        // Read file contents for token analysis
+        const fileInfos = await readFilesContent(filesToReview, projectPath);
+        
+        // Use the new TokenAnalyzer for more comprehensive analysis
+        const { TokenAnalyzer, formatTokenAnalysis } = await import('../analysis/tokens');
+        
+        const tokenAnalysisOptions = {
+          reviewType: options.type,
+          modelName: modelName,
+          contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15
+        };
+        
+        const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
+        
+        // Display the token analysis results
+        logger.info(formatTokenAnalysis(tokenAnalysis, modelName, true));
+        
+        // If chunking is recommended, inform the user
+        if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {
+          logger.info('\nMulti-pass review recommended:');
+          logger.info(`Content exceeds model context window (${tokenAnalysis.estimatedTotalTokens.toLocaleString()} > ${tokenAnalysis.contextWindowSize.toLocaleString()} tokens)`);
+          logger.info(`Recommended chunks: ${tokenAnalysis.estimatedPassesNeeded}`);
+          logger.info('Use --multiPass flag to enable automatic chunking');
+        }
+      } catch (error) {
+        // Fall back to the legacy estimator if TokenAnalyzer fails
+        logger.warn('Advanced token analysis failed, falling back to basic estimation');
+        
+        // Estimate token usage and cost using the legacy estimator
+        const estimation = await estimateFromFilePaths(
+          filesToReview,
+          options.type,
+          modelName
+        );
 
-      // Display the estimation results
-      const formattedEstimation = formatEstimation(
-        estimation,
-        options.type,
-        modelName
-      );
-      logger.info(formattedEstimation);
+        // Display the estimation results
+        const formattedEstimation = formatEstimation(
+          estimation,
+          options.type,
+          modelName
+        );
+        logger.info(formattedEstimation);
+      }
 
       return; // Exit after displaying the estimation
     }
@@ -173,13 +203,45 @@ export async function orchestrateReview(
       logger.info('Reading project documentation...');
       projectDocs = await readProjectDocs(projectPath);
     }
+    
+    // Get the API client configuration
+    const apiClientConfig = await selectApiClient();
+    
+    // Perform token analysis to check if content exceeds context window
+    if (!options.multiPass && !options.individual) {
+      try {
+        logger.info('Analyzing token usage to determine review strategy...');
+        
+        // Use the new TokenAnalyzer for more comprehensive analysis
+        const { TokenAnalyzer } = await import('../analysis/tokens');
+        
+        const tokenAnalysisOptions = {
+          reviewType: options.type,
+          modelName: apiClientConfig.modelName,
+          contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15
+        };
+        
+        const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
+        
+        // If chunking is recommended, enable multi-pass mode automatically
+        if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {
+          logger.info('Content exceeds model context window. Enabling multi-pass review automatically.');
+          logger.info(`Total tokens: ${tokenAnalysis.estimatedTotalTokens.toLocaleString()}, Context window: ${tokenAnalysis.contextWindowSize.toLocaleString()}`);
+          logger.info(`Estimated passes needed: ${tokenAnalysis.estimatedPassesNeeded}`);
+          
+          // Enable multi-pass mode
+          options.multiPass = true;
+        }
+      } catch (error) {
+        // If token analysis fails, log the error but continue with standard review
+        logger.warn('Token analysis failed. Continuing with standard review strategy.');
+        logger.debug(`Token analysis error: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
 
     // Create and execute the appropriate strategy based on review options
-    logger.info(`Creating ${options.type} review strategy...`);
+    logger.info(`Creating ${options.multiPass ? 'multi-pass ' : ''}${options.type} review strategy...`);
     const strategy = StrategyFactory.createStrategy(options);
-
-    // Select the appropriate API client
-    const apiClientConfig = await selectApiClient();
 
     // Execute the strategy
     logger.info(`Executing review strategy...`);
