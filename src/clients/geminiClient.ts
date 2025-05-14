@@ -42,6 +42,7 @@ import {
   formatConsolidatedReviewPrompt
 } from './utils/promptFormatter';
 import { getConfig, getApiKeyForProvider } from '../utils/config';
+import { getModelMapping } from './utils/modelMaps';
 
 /**
  * Default safety settings for Gemini API calls
@@ -157,13 +158,30 @@ function initializeGeminiClient(): void {
       'No Gemini model specified. Set AI_CODE_REVIEW_MODEL=gemini:<model_name>.'
     );
   }
-  // Use the specified model name directly as the API model name
-  const apiName = modelName;
-  logger.info(`Initializing Gemini model: ${apiName}...`);
+  // Get the actual API identifier from the model mapping
+  let apiIdentifier = modelName;
+  
+  // Try to get the API identifier from the model mapping
+  try {
+    // Use the imported getModelMapping function
+    const fullModelKey = `gemini:${modelName}`;
+    const modelMapping = getModelMapping(fullModelKey);
+    
+    if (modelMapping?.apiIdentifier) {
+      apiIdentifier = modelMapping.apiIdentifier;
+      logger.debug(`Using API identifier from mapping: ${modelName} → ${apiIdentifier}`);
+    } else {
+      logger.debug(`No mapping found for ${fullModelKey}, using model name directly`);
+    }
+  } catch (error) {
+    logger.debug(`Error getting model mapping: ${error}`);
+  }
+  
+  logger.info(`Initializing Gemini model: ${apiIdentifier}...`);
   // Set the selected model
   selectedGeminiModel = {
-    name: apiName,
-    displayName: apiName
+    name: apiIdentifier,
+    displayName: modelName
   };
 }
 

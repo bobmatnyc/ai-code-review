@@ -57,9 +57,9 @@ export async function discoverFiles(
       throw new Error(`Target not found: ${target}`);
     }
 
-    // Load gitignore patterns
-    const gitignorePatterns = await loadGitignorePatterns(projectPath);
-    logger.debug(`Loaded ${gitignorePatterns.length} patterns from .gitignore in ${projectPath}`);
+    // Load gitignore patterns from target path, not project path
+    const gitignorePatterns = await loadGitignorePatterns(targetPath);
+    logger.debug(`Loaded ${gitignorePatterns.length} patterns from .gitignore in ${targetPath}`);
     
     // Get files to review using the existing filter utility
     const filesToReview = await getFilteredFiles(

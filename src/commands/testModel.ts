@@ -83,16 +83,16 @@ async function testSpecificModel(modelStr: string) {
   let result;
   switch (provider as Provider) {
     case 'gemini':
-      result = await testGeminiModel(modelMapping.apiName);
+      result = await testGeminiModel(modelMapping.apiIdentifier);
       break;
     case 'anthropic':
-      result = await testAnthropicModel(modelMapping.apiName);
+      result = await testAnthropicModel(modelMapping.apiIdentifier);
       break;
     case 'openai':
-      result = await testOpenAIModel(modelMapping.apiName);
+      result = await testOpenAIModel(modelMapping.apiIdentifier);
       break;
     case 'openrouter':
-      result = await testOpenRouterModel(modelMapping.apiName);
+      result = await testOpenRouterModel(modelMapping.apiIdentifier);
       break;
     default:
       logger.error(`Unknown provider: ${provider}`);
@@ -133,16 +133,16 @@ async function testAllModels() {
       let result;
       switch (provider) {
         case 'gemini':
-          result = await testGeminiModel(modelMapping.apiName);
+          result = await testGeminiModel(modelMapping.apiIdentifier);
           break;
         case 'anthropic':
-          result = await testAnthropicModel(modelMapping.apiName);
+          result = await testAnthropicModel(modelMapping.apiIdentifier);
           break;
         case 'openai':
-          result = await testOpenAIModel(modelMapping.apiName);
+          result = await testOpenAIModel(modelMapping.apiIdentifier);
           break;
         case 'openrouter':
-          result = await testOpenRouterModel(modelMapping.apiName);
+          result = await testOpenRouterModel(modelMapping.apiIdentifier);
           break;
       }
 
@@ -205,16 +205,16 @@ async function testProviderModels(providerStr: string) {
     let result;
     switch (provider) {
       case 'gemini':
-        result = await testGeminiModel(modelMapping.apiName);
+        result = await testGeminiModel(modelMapping.apiIdentifier);
         break;
       case 'anthropic':
-        result = await testAnthropicModel(modelMapping.apiName);
+        result = await testAnthropicModel(modelMapping.apiIdentifier);
         break;
       case 'openai':
-        result = await testOpenAIModel(modelMapping.apiName);
+        result = await testOpenAIModel(modelMapping.apiIdentifier);
         break;
       case 'openrouter':
-        result = await testOpenRouterModel(modelMapping.apiName);
+        result = await testOpenRouterModel(modelMapping.apiIdentifier);
         break;
     }
 
@@ -274,16 +274,16 @@ async function testDefaultModels() {
     let result;
     switch (provider) {
       case 'gemini':
-        result = await testGeminiModel(modelMapping.apiName);
+        result = await testGeminiModel(modelMapping.apiIdentifier);
         break;
       case 'anthropic':
-        result = await testAnthropicModel(modelMapping.apiName);
+        result = await testAnthropicModel(modelMapping.apiIdentifier);
         break;
       case 'openai':
-        result = await testOpenAIModel(modelMapping.apiName);
+        result = await testOpenAIModel(modelMapping.apiIdentifier);
         break;
       case 'openrouter':
-        result = await testOpenRouterModel(modelMapping.apiName);
+        result = await testOpenRouterModel(modelMapping.apiIdentifier);
         break;
     }
 

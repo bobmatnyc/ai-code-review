@@ -5,6 +5,40 @@
  * selecting the appropriate API client, and managing the review workflow.
  */
 
+/**
+ * Helper function to parse and display provider and model information
+ * 
+ * @param modelName The full model name (e.g., 'openai:gpt-4.1')
+ * @returns An object with provider and model display information
+ */
+function getProviderDisplayInfo(modelName: string): { provider: string; model: string } {
+  try {
+    // Try to parse the model string using the utilities from modelMaps
+    const { provider, modelName: extractedModelName } = parseModelString(modelName);
+    
+    return {
+      provider: provider.charAt(0).toUpperCase() + provider.slice(1), // Capitalize provider name
+      model: extractedModelName
+    };
+  } catch (error) {
+    // If parsing fails, use a fallback approach
+    const parts = modelName.split(':');
+    
+    if (parts.length === 2) {
+      return {
+        provider: parts[0].charAt(0).toUpperCase() + parts[0].slice(1), // Capitalize provider name
+        model: parts[1]
+      };
+    }
+    
+    // If format is not recognized, return unknown provider and original model name
+    return {
+      provider: 'Unknown',
+      model: modelName
+    };
+  }
+}
+
 import path from 'path';
 import { createDirectory } from '../utils/fileSystem';
 import { ReviewOptions } from '../types/review';
@@ -17,6 +51,7 @@ import {
   estimateFromFilePaths,
   formatEstimation
 } from '../utils/estimationUtils';
+import { parseModelString } from '../clients/utils/modelMaps';
 import {
   listModels,
   printCurrentModel,
@@ -130,20 +165,103 @@ export async function orchestrateReview(
       const modelName =
         process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 
-      // Estimate token usage and cost
-      const estimation = await estimateFromFilePaths(
-        filesToReview,
-        options.type,
-        modelName
-      );
+      try {
+        // Read file contents for token analysis
+        const fileInfos = await readFilesContent(filesToReview, projectPath);
+        
+        // Use the new TokenAnalyzer for more comprehensive analysis
+        const { TokenAnalyzer } = await import('../analysis/tokens');
+        const { estimateMultiPassReviewCost, formatMultiPassEstimation } = await import('../utils/estimationUtils');
+        
+        const tokenAnalysisOptions = {
+          reviewType: options.type,
+          modelName: modelName,
+          contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15
+        };
+        
+        const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
+        
+        // Get cost estimate based on token analysis
+        const costEstimation = await estimateMultiPassReviewCost(
+          fileInfos,
+          options.type,
+          modelName,
+          {
+            passCount: tokenAnalysis.chunkingRecommendation.chunkingRecommended ? 
+              tokenAnalysis.estimatedPassesNeeded : 1,
+            contextMaintenanceFactor: tokenAnalysisOptions.contextMaintenanceFactor
+          }
+        );
+        
+        // Get provider and model information
+        const providerInfo = getProviderDisplayInfo(modelName);
+        
+        // Display a summary without file details
+        logger.info(`
+=== Token Usage and Cost Estimation ===
 
-      // Display the estimation results
-      const formattedEstimation = formatEstimation(
-        estimation,
-        options.type,
-        modelName
-      );
-      logger.info(formattedEstimation);
+Provider: ${providerInfo.provider}
+Model: ${providerInfo.model}
+Files: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)
+
+Token Information:
+  Estimated Total Tokens: ${tokenAnalysis.estimatedTotalTokens.toLocaleString()}
+  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}
+  Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
+
+${tokenAnalysis.chunkingRecommendation.chunkingRecommended ? 
+  `Multi-Pass Analysis:
+  Chunking Required: Yes
+  Reason: ${tokenAnalysis.chunkingRecommendation.reason}
+  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}` : 
+  `Multi-Pass Analysis:
+  Chunking Required: No
+  Reason: ${tokenAnalysis.chunkingRecommendation.reason}`}
+
+Estimated Cost: ${costEstimation.formattedCost}
+
+Note: This is an estimate based on approximate token counts and may vary
+      based on the actual content and model behavior.
+`);
+        
+        // If chunking is recommended, inform the user that it will be automatic
+        if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {
+          logger.info('\nImportant: Multi-pass review will be automatically enabled when needed. No flag required.');
+        }
+      } catch (error) {
+        // Fall back to the legacy estimator if TokenAnalyzer fails
+        logger.warn('Advanced token analysis failed, falling back to basic estimation');
+        
+        // Estimate token usage and cost using the legacy estimator
+        const estimation = await estimateFromFilePaths(
+          filesToReview,
+          options.type,
+          modelName
+        );
+
+        // Get provider and model information
+        const providerInfo = getProviderDisplayInfo(modelName);
+        
+        // Display the estimation results without file details
+        logger.info(`
+=== Token Usage and Cost Estimation ===
+
+Review Type: ${options.type}
+Provider: ${providerInfo.provider}
+Model: ${providerInfo.model}
+Files: ${estimation.fileCount} (${(estimation.totalFileSize / 1024 / 1024).toFixed(2)} MB total)
+
+Token Usage:
+  Input Tokens: ${estimation.inputTokens.toLocaleString()}
+  Estimated Output Tokens: ${estimation.outputTokens.toLocaleString()}
+  Total Tokens: ${estimation.totalTokens.toLocaleString()}
+
+Estimated Cost: ${estimation.formattedCost}
+
+Note: This is an estimate based on approximate token counts and may vary
+      based on the actual content and model behavior.
+`);
+      }
 
       return; // Exit after displaying the estimation
     }
@@ -173,13 +291,45 @@ export async function orchestrateReview(
       logger.info('Reading project documentation...');
       projectDocs = await readProjectDocs(projectPath);
     }
+    
+    // Get the API client configuration
+    const apiClientConfig = await selectApiClient();
+    
+    // Perform token analysis to check if content exceeds context window
+    if (!options.multiPass && !options.individual) {
+      try {
+        logger.info('Analyzing token usage to determine review strategy...');
+        
+        // Use the new TokenAnalyzer for more comprehensive analysis
+        const { TokenAnalyzer } = await import('../analysis/tokens');
+        
+        const tokenAnalysisOptions = {
+          reviewType: options.type,
+          modelName: apiClientConfig.modelName,
+          contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15
+        };
+        
+        const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
+        
+        // If chunking is recommended, enable multi-pass mode automatically
+        if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {
+          logger.info('Content exceeds model context window. Enabling multi-pass review automatically.');
+          logger.info(`Total tokens: ${tokenAnalysis.estimatedTotalTokens.toLocaleString()}, Context window: ${tokenAnalysis.contextWindowSize.toLocaleString()}`);
+          logger.info(`Estimated passes needed: ${tokenAnalysis.estimatedPassesNeeded}`);
+          
+          // Enable multi-pass mode
+          options.multiPass = true;
+        }
+      } catch (error) {
+        // If token analysis fails, log the error but continue with standard review
+        logger.warn('Token analysis failed. Continuing with standard review strategy.');
+        logger.debug(`Token analysis error: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
 
     // Create and execute the appropriate strategy based on review options
-    logger.info(`Creating ${options.type} review strategy...`);
+    logger.info(`Creating ${options.multiPass ? 'multi-pass ' : ''}${options.type} review strategy...`);
     const strategy = StrategyFactory.createStrategy(options);
-
-    // Select the appropriate API client
-    const apiClientConfig = await selectApiClient();
 
     // Execute the strategy
     logger.info(`Executing review strategy...`);
