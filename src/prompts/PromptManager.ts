@@ -286,6 +286,12 @@ export class PromptManager {
       return 'architectural';
     } else if (baseName.includes('consolidated')) {
       return 'consolidated';
+    } else if (baseName.includes('best-practices')) {
+      return 'best-practices';
+    } else if (baseName.includes('unused-code')) {
+      return 'unused-code';
+    } else if (baseName.includes('code-tracing-unused-code')) {
+      return 'code-tracing-unused-code';
     } else {
       return 'quick-fixes'; // Default to quick-fixes
     }

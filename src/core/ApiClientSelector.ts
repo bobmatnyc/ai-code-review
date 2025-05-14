@@ -28,6 +28,9 @@ export interface ApiClientConfig {
   clientType: ApiClientType;
   modelName: string;
   initialized: boolean;
+  provider?: string;
+  apiKey?: string;
+  client?: any;
 }
 
 /**
@@ -58,7 +61,9 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
   const config: ApiClientConfig = {
     clientType: 'None',
     modelName: '',
-    initialized: false
+    initialized: false,
+    provider: 'none',
+    apiKey: ''
   };
   logger.debug(`selectApiClient: initial config=${JSON.stringify(config)}`);
 
@@ -84,6 +89,8 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
     await initializeAnyOpenRouterModel();
     config.clientType = 'OpenRouter';
     config.modelName = openrouterModel;
+    config.provider = 'openrouter';
+    config.apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || '';
     config.initialized = true;
   } else if (apiKeyType === 'Google') {
     // Check if we have a valid model name
@@ -107,6 +114,8 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
 
     config.clientType = 'Google';
     config.modelName = envModelName;
+    config.provider = 'gemini';
+    config.apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || '';
     config.initialized = true;
   } else if (apiKeyType === 'Anthropic') {
     // Check if we have a valid model name
@@ -132,6 +141,8 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
     // The actual initialization will happen when the client is used
     config.clientType = 'Anthropic';
     config.modelName = envModelName;
+    config.provider = 'anthropic';
+    config.apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || '';
     config.initialized = true;
   } else if (apiKeyType === 'OpenAI') {
     // Check if we have a valid model name
@@ -148,12 +159,16 @@ export async function selectApiClient(): Promise<ApiClientConfig> {
     // The actual initialization will happen when the client is used
     config.clientType = 'OpenAI';
     config.modelName = envModelName;
+    config.provider = 'openai';
+    config.apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY || '';
     config.initialized = true;
   } else {
     // No API keys available
     logger.warn('No API keys available. Using mock responses.');
     config.clientType = 'None';
     config.modelName = '';
+    config.provider = 'none';
+    config.apiKey = '';
     config.initialized = false;
   }
 
