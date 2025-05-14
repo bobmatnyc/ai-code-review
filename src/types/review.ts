@@ -196,6 +196,29 @@ export interface ReviewOptions {
    * @internal
    */
   examples?: any[];
+  
+  /**
+   * Whether to use multi-pass review for large files
+   */
+  multiPass?: boolean;
+  
+  /**
+   * Current pass number in a multi-pass review
+   * @internal
+   */
+  passNumber?: number;
+  
+  /**
+   * Total number of passes in a multi-pass review
+   * @internal
+   */
+  totalPasses?: number;
+  
+  /**
+   * Context maintenance factor for multi-pass reviews (0-1)
+   * Represents proportion of context window reserved for maintaining state
+   */
+  contextMaintenanceFactor?: number;
 }
 
 /**
@@ -229,6 +252,36 @@ export interface FileInfo {
 }
 
 /**
+ * Per-pass cost information for multi-pass reviews
+ */
+export interface PassCost {
+  /**
+   * Pass number (1-based)
+   */
+  passNumber: number;
+  
+  /**
+   * Number of input tokens for this pass
+   */
+  inputTokens: number;
+  
+  /**
+   * Number of output tokens for this pass
+   */
+  outputTokens: number;
+  
+  /**
+   * Total number of tokens for this pass
+   */
+  totalTokens: number;
+  
+  /**
+   * Estimated cost for this pass in USD
+   */
+  estimatedCost: number;
+}
+
+/**
  * Cost information for a review
  */
 export interface ReviewCost {
@@ -256,6 +309,21 @@ export interface ReviewCost {
    * Formatted cost string
    */
   formattedCost: string;
+  
+  /**
+   * Number of passes in a multi-pass review
+   */
+  passCount?: number;
+  
+  /**
+   * Per-pass cost breakdown for multi-pass reviews
+   */
+  perPassCosts?: PassCost[];
+  
+  /**
+   * Context maintenance factor used for this review (0-1)
+   */
+  contextMaintenanceFactor?: number;
 }
 
 /**
@@ -265,7 +333,12 @@ export interface ReviewResult {
   /**
    * Path to the reviewed file
    */
-  filePath: string;
+  filePath?: string;
+
+  /**
+   * List of files included in the review
+   */
+  files?: string[];
 
   /**
    * Type of review performed
@@ -284,6 +357,12 @@ export interface ReviewResult {
 
   /**
    * Cost information for the review (if available)
+   */
+  costInfo?: ReviewCost;
+  
+  /**
+   * Alias for costInfo (kept for backward compatibility)
+   * @deprecated Use costInfo instead
    */
   cost?: ReviewCost;
 
@@ -306,6 +385,26 @@ export interface ReviewResult {
    * Version of the tool used for the review
    */
   toolVersion?: string;
+  
+  /**
+   * Whether this is a multi-pass review
+   */
+  isMultiPass?: boolean;
+  
+  /**
+   * Current pass number if this is a multi-pass review
+   */
+  passNumber?: number;
+  
+  /**
+   * Total number of passes if this is a multi-pass review
+   */
+  totalPasses?: number;
+  
+  /**
+   * Token analysis results if available
+   */
+  tokenAnalysis?: any;
 
   /**
    * Raw response from the API (used in some strategies)
