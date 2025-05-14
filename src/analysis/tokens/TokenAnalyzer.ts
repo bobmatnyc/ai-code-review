@@ -16,7 +16,7 @@ export interface FileTokenAnalysis {
   /** Path to the file */
   path: string;
   /** Relative path to the file */
-  relativePath: string;
+  relativePath: string | undefined;
   /** Number of tokens in the file */
   tokenCount: number;
   /** Size of file in bytes */

@@ -26,6 +26,11 @@ import { ReviewContext } from '../analysis/context';
 import { formatProjectDocs } from '../utils/projectDocs';
 import { MultiPassProgressTracker } from '../utils/review';
 
+// Helper function to accommodate the type mismatch with existing formatters
+const ensureString = (value: string | undefined): string => {
+  return value || 'unknown';
+};
+
 /**
  * Strategy for performing multi-pass reviews of large codebases
  */
@@ -126,8 +131,14 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
-        cost: 0
-      }
+        estimatedCost: 0,
+        formattedCost: '$0.00 USD',
+        passCount: totalPasses,
+        perPassCosts: [],
+        contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15
+      },
+      isMultiPass: true,
+      totalPasses: totalPasses
     };
     
     // Create filtered subsets of files for each pass
@@ -156,17 +167,14 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
       if (projectDocs) {
         enhancedProjectDocs = { ...projectDocs };
       } else {
-        enhancedProjectDocs = { readme: '', other: [] };
+        enhancedProjectDocs = { readme: '' };
       }
       
       // Add the review context to the project docs
-      enhancedProjectDocs.other = [
-        ...(enhancedProjectDocs.other || []),
-        {
-          name: 'REVIEW_CONTEXT.md',
-          content: chunkContext
-        }
-      ];
+      enhancedProjectDocs.custom = {
+        ...(enhancedProjectDocs.custom || {}),
+        'REVIEW_CONTEXT.md': chunkContext
+      };
       
       // Create a modified options object with metadata about the multi-pass process
       const chunkOptions = {
@@ -190,10 +198,27 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
       this.updateContextFromReviewResults(reviewContext, chunkResult, chunkFiles);
       
       // Accumulate costs
-      consolidatedResult.costInfo.inputTokens += chunkResult.costInfo?.inputTokens || 0;
-      consolidatedResult.costInfo.outputTokens += chunkResult.costInfo?.outputTokens || 0;
-      consolidatedResult.costInfo.totalTokens += chunkResult.costInfo?.totalTokens || 0;
-      consolidatedResult.costInfo.cost += chunkResult.costInfo?.cost || 0;
+      if (consolidatedResult.costInfo && chunkResult.costInfo) {
+        consolidatedResult.costInfo.inputTokens += chunkResult.costInfo.inputTokens || 0;
+        consolidatedResult.costInfo.outputTokens += chunkResult.costInfo.outputTokens || 0;
+        consolidatedResult.costInfo.totalTokens += chunkResult.costInfo.totalTokens || 0;
+        consolidatedResult.costInfo.estimatedCost += chunkResult.costInfo.estimatedCost || 0;
+        
+        // Update formatted cost
+        consolidatedResult.costInfo.formattedCost = 
+          `$${consolidatedResult.costInfo.estimatedCost.toFixed(6)} USD`;
+        
+        // Add per-pass cost information
+        if (consolidatedResult.costInfo.perPassCosts && Array.isArray(consolidatedResult.costInfo.perPassCosts)) {
+          consolidatedResult.costInfo.perPassCosts.push({
+            passNumber: passNumber,
+            inputTokens: chunkResult.costInfo.inputTokens || 0,
+            outputTokens: chunkResult.costInfo.outputTokens || 0,
+            totalTokens: chunkResult.costInfo.totalTokens || 0,
+            estimatedCost: chunkResult.costInfo.estimatedCost || 0
+          });
+        }
+      }
       
       // Accumulate content with pass information
       consolidatedResult.content += `\n## Pass ${passNumber}: Review of ${chunkFiles.length} Files\n\n`;
@@ -204,17 +229,46 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
       newProgressTracker.completePass(passNumber);
     }
     
-    // Set the final processing phase
+    // Set the initial processing phase
     newProgressTracker.setPhase('processing');
     
-    // Add a summary section
-    consolidatedResult.content = this.generateMultiPassSummary(
+    // Add a summary section based on token analysis
+    const initialSummary = this.generateMultiPassSummary(
       consolidatedResult,
       tokenAnalysis,
       reviewContext,
       files,
       apiClientConfig.modelName
-    ) + consolidatedResult.content;
+    );
+    
+    // Add the initial summary to the consolidated result
+    consolidatedResult.content = initialSummary + consolidatedResult.content;
+    
+    // Set the consolidation phase for the final AI analysis
+    newProgressTracker.setPhase('consolidating');
+    
+    // Create a final consolidated report through AI
+    logger.info('Generating final consolidated review report with grading...');
+    try {
+      const finalReport = await this.generateConsolidatedReport(
+        consolidatedResult,
+        apiClientConfig,
+        files,
+        projectName,
+        projectDocs,
+        options
+      );
+      
+      // If the final report was generated successfully, use it instead
+      if (finalReport) {
+        consolidatedResult = finalReport;
+      }
+    } catch (error) {
+      logger.warn(
+        `Failed to generate final consolidated report: ${error instanceof Error ? error.message : String(error)}`
+      );
+      logger.warn('Using original multi-pass report instead');
+    }
     
     // Mark the review as complete
     newProgressTracker.complete();
@@ -242,6 +296,14 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
     const filesCount = files.length;
     const totalPassesCount = context.getCurrentPass();
     
+    // Get cost info for detailed reporting
+    const costInfo = result.costInfo;
+    const costBreakdown = costInfo && costInfo.perPassCosts 
+      ? costInfo.perPassCosts.map(passCost => 
+          `- Pass ${passCost.passNumber}: ${passCost.inputTokens.toLocaleString()} input + ${passCost.outputTokens.toLocaleString()} output = ${passCost.totalTokens.toLocaleString()} tokens ($${passCost.estimatedCost.toFixed(4)} USD)`
+        ).join('\n')
+      : 'N/A';
+
     return `# Multi-Pass ${this.reviewType.charAt(0).toUpperCase() + this.reviewType.slice(1)} Review Summary
 
 This review was conducted in **${totalPassesCount} passes** to analyze **${filesCount} files** (${tokenAnalysis.totalSizeInBytes.toLocaleString()} bytes) due to the large size of the codebase.
@@ -256,6 +318,11 @@ This review was conducted in **${totalPassesCount} passes** to analyze **${files
 - Content tokens: ${tokenAnalysis.totalTokens.toLocaleString()}
 - Context window size: ${tokenAnalysis.contextWindowSize.toLocaleString()}
 - Context utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
+${costInfo ? `- Total tokens used: ${costInfo.totalTokens.toLocaleString()} (input: ${costInfo.inputTokens.toLocaleString()}, output: ${costInfo.outputTokens.toLocaleString()})
+- Estimated cost: ${costInfo.formattedCost}` : ''}
+
+### Per-Pass Token Usage
+${costBreakdown}
 
 ## Multi-Pass Methodology
 This review used a multi-pass approach with context maintenance between passes to ensure a cohesive analysis despite the large codebase size. Each pass analyzed a subset of files while maintaining awareness of findings and relationships from previous passes.
@@ -297,6 +364,273 @@ This review used a multi-pass approach with context maintenance between passes t
   }
   
   /**
+   * Generate a consolidated report from the multi-pass review results
+   * @param multiPassResult Combined result from all passes
+   * @param apiClientConfig API client configuration
+   * @param files All files included in the review
+   * @param projectName Name of the project
+   * @param projectDocs Project documentation
+   * @param options Review options
+   * @returns Promise resolving to a consolidated review result, or undefined if consolidation fails
+   */
+  private async generateConsolidatedReport(
+    multiPassResult: ReviewResult,
+    apiClientConfig: ApiClientConfig,
+    files: FileInfo[],
+    projectName: string,
+    projectDocs: ProjectDocs | null,
+    options: ReviewOptions
+  ): Promise<ReviewResult | undefined> {
+    try {
+      // Validate API client configuration for consolidation
+      if (!apiClientConfig.provider || !apiClientConfig.apiKey || !apiClientConfig.modelName) {
+        throw new Error('API client configuration is incomplete for consolidation');
+      }
+      
+      // Extract information about the passes
+      const passCount = multiPassResult.totalPasses || 1;
+      
+      // Create a prompt for consolidation
+      const consolidationSystemPrompt = `You are an expert code reviewer tasked with creating a consolidated final report from a multi-pass review. 
+      
+The review was conducted in ${passCount} passes due to the large size of the codebase. 
+
+Your task is to:
+1. Analyze all the findings from each pass
+2. Create a unified, coherent final report that consolidates all the insights
+3. Eliminate redundancy and duplication
+4. Prioritize the most important findings
+5. Provide a comprehensive grade for the code, based on the following criteria:
+
+## Grading System
+Assign an overall letter grade (A+ to F) to the codebase, where:
+- A+ to A-: Exceptional code with minimal issues
+- B+ to B-: Good code with some minor improvements needed
+- C+ to C-: Average code with several issues that should be addressed
+- D+ to D-: Problematic code with significant issues requiring attention
+- F: Critical issues that make the code unsuitable for production
+
+Include plus (+) or minus (-) modifiers to provide more granular assessment.
+
+For each major area (maintainability, performance, security, etc.), also provide a specific grade.
+
+Explain your grading rationale clearly, citing specific evidence from the review.
+
+## Output Format
+
+Structure your consolidated report with these sections:
+1. **Executive Summary**: Brief overview and overall grade
+2. **Grading Breakdown**: Detailed grades by category with justification
+3. **Critical Issues**: Most important problems to address (prioritized)
+4. **Strengths**: Areas where the code excels
+5. **Detailed Findings**: Consolidated findings across all passes
+6. **Recommendations**: Actionable next steps, prioritized
+
+Make this report comprehensive but focused on high-value insights. Be specific and actionable in your recommendations.`;
+
+      // Create a consolidated prompt that includes the multi-pass results
+      const consolidationPrompt = `I have conducted a multi-pass code review of a project named "${projectName}" using the "${this.reviewType}" review type. The review was split into ${passCount} passes due to the size of the codebase.
+
+Here are the results from all passes:
+
+${multiPassResult.content}
+
+Please create a unified, consolidated report that:
+1. Combines all findings into a cohesive analysis
+2. Eliminates redundancy
+3. Prioritizes issues by importance
+4. Provides a comprehensive grade for the code quality
+5. Maintains all the valuable insights from each pass
+
+Remember to use the grading system as described in your instructions.`;
+
+      // Generate the consolidated report
+      logger.info('Sending multi-pass results to AI for final consolidation and grading...');
+      
+      // Different models might have different ways of handling this consolidation
+      let consolidatedContent: string;
+      
+      // Handle each provider differently if needed
+      if (apiClientConfig.provider === 'anthropic') {
+        // For Claude models - use Anthropic API
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiClientConfig.apiKey}`,
+            'anthropic-version': '2023-06-01',
+            'anthropic-beta': 'messages-2023-12-15'
+          },
+          body: JSON.stringify({
+            model: apiClientConfig.modelName,
+            system: consolidationSystemPrompt,
+            messages: [{ role: 'user', content: consolidationPrompt }],
+            max_tokens: 4000
+          })
+        });
+        
+        // Process the response
+        const responseData = await response.json();
+        consolidatedContent = responseData.content?.[0]?.text || '';
+        
+      } else if (apiClientConfig.provider === 'openai') {
+        // For OpenAI models - use OpenAI API
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiClientConfig.apiKey}`
+          },
+          body: JSON.stringify({
+            model: apiClientConfig.modelName,
+            messages: [
+              { role: 'system', content: consolidationSystemPrompt },
+              { role: 'user', content: consolidationPrompt }
+            ],
+            temperature: 0.2,
+            max_tokens: 4000
+          })
+        });
+        
+        // Process the response
+        const responseData = await response.json();
+        consolidatedContent = responseData.choices?.[0]?.message?.content || '';
+        
+      } else if (apiClientConfig.provider === 'openrouter') {
+        // For OpenRouter - use OpenRouter API
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiClientConfig.apiKey}`,
+            'HTTP-Referer': 'https://ai-code-review-tool.local',
+            'X-Title': 'AI Code Review Multi-Pass Consolidation'
+          },
+          body: JSON.stringify({
+            model: apiClientConfig.modelName,
+            messages: [
+              { role: 'system', content: consolidationSystemPrompt },
+              { role: 'user', content: consolidationPrompt }
+            ],
+            temperature: 0.2,
+            max_tokens: 4000
+          })
+        });
+        
+        // Process the response
+        const responseData = await response.json();
+        consolidatedContent = responseData.choices?.[0]?.message?.content || '';
+        
+      } else if (apiClientConfig.provider === 'gemini') {
+        try {
+          // For Gemini, we need to use the Google AI SDK
+          // Dynamically import the Google AI SDK to avoid dependency issues
+          const { GoogleGenerativeAI } = await import('@google/generative-ai');
+          
+          // Initialize the Google AI client
+          const genAI = new GoogleGenerativeAI(apiClientConfig.apiKey);
+          const model = genAI.getGenerativeModel({ model: apiClientConfig.modelName });
+          
+          // Generate content
+          const result = await model.generateContent({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: `${consolidationSystemPrompt}\n\n${consolidationPrompt}` }]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 4000
+            }
+          });
+          
+          // Get the response text
+          consolidatedContent = result.response.text();
+        } catch (error) {
+          logger.error(`Error using Gemini API for consolidation: ${error instanceof Error ? error.message : String(error)}`);
+          return undefined;
+        }
+      } else {
+        // Fallback for other providers
+        logger.warn(`Consolidation not supported for provider: ${apiClientConfig.provider}`);
+        return undefined;
+      }
+      
+      // If we didn't get any content, return undefined
+      if (!consolidatedContent || consolidatedContent.trim() === '') {
+        logger.warn('Received empty consolidated content from API');
+        return undefined;
+      }
+      
+      logger.info('Successfully generated consolidated report with grading!');
+      
+      // Add token analysis and cost data for this additional consolidation step
+      try {
+        const { getCostInfoFromText } = await import('../clients/utils/tokenCounter');
+        const consolidationCost = getCostInfoFromText(
+          consolidationPrompt, 
+          consolidatedContent, 
+          `${apiClientConfig.provider}:${apiClientConfig.modelName}`
+        );
+        
+        // Add this cost to the existing cost data
+        if (multiPassResult.costInfo && consolidationCost) {
+          // Create a pass cost for the consolidation step
+          const consolidationPassCost = {
+            passNumber: (multiPassResult.totalPasses || 0) + 1,
+            inputTokens: consolidationCost.inputTokens,
+            outputTokens: consolidationCost.outputTokens,
+            totalTokens: consolidationCost.totalTokens,
+            estimatedCost: consolidationCost.estimatedCost
+          };
+          
+          // Update the overall cost
+          const updatedCost = {
+            ...multiPassResult.costInfo,
+            inputTokens: multiPassResult.costInfo.inputTokens + consolidationCost.inputTokens,
+            outputTokens: multiPassResult.costInfo.outputTokens + consolidationCost.outputTokens,
+            totalTokens: multiPassResult.costInfo.totalTokens + consolidationCost.totalTokens,
+            estimatedCost: multiPassResult.costInfo.estimatedCost + consolidationCost.estimatedCost,
+            formattedCost: `$${(multiPassResult.costInfo.estimatedCost + consolidationCost.estimatedCost).toFixed(6)} USD`,
+            perPassCosts: [
+              ...(multiPassResult.costInfo.perPassCosts || []),
+              consolidationPassCost
+            ]
+          };
+          
+          // Create a new result with the consolidated content and updated cost
+          const consolidatedResult: ReviewResult = {
+            ...multiPassResult,
+            content: consolidatedContent,
+            timestamp: new Date().toISOString(),
+            costInfo: updatedCost,
+            totalPasses: (multiPassResult.totalPasses || 0) + 1
+          };
+          
+          logger.info(`Added consolidation pass to cost data. Final cost: ${updatedCost.formattedCost}`);
+          return consolidatedResult;
+        }
+      } catch (costError) {
+        logger.warn(`Could not calculate cost for consolidation phase: ${costError instanceof Error ? costError.message : String(costError)}`);
+      }
+      
+      // Create a new result with just the consolidated content if cost calculation failed
+      const consolidatedResult: ReviewResult = {
+        ...multiPassResult,
+        content: consolidatedContent,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Return the consolidated result
+      return consolidatedResult;
+    } catch (error) {
+      logger.error(`Error generating consolidated report: ${error instanceof Error ? error.message : String(error)}`);
+      return undefined;
+    }
+  }
+
+  /**
    * Update the review context with findings from multiple review results
    * @param context Review context to update
    * @param result Review result to extract findings from
@@ -309,6 +643,8 @@ This review used a multi-pass approach with context maintenance between passes t
   ): void {
     // Add file summaries for all files in this pass
     files.forEach(file => {
+      if (!file.path) return;
+      
       // Extract the file extension
       const fileExtension = file.path.split('.').pop() || 'unknown';
       
@@ -347,7 +683,8 @@ This review used a multi-pass approach with context maintenance between passes t
           // Determine which file this finding is about (if mentioned)
           let file: string | undefined = undefined;
           files.forEach(f => {
-            if (paragraph.includes(f.path) || paragraph.includes(f.relativePath)) {
+            if (f.path && (paragraph.includes(f.path) || 
+                (f.relativePath && paragraph.includes(f.relativePath)))) {
               file = f.path;
             }
           });

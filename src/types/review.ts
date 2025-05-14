@@ -252,6 +252,36 @@ export interface FileInfo {
 }
 
 /**
+ * Per-pass cost information for multi-pass reviews
+ */
+export interface PassCost {
+  /**
+   * Pass number (1-based)
+   */
+  passNumber: number;
+  
+  /**
+   * Number of input tokens for this pass
+   */
+  inputTokens: number;
+  
+  /**
+   * Number of output tokens for this pass
+   */
+  outputTokens: number;
+  
+  /**
+   * Total number of tokens for this pass
+   */
+  totalTokens: number;
+  
+  /**
+   * Estimated cost for this pass in USD
+   */
+  estimatedCost: number;
+}
+
+/**
  * Cost information for a review
  */
 export interface ReviewCost {
@@ -279,6 +309,21 @@ export interface ReviewCost {
    * Formatted cost string
    */
   formattedCost: string;
+  
+  /**
+   * Number of passes in a multi-pass review
+   */
+  passCount?: number;
+  
+  /**
+   * Per-pass cost breakdown for multi-pass reviews
+   */
+  perPassCosts?: PassCost[];
+  
+  /**
+   * Context maintenance factor used for this review (0-1)
+   */
+  contextMaintenanceFactor?: number;
 }
 
 /**

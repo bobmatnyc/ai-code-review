@@ -29,7 +29,7 @@ export interface MultiPassProgress {
   /** Whether the review is complete */
   isComplete: boolean;
   /** Current phase of the review */
-  currentPhase: 'preparing' | 'analyzing' | 'reviewing' | 'processing' | 'complete';
+  currentPhase: 'preparing' | 'analyzing' | 'reviewing' | 'processing' | 'consolidating' | 'complete';
 }
 
 /**
@@ -39,6 +39,7 @@ export class MultiPassProgressTracker {
   private progress: MultiPassProgress;
   private updateInterval: NodeJS.Timeout | null = null;
   private useAnsiEscapes: boolean;
+  private completedFiles: string[] = [];
 
   /**
    * Create a new progress tracker
@@ -47,8 +48,8 @@ export class MultiPassProgressTracker {
    * @param options Options for the progress tracker
    */
   constructor(
-    totalPasses: number,
-    totalFiles: number,
+    totalPasses: number = 1,
+    totalFiles: number = 0,
     options: {
       useAnsiEscapes?: boolean;
       quiet?: boolean;
@@ -71,6 +72,15 @@ export class MultiPassProgressTracker {
     if (!options.quiet) {
       this.startProgressUpdates();
     }
+  }
+  
+  /**
+   * Initialize the progress tracker with a total file count
+   * @param totalFiles Total number of files
+   */
+  public initialize(totalFiles: number): void {
+    this.progress.totalFiles = totalFiles;
+    logger.info(`Initialized progress tracker with ${totalFiles} total files`);
   }
   
   /**
@@ -131,6 +141,8 @@ export class MultiPassProgressTracker {
       }
     } else if (currentPhase === 'processing') {
       progressMessage = `Processing results...`;
+    } else if (currentPhase === 'consolidating') {
+      progressMessage = `Consolidating multi-pass review and generating final graded report...`;
     }
     
     // Add timing information
@@ -226,10 +238,51 @@ export class MultiPassProgressTracker {
   }
   
   /**
+   * Mark a file as completed
+   * @param filePath Path to the file that was completed
+   */
+  public completeFile(filePath: string): void {
+    // Add to completed files list
+    if (!this.completedFiles.includes(filePath)) {
+      this.completedFiles.push(filePath);
+    }
+    
+    // Remove from current files if it's there
+    const fileIndex = this.progress.currentFiles.indexOf(filePath);
+    if (fileIndex !== -1) {
+      this.progress.currentFiles.splice(fileIndex, 1);
+    }
+    
+    // Update processed files count
+    const progressPercent = (this.completedFiles.length / this.progress.totalFiles) * 100;
+    logger.debug(`File completed: ${filePath} (${progressPercent.toFixed(1)}% complete)`);
+  }
+
+  /**
    * Get the current progress
    * @returns Current progress state
    */
   public getProgress(): MultiPassProgress {
     return { ...this.progress };
+  }
+  
+  /**
+   * Get the full state including completed files
+   * @returns Full state object
+   */
+  public getState(): { 
+    progressData: MultiPassProgress; 
+    completedFiles: string[];
+    progress: number;
+    completed: boolean;
+    currentPass: number;
+  } {
+    return {
+      progressData: this.getProgress(),
+      completedFiles: [...this.completedFiles],
+      progress: this.completedFiles.length / this.progress.totalFiles,
+      completed: this.progress.isComplete,
+      currentPass: this.progress.currentPass
+    };
   }
 }

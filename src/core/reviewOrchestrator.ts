@@ -5,6 +5,40 @@
  * selecting the appropriate API client, and managing the review workflow.
  */
 
+/**
+ * Helper function to parse and display provider and model information
+ * 
+ * @param modelName The full model name (e.g., 'openai:gpt-4.1')
+ * @returns An object with provider and model display information
+ */
+function getProviderDisplayInfo(modelName: string): { provider: string; model: string } {
+  try {
+    // Try to parse the model string using the utilities from modelMaps
+    const { provider, modelName: extractedModelName } = parseModelString(modelName);
+    
+    return {
+      provider: provider.charAt(0).toUpperCase() + provider.slice(1), // Capitalize provider name
+      model: extractedModelName
+    };
+  } catch (error) {
+    // If parsing fails, use a fallback approach
+    const parts = modelName.split(':');
+    
+    if (parts.length === 2) {
+      return {
+        provider: parts[0].charAt(0).toUpperCase() + parts[0].slice(1), // Capitalize provider name
+        model: parts[1]
+      };
+    }
+    
+    // If format is not recognized, return unknown provider and original model name
+    return {
+      provider: 'Unknown',
+      model: modelName
+    };
+  }
+}
+
 import path from 'path';
 import { createDirectory } from '../utils/fileSystem';
 import { ReviewOptions } from '../types/review';
@@ -17,6 +51,7 @@ import {
   estimateFromFilePaths,
   formatEstimation
 } from '../utils/estimationUtils';
+import { parseModelString } from '../clients/utils/modelMaps';
 import {
   listModels,
   printCurrentModel,
@@ -135,7 +170,8 @@ export async function orchestrateReview(
         const fileInfos = await readFilesContent(filesToReview, projectPath);
         
         // Use the new TokenAnalyzer for more comprehensive analysis
-        const { TokenAnalyzer, formatTokenAnalysis } = await import('../analysis/tokens');
+        const { TokenAnalyzer } = await import('../analysis/tokens');
+        const { estimateMultiPassReviewCost, formatMultiPassEstimation } = await import('../utils/estimationUtils');
         
         const tokenAnalysisOptions = {
           reviewType: options.type,
@@ -145,15 +181,52 @@ export async function orchestrateReview(
         
         const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
         
-        // Display the token analysis results
-        logger.info(formatTokenAnalysis(tokenAnalysis, modelName, true));
+        // Get cost estimate based on token analysis
+        const costEstimation = await estimateMultiPassReviewCost(
+          fileInfos,
+          options.type,
+          modelName,
+          {
+            passCount: tokenAnalysis.chunkingRecommendation.chunkingRecommended ? 
+              tokenAnalysis.estimatedPassesNeeded : 1,
+            contextMaintenanceFactor: tokenAnalysisOptions.contextMaintenanceFactor
+          }
+        );
         
-        // If chunking is recommended, inform the user
+        // Get provider and model information
+        const providerInfo = getProviderDisplayInfo(modelName);
+        
+        // Display a summary without file details
+        logger.info(`
+=== Token Usage and Cost Estimation ===
+
+Provider: ${providerInfo.provider}
+Model: ${providerInfo.model}
+Files: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)
+
+Token Information:
+  Estimated Total Tokens: ${tokenAnalysis.estimatedTotalTokens.toLocaleString()}
+  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}
+  Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
+
+${tokenAnalysis.chunkingRecommendation.chunkingRecommended ? 
+  `Multi-Pass Analysis:
+  Chunking Required: Yes
+  Reason: ${tokenAnalysis.chunkingRecommendation.reason}
+  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}` : 
+  `Multi-Pass Analysis:
+  Chunking Required: No
+  Reason: ${tokenAnalysis.chunkingRecommendation.reason}`}
+
+Estimated Cost: ${costEstimation.formattedCost}
+
+Note: This is an estimate based on approximate token counts and may vary
+      based on the actual content and model behavior.
+`);
+        
+        // If chunking is recommended, inform the user that it will be automatic
         if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {
-          logger.info('\nMulti-pass review recommended:');
-          logger.info(`Content exceeds model context window (${tokenAnalysis.estimatedTotalTokens.toLocaleString()} > ${tokenAnalysis.contextWindowSize.toLocaleString()} tokens)`);
-          logger.info(`Recommended chunks: ${tokenAnalysis.estimatedPassesNeeded}`);
-          logger.info('Use --multiPass flag to enable automatic chunking');
+          logger.info('\nImportant: Multi-pass review will be automatically enabled when needed. No flag required.');
         }
       } catch (error) {
         // Fall back to the legacy estimator if TokenAnalyzer fails
@@ -166,13 +239,28 @@ export async function orchestrateReview(
           modelName
         );
 
-        // Display the estimation results
-        const formattedEstimation = formatEstimation(
-          estimation,
-          options.type,
-          modelName
-        );
-        logger.info(formattedEstimation);
+        // Get provider and model information
+        const providerInfo = getProviderDisplayInfo(modelName);
+        
+        // Display the estimation results without file details
+        logger.info(`
+=== Token Usage and Cost Estimation ===
+
+Review Type: ${options.type}
+Provider: ${providerInfo.provider}
+Model: ${providerInfo.model}
+Files: ${estimation.fileCount} (${(estimation.totalFileSize / 1024 / 1024).toFixed(2)} MB total)
+
+Token Usage:
+  Input Tokens: ${estimation.inputTokens.toLocaleString()}
+  Estimated Output Tokens: ${estimation.outputTokens.toLocaleString()}
+  Total Tokens: ${estimation.totalTokens.toLocaleString()}
+
+Estimated Cost: ${estimation.formattedCost}
+
+Note: This is an estimate based on approximate token counts and may vary
+      based on the actual content and model behavior.
+`);
       }
 
       return; // Exit after displaying the estimation
