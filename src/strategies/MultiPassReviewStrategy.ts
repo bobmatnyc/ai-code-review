@@ -253,6 +253,10 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
       logger.debug('Starting consolidation phase with model provider: ' + 
         apiClientConfig.provider + ', model: ' + apiClientConfig.modelName);
       
+      // Make sure model information is set in the consolidated result
+      // This ensures we use the same model for consolidation
+      consolidatedResult.modelUsed = `${apiClientConfig.provider}:${apiClientConfig.modelName}`;
+      
       const finalReport = await this.generateConsolidatedReport(
         consolidatedResult,
         apiClientConfig,
