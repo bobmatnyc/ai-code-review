@@ -5,9 +5,10 @@
 ### Overview
 // Updated: 2023-07-25
 // Updated: 2024-04-05
+// Updated: 2025-05-15
 This project is a TypeScript-based code review tool that leverages Google's Gemini AI models to analyze code in sibling projects and provide structured feedback. The tool is designed to be run from the command line, with no UI component.
 
-The project follows semantic versioning (SEMVER) with version history tracked in VERSION.md.
+The project follows semantic versioning (SEMVER) with version history tracked in CHANGELOG.md.
 
 ### Tech Stack
 // Updated: 2023-07-25

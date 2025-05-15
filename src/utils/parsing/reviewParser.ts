@@ -21,16 +21,40 @@ import logger from '../logger';
  */
 export function parseReviewJson(jsonString: string): ReviewSchema | null {
   try {
-    // Try to extract JSON from the response
-    // First, check for code blocks with any language marker
-    const codeBlockMatch = jsonString.match(/```(?:\w*)\s*({[\s\S]*?})\s*```/);
+    // Try to extract JSON from the response with improved language marker handling
+    // Handle various formats:
+    // 1. ```json {...}```
+    // 2. ```typescript {...}``` or other language markers
+    // 3. ```{...}```
+    // 4. Plain JSON outside code blocks
     
-    // If no code block match, try other patterns
-    const jsonMatch = codeBlockMatch ||
-      jsonString.match(/({[\s\S]*?"review"[\s\S]*?})\s*$/) ||
-      jsonString.match(/({[\s\S]*})\s*$/);
+    // First try to find code blocks with JSON content
+    const jsonBlockMatch = jsonString.match(/```(?:json)?\s*({[\s\S]*?})\s*```/);
+    
+    // If no JSON block, look for any code block (could have typescript or other language marker)
+    const anyCodeBlockMatch = !jsonBlockMatch ? 
+      jsonString.match(/```(?:[\w]*)?[\s\n]*({[\s\S]*?})[\s\n]*```/) : null;
 
-    const jsonContent = jsonMatch ? jsonMatch[1] : jsonString;
+    // If no code block match at all, try other patterns for JSON outside code blocks
+    const jsonOutsideBlockMatch = !jsonBlockMatch && !anyCodeBlockMatch ? 
+      jsonString.match(/({[\s\S]*?"review"[\s\S]*?})\s*$/) || 
+      jsonString.match(/({[\s\S]*?})\s*$/) : null;
+
+    // Determine which match to use
+    let jsonContent = jsonString; // default to full string
+    
+    if (jsonBlockMatch) {
+      logger.debug('Found JSON code block, extracting content');
+      jsonContent = jsonBlockMatch[1];
+    } else if (anyCodeBlockMatch) {
+      logger.debug('Found code block with JSON-like content, attempting to parse');
+      jsonContent = anyCodeBlockMatch[1];
+    } else if (jsonOutsideBlockMatch) {
+      logger.debug('Found JSON-like content outside code blocks');
+      jsonContent = jsonOutsideBlockMatch[1];
+    } else {
+      logger.debug('No JSON content patterns found, attempting to parse raw content');
+    }
 
     // Parse the JSON
     const parsedJson = JSON.parse(jsonContent);

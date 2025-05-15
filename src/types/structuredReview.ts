@@ -78,9 +78,64 @@ export interface ReviewIssue {
 }
 
 /**
+ * Grade level types for overall code quality
+ */
+export type GradeLevel = 'A+' | 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C+' | 'C' | 'C-' | 'D+' | 'D' | 'D-' | 'F';
+
+/**
+ * Code quality assessment categories
+ */
+export interface GradeCategories {
+  /**
+   * Code functionality grade
+   */
+  functionality?: GradeLevel;
+  
+  /**
+   * Code quality grade
+   */
+  codeQuality?: GradeLevel;
+  
+  /**
+   * Documentation grade
+   */
+  documentation?: GradeLevel;
+  
+  /**
+   * Testing grade
+   */
+  testing?: GradeLevel;
+  
+  /**
+   * Maintainability grade
+   */
+  maintainability?: GradeLevel;
+  
+  /**
+   * Security grade
+   */
+  security?: GradeLevel;
+  
+  /**
+   * Performance grade
+   */
+  performance?: GradeLevel;
+}
+
+/**
  * Structured code review output
  */
 export interface StructuredReview {
+  /**
+   * Overall grade for the codebase
+   */
+  grade?: GradeLevel;
+  
+  /**
+   * Detailed grade breakdown by category
+   */
+  gradeCategories?: GradeCategories;
+  
   /**
    * Summary of the code review
    */

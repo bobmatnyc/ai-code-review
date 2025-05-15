@@ -485,7 +485,7 @@ Today we made significant improvements to the AI Code Review tool by adding supp
 - Updated all review prompts to explicitly specify English output
 - Added detailed model information including context window sizes
 - Enhanced environment variable handling for multiple API providers
-- Updated documentation in README.md, .env.example, and VERSION.md
+- Updated documentation in README.md, .env.example, and CHANGELOG.md
 
 ### Implementation Details
 
@@ -579,7 +579,7 @@ Today we made significant improvements to the code review tool by adding project
 - Added a new command-line option to control project documentation inclusion
 - Updated documentation in README.md and .env.example
 - Updated PROJECT.md with the latest changes
-- Created VERSION.md with structured version history
+- Updated CHANGELOG.md with structured version history
 - Updated version to 0.9.0 across the codebase
 - Added support for reviewing the current project using 'self' or '.' as the project name
 
@@ -624,7 +624,7 @@ We implemented a fallback mechanism for Gemini AI models based on the official G
 #### Version Numbering
 We implemented structured version numbering following semantic versioning principles:
 
-1. Created VERSION.md to track version history
+1. Updated CHANGELOG.md to track version history
 2. Started with version 0.9.0 for the current implementation
 3. Backfilled previous versions with work to date, grouped logically
 4. Updated version number in package.json and src/index.ts
@@ -636,7 +636,7 @@ We implemented structured version numbering following semantic versioning princi
 - Documentation is up-to-date
 - Project documentation (README.md, PROJECT.md, PROGRESS.md) is now included in AI context
 - Using available Gemini AI models with robust fallback mechanism based on official documentation
-- Structured version numbering implemented with VERSION.md
+- Structured version numbering implemented with CHANGELOG.md
 - Added support for reviewing the current project using 'self' or '.' as the project name
 
 ### Next Steps

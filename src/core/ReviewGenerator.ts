@@ -155,5 +155,21 @@ export async function generateReview(
   reviewResult.toolVersion = packageVersion;
   reviewResult.commandOptions = commandOptions;
   
+  // Ensure costInfo is set if only cost is available
+  if (reviewResult.cost && !reviewResult.costInfo) {
+    reviewResult.costInfo = reviewResult.cost;
+  }
+  
+  // Ensure required fields are set to avoid undefined values in output
+  if (!reviewResult.filePath) {
+    logger.warn('Review result has no filePath. Setting to default value.');
+    reviewResult.filePath = reviewType;
+  }
+  
+  if (!reviewResult.modelUsed) {
+    logger.warn('Review result has no modelUsed. Setting to default value.');
+    reviewResult.modelUsed = apiClientConfig.clientType + ':' + apiClientConfig.modelName;
+  }
+  
   return reviewResult;
 }

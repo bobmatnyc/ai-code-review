@@ -20,6 +20,7 @@
 import { ReviewResult } from '../types/review';
 import { StructuredReview, ReviewIssue } from '../types/structuredReview';
 import { sanitizeContent } from '../utils/parsing/sanitizer';
+import logger from '../utils/logger';
 
 /**
  * Format the review output based on the specified format
@@ -31,6 +32,19 @@ export function formatReviewOutput(
   review: ReviewResult,
   format: string
 ): string {
+  // Debug logging to help diagnose issues with missing fields
+  if (!review.filePath) {
+    console.warn('Warning: filePath is undefined or empty in ReviewResult');
+  }
+  if (!review.modelUsed) {
+    console.warn('Warning: modelUsed is undefined or empty in ReviewResult');
+  }
+  
+  // Ensure costInfo is set if only cost is available
+  if (review.cost && !review.costInfo) {
+    review.costInfo = review.cost;
+  }
+
   if (format === 'json') {
     return formatAsJson(review);
   }
@@ -67,11 +81,30 @@ function formatAsJson(review: ReviewResult): string {
       modelVendor = 'Google';
       modelName = review.modelUsed.substring('gemini:'.length);
       modelInfo = `Google Gemini AI (${modelName})`;
+    } else if (review.modelUsed.startsWith('Google:')) {
+      // Handle miscapitalized provider names
+      modelVendor = 'Google';
+      modelName = review.modelUsed.substring('Google:'.length);
+      modelInfo = `Google Gemini AI (${modelName})`;
+    } else if (review.modelUsed.startsWith('Anthropic:')) {
+      modelVendor = 'Anthropic';
+      modelName = review.modelUsed.substring('Anthropic:'.length);
+      modelInfo = `Anthropic (${modelName})`;
+    } else if (review.modelUsed.startsWith('OpenAI:')) {
+      modelVendor = 'OpenAI';
+      modelName = review.modelUsed.substring('OpenAI:'.length);
+      modelInfo = `OpenAI (${modelName})`;
+    } else if (review.modelUsed.startsWith('OpenRouter:')) {
+      modelVendor = 'OpenRouter';
+      modelName = review.modelUsed.substring('OpenRouter:'.length);
+      modelInfo = `OpenRouter (${modelName})`;
     } else {
       modelVendor = 'Unknown';
       modelName = review.modelUsed;
       modelInfo = `AI (${modelName})`;
     }
+  } else {
+    logger.warn('Review result has no modelUsed property. Using default values for JSON output.');
   }
 
   // Sanitize the content to prevent XSS attacks
@@ -100,8 +133,8 @@ function formatAsJson(review: ReviewResult): string {
   }
 
   // Format path for display
-  let displayPath = review.filePath;
-  if (review.filePath === review.reviewType || review.filePath === 'consolidated') {
+  let displayPath = review.filePath || '';
+  if (!displayPath || displayPath === review.reviewType || displayPath === 'consolidated') {
     displayPath = process.cwd() + ' (Current Directory)';
   }
 
@@ -125,13 +158,13 @@ function formatAsJson(review: ReviewResult): string {
         second: '2-digit',
         timeZoneName: 'short'
       }),
-      multiPass: review.cost && review.cost.passCount && review.cost.passCount > 1 ? {
+      multiPass: (review.costInfo || review.cost) && (review.costInfo?.passCount || review.cost?.passCount) > 1 ? {
         enabled: true,
-        passCount: review.cost.passCount,
-        perPassCosts: review.cost.perPassCosts || null
+        passCount: review.costInfo?.passCount || review.cost?.passCount || 1,
+        perPassCosts: (review.costInfo?.perPassCosts || review.cost?.perPassCosts) || null
       } : null
     },
-    cost: review.cost || null,
+    cost: review.costInfo || review.cost || null,
     tool: {
       version: review.toolVersion || process.env.npm_package_version || '2.1.1',
       commandOptions: review.commandOptions || null,
@@ -162,8 +195,9 @@ function formatAsJson(review: ReviewResult): string {
  * @returns Markdown string
  */
 function formatAsMarkdown(review: ReviewResult): string {
-  const { filePath, reviewType, content, timestamp, cost, structuredData } =
-    review;
+  const { filePath, reviewType, content, timestamp, structuredData } = review;
+  // Use costInfo if available, fallback to cost
+  const cost = review.costInfo || review.cost;
 
   // Determine model information
   let modelInfo = 'AI';
@@ -189,11 +223,31 @@ function formatAsMarkdown(review: ReviewResult): string {
       modelVendor = 'Google';
       modelName = review.modelUsed.substring('gemini:'.length);
       modelInfo = `Google Gemini AI (${modelName})`;
+    } else if (review.modelUsed.startsWith('Google:')) {
+      // Handle miscapitalized provider names
+      modelVendor = 'Google';
+      modelName = review.modelUsed.substring('Google:'.length);
+      modelInfo = `Google Gemini AI (${modelName})`;
+    } else if (review.modelUsed.startsWith('Anthropic:')) {
+      modelVendor = 'Anthropic';
+      modelName = review.modelUsed.substring('Anthropic:'.length);
+      modelInfo = `Anthropic (${modelName})`;
+    } else if (review.modelUsed.startsWith('OpenAI:')) {
+      modelVendor = 'OpenAI';
+      modelName = review.modelUsed.substring('OpenAI:'.length);
+      modelInfo = `OpenAI (${modelName})`;
+    } else if (review.modelUsed.startsWith('OpenRouter:')) {
+      modelVendor = 'OpenRouter';
+      modelName = review.modelUsed.substring('OpenRouter:'.length);
+      modelInfo = `OpenRouter (${modelName})`;
     } else {
+      // For any other format
       modelVendor = 'Unknown';
       modelName = review.modelUsed;
       modelInfo = `AI (${modelName})`;
     }
+  } else {
+    logger.warn('Review result has no modelUsed property. Using default values.');
   }
 
   // Format cost information if available
@@ -293,10 +347,10 @@ Pass ${passCost.passNumber}:
   const sanitizedContent = sanitizeContent(content);
 
   // Use the actual file path for the review title and the reviewed field
-  // If filePath is the same as reviewType or is 'consolidated', show the current directory path
-  let displayPath = filePath;
+  // If filePath is the same as reviewType, is 'consolidated', or is undefined/empty, show the current directory path
+  let displayPath = filePath || '';
   
-  if (filePath === reviewType || filePath === 'consolidated') {
+  if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
     // For consolidated reviews, show the full target directory path
     displayPath = process.cwd() + ' (Current Directory)';
   }
@@ -428,6 +482,10 @@ function formatStructuredReviewAsMarkdown(
   const issues = Array.isArray(structuredReview.issues) ? structuredReview.issues : [];
   const recommendations = Array.isArray(structuredReview.recommendations) ? structuredReview.recommendations : [];
   const positiveAspects = Array.isArray(structuredReview.positiveAspects) ? structuredReview.positiveAspects : [];
+  
+  // Extract grade information if available
+  const grade = structuredReview.grade;
+  const gradeCategories = structuredReview.gradeCategories;
 
   // Group issues by priority
   const highPriorityIssues = issues.filter(issue => issue && issue.priority === 'high');
@@ -484,16 +542,34 @@ function formatStructuredReviewAsMarkdown(
   }
 
   // Use the actual file path for the review title and the reviewed field
-  // If filePath is the same as reviewType or is 'consolidated', show the current directory path
-  let displayPath = filePath;
+  // If filePath is the same as reviewType, is 'consolidated', or is undefined/empty, show the current directory path
+  let displayPath = filePath || '';
   
-  if (filePath === reviewType || filePath === 'consolidated') {
+  if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
     // For consolidated reviews, show the full target directory path
     displayPath = process.cwd() + ' (Current Directory)';
   }
 
   // Include metadata section if available
   const metadataContent = metadataSection ? `${metadataSection}\n` : '';
+  
+  // Format grade section if available
+  let gradeMarkdown = '';
+  if (grade) {
+    gradeMarkdown = `## Grade: ${grade}\n\n`;
+    
+    // Add grade categories if available
+    if (gradeCategories) {
+      if (gradeCategories.functionality) gradeMarkdown += `- **Functionality**: ${gradeCategories.functionality}\n`;
+      if (gradeCategories.codeQuality) gradeMarkdown += `- **Code Quality**: ${gradeCategories.codeQuality}\n`;
+      if (gradeCategories.documentation) gradeMarkdown += `- **Documentation**: ${gradeCategories.documentation}\n`;
+      if (gradeCategories.testing) gradeMarkdown += `- **Testing**: ${gradeCategories.testing}\n`;
+      if (gradeCategories.maintainability) gradeMarkdown += `- **Maintainability**: ${gradeCategories.maintainability}\n`;
+      if (gradeCategories.security) gradeMarkdown += `- **Security**: ${gradeCategories.security}\n`;
+      if (gradeCategories.performance) gradeMarkdown += `- **Performance**: ${gradeCategories.performance}\n`;
+      gradeMarkdown += '\n';
+    }
+  }
 
   return `# Code Review: ${displayPath}
 
@@ -503,7 +579,7 @@ function formatStructuredReviewAsMarkdown(
 
 ---
 
-${metadataContent}## Summary
+${metadataContent}${gradeMarkdown}## Summary
 
 ${summary}
 
@@ -540,9 +616,9 @@ function formatSimpleMarkdown(
   const sanitizedContent = sanitizeContent(content);
   
   // Use the actual file path for the review title and the reviewed field
-  let displayPath = filePath;
+  let displayPath = filePath || '';
   
-  if (filePath === reviewType || filePath === 'consolidated') {
+  if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
     // For consolidated reviews, show the full target directory path
     displayPath = process.cwd() + ' (Current Directory)';
   }

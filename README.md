@@ -1,6 +1,25 @@
-# AI Code Review v3.0.0
+# AI Code Review v3.0.2
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, OpenAI models, and OpenRouter API (Claude, GPT-4, etc.) with LangChain integration for enhanced prompt management.
+
+## What's New in v3.0.2
+
+### Improvements in v3.0.2
+
+- **Better Default Behavior**: Automatically uses current directory when no target path is provided
+- **Clearer Output**: Fixed issues with undefined review titles and model information
+- **Improved Logging**: Added informative logs when using default paths
+- **Fixed Multi-Pass Reviews**: Resolved JSON parsing errors in multi-pass reviews with code blocks
+- **Enhanced Regex**: Improved patterns for extracting JSON from various code block formats
+- **More Robust**: Enhanced error handling for missing data in review results
+
+## What's New in v3.0.1
+
+### Added in v3.0.1
+
+- **Enhanced Review Structure**: Added grade section to OpenAI reviews
+- **Consistent Formatting**: All model providers now use consistent review format with grades
+- **Detailed Grading**: Added granular grade categories covering functionality, code quality, documentation, etc.
 
 ## What's New in v3.0.0
 
@@ -201,6 +220,7 @@ ai-code-review [target] [options]
 npx ai-code-review [target] [options]
 
 # Note: The tool only works within the current project
+# If no target is specified, it defaults to the current directory (".")
 ```
 
 ### Examples
@@ -208,6 +228,10 @@ npx ai-code-review [target] [options]
 ```bash
 # Review a single file in the current project
 ai-code-review src/index.ts
+
+# Review the current directory (two equivalent commands)
+ai-code-review
+ai-code-review .
 
 # Review an entire directory with interactive mode
 ai-code-review src/utils --interactive

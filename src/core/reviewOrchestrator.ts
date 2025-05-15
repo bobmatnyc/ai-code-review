@@ -88,10 +88,18 @@ export async function orchestrateReview(
   // Initialize configuration with CLI options (e.g., model override, API keys)
   getConfig(options);
   try {
+    // Ensure target is defined with a default of "." for current directory
+    const effectiveTarget = target || '.';
+    
+    // Log if we're using the default target
+    if (!target || target.trim() === '') {
+      logger.info('No target path provided, defaulting to current directory (".")');
+    }
+
     // Add debug information if debug mode is enabled
     if (options.debug) {
       logger.debug(`Review options: ${JSON.stringify(options, null, 2)}`);
-      logger.debug(`Target path: ${target}`);
+      logger.debug(`Target path: ${effectiveTarget}${(!target || target.trim() === '') ? ' (defaulted to ".")' : ''}`);
       logger.debug(
         `Selected model: ${process.env.AI_CODE_REVIEW_MODEL || 'not set'}`
       );
@@ -124,13 +132,13 @@ export async function orchestrateReview(
     // Log the review type
     if (options.individual) {
       logger.info(
-        `Starting individual ${options.type} reviews for ${target}...`
+        `Starting individual ${options.type} reviews for ${effectiveTarget}...`
       );
     } else if (options.type === 'architectural') {
-      logger.info(`Starting architectural review for ${target}...`);
+      logger.info(`Starting architectural review for ${effectiveTarget}...`);
     } else {
       logger.info(
-        `Starting consolidated ${options.type} review for ${target}...`
+        `Starting consolidated ${options.type} review for ${effectiveTarget}...`
       );
     }
 
@@ -148,7 +156,7 @@ export async function orchestrateReview(
 
     // Discover files to review
     const filesToReview = await discoverFiles(
-      target,
+      effectiveTarget,
       projectPath,
       options.includeTests
     );
@@ -407,7 +415,7 @@ Estimated Cost: ${costEstimation.formattedCost}
     );
 
     // Get the target name (last part of the path)
-    const targetName = path.basename(target || 'unknown');
+    const targetName = path.basename(effectiveTarget);
 
     // Save the review output with file tree
     const outputPath = await saveReviewOutput(
