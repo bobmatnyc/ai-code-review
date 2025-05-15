@@ -494,15 +494,35 @@ export class PromptManager {
     promptTemplate: string,
     options?: ReviewOptions
   ): Promise<string> {
+    // Check if this is a Handlebars template (from the new template system)
+    const isHandlebarsTemplate = promptTemplate.includes('{{#if') || 
+                                 promptTemplate.includes('{{/if') || 
+                                 promptTemplate.includes('{{languageInstructions}}') ||
+                                 promptTemplate.includes('{{schemaInstructions}}');
+                                 
+    // Prepare variables for templates                             
+    const templateVars: Record<string, any> = {};
+    
     // If in interactive mode, include the schema instructions
     if (options?.interactive) {
-      promptTemplate = promptTemplate.replace(
-        '{{SCHEMA_INSTRUCTIONS}}',
-        getSchemaInstructions()
-      );
+      const schemaInstructions = getSchemaInstructions();
+      
+      if (isHandlebarsTemplate) {
+        // For Handlebars templates, add as a variable
+        templateVars.schemaInstructions = schemaInstructions;
+        templateVars.SCHEMA_INSTRUCTIONS = schemaInstructions; // For backward compatibility
+      } else {
+        // For legacy templates, use string replacement
+        promptTemplate = promptTemplate.replace(
+          '{{SCHEMA_INSTRUCTIONS}}',
+          schemaInstructions
+        );
+      }
     } else {
-      // Otherwise, remove the schema instructions placeholder
-      promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', '');
+      // Otherwise, remove the schema instructions placeholder for legacy templates
+      if (!isHandlebarsTemplate) {
+        promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', '');
+      }
     }
 
     // Add language and framework-specific instructions if available
@@ -515,12 +535,34 @@ export class PromptManager {
         languageInstructions += ` Please provide language-specific advice.`;
       }
       
-      promptTemplate = promptTemplate.replace(
-        '{{LANGUAGE_INSTRUCTIONS}}',
-        languageInstructions
-      );
+      if (isHandlebarsTemplate) {
+        // For Handlebars templates, add as a variable
+        templateVars.languageInstructions = languageInstructions;
+        templateVars.LANGUAGE_INSTRUCTIONS = languageInstructions; // For backward compatibility
+      } else {
+        // For legacy templates, use string replacement
+        promptTemplate = promptTemplate.replace(
+          '{{LANGUAGE_INSTRUCTIONS}}',
+          languageInstructions
+        );
+      }
     } else {
-      promptTemplate = promptTemplate.replace('{{LANGUAGE_INSTRUCTIONS}}', '');
+      // Remove placeholder from legacy templates
+      if (!isHandlebarsTemplate) {
+        promptTemplate = promptTemplate.replace('{{LANGUAGE_INSTRUCTIONS}}', '');
+      }
+    }
+    
+    // If this is a Handlebars template and we have variables, render it
+    if (isHandlebarsTemplate && Object.keys(templateVars).length > 0) {
+      try {
+        const Handlebars = require('handlebars');
+        const template = Handlebars.compile(promptTemplate);
+        promptTemplate = template(templateVars);
+      } catch (error) {
+        logger.error(`Error rendering Handlebars template: ${error}`);
+        // Continue with unprocessed template if there's an error
+      }
     }
 
     // Apply model-specific optimizations if a prompt strategy is specified

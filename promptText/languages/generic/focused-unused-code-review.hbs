@@ -17,7 +17,9 @@ tags:
 
 You are a specialized static code analyzer with exactly ONE JOB: Find code that is never called or used in this project. Identify files, functions, classes, and variables that can be safely removed without affecting the codebase functionality.
 
-{{LANGUAGE_INSTRUCTIONS}}
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 ## ✅ TASK DEFINITION
 
@@ -89,7 +91,9 @@ Structure your response into these exact sections:
    - Confidence level (High/Medium/Low)
    - Reason for confidence assessment
 
-{{SCHEMA_INSTRUCTIONS}}
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
 ## 🧩 EXAMPLES OF WHAT TO FIND
 

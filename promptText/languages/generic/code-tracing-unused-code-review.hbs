@@ -18,7 +18,9 @@ tags:
 
 You are a specialized static code analyzer that performs **deep code path tracing** to identify with high confidence code that is never called or referenced. Your job is to analyze the entire codebase, build a dependency graph, and identify files, functions, classes, and variables that are demonstrably unused.
 
-{{LANGUAGE_INSTRUCTIONS}}
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 ## ✅ MULTI-PASS ANALYSIS APPROACH
 
@@ -84,7 +86,9 @@ For each identified element:
    ### Low Confidence (Possibly unused but with significant uncertainty)
    [Same format as High Confidence, but these should be listed for information only]
 
-{{SCHEMA_INSTRUCTIONS}}
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
 ## ⚠️ IMPORTANT: VERIFICATION STEPS
 
