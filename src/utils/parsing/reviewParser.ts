@@ -34,6 +34,14 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
     // If no JSON block, look for any code block (could have typescript or other language marker)
     const anyCodeBlockMatch = !jsonBlockMatch ? 
       jsonString.match(/```(?:[\w]*)?[\s\n]*({[\s\S]*?})[\s\n]*```/) : null;
+      
+    // Specific check for code blocks with 'typescript' marker that aren't proper JSON
+    const typescriptBlockMatch = !jsonBlockMatch && !anyCodeBlockMatch ?
+      jsonString.match(/```typescript\s*([\s\S]*?)\s*```/) : null;
+    if (typescriptBlockMatch) {
+      // Don't treat TypeScript code as JSON - log a warning
+      logger.warn("Found TypeScript code block but not valid JSON. Skipping JSON parsing attempt for this block.");
+    }
 
     // If no code block match at all, try other patterns for JSON outside code blocks
     const jsonOutsideBlockMatch = !jsonBlockMatch && !anyCodeBlockMatch ? 

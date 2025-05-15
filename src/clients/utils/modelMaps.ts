@@ -26,6 +26,18 @@ export interface ModelMapping {
 
 // Hard-coded model mappings to avoid relying on external JSON files
 export const MODEL_MAP: Record<string, ModelMapping> = {
+  // Default model for the tool - this one is stable and works reliably
+  "gemini:gemini-1.5-pro": {
+    "apiIdentifier": "gemini-1.5-pro",
+    "displayName": "Gemini 1.5 Pro",
+    "provider": "gemini",
+    "useV1Beta": false,
+    "contextWindow": 1000000,
+    "description": "Balanced performance and quality for most tasks",
+    "apiKeyEnvVar": "AI_CODE_REVIEW_GOOGLE_API_KEY",
+    "supportsToolCalling": false
+  },
+  // Newer/preview models below - might be less stable
   "gemini:gemini-2.5-pro-preview": {
     "apiIdentifier": "gemini-2.5-pro-preview-05-06",
     "displayName": "Gemini 2.5 Pro Preview",
@@ -46,9 +58,9 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "apiKeyEnvVar": "AI_CODE_REVIEW_GOOGLE_API_KEY",
     "supportsToolCalling": false
   },
-  "gemini:gemini-1.5-pro": {
-    "apiIdentifier": "gemini-1.5-pro",
-    "displayName": "Gemini 1.5 Pro",
+  "gemini:gemini-1.5-flash": {
+    "apiIdentifier": "gemini-1.5-flash",
+    "displayName": "Gemini 1.5 Flash",
     "provider": "gemini",
     "useV1Beta": false,
     "contextWindow": 1000000,
