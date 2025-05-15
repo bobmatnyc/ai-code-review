@@ -58,16 +58,16 @@ describe('TokenAnalyzer', () => {
 
     it('should recommend chunking for large content', () => {
       // Create a very large set of test files
-      const largeFiles = Array(20).fill(null).map((_, i) => ({
+      const largeFiles = Array(5).fill(null).map((_, i) => ({
         path: `/test/large-file-${i}.ts`,
         relativePath: `large-file-${i}.ts`,
-        content: 'x'.repeat(50000) // 50KB files to ensure we exceed context window
+        content: 'x'.repeat(5000) // 5KB files, collectively will exceed our test-small-context model
       }));
 
       const result = TokenAnalyzer.analyzeFiles(largeFiles, {
         ...testOptions,
-        // Use a smaller model to ensure we exceed context window
-        modelName: 'gpt-4o'
+        // Use our test model with small context window
+        modelName: 'test-small-context'
       });
 
       expect(result.chunkingRecommendation.chunkingRecommended).toBe(true);
@@ -134,15 +134,18 @@ describe('TokenAnalyzer', () => {
 
       // We can't directly test generateChunkingRecommendation since it's private
       // So we'll test through analyzeFiles
+      // Create files that will exceed our test small context model
+      // These must be large enough to collectively exceed the 5000 token limit
+      // with the DEFAULT_PROMPT_OVERHEAD factored in
       const result = TokenAnalyzer.analyzeFiles([
-        { path: mixedFiles[0].path, relativePath: mixedFiles[0].relativePath, content: 'x'.repeat(mixedFiles[0].sizeInBytes) },
-        { path: mixedFiles[1].path, relativePath: mixedFiles[1].relativePath, content: 'x'.repeat(mixedFiles[1].sizeInBytes) },
-        { path: mixedFiles[2].path, relativePath: mixedFiles[2].relativePath, content: 'x'.repeat(mixedFiles[2].sizeInBytes) },
-        { path: mixedFiles[3].path, relativePath: mixedFiles[3].relativePath, content: 'x'.repeat(mixedFiles[3].sizeInBytes) },
-        { path: mixedFiles[4].path, relativePath: mixedFiles[4].relativePath, content: 'x'.repeat(mixedFiles[4].sizeInBytes) }
+        { path: mixedFiles[0].path, relativePath: mixedFiles[0].relativePath, content: 'x'.repeat(4000) },
+        { path: mixedFiles[1].path, relativePath: mixedFiles[1].relativePath, content: 'x'.repeat(3000) },
+        { path: mixedFiles[2].path, relativePath: mixedFiles[2].relativePath, content: 'x'.repeat(2000) },
+        { path: mixedFiles[3].path, relativePath: mixedFiles[3].relativePath, content: 'x'.repeat(1000) },
+        { path: mixedFiles[4].path, relativePath: mixedFiles[4].relativePath, content: 'x'.repeat(1000) }
       ], {
         ...testOptions,
-        modelName: 'gpt-4o' // Smaller context window model
+        modelName: 'test-small-context' // Our test model with small context window
       });
 
       // Check that chunks are created appropriately

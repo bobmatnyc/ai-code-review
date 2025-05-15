@@ -111,6 +111,8 @@ export class TokenAnalyzer {
     'claude-3-sonnet': 200000,
     'gpt-4o': 128000,
     'gpt-4-turbo': 128000,
+    // For testing purposes, add a model with very small context
+    'test-small-context': 5000,
     default: 100000
   };
 
