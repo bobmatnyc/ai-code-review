@@ -130,6 +130,11 @@ export async function saveReviewOutput(
       targetName
     );
 
+    // Ensure costInfo is set if only cost is available
+    if (review.cost && !review.costInfo) {
+      review.costInfo = review.cost;
+    }
+    
     // Format the review output
     let formattedOutput = formatReviewOutput(review, options.output);
 

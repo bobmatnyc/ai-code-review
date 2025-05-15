@@ -182,6 +182,16 @@ export class OpenAIClient extends AbstractClient {
 IMPORTANT: Your response MUST be in the following JSON format:
 
 {
+  "grade": "A/B/C/D/F grade with optional + or - suffix (e.g., B+)",
+  "gradeCategories": {
+    "functionality": "Letter grade (e.g., B+)",
+    "codeQuality": "Letter grade (e.g., B)",
+    "documentation": "Letter grade (e.g., B-)",
+    "testing": "Letter grade (e.g., C)",
+    "maintainability": "Letter grade (e.g., B+)",
+    "security": "Letter grade (e.g., B)",
+    "performance": "Letter grade (e.g., B+)"
+  },
   "summary": "A brief summary of the code review",
   "issues": [
     {
@@ -206,7 +216,9 @@ IMPORTANT: Your response MUST be in the following JSON format:
   ]
 }
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
+Ensure your response is valid JSON. Do not include any text outside the JSON structure. 
+
+REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provide an overall assessment of the code quality.`
                 },
                 {
                   role: 'user',
@@ -311,6 +323,16 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 IMPORTANT: Your response MUST be in the following JSON format:
 
 {
+  "grade": "A/B/C/D/F grade with optional + or - suffix (e.g., B+)",
+  "gradeCategories": {
+    "functionality": "Letter grade (e.g., B+)",
+    "codeQuality": "Letter grade (e.g., B)",
+    "documentation": "Letter grade (e.g., B-)",
+    "testing": "Letter grade (e.g., C)",
+    "maintainability": "Letter grade (e.g., B+)",
+    "security": "Letter grade (e.g., B)",
+    "performance": "Letter grade (e.g., B+)"
+  },
   "summary": "A brief summary of the code review",
   "issues": [
     {
@@ -335,7 +357,9 @@ IMPORTANT: Your response MUST be in the following JSON format:
   ]
 }
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
+Ensure your response is valid JSON. Do not include any text outside the JSON structure. 
+
+REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provide an overall assessment of the code quality.`
                 },
                 {
                   role: 'user',

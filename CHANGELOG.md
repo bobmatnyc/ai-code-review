@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.2] - 2025-05-15
+
+### Added
+- Added explicit default to current directory (".") when no target path is provided
+- Added informative logging when defaulting to current directory
+- Enhanced debug output to indicate when path defaulting occurs
+- Improved diagnostic logging for JSON parsing failures
+
+### Fixed
+- Fixed issues with undefined code review titles and model information display
+- Fixed JSON parsing errors in multi-pass reviews with code blocks containing language markers
+- Improved regex patterns for extracting JSON content from various code block formats
+- Added robust null/undefined checks for review path and model information
+- Enhanced error handling for missing fields in review results
+
+## [3.0.1] - 2025-05-15
+
+### Added
+- Added grade section to OpenAI reviews for consistent formatting with other model providers
+- Enhanced structured review output to include grade categories (functionality, code quality, documentation, testing, etc.)
+- Improved review formatting for better readability and consistency across all model providers
+
+### Fixed
+- Fixed missing grade section in OpenAI model reviews
+
 ## [3.0.0] - 2025-05-14
 
 ### Added

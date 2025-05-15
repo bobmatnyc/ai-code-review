@@ -1,0 +1,36 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "bobmatnyc"
+    assignees:
+      - "bobmatnyc"
+    labels:
+      - "dependencies"
+      - "auto-merge"
+    # Allow minor and patch updates to be auto-merged
+    automerged_updates:
+      - match:
+          dependency_type: "direct:production"
+          update_type: "security"
+      - match:
+          dependency_type: "direct:development"
+          update_type: "semver:patch"
+      - match:
+          dependency_type: "direct:development"
+          update_type: "semver:minor"
+    # Ignore specific dependencies that need manual review
+    ignore:
+      - dependency-name: "typescript"
+        # TypeScript updates often require code changes
+      - dependency-name: "@types/node"
+        # Node types should match your target Node version

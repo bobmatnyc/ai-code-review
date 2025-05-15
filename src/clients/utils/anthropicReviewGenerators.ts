@@ -153,6 +153,7 @@ export async function generateAnthropicReview(
     return {
       content,
       cost,
+      costInfo: cost, // Add costInfo property for consistent access
       modelUsed: `anthropic:${modelName}`,
       filePath,
       reviewType,
@@ -271,6 +272,7 @@ export async function generateAnthropicConsolidatedReview(
     return {
       content,
       cost,
+      costInfo: cost, // Add costInfo property for consistent access
       modelUsed: `anthropic:${modelName}`,
       filePath: 'consolidated',
       reviewType,

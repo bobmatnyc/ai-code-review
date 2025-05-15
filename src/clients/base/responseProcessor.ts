@@ -18,16 +18,40 @@ import { getCostInfoFromText } from '../utils/tokenCounter';
  */
 export function extractStructuredData(content: string): any | null {
   try {
-    // Check if the response is wrapped in any code block (handling any language marker)
-    const codeBlockMatch = content.match(/```(?:\w*)?\s*([\s\S]*?)\s*```/);
+    // Check if the response is wrapped in any code block with improved language marker handling
+    // Handle various formats:
+    // 1. ```json {...}```
+    // 2. ```typescript {...}``` or other language markers
+    // 3. ```{...}```
+    // 4. Plain JSON without code blocks
+    
+    // First try to find code blocks with JSON content
+    const jsonBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    
+    // If no JSON block, look for any code block (could have typescript or other language marker)
+    const anyCodeBlockMatch = !jsonBlockMatch ? content.match(/```(?:[\w]*)?[\s\n]*([\s\S]*?)[\s\n]*```/) : null;
+    
     let jsonContent = '';
     
-    if (codeBlockMatch) {
-      // If we have a code block, use its content
-      jsonContent = codeBlockMatch[1];
+    if (jsonBlockMatch) {
+      // If we have a JSON code block, use its content
+      jsonContent = jsonBlockMatch[1];
+      logger.debug('Found JSON code block, extracting content');
+    } else if (anyCodeBlockMatch) {
+      // If we have any other code block, use its content but check if it starts with {
+      const blockContent = anyCodeBlockMatch[1].trim();
+      if (blockContent.startsWith('{') && blockContent.endsWith('}')) {
+        jsonContent = blockContent;
+        logger.debug('Found code block with JSON-like content, attempting to parse');
+      } else {
+        // If the code block doesn't look like JSON, use the raw content
+        logger.debug('Code block found but doesn\'t appear to be JSON, falling back to raw content');
+        jsonContent = content;
+      }
     } else {
       // No code block, use the raw content
       jsonContent = content;
+      logger.debug('No code blocks found, attempting to parse raw content');
     }
 
     // Parse the JSON content
@@ -40,11 +64,22 @@ export function extractStructuredData(content: string): any | null {
 
     return structuredData;
   } catch (parseError) {
-    logger.warn(
-      `Response is not valid JSON: ${
-        parseError instanceof Error ? parseError.message : String(parseError)
-      }`
-    );
+    const errorMsg = parseError instanceof Error ? parseError.message : String(parseError);
+    logger.warn(`Response is not valid JSON: ${errorMsg}`);
+    
+    // In debug mode, log additional details to help diagnose the issue
+    if (process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase() === 'debug') {
+      const snippet = content.length > 200 ? 
+        content.substring(0, 100) + '...' + content.substring(content.length - 100) : 
+        content;
+      logger.debug(`Content snippet causing JSON parse error: ${snippet}`);
+      
+      // Also log if we found code blocks but couldn't parse the content
+      if (jsonBlockMatch || anyCodeBlockMatch) {
+        logger.debug(`Found code blocks but content couldn't be parsed as JSON`);
+      }
+    }
+    
     return null;
   }
 }

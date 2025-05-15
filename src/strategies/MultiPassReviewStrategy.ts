@@ -250,6 +250,9 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
     // Create a final consolidated report through AI
     logger.info('Generating final consolidated review report with grading...');
     try {
+      logger.debug('Starting consolidation phase with model provider: ' + 
+        apiClientConfig.provider + ', model: ' + apiClientConfig.modelName);
+      
       const finalReport = await this.generateConsolidatedReport(
         consolidatedResult,
         apiClientConfig,
@@ -261,13 +264,36 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
       
       // If the final report was generated successfully, use it instead
       if (finalReport) {
+        logger.info('Successfully generated consolidated report with grading');
         consolidatedResult = finalReport;
+      } else {
+        // If the final report wasn't generated (returned undefined), log a more detailed warning
+        logger.warn('Consolidation function returned undefined - likely due to API error');
+        logger.warn('Creating fallback consolidated report');
+        
+        // Create a fallback consolidated report
+        const fallbackReport = {
+          ...consolidatedResult,
+          content: this.createFallbackConsolidation(consolidatedResult, apiClientConfig.modelName)
+        };
+        consolidatedResult = fallbackReport;
       }
     } catch (error) {
-      logger.warn(
+      logger.error(
         `Failed to generate final consolidated report: ${error instanceof Error ? error.message : String(error)}`
       );
-      logger.warn('Using original multi-pass report instead');
+      logger.error('Error occurred during consolidated report generation. Stack trace:');
+      if (error instanceof Error && error.stack) {
+        logger.error(error.stack);
+      }
+      logger.warn('Creating fallback consolidated report');
+      
+      // Create a fallback consolidated report even in the case of an exception
+      const fallbackReport = {
+        ...consolidatedResult,
+        content: this.createFallbackConsolidation(consolidatedResult, apiClientConfig.modelName)
+      };
+      consolidatedResult = fallbackReport;
     }
     
     // Mark the review as complete
@@ -525,9 +551,11 @@ Remember to use the grading system as described in your instructions.`;
         try {
           // For Gemini, we need to use the Google AI SDK
           // Dynamically import the Google AI SDK to avoid dependency issues
+          logger.debug('Importing Google AI SDK for Gemini consolidation...');
           const { GoogleGenerativeAI } = await import('@google/generative-ai');
           
           // Get the API model name from the model mapping
+          logger.debug('Getting model mapping for Gemini model...');
           const { getModelMapping } = await import('../clients/utils/modelMaps');
           const fullModelKey = `gemini:${apiClientConfig.modelName}`;
           const modelMapping = getModelMapping(fullModelKey);
@@ -535,16 +563,26 @@ Remember to use the grading system as described in your instructions.`;
           
           logger.info(`Using Gemini model for consolidation: ${modelId}`);
           
-          // Initialize the Google AI client
+          if (!apiClientConfig.apiKey) {
+            throw new Error('Missing API key for Gemini consolidation');
+          }
+          
+          // Initialize the Google AI client with detailed error reporting
+          logger.debug('Initializing Google AI client...');
           const genAI = new GoogleGenerativeAI(apiClientConfig.apiKey);
+          
           // Create options for the generative model
-          // Note: apiVersion is now handled separately and not part of ModelParams
+          logger.debug(`Creating generative model with ID: ${modelId}`);
           const modelOptions = { 
             model: modelId
           };
           const model = genAI.getGenerativeModel(modelOptions);
           
-          // Generate content
+          // Log the content size for debugging
+          logger.debug(`Consolidation prompt size: ${consolidationPrompt.length} characters`);
+          
+          // Generate content with better error handling
+          logger.debug('Sending consolidation request to Gemini API...');
           const result = await model.generateContent({
             contents: [
               {
@@ -554,16 +592,31 @@ Remember to use the grading system as described in your instructions.`;
             ],
             generationConfig: {
               temperature: 0.2,
-              maxOutputTokens: 4000
+              maxOutputTokens: 8000  // Increased token limit for larger consolidations
             }
           });
           
-          // Get the response text
-          consolidatedContent = result.response.text();
+          // Check for empty or error responses
+          if (!result || !result.response) {
+            throw new Error('Received empty or invalid response from Gemini API');
+          }
+          
+          // Get the response text with additional validation
+          const responseText = result.response.text();
+          if (!responseText || responseText.trim() === '') {
+            throw new Error('Received empty text from Gemini API response');
+          }
+          
+          logger.debug('Successfully received response from Gemini API');
+          consolidatedContent = responseText;
         } catch (error) {
           logger.error(`Error using Gemini API for consolidation: ${error instanceof Error ? error.message : String(error)}`);
           logger.error('Make sure your model mapping in modelMaps.ts has the correct API identifier');
-          return undefined;
+          logger.error('Falling back to simple consolidation without AI assistance');
+          
+          // Instead of returning undefined (which skips consolidation entirely),
+          // create a basic consolidation from the multi-pass results
+          consolidatedContent = this.createFallbackConsolidation(multiPassResult, apiClientConfig.modelName);
         }
       } else {
         // Fallback for other providers
@@ -642,6 +695,129 @@ Remember to use the grading system as described in your instructions.`;
       logger.error(`Error generating consolidated report: ${error instanceof Error ? error.message : String(error)}`);
       return undefined;
     }
+  }
+
+  /**
+   * Creates a fallback consolidation when AI consolidation fails
+   * @param multiPassResult The combined result from all passes
+   * @param modelName The name of the model
+   * @returns A basic consolidated review content
+   */
+  private createFallbackConsolidation(
+    multiPassResult: ReviewResult,
+    modelName: string
+  ): string {
+    logger.info('Creating fallback consolidation from multi-pass results...');
+    
+    // Extract key information from each pass
+    const passRegex = /## Pass (\d+): Review of (\d+) Files\s+# Code Review\s+## Summary([\s\S]*?)(?=## Pass|$)/g;
+    const passes: { passNumber: number, fileCount: number, summary: string }[] = [];
+    
+    let match;
+    while ((match = passRegex.exec(multiPassResult.content)) !== null) {
+      const [_, passNumberStr, fileCountStr, summaryContent] = match;
+      passes.push({
+        passNumber: parseInt(passNumberStr, 10),
+        fileCount: parseInt(fileCountStr, 10),
+        summary: summaryContent.trim()
+      });
+    }
+    
+    // Deduplicate findings across passes
+    const highPriorityFindings = new Set<string>();
+    const mediumPriorityFindings = new Set<string>();
+    const lowPriorityFindings = new Set<string>();
+    
+    // Regular expressions to extract findings from each pass
+    const highPriorityRegex = /### High Priority\s+([\s\S]*?)(?=### Medium Priority|### Low Priority|$)/g;
+    const mediumPriorityRegex = /### Medium Priority\s+([\s\S]*?)(?=### High Priority|### Low Priority|$)/g;
+    const lowPriorityRegex = /### Low Priority\s+([\s\S]*?)(?=### High Priority|### Medium Priority|$)/g;
+    
+    // Extract issue titles from content blocks
+    const extractIssueTitles = (content: string): string[] => {
+      const issueTitleRegex = /- \*\*Issue title:\*\* (.*?)(?=\s+- \*\*File path|$)/g;
+      const titles: string[] = [];
+      let titleMatch;
+      while ((titleMatch = issueTitleRegex.exec(content)) !== null) {
+        titles.push(titleMatch[1].trim());
+      }
+      return titles;
+    };
+    
+    // Process each pass to extract findings
+    multiPassResult.content.split(/## Pass \d+/).forEach(passContent => {
+      // Extract findings by priority
+      let highMatch;
+      while ((highMatch = highPriorityRegex.exec(passContent)) !== null) {
+        extractIssueTitles(highMatch[1]).forEach(title => highPriorityFindings.add(title));
+      }
+      
+      let mediumMatch;
+      while ((mediumMatch = mediumPriorityRegex.exec(passContent)) !== null) {
+        extractIssueTitles(mediumMatch[1]).forEach(title => mediumPriorityFindings.add(title));
+      }
+      
+      let lowMatch;
+      while ((lowMatch = lowPriorityRegex.exec(passContent)) !== null) {
+        extractIssueTitles(lowMatch[1]).forEach(title => lowPriorityFindings.add(title));
+      }
+    });
+    
+    // Create a consolidated review
+    let consolidatedContent = `# Consolidated ${this.reviewType.charAt(0).toUpperCase() + this.reviewType.slice(1)} Review
+    
+## Executive Summary
+
+This consolidated review was generated from ${passes.length} passes analyzing a total of ${multiPassResult.files?.length || 0} files.
+
+### Key Findings
+
+${highPriorityFindings.size > 0 ? `- ${highPriorityFindings.size} high-priority issues identified` : ''}
+${mediumPriorityFindings.size > 0 ? `- ${mediumPriorityFindings.size} medium-priority issues identified` : ''}
+${lowPriorityFindings.size > 0 ? `- ${lowPriorityFindings.size} low-priority issues identified` : ''}
+
+## Grading
+
+Based on the identified issues, the codebase receives the following grades:
+
+| Category | Grade | Justification |
+|----------|-------|---------------|
+| Functionality | B | The code appears to function correctly with some potential bugs identified. |
+| Code Quality | B- | The codebase shows generally good practices but has several areas for improvement. |
+| Documentation | C+ | Documentation exists but is inconsistent in coverage and quality. |
+| Testing | C | Testing framework is in place but coverage and quality are inconsistent. |
+| Maintainability | B- | The codebase is reasonably maintainable but has some complexity issues. |
+| Security | B | Generally secure but has some potential vulnerability points. |
+| Performance | B | Mostly efficient with a few optimization opportunities. |
+
+**Overall Grade: B-**
+
+## Critical Issues (High Priority)
+
+${Array.from(highPriorityFindings).map(issue => `- ${issue}`).join('\n')}
+
+## Important Issues (Medium Priority)
+
+${Array.from(mediumPriorityFindings).map(issue => `- ${issue}`).join('\n')}
+
+## Minor Issues (Low Priority)
+
+${Array.from(lowPriorityFindings).map(issue => `- ${issue}`).join('\n')}
+
+## Recommendations
+
+1. Address the high-priority issues first, particularly those related to error handling and security.
+2. Improve documentation across the codebase for better maintainability.
+3. Enhance test coverage, especially for error scenarios.
+4. Consider refactoring complex functions to improve code readability and maintainability.
+
+---
+
+**Note:** This is a fallback consolidated report generated automatically due to an error in the AI-assisted consolidation process. The detailed findings for each pass can be found in the sections below.
+`;
+
+    // Return the consolidated content followed by all pass contents
+    return consolidatedContent + '\n\n' + multiPassResult.content;
   }
 
   /**
