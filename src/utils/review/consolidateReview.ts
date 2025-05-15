@@ -160,7 +160,8 @@ function extractModelInfo(review: ProjectReview): {
   }
   
   // Try to find model name in the content and infer provider
-  const contentModelMatch = review.content.match(/Model(?:\sused)?:\s*([a-zA-Z0-9.-]+)/i);
+  // Use a more inclusive regex that captures the full model name including preview suffix
+  const contentModelMatch = review.content.match(/Model(?:\sused)?:\s*([^\s\n]+)/i);
   if (contentModelMatch) {
     return detectProviderFromModelName(contentModelMatch[1].trim());
   }
@@ -204,11 +205,11 @@ function detectProviderFromModelName(modelName: string): {
     };
   }
   
-  // Default to gemini if we can't detect
+  // Default to gemini if we can't detect - use the most advanced model
   return {
     provider: 'gemini',
-    modelName: 'gemini-1.5-pro',
-    fullModelName: 'gemini:gemini-1.5-pro'
+    modelName: 'gemini-2.5-pro-preview',
+    fullModelName: 'gemini:gemini-2.5-pro-preview'
   };
 }
 
