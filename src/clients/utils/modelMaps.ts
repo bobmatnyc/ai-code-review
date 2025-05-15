@@ -26,13 +26,23 @@ export interface ModelMapping {
 
 // Hard-coded model mappings to avoid relying on external JSON files
 export const MODEL_MAP: Record<string, ModelMapping> = {
-  "gemini:gemini-2.5-pro": {
+  "gemini:gemini-2.5-pro-preview": {
     "apiIdentifier": "gemini-2.5-pro-preview-05-06",
-    "displayName": "Gemini 2.5 Pro",
+    "displayName": "Gemini 2.5 Pro Preview",
     "provider": "gemini",
     "useV1Beta": true,
     "contextWindow": 1000000,
     "description": "Most advanced reasoning and multimodal capabilities",
+    "apiKeyEnvVar": "AI_CODE_REVIEW_GOOGLE_API_KEY",
+    "supportsToolCalling": false
+  },
+  "gemini:gemini-2.5-pro": {
+    "apiIdentifier": "gemini-2.5-pro-preview-05-06",
+    "displayName": "Gemini 2.5 Pro (DEPRECATED - Use gemini-2.5-pro-preview)",
+    "provider": "gemini",
+    "useV1Beta": true,
+    "contextWindow": 1000000,
+    "description": "DEPRECATED - Please use gemini:gemini-2.5-pro-preview instead",
     "apiKeyEnvVar": "AI_CODE_REVIEW_GOOGLE_API_KEY",
     "supportsToolCalling": false
   },
