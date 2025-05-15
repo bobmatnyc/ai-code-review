@@ -150,39 +150,39 @@ export async function saveReviewOutput(
       console.log(`=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`);
       logger.info(`=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`);
       try {
-        // Import the module directly to avoid require() issues
-        const packageSecurityAnalyzer = await import('../utils/dependencies/packageSecurityAnalyzer');
-        logger.info(`Performing enhanced dependency analysis for ${options.type} review...`);
+        // Import the AI-powered dependency analyzer (no external dependencies required)
+        const aiDependencyAnalyzer = await import('../utils/dependencies/aiDependencyAnalyzer');
+        logger.info(`Performing AI-powered dependency analysis for ${options.type} review...`);
         
         // Use project directory path instead of current working directory to ensure correct analysis
         const projectPath = files && files.length > 0 ? path.dirname(files[0].path) : path.resolve(process.cwd());
         console.log(`Project path for dependency analysis: ${projectPath}`);
         logger.info(`Project path for dependency analysis: ${projectPath}`);
         
-        // Run the enhanced dependency analysis
-        const securitySection = await packageSecurityAnalyzer.createDependencySecuritySection(projectPath);
+        // Run the AI-powered dependency analysis
+        const dependencySection = await aiDependencyAnalyzer.createAIDependencyAnalysis(projectPath);
         
         // Append dependency analysis section to the review
         if (options.output === 'json') {
           try {
             // Parse JSON, add dependency analysis section, and stringify again
             const reviewObj = JSON.parse(formattedOutput);
-            reviewObj.dependencyAnalysis = securitySection;
+            reviewObj.dependencyAnalysis = dependencySection;
             formattedOutput = JSON.stringify(reviewObj, null, 2);
-            logger.info('Enhanced dependency analysis added to JSON review output');
+            logger.info('AI-powered dependency analysis added to JSON review output');
           } catch (error) {
             logger.warn(`Error adding dependency analysis section to JSON review: ${error}`);
             // If JSON parsing fails, append as text
-            formattedOutput += `\n\n${securitySection}`;
-            logger.info('Enhanced dependency analysis appended as text to JSON review (JSON parsing failed)');
+            formattedOutput += `\n\n${dependencySection}`;
+            logger.info('AI-powered dependency analysis appended as text to JSON review (JSON parsing failed)');
           }
         } else {
           // For markdown, append at the end
-          formattedOutput += `\n\n${securitySection}`;
-          logger.info('Enhanced dependency analysis added to markdown review output');
+          formattedOutput += `\n\n${dependencySection}`;
+          logger.info('AI-powered dependency analysis added to markdown review output');
         }
       } catch (error) {
-        logger.error(`Error performing enhanced dependency analysis for ${options.type} review: ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(`Error performing AI-powered dependency analysis for ${options.type} review: ${error instanceof Error ? error.message : String(error)}`);
         logger.error(error instanceof Error && error.stack ? error.stack : 'No stack trace available');
       }
     }

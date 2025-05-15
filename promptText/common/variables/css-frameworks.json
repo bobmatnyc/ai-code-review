@@ -1,0 +1,99 @@
+{
+  "cssFrameworks": {
+    "tailwind": {
+      "name": "Tailwind CSS",
+      "version": "4.0",
+      "releaseDate": "2025",
+      "features": [
+        "High-performance engine (5x faster builds)",
+        "Modern web features (cascade layers, registered custom properties)",
+        "Simplified installation with fewer dependencies",
+        "Automatic content detection",
+        "First-party Vite plugin"
+      ],
+      "integrations": {
+        "react": "Works with React 19.x/18.x via PostCSS",
+        "angular": "Works with Angular 19.x/18.x via PostCSS",
+        "vue": "Works with Vue 3.5/3.4.x via PostCSS",
+        "django": "Available via django-tailwind package",
+        "laravel": "Built into Laravel Breeze/Jetstream starters"
+      }
+    },
+    "bootstrap": {
+      "name": "Bootstrap",
+      "version": "5.3.6",
+      "releaseDate": "2025",
+      "features": [
+        "Comprehensive component library",
+        "Responsive grid system",
+        "Pre-designed components and styles",
+        "Optimized performance",
+        "Extensive customization options"
+      ],
+      "integrations": {
+        "react": "React Bootstrap or reactstrap libraries",
+        "angular": "ng-bootstrap library",
+        "vue": "BootstrapVue library",
+        "django": "django-bootstrap5 package",
+        "laravel": "Available via Laravel UI"
+      }
+    },
+    "materialui": {
+      "name": "Material UI",
+      "version": "7.0.0",
+      "releaseDate": "March 2025",
+      "features": [
+        "React component system based on Material Design",
+        "Improved ESM support",
+        "Pigment CSS (zero-runtime CSS-in-JS)",
+        "React Server Component compatibility",
+        "Extraction of styles at build time"
+      ],
+      "integrations": {
+        "react": "Native React library, works with React 19/18",
+        "angular": "Not applicable (use Angular Material instead)",
+        "vue": "Not applicable (use Vuetify instead)",
+        "django": "Can be used with Django REST Framework + React",
+        "laravel": "Can be used with Laravel Inertia.js + React"
+      }
+    },
+    "chakraui": {
+      "name": "Chakra UI",
+      "version": "3.18.0",
+      "releaseDate": "2025",
+      "features": [
+        "Performance-focused rewrite",
+        "25+ new components",
+        "Accessibility-first approach",
+        "Modularity and theming capabilities",
+        "React integration"
+      ],
+      "integrations": {
+        "react": "Native React library, works with React 19/18",
+        "angular": "Not directly supported",
+        "vue": "Not directly supported (use Chakra UI Vue instead)",
+        "django": "Can be used with Django REST Framework + React",
+        "laravel": "Can be used with Laravel Inertia.js + React"
+      }
+    },
+    "bulma": {
+      "name": "Bulma",
+      "version": "Latest",
+      "releaseDate": "2025",
+      "features": [
+        "Based on Flexbox",
+        "Built with Sass",
+        "100% responsive design",
+        "Modular architecture",
+        "No JavaScript dependencies"
+      ],
+      "integrations": {
+        "react": "Works with React via CSS imports",
+        "angular": "Works with Angular via CSS imports",
+        "vue": "Works with Vue via CSS imports",
+        "django": "Available via django-bulma package",
+        "laravel": "Compatible via CSS imports"
+      }
+    }
+  }
+}

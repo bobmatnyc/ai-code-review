@@ -1,0 +1,265 @@
+{
+  "frameworks": {
+    "react": {
+      "latest": {
+        "version": "19.1.0",
+        "releaseDate": "March 2025",
+        "supportedUntil": "2026"
+      },
+      "previous": {
+        "version": "18.x",
+        "releaseDate": "2023",
+        "supportedUntil": "2026"
+      },
+      "features": {
+        "latest": [
+          "New preloading APIs (preload, preloadData, preconnect)",
+          "Server Components fully stable",
+          "useFormStatus and useFormState hooks",
+          "useActionState hook",
+          "Document Metadata API"
+        ],
+        "previous": [
+          "Suspense and concurrent mode",
+          "Server Components (experimental)",
+          "createRoot and hydrateRoot APIs",
+          "Transition API",
+          "Automatic batching"
+        ]
+      }
+    },
+    "nextjs": {
+      "latest": {
+        "version": "15.3.2",
+        "releaseDate": "May 2025",
+        "supportedUntil": "2026",
+        "reactVersion": "19.x"
+      },
+      "previous": {
+        "version": "14.x",
+        "releaseDate": "2024",
+        "supportedUntil": "2025",
+        "reactVersion": "18.x"
+      },
+      "features": {
+        "latest": [
+          "Turbopack integration (Rust-based bundler)",
+          "React 19 support",
+          "Asynchronous request APIs",
+          "New client instrumentation and navigation hooks",
+          "Enhanced developer experience"
+        ],
+        "previous": [
+          "App Router with React Server Components",
+          "Server Actions",
+          "Built-in SEO support",
+          "Image optimization",
+          "API Routes"
+        ]
+      }
+    },
+    "angular": {
+      "latest": {
+        "version": "19.2.10",
+        "releaseDate": "May 2025",
+        "supportedUntil": "late 2025"
+      },
+      "previous": {
+        "version": "18.x",
+        "releaseDate": "2024",
+        "supportedUntil": "late 2025"
+      },
+      "features": {
+        "latest": [
+          "Signals for reactive state management",
+          "Standalone components as default",
+          "New control flow syntax (if/for)",
+          "Deferrable views",
+          "Updated animation system"
+        ],
+        "previous": [
+          "Signals API (introduced in v16)",
+          "Standalone components (optional)",
+          "Server-side rendering with Angular Universal",
+          "Migration path from NgModules to standalone components"
+        ]
+      }
+    },
+    "vue": {
+      "latest": {
+        "version": "3.5",
+        "releaseDate": "September 2024",
+        "supportedUntil": "mid-2025"
+      },
+      "previous": {
+        "version": "3.4.x",
+        "releaseDate": "2023",
+        "supportedUntil": "mid-2025"
+      },
+      "features": {
+        "latest": [
+          "Enhanced reactivity system",
+          "Improved SSR with lazy hydration",
+          "Stable application-unique IDs",
+          "Enhanced typed refs and reactive API",
+          "New built-in transition animations"
+        ],
+        "previous": [
+          "<script setup> with TypeScript",
+          "Typed provide/inject pattern",
+          "Composables with type-safe return values",
+          "defineModel for two-way binding"
+        ]
+      }
+    },
+    "django": {
+      "latest": {
+        "version": "5.2",
+        "releaseDate": "April 2025",
+        "supportedUntil": "2026",
+        "pythonVersions": ["3.11+"]
+      },
+      "previous": {
+        "version": "4.2.x",
+        "releaseDate": "2023",
+        "supportedUntil": "April 2026 (LTS)",
+        "pythonVersions": ["3.8", "3.9", "3.10", "3.11"]
+      },
+      "features": {
+        "latest": [
+          "Asynchronous views and middleware",
+          "Database transactions with async support",
+          "Enhanced form rendering with Template-Based Form Rendering",
+          "HTTP/3 and QUIC support improvements",
+          "Updated security features"
+        ],
+        "previous": [
+          "Long-term stable APIs for enterprise applications",
+          "QuerySet prefetch_related improvements",
+          "Cache system improvements",
+          "Form widget rendering updates"
+        ]
+      }
+    },
+    "fastapi": {
+      "latest": {
+        "version": "0.115.12",
+        "releaseDate": "May 2025",
+        "supportedUntil": "2026",
+        "pythonVersions": ["3.8+"]
+      },
+      "previous": {
+        "version": "0.100.x",
+        "releaseDate": "2024",
+        "supportedUntil": "2025",
+        "pythonVersions": ["3.8+"]
+      },
+      "features": {
+        "latest": [
+          "High-performance async capabilities",
+          "Automatic OpenAPI documentation",
+          "FastAPI CLI tool for development",
+          "Native Pydantic v2 integration",
+          "Enhanced middleware support"
+        ],
+        "previous": [
+          "Type hint-based validation",
+          "Dependency injection system",
+          "Security utilities",
+          "Request & response models",
+          "WebSocket support"
+        ]
+      }
+    },
+    "flask": {
+      "latest": {
+        "version": "3.1.1",
+        "releaseDate": "May 2025",
+        "supportedUntil": "2026",
+        "pythonVersions": ["3.9+"]
+      },
+      "previous": {
+        "version": "2.3.x",
+        "releaseDate": "2023",
+        "supportedUntil": "2025",
+        "pythonVersions": ["3.8+"]
+      },
+      "features": {
+        "latest": [
+          "Async support (ASGI)",
+          "Updated Werkzeug integration",
+          "Enhanced request handling",
+          "Improved error management",
+          "Better type annotations"
+        ],
+        "previous": [
+          "Blueprint system for application components",
+          "Extensive extension ecosystem",
+          "Lightweight WSGI implementation",
+          "Simple routing system",
+          "Template engine integration"
+        ]
+      }
+    },
+    "pyramid": {
+      "latest": {
+        "version": "2.0.2",
+        "releaseDate": "2023",
+        "supportedUntil": "2027",
+        "pythonVersions": ["3.8+"]
+      },
+      "previous": {
+        "version": "1.10.x",
+        "releaseDate": "2018",
+        "supportedUntil": "2023",
+        "pythonVersions": ["2.7", "3.4+"]
+      },
+      "features": {
+        "latest": [
+          "Multiple view registration methods",
+          "Flexible configuration",
+          "Resource location via traversal",
+          "Predicates for view matching",
+          "Extensive event system"
+        ],
+        "previous": [
+          "Authentication and authorization",
+          "URL generation",
+          "Asset specifications",
+          "Renderers for multiple output formats",
+          "Extensive documentation"
+        ]
+      }
+    },
+    "laravel": {
+      "latest": {
+        "version": "12.x",
+        "releaseDate": "Early 2025",
+        "supportedUntil": "2026",
+        "phpVersions": ["8.2+"]
+      },
+      "previous": {
+        "version": "11.x",
+        "releaseDate": "2024",
+        "supportedUntil": "August 2026",
+        "phpVersions": ["8.2+"]
+      },
+      "features": {
+        "latest": [
+          "Updated starter kits for React, Vue, and Livewire",
+          "WorkOS AuthKit integration",
+          "Simplified configuration approach",
+          "Enhanced route registration",
+          "Improved exception handling"
+        ],
+        "previous": [
+          "Inertia.js integration",
+          "Livewire 3 support",
+          "Precognition for form validation",
+          "Pennant feature flags",
+          "Streamlined file handling"
+        ]
+      }
+    }
+  }
+}

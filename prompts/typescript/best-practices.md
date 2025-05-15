@@ -116,6 +116,13 @@ Act as an **expert software engineer specializing in Next.js, React, and TypeScr
   - Responsive design implementation
   - Theme management and dark mode support
 
+- CSS Framework Options (with latest versions):
+  - Tailwind CSS: v4.0 (2025) - Latest major version with high-performance engine and modern features
+  - Bootstrap: v5.3.6 (2025) - Stable version with comprehensive components
+  - Material UI: v7.0.0 (2025) - Latest with improved ESM support and Pigment CSS
+  - Chakra UI: v3.18.0 (2025) - Performance-focused rewrite with 25+ new components
+  - Bulma: Latest active version based on Flexbox (2025)
+
 - Identify:
   - Consistent Tailwind usage patterns and custom theme configuration
   - Proper responsive design with mobile-first approach

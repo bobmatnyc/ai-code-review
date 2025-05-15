@@ -19,6 +19,7 @@ import { PromptBuilder } from './PromptBuilder';
 import { PromptCache } from './cache/PromptCache';
 import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
 import { getBundledPrompt } from './bundledPrompts';
+import { detectFramework } from '../utils/detection';
 
 /**
  * Interface for prompt template metadata
@@ -48,6 +49,11 @@ export interface PromptTemplateMetadata {
    * Language the template is designed for
    */
   language?: string;
+
+  /**
+   * Framework the template is designed for
+   */
+  framework?: string;
 
   /**
    * Review type the template is designed for
@@ -126,15 +132,24 @@ export class PromptManager {
   }
 
   /**
-   * Get a template key based on review type and language
+   * Get a template key based on review type, language, and framework
    * @param reviewType Type of review
    * @param language Programming language
+   * @param framework Framework (optional)
    * @returns Template key
    */
-  private getTemplateKey(reviewType: ReviewType, language?: string): string {
-    return language
-      ? `${reviewType}:${language.toLowerCase()}`
-      : `${reviewType}`;
+  private getTemplateKey(
+    reviewType: ReviewType, 
+    language?: string, 
+    framework?: string
+  ): string {
+    if (language && framework) {
+      return `${reviewType}:${language.toLowerCase()}:${framework.toLowerCase()}`;
+    } else if (language) {
+      return `${reviewType}:${language.toLowerCase()}`;
+    } else {
+      return `${reviewType}`;
+    }
   }
 
   /**
@@ -318,9 +333,28 @@ export class PromptManager {
   ): Promise<string> {
     // Get the language from options or default to typescript
     let language = 'typescript';
+    let framework: string | undefined;
 
     if (options?.language) {
       language = options.language.toLowerCase();
+    }
+    
+    // Detect framework if project path is provided
+    if (options?.projectPath) {
+      const frameworkResult = await detectFramework(options.projectPath);
+      if (frameworkResult) {
+        framework = frameworkResult.framework;
+        // Log both language and framework detection
+        if (framework !== 'none' && frameworkResult.confidence > 0.6) {
+          logger.info(`Detected language: ${frameworkResult.language}, framework: ${framework} (confidence: ${frameworkResult.confidence.toFixed(2)})`);
+          
+          if (frameworkResult.additionalFrameworks && frameworkResult.additionalFrameworks.length > 0) {
+            logger.info(`Additional frameworks detected: ${frameworkResult.additionalFrameworks.join(', ')}`);
+          }
+        } else {
+          logger.info(`Detected language: ${frameworkResult.language}, no specific framework detected`);
+        }
+      }
     }
 
     // Check if we should use a cached prompt
@@ -350,6 +384,19 @@ export class PromptManager {
     }
 
     // Check if we have a custom template registered programmatically
+    // First try with framework if detected
+    if (framework && framework !== 'none') {
+      const frameworkCustomKey = this.getTemplateKey(reviewType, language, framework);
+      const frameworkCustomTemplate = this.customTemplates.get(frameworkCustomKey);
+      if (frameworkCustomTemplate) {
+        logger.info(
+          `Using framework-specific custom prompt template: ${frameworkCustomTemplate.metadata.name}`
+        );
+        return await this.processPromptTemplate(frameworkCustomTemplate.content, options);
+      }
+    }
+    
+    // Fall back to language-only template
     const customKey = this.getTemplateKey(reviewType, language);
     const customTemplate = this.customTemplates.get(customKey);
     if (customTemplate) {
@@ -360,6 +407,16 @@ export class PromptManager {
     }
 
     // Use bundled prompts as the primary source
+    // First try with framework if detected
+    if (framework && framework !== 'none') {
+      const frameworkBundledPrompt = getBundledPrompt(reviewType, language, framework);
+      if (frameworkBundledPrompt) {
+        logger.info(`Using bundled framework-specific prompt template for ${reviewType} (language: ${language}, framework: ${framework})`);
+        return await this.processPromptTemplate(frameworkBundledPrompt, options);
+      }
+    }
+    
+    // Fall back to language-only bundled template
     const bundledPrompt = getBundledPrompt(reviewType, language);
     if (bundledPrompt) {
       logger.debug(`Using bundled prompt template for ${reviewType} (language: ${language})`);
@@ -376,6 +433,16 @@ export class PromptManager {
     // FALLBACK ONLY: If no bundled prompt is found, check custom templates from file system
     // This should rarely happen as all core prompts should be bundled
     logger.warn(`No bundled prompt found for ${reviewType}. Falling back to custom templates.`);
+
+    // First try with framework if detected
+    if (framework && framework !== 'none') {
+      const frameworkKey = this.getTemplateKey(reviewType, language, framework);
+      const frameworkTemplate = this.templates.get(frameworkKey);
+      if (frameworkTemplate) {
+        logger.warn(`Using framework-specific custom prompt template from file system: ${frameworkTemplate.path}`);
+        return await this.processPromptTemplate(frameworkTemplate.content, options);
+      }
+    }
 
     // Check if we have a custom template for this review type and language
     const key = this.getTemplateKey(reviewType, language);
@@ -438,11 +505,19 @@ export class PromptManager {
       promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', '');
     }
 
-    // Add language-specific instructions if available
+    // Add language and framework-specific instructions if available
     if (options?.language) {
+      let languageInstructions = `This code is written in ${options.language.toUpperCase()}.`;
+      
+      if (options?.framework && options.framework !== 'none') {
+        languageInstructions += ` It uses the ${options.framework.toUpperCase()} framework. Please provide framework-specific advice.`;
+      } else {
+        languageInstructions += ` Please provide language-specific advice.`;
+      }
+      
       promptTemplate = promptTemplate.replace(
         '{{LANGUAGE_INSTRUCTIONS}}',
-        `This code is written in ${options.language.toUpperCase()}. Please provide language-specific advice.`
+        languageInstructions
       );
     } else {
       promptTemplate = promptTemplate.replace('{{LANGUAGE_INSTRUCTIONS}}', '');

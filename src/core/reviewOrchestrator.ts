@@ -153,6 +153,51 @@ export async function orchestrateReview(
     // Log project information
     logger.info(`Project: ${projectName}`);
     logger.info(`Project path: ${projectPath}`);
+    
+    // Detect language and framework
+    let frameworkDetectionResult = null;
+    if (!options.language) {
+      try {
+        const { detectPrimaryLanguage, detectFramework } = await import('../utils/detection');
+        frameworkDetectionResult = await detectFramework(projectPath);
+        
+        if (frameworkDetectionResult) {
+          options.language = frameworkDetectionResult.language;
+          options.framework = frameworkDetectionResult.framework;
+          
+          if (frameworkDetectionResult.framework !== 'none' && frameworkDetectionResult.confidence > 0.6) {
+            logger.info(`Detected language: ${frameworkDetectionResult.language}, framework: ${frameworkDetectionResult.framework} (confidence: ${frameworkDetectionResult.confidence.toFixed(2)})`);
+            
+            if (frameworkDetectionResult.frameworkVersion) {
+              logger.info(`Framework version: ${frameworkDetectionResult.frameworkVersion}`);
+            }
+            
+            if (frameworkDetectionResult.additionalFrameworks && frameworkDetectionResult.additionalFrameworks.length > 0) {
+              logger.info(`Additional frameworks detected: ${frameworkDetectionResult.additionalFrameworks.join(', ')}`);
+            }
+            
+            if (frameworkDetectionResult.cssFrameworks && frameworkDetectionResult.cssFrameworks.length > 0) {
+              const cssFrameworksStr = frameworkDetectionResult.cssFrameworks.map(cf => 
+                cf.version ? `${cf.name} (${cf.version})` : cf.name
+              ).join(', ');
+              logger.info(`CSS frameworks detected: ${cssFrameworksStr}`);
+            }
+          } else {
+            logger.info(`Detected language: ${frameworkDetectionResult.language}, no specific framework detected`);
+            
+            // Still log CSS frameworks if detected
+            if (frameworkDetectionResult.cssFrameworks && frameworkDetectionResult.cssFrameworks.length > 0) {
+              const cssFrameworksStr = frameworkDetectionResult.cssFrameworks.map(cf => 
+                cf.version ? `${cf.name} (${cf.version})` : cf.name
+              ).join(', ');
+              logger.info(`CSS frameworks detected: ${cssFrameworksStr}`);
+            }
+          }
+        }
+      } catch (error) {
+        logger.debug(`Error detecting language/framework: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
 
     // Discover files to review
     const filesToReview = await discoverFiles(

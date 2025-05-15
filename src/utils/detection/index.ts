@@ -1,7 +1,9 @@
 /**
  * @fileoverview Detection utilities index.
  * 
- * This module exports all detection-related utilities.
+ * This module exports all detection-related utilities including project type 
+ * and framework detection.
  */
 
 export * from './projectTypeDetector';
+export * from './frameworkDetector';

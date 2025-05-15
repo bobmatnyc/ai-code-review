@@ -1,0 +1,115 @@
+---
+name: Python Performance Code Review
+description: Detailed performance review to identify bottlenecks and optimization opportunities in Python code
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: performance
+aliases:
+  - py-perf
+tags:
+  - performance
+  - optimization
+  - efficiency
+  - bottlenecks
+  - python
+language: python
+lastModified: '2025-05-15'
+---
+
+# 🧠 Python Performance Code Review
+
+Act as a **Python performance optimization expert with deep knowledge of runtime optimization**. Perform a detailed performance review on the following Python code. Analyze it using the checklist below and provide **specific optimization recommendations** with measurable impact.
+
+{{LANGUAGE_INSTRUCTIONS}}
+
+> **Context**: This is a performance-focused review to identify bottlenecks and optimization opportunities in Python code.
+
+---
+
+## ✅ Python Performance Evaluation Checklist
+
+### 🚀 Algorithmic Efficiency
+- Are there any inefficient algorithms or data structures?
+- Are there O(n²) or worse operations that could be optimized?
+- Are there opportunities for memoization or caching?
+- Could any recursive functions be rewritten iteratively?
+- Are there any unnecessary computations inside loops?
+
+### 🐍 Python-Specific Optimizations
+- Are there opportunities to use built-in functions or standard library modules?
+- Could list/dict/set comprehensions replace loops for better performance?
+- Are generator expressions used where appropriate to reduce memory usage?
+- Are appropriate data structures used (dict vs list for lookups, sets for membership tests)?
+- Are string operations optimized (avoiding + for concatenation in loops)?
+
+### 🔄 CPU-Bound Performance
+- Are there CPU-intensive operations that could be vectorized with NumPy?
+- Could multiprocessing be used for CPU-bound tasks?
+- Are there opportunities to use numba, Cython, or other acceleration techniques?
+- Could any code benefit from just-in-time compilation?
+
+### 🗄️ Data Management & I/O
+- Are there inefficient data transformations or manipulations?
+- Is data being loaded efficiently (streaming for large files, etc.)?
+- Are database queries optimized (if applicable)?
+- Is there proper use of lazy loading for large datasets?
+- Are file I/O operations batched appropriately?
+
+### 🔄 Asynchronous Operations
+- Could asyncio be used for I/O-bound operations?
+- Are promises and async/await used efficiently where applicable?
+- Are there opportunities for parallel processing?
+- Is there proper error handling for async operations?
+
+### 🧮 Memory Utilization
+- Are there memory leaks or unnecessary object retention?
+- Are large objects released when no longer needed?
+- Are there opportunities to use more memory-efficient data structures?
+- Could object pools or flyweight patterns reduce memory pressure?
+- Is there excessive use of in-memory data when streaming would be better?
+
+### 🔌 Library & Framework Usage
+- Are there inefficient uses of libraries/frameworks?
+- Are there better alternatives to current libraries for performance-critical parts?
+- Are there optimized configurations that could improve performance?
+- Are there batch processing opportunities with libraries?
+
+---
+
+## 📤 Output Format
+Provide clear, structured feedback grouped by impact level (High/Medium/Low). For each issue:
+
+1. **Executive Summary**: Overview of key performance findings and recommendations
+
+2. **High Impact Optimizations**: Performance issues with significant effects on execution time or resource usage
+   - **Performance Issue**: Description of the performance problem
+   - **Location**: File and line number(s)
+   - **Current Impact**: Estimated performance cost (with reasoning)
+   - **Suggested Optimization**: Code example showing a potential optimized solution
+   - **Expected Improvement**: Estimated performance gain
+   - **Measurement Strategy**: How to verify the improvement (e.g., using timeit, profilers, etc.)
+
+3. **Medium Impact Optimizations**: Issues that affect performance but have moderate impact
+
+4. **Low Impact Optimizations**: Minor performance concerns that could be addressed over time
+
+5. **Python-Specific Performance Recommendations**: Focus on Python language features and optimizations
+
+Example optimization:
+
+```python
+# BEFORE: Inefficient string concatenation in a loop
+result = ""
+for i in range(1000):
+    result += str(i)
+
+# AFTER: More efficient using join and comprehension
+result = "".join(str(i) for i in range(1000))
+
+# Performance impact: Up to 10x faster for large inputs
+# Measurement: Use timeit to compare both approaches with various input sizes
+```
+
+Focus on practical optimizations with significant impact. Include both quick wins and more substantial optimizations. Where possible, suggest ways to measure the performance impact of each change using Python-specific tools like timeit, cProfile, or line_profiler.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

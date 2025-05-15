@@ -113,6 +113,11 @@ export interface ReviewOptions {
    * Programming language for the code review
    */
   language?: ProgrammingLanguage;
+  
+  /**
+   * Framework detected or specified for the code review
+   */
+  framework?: string;
 
   /**
    * Whether to list available models based on configured API keys
@@ -224,6 +229,24 @@ export interface ReviewOptions {
    * Skip confirmation when multi-pass review is automatically enabled
    */
   noConfirm?: boolean;
+  
+  /**
+   * Whether this is a consolidation pass for a multi-pass review
+   * @internal
+   */
+  isConsolidation?: boolean;
+  
+  /**
+   * Whether to operate in consolidation mode (special prompt processing)
+   * @internal
+   */
+  consolidationMode?: boolean;
+  
+  /**
+   * Whether to skip file content in the review (for consolidation)
+   * @internal
+   */
+  skipFileContent?: boolean;
 }
 
 /**
@@ -375,6 +398,31 @@ export interface ReviewResult {
    * The model used to generate the review
    */
   modelUsed?: string;
+
+  /**
+   * Name of the project being reviewed
+   */
+  projectName?: string;
+
+  /**
+   * Detected language for the project
+   */
+  detectedLanguage?: string;
+  
+  /**
+   * Detected framework for the project
+   */
+  detectedFramework?: string;
+  
+  /**
+   * Detected framework version
+   */
+  frameworkVersion?: string;
+  
+  /**
+   * Detected CSS frameworks
+   */
+  cssFrameworks?: Array<{ name: string; version?: string }>;
 
   /**
    * Structured review data (if available)

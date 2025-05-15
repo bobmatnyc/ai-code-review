@@ -72,4 +72,12 @@ fix-*.md
 force-*.sh
 
 **/.claude/settings.local.json
-test-projects/typescript
+# Keep test projects for framework detection but ignore generated output
+test-projects/**/node_modules/
+test-projects/**/.cache/
+test-projects/**/dist/
+test-projects/**/build/
+test-projects/**/.env
+test-projects/**/__pycache__/
+test-projects/**/*.pyc
+test-projects/**/vendor/

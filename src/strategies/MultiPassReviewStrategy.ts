@@ -413,220 +413,22 @@ This review used a multi-pass approach with context maintenance between passes t
         throw new Error('API client configuration is incomplete for consolidation');
       }
       
-      // Extract information about the passes
-      const passCount = multiPassResult.totalPasses || 1;
+      // Set the project name in the result for use in consolidation
+      multiPassResult.projectName = projectName;
       
-      // Create a prompt for consolidation
-      const consolidationSystemPrompt = `You are an expert code reviewer tasked with creating a consolidated final report from a multi-pass review. 
+      // Use the consolidated review utility for consistent consolidation
+      // This reuses the same model/client that was used for the original review
+      logger.info('Using consolidateReview utility to generate final report with grading...');
       
-The review was conducted in ${passCount} passes due to the large size of the codebase. 
-
-Your task is to:
-1. Analyze all the findings from each pass
-2. Create a unified, coherent final report that consolidates all the insights
-3. Eliminate redundancy and duplication
-4. Prioritize the most important findings
-5. Provide a comprehensive grade for the code, based on the following criteria:
-
-## Grading System
-Assign an overall letter grade (A+ to F) to the codebase, where:
-- A+ to A-: Exceptional code with minimal issues
-- B+ to B-: Good code with some minor improvements needed
-- C+ to C-: Average code with several issues that should be addressed
-- D+ to D-: Problematic code with significant issues requiring attention
-- F: Critical issues that make the code unsuitable for production
-
-Include plus (+) or minus (-) modifiers to provide more granular assessment.
-
-For each major area (maintainability, performance, security, etc.), also provide a specific grade.
-
-Explain your grading rationale clearly, citing specific evidence from the review.
-
-## Output Format
-
-Structure your consolidated report with these sections:
-1. **Executive Summary**: Brief overview and overall grade
-2. **Grading Breakdown**: Detailed grades by category with justification
-3. **Critical Issues**: Most important problems to address (prioritized)
-4. **Strengths**: Areas where the code excels
-5. **Detailed Findings**: Consolidated findings across all passes
-6. **Recommendations**: Actionable next steps, prioritized
-
-Make this report comprehensive but focused on high-value insights. Be specific and actionable in your recommendations.`;
-
-      // Create a consolidated prompt that includes the multi-pass results
-      const consolidationPrompt = `I have conducted a multi-pass code review of a project named "${projectName}" using the "${this.reviewType}" review type. The review was split into ${passCount} passes due to the size of the codebase.
-
-Here are the results from all passes:
-
-${multiPassResult.content}
-
-Please create a unified, consolidated report that:
-1. Combines all findings into a cohesive analysis
-2. Eliminates redundancy
-3. Prioritizes issues by importance
-4. Provides a comprehensive grade for the code quality
-5. Maintains all the valuable insights from each pass
-
-Remember to use the grading system as described in your instructions.`;
-
+      // Import the consolidateReview utility dynamically
+      const { consolidateReview } = await import('../utils/review/consolidateReview');
+      
       // Generate the consolidated report
-      logger.info('Sending multi-pass results to AI for final consolidation and grading...');
+      const consolidatedContent = await consolidateReview(multiPassResult);
       
-      // Different models might have different ways of handling this consolidation
-      let consolidatedContent: string;
-      
-      // Handle each provider differently if needed
-      if (apiClientConfig.provider === 'anthropic') {
-        // For Claude models - use Anthropic API
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiClientConfig.apiKey}`,
-            'anthropic-version': '2023-06-01',
-            'anthropic-beta': 'messages-2023-12-15'
-          },
-          body: JSON.stringify({
-            model: apiClientConfig.modelName,
-            system: consolidationSystemPrompt,
-            messages: [{ role: 'user', content: consolidationPrompt }],
-            max_tokens: 4000
-          })
-        });
-        
-        // Process the response
-        const responseData = await response.json();
-        consolidatedContent = responseData.content?.[0]?.text || '';
-        
-      } else if (apiClientConfig.provider === 'openai') {
-        // For OpenAI models - use OpenAI API
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiClientConfig.apiKey}`
-          },
-          body: JSON.stringify({
-            model: apiClientConfig.modelName,
-            messages: [
-              { role: 'system', content: consolidationSystemPrompt },
-              { role: 'user', content: consolidationPrompt }
-            ],
-            temperature: 0.2,
-            max_tokens: 4000
-          })
-        });
-        
-        // Process the response
-        const responseData = await response.json();
-        consolidatedContent = responseData.choices?.[0]?.message?.content || '';
-        
-      } else if (apiClientConfig.provider === 'openrouter') {
-        // For OpenRouter - use OpenRouter API
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiClientConfig.apiKey}`,
-            'HTTP-Referer': 'https://ai-code-review-tool.local',
-            'X-Title': 'AI Code Review Multi-Pass Consolidation'
-          },
-          body: JSON.stringify({
-            model: apiClientConfig.modelName,
-            messages: [
-              { role: 'system', content: consolidationSystemPrompt },
-              { role: 'user', content: consolidationPrompt }
-            ],
-            temperature: 0.2,
-            max_tokens: 4000
-          })
-        });
-        
-        // Process the response
-        const responseData = await response.json();
-        consolidatedContent = responseData.choices?.[0]?.message?.content || '';
-        
-      } else if (apiClientConfig.provider === 'gemini') {
-        try {
-          // For Gemini, we need to use the Google AI SDK
-          // Dynamically import the Google AI SDK to avoid dependency issues
-          logger.debug('Importing Google AI SDK for Gemini consolidation...');
-          const { GoogleGenerativeAI } = await import('@google/generative-ai');
-          
-          // Get the API model name from the model mapping
-          logger.debug('Getting model mapping for Gemini model...');
-          const { getModelMapping } = await import('../clients/utils/modelMaps');
-          const fullModelKey = `gemini:${apiClientConfig.modelName}`;
-          const modelMapping = getModelMapping(fullModelKey);
-          const modelId = modelMapping?.apiIdentifier || apiClientConfig.modelName;
-          
-          logger.info(`Using Gemini model for consolidation: ${modelId}`);
-          
-          if (!apiClientConfig.apiKey) {
-            throw new Error('Missing API key for Gemini consolidation');
-          }
-          
-          // Initialize the Google AI client with detailed error reporting
-          logger.debug('Initializing Google AI client...');
-          const genAI = new GoogleGenerativeAI(apiClientConfig.apiKey);
-          
-          // Create options for the generative model
-          logger.debug(`Creating generative model with ID: ${modelId}`);
-          const modelOptions = { 
-            model: modelId
-          };
-          const model = genAI.getGenerativeModel(modelOptions);
-          
-          // Log the content size for debugging
-          logger.debug(`Consolidation prompt size: ${consolidationPrompt.length} characters`);
-          
-          // Generate content with better error handling
-          logger.debug('Sending consolidation request to Gemini API...');
-          const result = await model.generateContent({
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: `${consolidationSystemPrompt}\n\n${consolidationPrompt}` }]
-              }
-            ],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 8000  // Increased token limit for larger consolidations
-            }
-          });
-          
-          // Check for empty or error responses
-          if (!result || !result.response) {
-            throw new Error('Received empty or invalid response from Gemini API');
-          }
-          
-          // Get the response text with additional validation
-          const responseText = result.response.text();
-          if (!responseText || responseText.trim() === '') {
-            throw new Error('Received empty text from Gemini API response');
-          }
-          
-          logger.debug('Successfully received response from Gemini API');
-          consolidatedContent = responseText;
-        } catch (error) {
-          logger.error(`Error using Gemini API for consolidation: ${error instanceof Error ? error.message : String(error)}`);
-          logger.error('Make sure your model mapping in modelMaps.ts has the correct API identifier');
-          logger.error('Falling back to simple consolidation without AI assistance');
-          
-          // Instead of returning undefined (which skips consolidation entirely),
-          // create a basic consolidation from the multi-pass results
-          consolidatedContent = this.createFallbackConsolidation(multiPassResult, apiClientConfig.modelName);
-        }
-      } else {
-        // Fallback for other providers
-        logger.warn(`Consolidation not supported for provider: ${apiClientConfig.provider}`);
-        return undefined;
-      }
-      
-      // If we didn't get any content, return undefined
+      // If the consolidation failed (empty content), return undefined
       if (!consolidatedContent || consolidatedContent.trim() === '') {
-        logger.warn('Received empty consolidated content from API');
+        logger.warn('Received empty consolidated content');
         return undefined;
       }
       
@@ -636,7 +438,7 @@ Remember to use the grading system as described in your instructions.`;
       try {
         const { getCostInfoFromText } = await import('../clients/utils/tokenCounter');
         const consolidationCost = getCostInfoFromText(
-          consolidationPrompt, 
+          multiPassResult.content, 
           consolidatedContent, 
           `${apiClientConfig.provider}:${apiClientConfig.modelName}`
         );

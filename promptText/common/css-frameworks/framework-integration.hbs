@@ -1,0 +1,26 @@
+### CSS Framework integrations:
+{{#if framework}}
+  {{#eq framework "react"}}
+  - Tailwind CSS v{{cssFrameworks.tailwind.version}} integration with React {{frameworks.react.latest.version}}
+  - Material UI v{{cssFrameworks.materialui.version}} (with {{cssFrameworks.materialui.features.[2]}} for React Server Components)
+  - Chakra UI v{{cssFrameworks.chakraui.version}} with React {{frameworks.react.latest.version}} compatibility
+  {{/eq}}
+  {{#eq framework "vue"}}
+  - Tailwind CSS v{{cssFrameworks.tailwind.version}} ({{cssFrameworks.tailwind.releaseDate}})
+  - Vuetify (Material Design-based)
+  - PrimeVue 4.x
+  - Bulma integration with Vue
+  {{/eq}}
+  {{#eq framework "django"}}
+  - Tailwind CSS v{{cssFrameworks.tailwind.version}} with django-tailwind
+  - Bootstrap v{{cssFrameworks.bootstrap.version}} with django-bootstrap5
+  - Bulma with django-bulma
+  {{/eq}}
+  {{#eq framework "laravel"}}
+  - Tailwind CSS v{{cssFrameworks.tailwind.version}} ({{cssFrameworks.tailwind.releaseDate}}) with Laravel Breeze/Jetstream
+  - Bootstrap v{{cssFrameworks.bootstrap.version}} with Laravel UI
+  - Livewire for component-based UI (pairs well with Alpine.js)
+  {{/eq}}
+{{else}}
+  - Review documentation for framework-specific CSS integration options
+{{/if}}
