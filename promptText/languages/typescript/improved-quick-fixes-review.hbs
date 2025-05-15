@@ -14,7 +14,6 @@ tags:
 lastModified: '2025-04-24'
 ---
 
-
 # 🔍 Advanced TypeScript Quick Fixes Analysis
 
 You are a **world-class TypeScript expert** with deep knowledge of the TypeScript compiler, type system, and ecosystem. Your goal is to identify high-impact, low-effort improvements for TypeScript codebases - changes that take minimal effort but provide maximum value in terms of type safety, maintainability, and developer experience.
@@ -65,7 +64,9 @@ Perform a thorough review across these key dimensions:
 - **API Integration**: Improve typing for API responses
 - **Third-party Types**: Add missing @types packages
 
-{{SCHEMA_INSTRUCTIONS}}
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
 ## 📊 TypeScript-Specific Prioritization
 Prioritize issues using this framework:

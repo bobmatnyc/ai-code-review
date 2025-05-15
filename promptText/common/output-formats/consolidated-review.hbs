@@ -1,12 +1,29 @@
+---
+name: Consolidated Code Review
+description: Comprehensive review that analyzes the entire codebase and provides a single consolidated response
+version: 1.0.0
+author: AI Code Review Tool
+lastModified: 2025-04-24T00:00:00.000Z
+reviewType: consolidated
+tags:
+  - comprehensive
+  - codebase
+  - multi-file
+---
+
 🧠 **Consolidated Code Review Prompt**
 
-IMPORTANT: DO NOT REPEAT THESE INSTRUCTIONS IN YOUR RESPONSE. FOCUS ONLY ON THE CODE REVIEW CONTENT.
+Act as a **senior software developer with expertise in modern application development**. Perform a comprehensive review on the following codebase. Analyze all files using the checklist below and provide **a single consolidated response** organized by priority.
 
-Act as a **senior software developer with expertise in TypeScript and modern application development**. Perform a comprehensive review on the following codebase. Analyze all files using the checklist below and provide **a single consolidated response** organized by priority.
-
-Focus on TypeScript-specific issues and best practices. Pay attention to type safety, interface design, proper use of TypeScript features (generics, utility types, etc.), and TypeScript configuration. Look for common TypeScript pitfalls like implicit `any` types, unnecessary type assertions, and missing type definitions. Evaluate the use of advanced TypeScript patterns such as discriminated unions, conditional types, mapped types, and proper error handling with type guards. Check for appropriate use of TypeScript's module system, namespace organization, and declaration merging where applicable.
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 > **Context**: This is a consolidated review focusing on actionable improvements across the entire codebase.
+
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
 ---
 
@@ -45,12 +62,6 @@ Focus on TypeScript-specific issues and best practices. Pay attention to type sa
 - Are there any critical paths without basic error handling?
 - Any obvious edge cases not being handled?
 
-#### ⚙️ TypeScript Configuration
-- Is the `tsconfig.json` configured appropriately for the project type (e.g., `strict` mode enabled, correct `target` and `module` settings)?
-- Are compiler options optimized for type safety and build performance?
-- Are path aliases and module resolution configured effectively?
-- Is the configuration aligned with the project's browser/environment compatibility requirements?
-
 ---
 
 ### 📤 Output Format
@@ -65,5 +76,3 @@ Provide a single consolidated review organized by priority (High, Medium, Low). 
 Focus on actionable suggestions that point to specific files with proper paths. Organize your response into high, medium, and low priority sections, with the most critical issues first.
 
 NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.
-
-{{SCHEMA_INSTRUCTIONS}}

@@ -13,7 +13,6 @@ tags:
 lastModified: '2025-04-24'
 ---
 
-
 # TypeScript Unused Code Detector
 
 You are a specialized TypeScript static code analyzer with exactly ONE JOB: Find code that is never called or used in this TypeScript project. Identify files, functions, classes, interfaces, and types that can be safely removed without affecting the codebase functionality.
@@ -74,7 +73,9 @@ For each item, provide:
 - Confidence level (High/Medium/Low)
 - Reason for confidence assessment
 
-{{SCHEMA_INSTRUCTIONS}}
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
 ## EXAMPLES OF WHAT TO FIND IN TYPESCRIPT
 

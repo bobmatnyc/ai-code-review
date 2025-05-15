@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { ReviewType } from '../../types/review';
 import { loadPromptTemplate, listAvailableTemplates } from './templateLoader';
-import { logger } from '../logger';
+import logger from '../logger';
 
 /**
  * Maps framework identifiers from the API to template directory names
@@ -42,16 +42,18 @@ const languageMapping: Record<string, string> = {
  * Maps ReviewType enum to template file names
  */
 const reviewTypeMapping: Record<string, string> = {
-  [ReviewType.ARCHITECTURAL]: 'architectural-review',
-  [ReviewType.BEST_PRACTICES]: 'best-practices',
-  [ReviewType.QUICK_FIXES]: 'quick-fixes-review',
-  [ReviewType.SECURITY]: 'security-review',
-  [ReviewType.PERFORMANCE]: 'performance-review',
-  [ReviewType.UNUSED_CODE]: 'unused-code-review',
-  [ReviewType.CODE_TRACING_UNUSED_CODE]: 'code-tracing-unused-code-review',
-  [ReviewType.FOCUSED_UNUSED_CODE]: 'focused-unused-code-review',
-  [ReviewType.IMPROVED_UNUSED_CODE]: 'improved-unused-code-review',
-  [ReviewType.CONSOLIDATED]: 'consolidated-review'
+  'architectural': 'architectural-review',
+  'best-practices': 'best-practices',
+  'quick-fixes': 'quick-fixes-review',
+  'security': 'security-review',
+  'performance': 'performance-review',
+  'unused-code': 'unused-code-review',
+  'code-tracing-unused-code': 'code-tracing-unused-code-review',
+  'focused-unused-code': 'focused-unused-code-review',
+  'improved-unused-code': 'improved-unused-code-review',
+  'consolidated': 'consolidated-review',
+  // Add mapping for improved quick fixes
+  'improved-quick-fixes': 'improved-quick-fixes-review'
 };
 
 /**
@@ -63,14 +65,17 @@ const reviewTypeMapping: Record<string, string> = {
  * @returns The prompt template string or undefined if not found
  */
 export function getPromptTemplate(
-  reviewType: ReviewType, 
+  reviewType: ReviewType | string, 
   language?: string,
   framework?: string
 ): string | undefined {
+  // Convert ReviewType enum to string if needed
+  const reviewTypeStr = typeof reviewType === 'string' ? reviewType : String(reviewType).toLowerCase();
+  
   // Map review type to template file name
-  const templateName = reviewTypeMapping[reviewType];
+  const templateName = reviewTypeMapping[reviewTypeStr];
   if (!templateName) {
-    logger.error(`No template mapping found for review type: ${reviewType}`);
+    logger.error(`No template mapping found for review type: ${reviewTypeStr}`);
     return undefined;
   }
   

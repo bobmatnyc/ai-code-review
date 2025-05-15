@@ -100,6 +100,7 @@
     "@types/babel__core": "^7",
     "@types/babel__preset-env": "^7",
     "@types/dompurify": "^3.0.5",
+    "@types/handlebars": "^4.1.0",
     "@types/jest": "^29.5.14",
     "@types/jsdom": "^21.1.7",
     "@types/markdown-it": "^13.0.7",
