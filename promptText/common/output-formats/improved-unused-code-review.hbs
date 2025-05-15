@@ -17,7 +17,9 @@ tags:
 
 You are a **world-class static code analyzer** with deep expertise in detecting unused, redundant, and dead code. Your primary mission is to identify entire files and complete functions that are never used or called in the codebase so they can be safely removed. Focus on finding complete elements like files, functions, classes and modules that can be entirely deleted.
 
-{{LANGUAGE_INSTRUCTIONS}}
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 ## Project Context
 
@@ -80,7 +82,9 @@ Perform a comprehensive multi-stage analysis focused on finding complete, remova
 - **Experimental features**: Incomplete or deprecated experiments
 - **Old API versions**: Deprecated API endpoints or handlers
 
-{{SCHEMA_INSTRUCTIONS}}
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
 ## 🛠️ Provide Analysis Steps and Tools
 For each identified issue, include:

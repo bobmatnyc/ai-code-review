@@ -8,7 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import Handlebars from 'handlebars';
-import { logger } from '../logger';
+import logger from '../logger';
 
 // Define the base path for templates
 const TEMPLATES_DIR = path.resolve(process.cwd(), 'promptText');
@@ -61,7 +61,7 @@ const templateCache: Record<string, HandlebarsTemplateDelegate> = {};
  */
 function initializeHandlebars(): void {
   // Register comparison helper
-  Handlebars.registerHelper('eq', function(arg1, arg2, options) {
+  Handlebars.registerHelper('eq', function(this: any, arg1: any, arg2: any, options: any) {
     return (arg1 === arg2) ? options.fn(this) : options.inverse(this);
   });
 
