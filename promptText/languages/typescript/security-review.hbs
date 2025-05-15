@@ -19,7 +19,9 @@ lastModified: '2025-05-15'
 
 Act as a **security engineer with expertise in application security and TypeScript**. Perform a comprehensive security review on the following code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
 
-{{LANGUAGE_INSTRUCTIONS}}
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 > **Context**: This is a security-focused review to identify TypeScript-specific vulnerabilities and security best practice violations. Pay special attention to type safety issues that could lead to security vulnerabilities, and how TypeScript's type system can be leveraged to enhance security.
 

@@ -19,11 +19,15 @@ lastModified: '2025-05-15'
 
 Act as a **PHP code cleanup expert with deep knowledge of static analysis**. Perform a detailed unused code review on the following PHP code. Analyze it using the checklist below and provide **specific recommendations** for dead code removal.
 
-{{LANGUAGE_INSTRUCTIONS}}
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 > **Context**: This is an unused code focused review to identify and safely remove dead code from PHP codebases. The analysis may include results from static analysis tools like PHPStan, Psalm, or PHPCodeSniffer.
 
-{{SCHEMA_INSTRUCTIONS}}
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
 ---
 

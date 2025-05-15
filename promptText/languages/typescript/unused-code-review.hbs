@@ -19,7 +19,9 @@ lastModified: '2025-05-15'
 
 Act as a **TypeScript code cleanup expert with deep knowledge of static analysis**. Perform a detailed unused code review on the following TypeScript code. Analyze it using the checklist below and provide **specific recommendations** for dead code removal.
 
-{{LANGUAGE_INSTRUCTIONS}}
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 > **Context**: This is an unused code focused review to identify and safely remove dead code in TypeScript projects, with special attention to TypeScript-specific elements like interfaces, types, type guards, and generics.
 

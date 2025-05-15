@@ -21,7 +21,9 @@ lastModified: '2025-05-15'
 
 Act as an **expert software engineer specializing in Python web applications**. Perform a comprehensive review on the following Python codebase. Analyze it using the checklist below. Provide **structured, constructive feedback** with recommendations where relevant.
 
-{{LANGUAGE_INSTRUCTIONS}}
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 > **Context**: This is a best practices review focusing on Python web application structure, framework usage, code quality, and overall architecture. The review examines how effectively the codebase implements modern Python patterns and follows best practices. For each issue identified, provide a brief description, why it matters, specific actionable recommendation with a code example, and priority level.
 

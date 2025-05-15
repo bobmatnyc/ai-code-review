@@ -18,7 +18,9 @@ lastModified: '2025-05-15'
 
 Act as a **security engineer with expertise in Python application security**. Perform a comprehensive security review on the following Python code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
 
-{{LANGUAGE_INSTRUCTIONS}}
+{{#if languageInstructions}}
+{{{languageInstructions}}}
+{{/if}}
 
 > **Context**: This is a security-focused review to identify vulnerabilities and security best practice violations in Python code.
 
