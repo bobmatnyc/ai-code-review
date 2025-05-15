@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.4] - 2025-05-15
+
+### Added
+- Added AI-powered dependency analysis for architectural reviews
+- Implemented project structure and import/export analysis without external dependencies
+- Added detailed directory and package.json analysis for architectural insights
+- Added framework detection and framework-specific best practices templates
+- Added version and package recommendation support for different frameworks
+- Added language and framework auto-detection with confidence scoring
+- Added CSS framework detection (TailwindCSS, Bootstrap, Material UI, etc.)
+- Added framework version detection from package.json, composer.json, etc.
+- Added support for framework-specific prompt fragments in reviews
+- Added detected frameworks and versions in review metadata section
+- Added unit tests for CSS framework detection
+- Updated all framework best practices prompts with latest version information
+- Added version-specific best practices for both latest and previous supported versions
+- Added CSS framework information with version numbers (Tailwind CSS v4.0, Bootstrap v5.3.6, Material UI v7.0.0, Chakra UI v3.18.0, etc.)
+- Added framework-specific CSS integration recommendations
+
+### Changed
+- Removed dependency on dependency-cruiser for architectural reviews
+- Implemented AI-based approach for analyzing project dependencies and structure
+- Enhanced dependency analysis to work without requiring external tools
+- Enhanced prompt system to prioritize framework-specific templates when available
+- Improved review output to include framework detection information
+
+### Fixed
+- Fixed installation issues caused by dependency-cruiser conflicts
+- Removed potential NPM dependency conflicts during installation
+
+## [3.0.3] - 2025-05-15
+
+### Fixed
+- Fixed metadata display in multi-pass review consolidation
+- Added missing model information in review headers and metadata section
+- Improved fallback mechanism for multi-pass review consolidation
+- Enhanced error handling and logging for Gemini API consolidation
+- Fixed "Model: AI" placeholder with actual model provider information
+
 ## [3.0.2] - 2025-05-15
 
 ### Added

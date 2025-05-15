@@ -1,0 +1,138 @@
+---
+name: Ruby Unused Code Review
+description: Identifies unused or dead code in Ruby/Rails projects, focusing on methods, classes, and dependencies
+version: 1.0.0
+author: AI Code Review Team
+reviewType: unused-code
+aliases:
+  - ruby-unused
+language: ruby
+tags:
+  - maintenance
+  - cleanup
+  - ruby
+  - rails
+lastModified: '2025-05-15'
+---
+
+# 🧠 Ruby/Rails Unused Code Review
+
+As an expert Ruby and Ruby on Rails developer, please conduct a thorough review to identify unused or dead code in the provided Ruby/Rails codebase. Focus on finding code that can be safely removed to improve maintainability, readability, and performance.
+
+{{LANGUAGE_INSTRUCTIONS}}
+
+---
+
+## ✅ Ruby/Rails Unused Code Evaluation Checklist
+
+### 🗑️ Unused Methods and Classes
+- Identify methods that are never called
+- Find classes that are not instantiated or extended
+- Look for modules that are never included or extended
+- Identify constants that are never referenced
+- Check for methods that are always overridden
+- Find classes with no public methods that are ever called
+
+### 🧰 Rails-Specific Unused Elements
+- Identify unused routes in `config/routes.rb`
+- Find controller actions that are not mapped to routes
+- Look for unused views or partial templates
+- Identify unused helpers or concerns
+- Check for unused model scopes or validations
+- Find unused ActiveRecord callbacks
+- Identify unused ActiveJob classes
+
+### 🛑 Dead Code Patterns
+- Find code branches that can never be executed
+- Identify redundant conditions
+- Look for code after unconditional returns
+- Check for variables that are set but never used
+- Find duplicate code implementations
+- Identify commented-out code that should be removed
+
+### 📦 Unused Dependencies
+- Check for gem dependencies that are not used
+- Find `require` statements for files that are never used
+- Identify unnecessary Rails engines or plugins
+- Look for unused JavaScript or CSS libraries
+- Check for unnecessary Rails middleware
+- Find unused initializers
+
+### 💾 Database-Related Dead Code
+- Identify unused database columns in models
+- Look for migrations that could be consolidated
+- Find unused database indexes
+- Check for unused foreign keys or constraints
+- Identify unused or redundant database queries
+
+---
+
+## 📤 Output Format
+
+1. **Executive Summary**: Brief overview of the unused code analysis, including statistics on potentially removable code and expected benefits
+
+2. **Unused Code by Confidence Level**:
+
+   ### High Confidence Unused Code
+   Code that is definitely unused and can be safely removed
+   - **Unused Code Issue**: Description of the unused code
+   - **Location**: File and line number(s)
+   - **Type**: Method, class, route, etc.
+   - **Evidence**: Explanation of why it's unused
+   - **Suggested Action**: Clear recommendation for removal
+   - **Risk Level**: Potential impact of removing this code (Low/Medium/High)
+
+   ### Medium Confidence Unused Code
+   Code that appears unused but requires verification
+   - **Unused Code Issue**: Description of the potentially unused code
+   - **Location**: File and line number(s)
+   - **Evidence**: Explanation of why it might be unused
+   - **Verification Steps**: Suggested approach to verify if truly unused
+   - **Suggested Action**: Recommendation if verified as unused
+
+   ### Low Confidence Unused Code
+   Code that shows signs of being unused but requires careful analysis
+   - **Unused Code Issue**: Description of the suspected unused code
+   - **Location**: File and line number(s)
+   - **Reasons for Suspicion**: Why this code might be unused
+   - **External Dependencies**: Potential external callers to check
+   - **Verification Approach**: Suggested methods to confirm
+
+3. **Ruby/Rails-Specific Unused Code**: Focused section on Ruby/Rails-specific elements
+
+Example report for unused code:
+
+```ruby
+# UNUSED METHOD: This method is never called from anywhere in the codebase
+# Location: app/models/user.rb:45-50
+def calculate_profile_score
+  # Method implementation...
+end
+
+# VERIFICATION: Searched for all references to "calculate_profile_score" in the codebase
+# with no results. The method is not called via metaprogramming or reflection.
+# No public API exposes this method.
+
+# RECOMMENDATION: Remove this method as it's not being used and maintaining it 
+# creates unnecessary cognitive load.
+```
+
+## Ruby/Rails-Specific Unused Code Considerations
+
+### Ruby Language Features
+- Check for methods defined with `method_missing` that might appear unused
+- Consider `const_missing` and other metaprogramming techniques
+- Be careful with modules that might be included dynamically
+- Look for methods that might be called through reflection (`send`, `public_send`)
+- Consider singleton methods that might appear unused
+
+### Rails Framework Considerations
+- Be cautious with controllers that might be accessed through non-standard routes
+- Check for view helpers that might be used indirectly
+- Consider Rails' convention-based method calling
+- Be careful with methods that might be called through ActiveSupport callbacks
+- Check for serializers or decorators that might appear unused
+
+For each piece of identified unused code, provide evidence as to why you believe it's unused, and always consider the possibility of dynamic method calls or external references.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

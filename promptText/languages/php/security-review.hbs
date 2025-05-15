@@ -1,0 +1,115 @@
+---
+name: PHP Security Code Review
+description: Comprehensive security review to identify vulnerabilities and security best practice violations in PHP code
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: security
+aliases:
+  - php-sec
+tags:
+  - security
+  - vulnerabilities
+  - php
+language: php
+lastModified: '2025-05-15'
+---
+
+# 🧠 PHP Security Code Review
+
+Act as a **security engineer with expertise in PHP application security**. Perform a comprehensive security review on the following PHP code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
+
+{{LANGUAGE_INSTRUCTIONS}}
+
+> **Context**: This is a security-focused review to identify vulnerabilities and security best practice violations in PHP code.
+
+---
+
+## ✅ PHP Security Evaluation Checklist
+
+### 🔐 Authentication & Authorization
+- Are authentication mechanisms implemented securely?
+- Is authorization properly enforced at all levels?
+- Are there any privilege escalation vulnerabilities?
+- Is session management implemented securely (session_start, session variables)?
+- Are password hashing functions secure (password_hash vs md5/sha1)?
+
+### 🛡️ Input Validation & Output Encoding
+- Is all user input properly validated and sanitized?
+- Are there potential injection vulnerabilities (SQL, Command, etc.)?
+- Is output properly encoded to prevent XSS (htmlspecialchars, etc.)?
+- Are there insecure uses of eval(), shell_exec(), system(), etc.?
+- Are file uploads handled securely?
+
+### 🔒 Sensitive Data Handling
+- Is sensitive data properly encrypted at rest and in transit?
+- Are there any hardcoded secrets, API keys, or credentials?
+- Is PII handled according to best practices?
+- Are proper hashing algorithms used for passwords?
+- Is there proper implementation of encryption functions?
+
+### 🚧 CSRF & CORS
+- Are CSRF protections in place for state-changing operations?
+- Is CORS configured securely?
+- Are security headers properly implemented?
+- Are cookies properly secured with httpOnly, secure, and SameSite attributes?
+
+### 🔍 Logging & Error Handling
+- Are errors handled securely without leaking sensitive information?
+- Is error_reporting properly configured in production?
+- Is logging implemented without capturing sensitive data?
+- Are there appropriate audit logs for security-relevant events?
+
+### 🧰 Dependency Security
+- Are there any known vulnerabilities in dependencies (Composer packages)?
+- Is there a process for updating dependencies with security fixes?
+- Are there any insecure third-party libraries?
+
+### 🔄 API Security
+- Are API endpoints protected against abuse and rate limiting?
+- Is proper authentication enforced for all API calls?
+- Are there any insecure direct object references?
+- Is appropriate input validation performed on API parameters?
+
+### 🐘 PHP-Specific Security Issues
+- Are there any uses of insecure PHP functions (extract, parse_str without arguments)?
+- Is register_globals disabled?
+- Are file permissions set properly?
+- Is there proper handling of file inclusion (require/include)?
+- Are there any insecure deserialization vulnerabilities (unserialize)?
+- Are $_SERVER, $_GET, $_POST variables used safely?
+
+---
+
+## 📤 Output Format
+Provide clear, structured feedback using a standard vulnerability reporting format:
+
+1. **Executive Summary**: Brief overview of the security posture with key findings
+
+2. **Vulnerability Findings**: For each security issue:
+   - **Finding**: Title of the security issue
+   - **Severity**: Critical/High/Medium/Low/Informational
+   - **Location**: File and line number(s)
+   - **Description**: Detailed explanation of the vulnerability
+   - **Impact**: What could happen if exploited
+   - **Suggested Remediation**: Specific steps to fix the issue with code examples
+   - **References**: Links to relevant security standards or documentation
+
+3. **PHP-Specific Security Recommendations**: A section focused on PHP-specific security improvements
+
+Example remediation for a SQL injection vulnerability:
+
+```php
+// INSECURE: Direct concatenation of user input
+$query = "SELECT * FROM users WHERE username = '" . $_POST['username'] . "'";
+$result = $mysqli->query($query);
+
+// SECURE: Using prepared statements
+$stmt = $mysqli->prepare("SELECT * FROM users WHERE username = ?");
+$stmt->bind_param("s", $_POST['username']);
+$stmt->execute();
+$result = $stmt->get_result();
+```
+
+Focus on actionable security findings with clear remediation steps. Prioritize findings by severity, with special attention to PHP-specific vulnerabilities like insecure deserialization, file inclusion issues, and dangerous function usage.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

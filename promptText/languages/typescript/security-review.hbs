@@ -1,0 +1,129 @@
+---
+name: TypeScript Security Review
+description: Security review prompt optimized for TypeScript codebases
+version: 1.0.0
+author: AI Code Review Tool
+language: typescript
+reviewType: security
+aliases:
+  - ts-sec
+tags:
+  - typescript
+  - security
+  - vulnerabilities
+  - secure-coding
+lastModified: '2025-05-15'
+---
+
+# 🧠 TypeScript Security Code Review
+
+Act as a **security engineer with expertise in application security and TypeScript**. Perform a comprehensive security review on the following code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
+
+{{LANGUAGE_INSTRUCTIONS}}
+
+> **Context**: This is a security-focused review to identify TypeScript-specific vulnerabilities and security best practice violations. Pay special attention to type safety issues that could lead to security vulnerabilities, and how TypeScript's type system can be leveraged to enhance security.
+
+---
+
+## ✅ TypeScript Security Evaluation Checklist
+
+### 🛡️ TypeScript-Specific Security Concerns
+- Are there insecure uses of `any` type that bypass type checking?
+- Are type assertions (`as` casts) used safely without introducing vulnerabilities?
+- Are there instances of `@ts-ignore` or `@ts-nocheck` that might hide security issues?
+- Is TypeScript's strict mode properly configured (`strictNullChecks`, `noImplicitAny`)?
+- Are there unsafe uses of `unknown` or `never` types?
+- Are tagged unions and discriminated types used for state validation where appropriate?
+
+### 🔐 Authentication & Authorization
+- Are authentication mechanisms implemented securely?
+- Is authorization properly enforced at all levels?
+- Are there any privilege escalation vulnerabilities?
+- Is session management implemented securely?
+- Are authentication tokens properly typed and validated?
+
+### 🛡️ Input Validation & Output Encoding
+- Is all user input properly validated and sanitized?
+- Are there potential injection vulnerabilities (SQL, NoSQL, Command, etc.)?
+- Is output properly encoded to prevent XSS?
+- Are file uploads handled securely?
+- Are validation libraries like Zod or io-ts used properly?
+
+### 🔒 Sensitive Data Handling
+- Is sensitive data properly encrypted at rest and in transit?
+- Are there any hardcoded secrets, API keys, or credentials?
+- Is PII handled according to best practices?
+- Are proper hashing algorithms used for passwords?
+- Are environment variables properly typed and accessed securely?
+
+### 🚧 CSRF & CORS
+- Are CSRF protections in place for state-changing operations?
+- Is CORS configured securely?
+- Are security headers properly implemented?
+- Are HTTP requests properly typed with appropriate security checks?
+
+### 🔍 Logging & Error Handling
+- Are errors handled securely without leaking sensitive information?
+- Is logging implemented without capturing sensitive data?
+- Are there appropriate audit logs for security-relevant events?
+- Are error types properly defined and handled?
+
+### 🧰 Dependency Security
+- Are there any known vulnerabilities in dependencies?
+- Is there a process for updating dependencies with security fixes?
+- Are type definition packages (@types/*) up to date?
+- Are there third-party packages with untyped code that poses security risks?
+
+### 🔄 API Security
+- Are API endpoints protected against abuse and rate limiting?
+- Is proper authentication enforced for all API calls?
+- Are there any insecure direct object references?
+- Are API request and response types properly defined?
+- Are API error responses properly handled and typed?
+
+---
+
+## 📤 Output Format
+Provide clear, structured feedback using a standard vulnerability reporting format:
+
+1. **Executive Summary**: Overall security assessment with key findings and risk levels
+
+2. **Vulnerability Findings**: For each security issue:
+   - **Finding**: Title of the security issue
+   - **Severity**: Critical/High/Medium/Low/Informational
+   - **Location**: File and line number(s)
+   - **Description**: Detailed explanation of the vulnerability
+   - **Impact**: What could happen if exploited
+   - **Suggested Remediation**: Specific steps to fix the issue with code examples
+   - **References**: Links to relevant security standards or documentation
+
+3. **TypeScript Security Improvements**: Specific recommendations for using TypeScript features to enhance security:
+   - Type system improvements
+   - Strict configuration recommendations
+   - Type-safe pattern implementations
+
+4. **Security Best Practices**: General security recommendations relevant to the codebase
+
+For TypeScript-specific remediation examples, show how to use the type system to prevent security issues:
+
+```ts
+// INSECURE: Using 'any' bypasses type checking
+function processUserData(data: any) {
+  // This could lead to injection vulnerabilities
+  db.query(`SELECT * FROM users WHERE id = ${data.id}`);
+}
+
+// SECURE: Using proper types and parameterized queries
+interface UserData {
+  id: number;
+}
+
+function processUserData(data: UserData) {
+  // Parameterized query prevents SQL injection
+  db.query('SELECT * FROM users WHERE id = ?', [data.id]);
+}
+```
+
+Focus on actionable security findings with clear remediation steps. Prioritize findings by severity, with special emphasis on TypeScript-specific security patterns and anti-patterns.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

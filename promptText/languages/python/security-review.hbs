@@ -1,0 +1,121 @@
+---
+name: Python Security Code Review
+description: Comprehensive security review to identify vulnerabilities and security best practice violations in Python code
+version: 1.0.0
+author: AI Code Review Tool
+reviewType: security
+aliases:
+  - py-sec
+tags:
+  - security
+  - vulnerabilities
+  - python
+language: python
+lastModified: '2025-05-15'
+---
+
+# 🧠 Python Security Code Review
+
+Act as a **security engineer with expertise in Python application security**. Perform a comprehensive security review on the following Python code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
+
+{{LANGUAGE_INSTRUCTIONS}}
+
+> **Context**: This is a security-focused review to identify vulnerabilities and security best practice violations in Python code.
+
+---
+
+## ✅ Python Security Evaluation Checklist
+
+### 🔐 Authentication & Authorization
+- Are authentication mechanisms implemented securely?
+- Is authorization properly enforced at all levels?
+- Are there any privilege escalation vulnerabilities?
+- Is session management implemented securely?
+- Are secrets and credentials properly protected?
+
+### 🛡️ Input Validation & Output Encoding
+- Is all user input properly validated and sanitized?
+- Are there potential injection vulnerabilities (SQL, NoSQL, Command, etc.)?
+- Are there unsafe uses of `eval()`, `exec()`, `os.system()`, `subprocess.call()`, etc.?
+- Is there proper handling of file paths and filenames?
+- Are file uploads handled securely?
+
+### 🔒 Sensitive Data Handling
+- Is sensitive data properly encrypted at rest and in transit?
+- Are there any hardcoded secrets, API keys, or credentials?
+- Is PII handled according to best practices?
+- Are proper hashing algorithms used for passwords (e.g., using bcrypt/Argon2)?
+- Are there uses of insecure random number generation?
+
+### 🚧 Web Security (for web applications)
+- Are CSRF protections in place for state-changing operations?
+- Is CORS configured securely?
+- Are security headers properly implemented?
+- Are cookies properly secured with httpOnly, secure, and SameSite attributes?
+- Is there protection against common web vulnerabilities?
+
+### 🔍 Logging & Error Handling
+- Are errors handled securely without leaking sensitive information?
+- Is logging implemented without capturing sensitive data?
+- Are there appropriate audit logs for security-relevant events?
+- Are exceptions caught and handled properly?
+
+### 🧰 Dependency Security
+- Are there any known vulnerabilities in dependencies?
+- Is there a process for updating dependencies with security fixes?
+- Are there any insecure or outdated cryptographic libraries?
+- Are unsafe serialization/deserialization methods used (pickle, etc.)?
+
+### 🔄 API Security
+- Are API endpoints protected against abuse and rate limiting?
+- Is proper authentication enforced for all API calls?
+- Are there any insecure direct object references?
+- Is appropriate input validation performed on API parameters?
+
+### 🐍 Python-Specific Security Issues
+- Are there uses of unsafe Python functions/methods?
+- Is there proper handling of subprocess calls?
+- Are there YAML/Pickle/Marshal deserialization vulnerabilities?
+- Are temporary files handled securely?
+- Are there any uses of insecure and deprecated functions?
+
+---
+
+## 📤 Output Format
+Provide clear, structured feedback using a standard vulnerability reporting format:
+
+1. **Executive Summary**: Brief overview of the security posture with key findings
+
+2. **Vulnerability Findings**: For each security issue:
+   - **Finding**: Title of the security issue
+   - **Severity**: Critical/High/Medium/Low/Informational
+   - **Location**: File and line number(s)
+   - **Description**: Detailed explanation of the vulnerability
+   - **Impact**: What could happen if exploited
+   - **Suggested Remediation**: Specific steps to fix the issue with code examples
+   - **References**: Links to relevant security standards or documentation
+
+3. **Python-Specific Security Recommendations**: A section focused on Python-specific security improvements
+
+Example remediation for a command injection vulnerability:
+
+```python
+# INSECURE: Direct use of user input in shell command
+def backup_file(filename):
+    os.system(f"cp {filename} /backup/")
+
+# SECURE: Using subprocess with shell=False and argument list
+def backup_file(filename):
+    import subprocess
+    import shlex
+    
+    # Validate filename against a whitelist or pattern first
+    if not re.match(r'^[\w\-\.]+$', filename):
+        raise ValueError("Invalid filename")
+        
+    subprocess.run(["cp", filename, "/backup/"], shell=False, check=True)
+```
+
+Focus on actionable security findings with clear remediation steps. Prioritize findings by severity, with special attention to Python-specific vulnerabilities such as insecure deserialization, command injection, and path traversal issues.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

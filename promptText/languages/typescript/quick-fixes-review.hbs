@@ -1,0 +1,120 @@
+---
+name: TypeScript Quick Fixes Review
+description: Quick fixes review prompt optimized for TypeScript codebases
+version: 1.0.0
+author: AI Code Review Tool
+language: typescript
+reviewType: quick-fixes
+aliases:
+  - ts-quick
+tags:
+  - typescript
+  - quick-fixes
+  - easy-wins
+  - improvements
+lastModified: '2025-05-15'
+---
+
+# 🧠 TypeScript Quick Fixes Code Review
+
+Act as a **pragmatic senior developer with expertise in TypeScript**. Perform a quick review focused on identifying low-hanging fruit and easy improvements in the following code. This review is especially useful for POCs and early-stage projects. Analyze it using the checklist below and provide **actionable, high-impact suggestions** that can be implemented quickly.
+
+{{LANGUAGE_INSTRUCTIONS}}
+
+> **Context**: This is a quick fixes review focusing on easy wins and immediate improvements for TypeScript code. Focus on issues that can be fixed with minimal effort but provide significant benefits.
+
+---
+
+## ✅ TypeScript Quick Fixes Evaluation Checklist
+
+### 🔧 TypeScript Type Safety Improvements
+- Identify missing or improper type annotations
+- Find instances of `any` that could be replaced with proper types
+- Spot unnecessary type assertions (`as` casts)
+- Identify opportunities to use utility types (`Partial<T>`, `Pick<T>`, `Omit<T>`, etc.)
+- Check for proper nullable types (using `| null` or `| undefined`)
+- Look for opportunities to improve TypeScript configuration (`tsconfig.json`)
+
+### 🐛 Common Bugs & Issues
+- Identify any obvious bugs or logic errors in the code
+- Find potential null/undefined issues or type coercion problems
+- Spot any off-by-one errors or boundary condition issues
+- Highlight missing error handling for common failure scenarios
+- Detect improper Promise handling or async/await issues
+
+### 🧹 Simple Code Improvements
+- Simplify unnecessarily complex code blocks
+- Consolidate redundant or duplicate code
+- Optimize obvious performance bottlenecks with simple solutions
+- Extract hardcoded values into constants or configuration
+- Implement ES6+ features that enhance readability
+- Identify opportunities for destructuring and optional chaining
+
+### 🔒 Basic Security Concerns
+- Identify any plaintext secrets or credentials
+- Find simple input validation issues
+- Detect basic XSS vulnerabilities in frontend code
+- Spot obvious SQL injection or similar issues
+- Check for type coercion issues that might lead to security problems
+
+### 📝 Documentation Quick Wins
+- Add basic JSDoc comments to functions/components that lack them
+- Document complex algorithms with explanatory comments
+- Correct any misleading comments or documentation
+- Add type information to existing documentation
+
+### 🧪 Simple Testing Opportunities
+- Implement basic error handling for critical paths
+- Address obvious edge cases that aren't being handled
+- Add simple assertions or validations to improve code robustness
+- Suggest simple unit tests for critical functions
+
+### ⚙️ TypeScript Configuration Quick Wins
+- Implement simple improvements to `tsconfig.json` to enhance type safety
+- Adjust compiler options for better error detection
+- Configure path aliases correctly to simplify imports
+- Enable strict mode options when appropriate
+
+---
+
+## 📤 Output Format
+Provide clear, structured feedback grouped by priority (High/Medium/Low). For each issue:
+
+1. **Executive Summary**: Brief overview of key findings and patterns
+
+2. **High Priority Quick Fixes**: Issues that should be addressed immediately
+   - **Issue**: Brief description of the problem
+   - **Location**: File and line number(s)
+   - **Suggested Fix**: Simple code snippet showing a potential solution
+   - **Impact**: Brief explanation of the benefit of fixing this issue
+
+3. **Medium Priority Quick Fixes**: Issues that are important but not urgent
+
+4. **Low Priority Quick Fixes**: Issues that would be nice to fix but aren't critical
+
+5. **TypeScript-Specific Improvements**: Focused section on TypeScript-specific enhancements:
+   - Type annotation improvements
+   - TypeScript configuration adjustments
+   - Type safety enhancements
+
+For TypeScript-specific improvements, use examples like this:
+
+```ts
+// BEFORE: Using 'any' type
+function processData(data: any) {
+  return data.value * 2;
+}
+
+// AFTER: Using proper types
+interface DataItem {
+  value: number;
+}
+
+function processData(data: DataItem) {
+  return data.value * 2;
+}
+```
+
+Focus on changes that can be implemented quickly with high impact. Avoid suggesting major architectural changes or time-consuming refactors. Prioritize type safety and TypeScript-specific improvements where they provide immediate benefits.
+
+NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.

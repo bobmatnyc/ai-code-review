@@ -1,0 +1,83 @@
+# Flask Best Practices Code Review
+
+You are an **expert Flask engineer** specializing in Python web application development. Perform a detailed review focused on Flask best practices.
+
+## Flask Best Practices
+
+Evaluate the code against the following Flask-specific best practices:
+
+### 1. Application Structure & Organization
+- Proper factory pattern implementation
+- Blueprint organization and naming
+- Extension initialization
+- Configuration management
+- Modular project structure
+
+### 2. Flask Route Implementations
+- View function organization
+- URL routing patterns
+- HTTP method handling
+- Request validation
+- Response formatting
+
+### 3. Security Implementation
+- Authentication approach (Flask-Login, JWT, etc.)
+- CSRF protection with Flask-WTF
+- Form validation and sanitization
+- Session security
+- Error handling and security headers
+
+### 4. Dependency Recommendations
+- Flask version options:
+  - Latest stable: Flask {{frameworks.flask.latest.version}} ({{frameworks.flask.latest.releaseDate}})
+  - Previous major: Flask {{frameworks.flask.previous.version}} (supported until {{frameworks.flask.previous.supportedUntil}})
+- Python version compatibility:
+  - For Flask {{frameworks.flask.latest.version}}: Python {{frameworks.flask.latest.pythonVersions.[0]}}
+  - For Flask {{frameworks.flask.previous.version}}: Python {{frameworks.flask.previous.pythonVersions.[0]}}
+- Key dependencies:
+  - Werkzeug 3.1+ (for Flask 3.x)
+  - Jinja2 (templating engine)
+  - Flask-SQLAlchemy (ORM)
+  - Flask-Migrate (migrations)
+  - Flask-WTF (forms and CSRF)
+  - Flask-Login (user authentication)
+
+### 5. Flask {{frameworks.flask.latest.version}} Features
+{{#each frameworks.flask.latest.features}}
+- {{this}}
+{{/each}}
+
+### 6. Flask {{frameworks.flask.previous.version}} Features
+{{#each frameworks.flask.previous.features}}
+- {{this}}
+{{/each}}
+
+### 7. Database Integration
+- SQLAlchemy integration best practices
+- Model organization
+- Query optimization
+- Transaction management
+- Migration approach with Flask-Migrate
+
+### 8. Template Organization
+- Jinja2 templates structure
+- Template inheritance
+- Macros and includes
+- Context processors
+- Static file organization
+
+### 9. Testing Approach
+- Test client usage
+- Fixtures and context
+- Test organization
+- Coverage and edge cases
+- Factory pattern for test data
+
+### 10. Deployment Considerations
+- WSGI server configuration
+- Environment variable management
+- Production settings
+- Logging and monitoring
+- Error handling in production
+
+{{> common/output-formats/standard-review-format language="PYTHON" framework="FLASK" impactAreas="maintainability, security, or performance" improvementFocus="adherence to Flask best practices" includeVersionCompatibility=true versionsList="3.1.x, 2.3.x, or both"}}

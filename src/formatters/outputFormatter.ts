@@ -58,6 +58,11 @@ export function formatReviewOutput(
  * @returns JSON string
  */
 function formatAsJson(review: ReviewResult): string {
+  // Create a copy of the review object to avoid modifying the original
+  const jsonOutput: Record<string, any> = {
+    ...review
+  };
+  
   // Determine model information
   let modelInfo = 'AI';
   let modelVendor = 'Unknown';
@@ -138,8 +143,39 @@ function formatAsJson(review: ReviewResult): string {
     displayPath = process.cwd() + ' (Current Directory)';
   }
 
-  // Create enhanced metadata
-  const enhancedMetadata = {
+  // Create enhanced metadata with detection info type
+  interface EnhancedMetadata {
+    model: {
+      provider: string;
+      name: string;
+      fullName: string;
+    };
+    review: {
+      type: ReviewType;
+      path: string;
+      generatedAt: string;
+      formattedDate: string;
+      multiPass: {
+        enabled: boolean;
+        passCount: number;
+        perPassCosts: PassCost[] | null;
+      } | null;
+    };
+    cost: ReviewCost | null;
+    tool: {
+      version: string;
+      commandOptions: string | null;
+      [key: string]: any;
+    };
+    detection?: {
+      language: string;
+      framework?: string;
+      frameworkVersion?: string;
+      cssFrameworks?: Array<{ name: string; version?: string }>;
+    };
+  }
+  
+  const enhancedMetadata: EnhancedMetadata = {
     model: {
       provider: modelVendor,
       name: modelName,
@@ -158,9 +194,9 @@ function formatAsJson(review: ReviewResult): string {
         second: '2-digit',
         timeZoneName: 'short'
       }),
-      multiPass: (review.costInfo || review.cost) && (review.costInfo?.passCount || review.cost?.passCount) > 1 ? {
+      multiPass: (review.costInfo || review.cost) && ((review.costInfo?.passCount || review.cost?.passCount) || 0) > 1 ? {
         enabled: true,
-        passCount: review.costInfo?.passCount || review.cost?.passCount || 1,
+        passCount: (review.costInfo?.passCount || review.cost?.passCount || 1),
         perPassCosts: (review.costInfo?.perPassCosts || review.cost?.perPassCosts) || null
       } : null
     },
@@ -171,6 +207,28 @@ function formatAsJson(review: ReviewResult): string {
       ...additionalMetadata
     }
   };
+  
+  // Add framework detection information if available
+  if (review.detectedLanguage) {
+    enhancedMetadata.detection = {
+      language: review.detectedLanguage
+    };
+    
+    if (review.detectedFramework && review.detectedFramework !== 'none') {
+      if (enhancedMetadata.detection) {
+        enhancedMetadata.detection.framework = review.detectedFramework;
+        if (review.frameworkVersion) {
+          enhancedMetadata.detection.frameworkVersion = review.frameworkVersion;
+        }
+      }
+    }
+    
+    if (review.cssFrameworks && review.cssFrameworks.length > 0) {
+      if (enhancedMetadata.detection) {
+        enhancedMetadata.detection.cssFrameworks = review.cssFrameworks;
+      }
+    }
+  }
 
   // Create a copy of the review with enhanced metadata
   const reviewWithMeta = {
@@ -374,6 +432,26 @@ Pass ${passCost.passNumber}:
 | Generated At | ${formattedDate} |
 | Model Provider | ${modelVendor} |
 | Model Name | ${modelName} |`;
+  
+  // Add framework detection information if available
+  if (review.detectedLanguage) {
+    metadataSection += `
+| Detected Language | ${review.detectedLanguage} |`;
+    
+    if (review.detectedFramework && review.detectedFramework !== 'none') {
+      metadataSection += `
+| Detected Framework | ${review.detectedFramework}${review.frameworkVersion ? ` v${review.frameworkVersion}` : ''} |`;
+    }
+    
+    if (review.cssFrameworks && review.cssFrameworks.length > 0) {
+      const cssFrameworksStr = review.cssFrameworks.map(cf => 
+        cf.version ? `${cf.name} v${cf.version.replace(/[^\d\.]/g, '')}` : cf.name
+      ).join(', ');
+      
+      metadataSection += `
+| CSS Frameworks | ${cssFrameworksStr} |`;
+    }
+  }
 
   // Add cost information if available
   if (cost) {
@@ -623,17 +701,92 @@ function formatSimpleMarkdown(
     displayPath = process.cwd() + ' (Current Directory)';
   }
   
+  // Extract model vendor and name from modelInfo
+  let modelVendor = 'Unknown';
+  let modelName = 'AI';
+  
+  // Extract the model information from modelInfo
+  if (modelInfo) {
+    if (modelInfo.includes('Google Gemini AI')) {
+      modelVendor = 'Google';
+      const match = modelInfo.match(/\((.*?)\)/);
+      modelName = match ? match[1] : 'Gemini';
+    } else if (modelInfo.includes('Anthropic')) {
+      modelVendor = 'Anthropic';
+      const match = modelInfo.match(/\((.*?)\)/);
+      modelName = match ? match[1] : 'Claude';
+    } else if (modelInfo.includes('OpenAI')) {
+      modelVendor = 'OpenAI';
+      const match = modelInfo.match(/\((.*?)\)/);
+      modelName = match ? match[1] : 'GPT';
+    } else if (modelInfo.includes('OpenRouter')) {
+      modelVendor = 'OpenRouter';
+      const match = modelInfo.match(/\((.*?)\)/);
+      modelName = match ? match[1] : 'AI';
+    }
+  }
+  
+  // Parse cost information if it's available in string form
+  let cost = null;
+  if (costInfo) {
+    // Try to extract cost information from the costInfo string
+    const inputTokensMatch = costInfo.match(/Input tokens: ([\d,]+)/);
+    const outputTokensMatch = costInfo.match(/Output tokens: ([\d,]+)/);
+    const totalTokensMatch = costInfo.match(/Total tokens: ([\d,]+)/);
+    const estimatedCostMatch = costInfo.match(/Estimated cost: (.*?)$/m);
+    const passCountMatch = costInfo.match(/Multi-pass review: (\d+) passes/);
+    
+    if (inputTokensMatch || outputTokensMatch || totalTokensMatch || estimatedCostMatch) {
+      cost = {
+        inputTokens: inputTokensMatch ? parseInt(inputTokensMatch[1].replace(/,/g, '')) : 0,
+        outputTokens: outputTokensMatch ? parseInt(outputTokensMatch[1].replace(/,/g, '')) : 0,
+        totalTokens: totalTokensMatch ? parseInt(totalTokensMatch[1].replace(/,/g, '')) : 0,
+        estimatedCost: estimatedCostMatch ? parseFloat(estimatedCostMatch[1].replace('$', '').replace(' USD', '')) : 0,
+        formattedCost: estimatedCostMatch ? estimatedCostMatch[1] : '$0.00 USD',
+        passCount: passCountMatch ? parseInt(passCountMatch[1]) : 1
+      };
+    }
+  }
+  
   // Include metadata section if available
   const metadataContent = metadataSection ? `${metadataSection}\n` : '';
   
+  // Generate a metadata section with model information
+  const modelMetadata = `## Metadata
+| Property | Value |
+|----------|-------|
+| Review Type | ${reviewType} |
+| Generated At | ${new Date(timestamp).toLocaleString(undefined, {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  timeZoneName: 'short'
+})} |
+| Model Provider | ${modelVendor} |
+| Model Name | ${modelName} |${cost ? `
+| Input Tokens | ${cost.inputTokens.toLocaleString()} |
+| Output Tokens | ${cost.outputTokens.toLocaleString()} |
+| Total Tokens | ${cost.totalTokens.toLocaleString()} |
+| Estimated Cost | ${cost.formattedCost} |` : ''}${(cost && cost.passCount) ? `
+| Multi-pass Review | ${cost.passCount} passes |` : ''}
+`;
+
+  // Include this metadata section in all formats for consistency
+  const fullMetadataContent = metadataContent || modelMetadata;
+
   return `# Code Review: ${displayPath}
 
 > **Review Type**: ${reviewType}
+> **Model**: ${modelInfo}
 > **Generated**: ${new Date(timestamp).toLocaleString()}
 
 ---
 
-${metadataContent}
+${fullMetadataContent}
+
 ${sanitizedContent}
 
 ---${costInfo}

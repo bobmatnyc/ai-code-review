@@ -1,6 +1,6 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "3.0.2",
+  "version": "3.0.4",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "bin": "./dist/index.js",
@@ -31,7 +31,8 @@
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
     "validate:prompts": "node scripts/validate-prompts.js",
     "update:prompts": "node scripts/update-prompts-frontmatter.js",
-    "quick-build": "pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js"
+    "quick-build": "pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
+    "consolidate": "ts-node scripts/consolidate-review.ts"
   },
   "keywords": [
     "code-review",
@@ -49,6 +50,7 @@
   "files": [
     "dist",
     "prompts",
+    "promptText",
     "dist/tests",
     "LICENSE",
     "README.md",
@@ -77,6 +79,7 @@
     "dotenv": "^16.3.1",
     "glob": "^10.3.10",
     "gpt-tokenizer": "^2.9.0",
+    "handlebars": "^4.7.8",
     "i18next": "^24.2.3",
     "i18next-fs-backend": "^2.6.0",
     "i18next-icu": "^2.3.0",
@@ -106,7 +109,6 @@
     "@typescript-eslint/parser": "^6.15.0",
     "babel-jest": "^29.7.0",
     "depcheck": "^1.4.7",
-    "dependency-cruiser": "^16.10.1",
     "esbuild": "^0.25.3",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",

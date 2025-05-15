@@ -38,3 +38,8 @@ export {
 export {
   MultiPassProgressTracker
 } from './progressTracker';
+
+// Export consolidation utilities
+export {
+  consolidateReview
+} from './consolidateReview';
