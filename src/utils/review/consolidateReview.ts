@@ -129,7 +129,7 @@ function extractModelInfo(review: ProjectReview): {
   modelName: string;
   fullModelName: string;
 } | undefined {
-  // First check if modelUsed is available
+  // First check if modelUsed is available - this is the most reliable source
   if (review.modelUsed) {
     const parts = review.modelUsed.split(':');
     if (parts.length === 2) {
@@ -141,44 +141,38 @@ function extractModelInfo(review: ProjectReview): {
     }
     
     // No provider prefix, try to detect from model name
-    return detectProviderFromModelName(review.modelUsed);
+    return getDefaultModelInfo(review.modelUsed);
   }
   
-  // Try to extract from metadata in content
-  const modelNameMatch = review.content.match(/Model Name\s*\|\s*([^|\n]+)/);
-  const modelProviderMatch = review.content.match(/Model Provider\s*\|\s*([^|\n]+)/);
-  
-  if (modelNameMatch && modelProviderMatch) {
-    const modelName = modelNameMatch[1].trim();
-    const provider = modelProviderMatch[1].trim().toLowerCase();
-    
-    return {
-      provider,
-      modelName,
-      fullModelName: `${provider}:${modelName}`
-    };
-  }
-  
-  // Try to find model name in the content and infer provider
-  // Use a more inclusive regex that captures the full model name including preview suffix
-  const contentModelMatch = review.content.match(/Model(?:\sused)?:\s*([^\s\n]+)/i);
-  if (contentModelMatch) {
-    return detectProviderFromModelName(contentModelMatch[1].trim());
-  }
-  
-  return undefined;
+  // If we can't detect from the review contents, use the default model
+  return getDefaultModelInfo();
 }
 
 /**
- * Detect provider from a model name
- * @param modelName The model name
- * @returns The detected model info or undefined if detection fails
+ * Get default model information, optionally incorporating a provided model name
+ * @param modelName Optional model name to use
+ * @returns Default model information 
  */
-function detectProviderFromModelName(modelName: string): { 
+function getDefaultModelInfo(modelName?: string): { 
   provider: string; 
   modelName: string;
   fullModelName: string;
-} | undefined {
+} {
+  // Always use the latest Gemini model as the default for consolidation
+  const defaultProvider = 'gemini';
+  const defaultModelName = 'gemini-2.5-pro-preview';
+  const defaultFullName = `${defaultProvider}:${defaultModelName}`;
+  
+  // If no model name provided, return the default
+  if (!modelName) {
+    return {
+      provider: defaultProvider,
+      modelName: defaultModelName,
+      fullModelName: defaultFullName
+    };
+  }
+  
+  // If a model name is provided but doesn't include a provider, try to determine the provider
   const lowerModelName = modelName.toLowerCase();
   
   if (lowerModelName.includes('gpt') || lowerModelName.includes('openai')) {
@@ -198,6 +192,15 @@ function detectProviderFromModelName(modelName: string): {
   }
   
   if (lowerModelName.includes('gemini') || lowerModelName.includes('google')) {
+    // If this is gemini-2.5-pro (without the preview suffix), add it
+    if (lowerModelName === 'gemini-2.5-pro') {
+      return {
+        provider: 'gemini',
+        modelName: defaultModelName, // Use the proper preview model name
+        fullModelName: defaultFullName
+      };
+    }
+    
     return {
       provider: 'gemini',
       modelName,
@@ -205,11 +208,11 @@ function detectProviderFromModelName(modelName: string): {
     };
   }
   
-  // Default to gemini if we can't detect - use the most advanced model
+  // Fall back to default if we can't determine from the name
   return {
-    provider: 'gemini',
-    modelName: 'gemini-2.5-pro-preview',
-    fullModelName: 'gemini:gemini-2.5-pro-preview'
+    provider: defaultProvider,
+    modelName: defaultModelName,
+    fullModelName: defaultFullName
   };
 }
 
