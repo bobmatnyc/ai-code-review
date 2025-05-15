@@ -26,7 +26,7 @@ describe('modelMaps', () => {
       // Check a sample model to ensure the structure is correct
       const sampleModel = MODEL_MAP['gemini:gemini-2.5-pro'];
       expect(sampleModel).toBeDefined();
-      expect(sampleModel.apiIdentifier).toBe('gemini-2.5-pro-preview-03-25');
+      expect(sampleModel.apiIdentifier).toBe('gemini-2.5-pro-preview-05-06');
       expect(sampleModel.displayName).toBe('Gemini 2.5 Pro');
       expect(sampleModel.provider).toBe('gemini');
       expect(sampleModel.contextWindow).toBe(1000000);
@@ -55,16 +55,18 @@ describe('modelMaps', () => {
       );
 
       // Verify we have the expected number of Gemini models
-      expect(geminiModels.length).toBe(3);
+      expect(geminiModels.length).toBe(5);
 
       // Verify specific model keys exist
       expect(geminiModels).toContain('gemini:gemini-2.5-pro');
+      expect(geminiModels).toContain('gemini:gemini-1.5-pro');
+      expect(geminiModels).toContain('gemini:gemini-1.5-flash');
       expect(geminiModels).toContain('gemini:gemini-2.0-flash');
       expect(geminiModels).toContain('gemini:gemini-2.0-flash-lite');
 
       // Verify properties of a specific model
       const gemini25Pro = MODEL_MAP['gemini:gemini-2.5-pro'];
-      expect(gemini25Pro.apiIdentifier).toBe('gemini-2.5-pro-preview-03-25');
+      expect(gemini25Pro.apiIdentifier).toBe('gemini-2.5-pro-preview-05-06');
       expect(gemini25Pro.displayName).toBe('Gemini 2.5 Pro');
       expect(gemini25Pro.useV1Beta).toBe(true);
       expect(gemini25Pro.contextWindow).toBe(1000000);
@@ -154,9 +156,11 @@ describe('modelMaps', () => {
   describe('MODELS array', () => {
     it('should have the correct models for each provider', () => {
       // Check Gemini models
-      expect(MODELS.gemini.length).toBe(3);
+      expect(MODELS.gemini.length).toBe(5);
       expect(MODELS.gemini).toContain('gemini:gemini-2.5-pro');
       expect(MODELS.gemini).toContain('gemini:gemini-2.0-flash');
+      expect(MODELS.gemini).toContain('gemini:gemini-1.5-pro');
+      expect(MODELS.gemini).toContain('gemini:gemini-1.5-flash');
 
       // Check Anthropic models
       expect(MODELS.anthropic.length).toBe(5);
@@ -177,7 +181,7 @@ describe('modelMaps', () => {
     describe('getApiNameFromKey', () => {
       it('should return the correct API identifier for a model key', () => {
         expect(getApiNameFromKey('gemini:gemini-2.5-pro')).toBe(
-          'gemini-2.5-pro-preview-03-25'
+          'gemini-2.5-pro-preview-05-06'
         );
         expect(getApiNameFromKey('anthropic:claude-3-opus')).toBe(
           'claude-3-opus-20240229'
@@ -195,7 +199,7 @@ describe('modelMaps', () => {
       it('should return the correct model mapping for a model key', () => {
         const mapping = getModelMapping('gemini:gemini-2.5-pro');
         expect(mapping).toBeDefined();
-        expect(mapping?.apiIdentifier).toBe('gemini-2.5-pro-preview-03-25');
+        expect(mapping?.apiIdentifier).toBe('gemini-2.5-pro-preview-05-06');
         expect(mapping?.provider).toBe('gemini');
       });
 
@@ -207,7 +211,7 @@ describe('modelMaps', () => {
     describe('getModelsByProvider', () => {
       it('should return all models for a provider', () => {
         const geminiModels = getModelsByProvider('gemini');
-        expect(geminiModels.length).toBe(3);
+        expect(geminiModels.length).toBe(5);
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModelsByProvider('anthropic');
@@ -220,7 +224,7 @@ describe('modelMaps', () => {
     describe('getModels', () => {
       it('should return the default models for a provider', () => {
         const geminiModels = getModels('gemini');
-        expect(geminiModels.length).toBe(3);
+        expect(geminiModels.length).toBe(5);
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModels('anthropic');

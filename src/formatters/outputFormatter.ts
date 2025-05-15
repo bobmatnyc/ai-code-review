@@ -125,7 +125,7 @@ function formatAsJson(review: ReviewResult): string {
         second: '2-digit',
         timeZoneName: 'short'
       }),
-      multiPass: review.cost && review.cost.passCount > 1 ? {
+      multiPass: review.cost && review.cost.passCount && review.cost.passCount > 1 ? {
         enabled: true,
         passCount: review.cost.passCount,
         perPassCosts: review.cost.perPassCosts || null
@@ -242,7 +242,7 @@ Pass ${passCost.passNumber}:
           // If it's not valid JSON, treat it as plain text
           return formatSimpleMarkdown(
             content,
-            filePath,
+            filePath || '',
             reviewType,
             timestamp,
             costInfo,
@@ -257,7 +257,7 @@ Pass ${passCost.passNumber}:
       if (typeof structuredReview === 'object' && structuredReview !== null) {
         return formatStructuredReviewAsMarkdown(
           structuredReview,
-          filePath,
+          filePath || '',
           reviewType,
           timestamp,
           costInfo,
@@ -268,7 +268,7 @@ Pass ${passCost.passNumber}:
         // If the data doesn't have the right structure, fall back to plain text
         return formatSimpleMarkdown(
           content,
-          filePath,
+          filePath || '',
           reviewType,
           timestamp,
           costInfo,
@@ -280,7 +280,7 @@ Pass ${passCost.passNumber}:
       // Fall back to unstructured format
       return formatSimpleMarkdown(
         content,
-        filePath,
+        filePath || '',
         reviewType,
         timestamp,
         costInfo,

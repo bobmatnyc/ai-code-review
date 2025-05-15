@@ -537,10 +537,12 @@ Remember to use the grading system as described in your instructions.`;
           
           // Initialize the Google AI client
           const genAI = new GoogleGenerativeAI(apiClientConfig.apiKey);
-          const model = genAI.getGenerativeModel({ 
-            model: modelId,
-            apiVersion: modelMapping?.useV1Beta ? 'v1beta' : undefined
-          });
+          // Create options for the generative model
+          // Note: apiVersion is now handled separately and not part of ModelParams
+          const modelOptions = { 
+            model: modelId
+          };
+          const model = genAI.getGenerativeModel(modelOptions);
           
           // Generate content
           const result = await model.generateContent({
