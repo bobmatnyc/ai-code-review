@@ -72,7 +72,7 @@ function loadConfig(cliOptions?: any): AppConfig {
   const selectedModel =
     cliOptions?.model ||
     process.env.AI_CODE_REVIEW_MODEL ||
-    'gemini:gemini-1.5-pro';
+    'gemini:gemini-2.5-pro-preview';
 
   // Get debug mode
   const debug =
