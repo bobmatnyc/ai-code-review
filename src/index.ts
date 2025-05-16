@@ -66,7 +66,7 @@ if (isDebugMode) {
 // First try to load from the tool's directory (not the target project directory)
 // We need to handle both local development and global installation
 // When installed globally, the structure might be different
-let possibleToolDirectories = [
+const possibleToolDirectories = [
   path.resolve(__dirname, '..'), // Local development or npm link
   path.resolve(__dirname, '..', '..'), // Global npm installation
   '/opt/homebrew/lib/node_modules/@bobmatnyc/ai-code-review' // Homebrew global installation

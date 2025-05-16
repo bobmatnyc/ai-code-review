@@ -13,7 +13,7 @@ console.log('Fixing dependency scanner...');
 const packageSecurityAnalyzerPath = path.join(__dirname, 'packageSecurityAnalyzer.ts');
 
 // Read the file
-let content = fs.readFileSync(packageSecurityAnalyzerPath, 'utf8');
+const content = fs.readFileSync(packageSecurityAnalyzerPath, 'utf8');
 
 // Modify the createDependencySecuritySection function to make OWASP dependency check the primary method
 const modifiedContent = content.replace(

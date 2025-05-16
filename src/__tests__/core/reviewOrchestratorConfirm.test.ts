@@ -36,8 +36,9 @@ jest.mock('../../analysis/tokens', () => {
   };
 });
 
-// Import the mocks after they're defined
-const { TokenAnalyzer } = require('../../analysis/tokens');
+// Import types for typing
+import type { TokenAnalyzer as TokenAnalyzerType } from '../../analysis/tokens';
+const TokenAnalyzer = jest.mocked((jest.requireMock('../../analysis/tokens') as { TokenAnalyzer: typeof TokenAnalyzerType }).TokenAnalyzer);
 
 // Mock the estimationUtils
 jest.mock('../../utils/estimationUtils', () => {
@@ -61,8 +62,9 @@ jest.mock('../../utils/estimationUtils', () => {
 };
 });
 
-// Import the mock after it's defined
-const { estimateMultiPassReviewCost } = require('../../utils/estimationUtils');
+// Import type for typing
+import type { estimateMultiPassReviewCost as EstimateType } from '../../utils/estimationUtils';
+const estimateMultiPassReviewCost = jest.mocked((jest.requireMock('../../utils/estimationUtils') as { estimateMultiPassReviewCost: typeof EstimateType }).estimateMultiPassReviewCost);
 
 // Mock the fileDiscovery module
 jest.mock('../../core/fileDiscovery', () => {
@@ -181,7 +183,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     process.env = { ...originalProcessEnv };
     
     // Setup process.exit mock for all tests
-    mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | string | null) => {
+    mockExit = jest.spyOn(process, 'exit').mockImplementation((_code?: number | string | null) => {
       // Just record the call, don't actually exit
       return undefined as never;
     });
@@ -213,7 +215,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       }
     });
     // Set up readline question mock with 'yes' response by default
-    const readline = require('readline');
+    const readline = jest.requireMock('readline') as typeof import('readline');
     readline.createInterface.mockReturnValue({
       question: jest.fn((question, callback) => callback('y')),
       close: jest.fn()
@@ -224,7 +226,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     mockExit.mockRestore();
     
     // Reset the readline mock after each test
-    const readline = require('readline');
+    const readline = jest.requireMock('readline') as typeof import('readline');
     readline.createInterface.mockReset();
   });
   
@@ -287,13 +289,14 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
 
     // Create a spy that simulates actual call to orchestrateReview but updates the options directly
-    const orchestrateSpy = jest.spyOn(require('../../core/reviewOrchestrator'), 'orchestrateReview')
+    const reviewOrchestratorModule = jest.requireMock('../../core/reviewOrchestrator') as { orchestrateReview: typeof orchestrateReview };
+    const orchestrateSpy = jest.spyOn(reviewOrchestratorModule, 'orchestrateReview')
       .mockImplementation(async (target, opts) => {
-        // Call the TokenAnalyzer
-        const analysis = TokenAnalyzer.analyzeFiles([], {});
+        // Call the TokenAnalyzer (simulating the real implementation would use this)
+        TokenAnalyzer.analyzeFiles([], {});
         
-        // Call estimateMultiPassReviewCost
-        const cost = await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
+        // Call estimateMultiPassReviewCost (simulating the real implementation would use this)
+        await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
         
         // Set options.multiPass to true as the real function would
         opts.multiPass = true;
@@ -313,7 +316,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     expect(estimateMultiPassReviewCost).toHaveBeenCalled();
     
     // Check that readline was not used for confirmation
-    const readline = require('readline');
+    const readline = jest.requireMock('readline') as typeof import('readline');
     expect(readline.createInterface().question).not.toHaveBeenCalled();
     
     // Clean up
@@ -373,7 +376,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       // noConfirm is not set
     };
     
-    const readline = require('readline');
+    const readline = jest.requireMock('readline') as typeof import('readline');
     // Mock readline interface and question
     const mockQuestion = jest.fn((question, callback) => {
       expect(question).toContain('Proceed with multi-pass review?');
@@ -388,13 +391,14 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     readline.createInterface.mockReturnValueOnce(mockRlInterface);
     
     // Create a spy that manually sets multiPass to true when orchestrateReview is called
-    const orchestrateSpy = jest.spyOn(require('../../core/reviewOrchestrator'), 'orchestrateReview')
+    const reviewOrchestratorModule = jest.requireMock('../../core/reviewOrchestrator') as { orchestrateReview: typeof orchestrateReview };
+    const orchestrateSpy = jest.spyOn(reviewOrchestratorModule, 'orchestrateReview')
       .mockImplementation(async (target, opts) => {
         // Call the TokenAnalyzer to ensure it gets called
-        const analysis = TokenAnalyzer.analyzeFiles([], {});
+        TokenAnalyzer.analyzeFiles([], {});
         
         // Call estimateMultiPassReviewCost to ensure it gets called
-        const cost = await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
+        await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
         
         // Simulate readline question being called
         await new Promise<void>((resolve) => {
@@ -461,7 +465,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     // Reset mock exit to ensure a clean test
     mockExit.mockReset();
     
-    const readline = require('readline');
+    const readline = jest.requireMock('readline') as typeof import('readline');
     // Mock readline interface and question
     const mockQuestion = jest.fn((question, callback) => {
       callback('n'); // User declines

@@ -2,8 +2,8 @@
  * @fileoverview Tests for the TokenAnalyzer
  */
 
-import { describe, expect, it, beforeEach } from '@jest/globals';
-import { TokenAnalyzer, FileTokenAnalysis, TokenAnalysisResult } from '../../analysis/tokens';
+import { describe, expect, it } from '@jest/globals';
+import { TokenAnalyzer, FileTokenAnalysis } from '../../analysis/tokens';
 
 describe('TokenAnalyzer', () => {
   // Create some test file data
