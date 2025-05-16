@@ -7,7 +7,7 @@
 import { detectProjectType } from '../../utils/detection';
 import path from 'path';
 import fs from 'fs/promises';
-import os from 'os';
+//import os from 'os'; // Not used in this file
 
 describe('detectProjectType', () => {
   let tempDir: string;

@@ -115,11 +115,11 @@ describe('RateLimiter', () => {
       }
 
       // Start 3 requests that should be queued
-      const promises = [
-        rateLimiter.acquire(),
-        rateLimiter.acquire(),
-        rateLimiter.acquire()
-      ];
+      // Start 3 requests that should be queued
+      // Note: These promises are started but not awaited to test the queuing
+      void rateLimiter.acquire();
+      void rateLimiter.acquire();
+      void rateLimiter.acquire();
 
       // Queue should have 3 items
       expect(rateLimiter.getQueueLength()).toBe(3);
@@ -129,7 +129,7 @@ describe('RateLimiter', () => {
   describe('globalRateLimiter', () => {
     it('should export a global rate limiter instance', () => {
       // Import the global rate limiter
-      const { globalRateLimiter } = require('../utils/rateLimiter');
+      const { globalRateLimiter } = jest.requireMock('../utils/rateLimiter') as { globalRateLimiter: RateLimiter };
 
       // Should be an instance of RateLimiter
       expect(globalRateLimiter).toBeInstanceOf(RateLimiter);
