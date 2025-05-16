@@ -277,7 +277,8 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
     if (reviewResult.response && reviewResult.outputFormat === 'json') {
       try {
         // Parse the JSON response
-        const parsedResult = JSON.parse(reviewResult.response);
+        const parsedResult = typeof reviewResult.response === 'string' ? 
+          JSON.parse(reviewResult.response) : reviewResult.response;
 
         // If it's a valid result with the expected structure, format it
         if (
@@ -293,7 +294,7 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
           const removalScript = generateRemovalScript(parsedResult);
 
           // Update the response with our formatted version
-          reviewResult.response = formattedMarkdown;
+          reviewResult.content = formattedMarkdown;
           reviewResult.outputFormat = 'markdown';
 
           // Store the removal script in the metadata

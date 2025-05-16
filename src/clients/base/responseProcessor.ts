@@ -7,6 +7,7 @@
  */
 
 import { ReviewResult, ReviewCost, ReviewType } from '../../types/review';
+import { StructuredReview } from '../../types/structuredReview';
 import { ApiError } from '../../utils/apiErrorHandler';
 import logger from '../../utils/logger';
 import { getCostInfoFromText } from '../utils/tokenCounter';
@@ -17,6 +18,10 @@ import { getCostInfoFromText } from '../utils/tokenCounter';
  * @returns Structured data object or null if not valid JSON
  */
 export function extractStructuredData(content: string): unknown | null {
+  // Declare these outside try block so they're accessible in catch block
+  let jsonBlockMatch: RegExpMatchArray | null = null;
+  let anyCodeBlockMatch: RegExpMatchArray | null = null;
+  
   try {
     // Check if the response is wrapped in any code block with improved language marker handling
     // Handle various formats:
@@ -26,10 +31,10 @@ export function extractStructuredData(content: string): unknown | null {
     // 4. Plain JSON without code blocks
     
     // First try to find code blocks with JSON content
-    const jsonBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    jsonBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     
     // If no JSON block, look for any code block (could have typescript or other language marker)
-    const anyCodeBlockMatch = !jsonBlockMatch ? content.match(/```(?:[\w]*)?[\s\n]*([\s\S]*?)[\s\n]*```/) : null;
+    anyCodeBlockMatch = !jsonBlockMatch ? content.match(/```(?:[\w]*)?[\s\n]*([\s\S]*?)[\s\n]*```/) : null;
     
     let jsonContent = '';
     
@@ -123,7 +128,7 @@ export function createStandardReviewResult(
     filePath,
     reviewType,
     timestamp: new Date().toISOString(),
-    structuredData
+    structuredData: structuredData as StructuredReview | undefined
   };
 }
 

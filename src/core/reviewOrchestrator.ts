@@ -47,6 +47,7 @@ import logger from '../utils/logger';
 import { getApiKeyType } from '../utils/apiUtils';
 import { runApiConnectionTests } from '../__tests__/apiConnection.test';
 import { getConfig } from '../utils/config';
+import { ProgrammingLanguage } from '../types/common';
 import {
   estimateFromFilePaths,
   formatEstimation
@@ -85,8 +86,8 @@ export async function orchestrateReview(
   target: string,
   options: ReviewOptions
 ): Promise<void> {
-  // Initialize configuration with CLI options (e.g., model override, API keys)
-  getConfig(options);
+  // Initialize configuration 
+  getConfig();
   try {
     // Ensure target is defined with a default of "." for current directory
     const effectiveTarget = target || '.';
@@ -162,7 +163,7 @@ export async function orchestrateReview(
         frameworkDetectionResult = await detectFramework(projectPath);
         
         if (frameworkDetectionResult) {
-          options.language = frameworkDetectionResult.language;
+          options.language = frameworkDetectionResult.language as ProgrammingLanguage;
           options.framework = frameworkDetectionResult.framework;
           
           if (frameworkDetectionResult.framework !== 'none' && frameworkDetectionResult.confidence > 0.6) {

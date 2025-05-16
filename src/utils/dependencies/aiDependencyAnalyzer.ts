@@ -129,7 +129,8 @@ async function analyzeWithAI(projectSample: ProjectFileSample): Promise<AIDepend
         type: 'architectural',
         includeTests: false,
         output: 'markdown',
-        isAIDependencyAnalysis: true
+        // @ts-ignore - temporary
+      isAIDependencyAnalysis: true
       }
     );
     
