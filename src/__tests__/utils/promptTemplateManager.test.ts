@@ -20,14 +20,22 @@ import { loadPromptTemplate, listAvailableTemplates } from '../../utils/template
 jest.mock('fs');
 jest.mock('path');
 jest.mock('../../utils/templates/templateLoader');
-jest.mock('../../utils/logger', () => ({
-  logger: {
+jest.mock('../../utils/logger', () => {
+  const mockLogger = {
     debug: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
-  },
-}));
+  };
+  return {
+    __esModule: true,
+    default: mockLogger,
+    debug: mockLogger.debug,
+    info: mockLogger.info,
+    warn: mockLogger.warn,
+    error: mockLogger.error,
+  };
+});
 
 describe('promptTemplateManager', () => {
   const mockTemplatesDir = '/mock/templates';
@@ -94,19 +102,19 @@ describe('promptTemplateManager', () => {
   
   describe('getPromptTemplate', () => {
     it('should return a template for a valid review type, language, and framework', () => {
-      const template = getPromptTemplate(ReviewType.BEST_PRACTICES, 'typescript', 'react');
+      const template = getPromptTemplate('best-practices', 'typescript', 'react');
       expect(template).toBe('React TypeScript Best Practices Template');
       expect(loadPromptTemplate).toHaveBeenCalledWith('best-practices', 'typescript', 'react');
     });
     
     it('should handle language mapping correctly', () => {
-      getPromptTemplate(ReviewType.BEST_PRACTICES, 'javascript', 'react');
+      getPromptTemplate('best-practices', 'javascript', 'react');
       // JavaScript should map to TypeScript templates
       expect(loadPromptTemplate).toHaveBeenCalledWith('best-practices', 'typescript', 'react');
     });
     
     it('should handle framework mapping correctly', () => {
-      getPromptTemplate(ReviewType.BEST_PRACTICES, 'typescript', 'next.js');
+      getPromptTemplate('best-practices', 'typescript', 'next.js');
       // next.js should map to nextjs directory
       expect(loadPromptTemplate).toHaveBeenCalledWith('best-practices', 'typescript', 'nextjs');
     });
@@ -118,7 +126,7 @@ describe('promptTemplateManager', () => {
     
     it('should return undefined when template loading fails', () => {
       (loadPromptTemplate as jest.Mock).mockReturnValue(null);
-      const template = getPromptTemplate(ReviewType.BEST_PRACTICES, 'typescript', 'react');
+      const template = getPromptTemplate('best-practices', 'typescript', 'react');
       expect(template).toBeUndefined();
     });
   });

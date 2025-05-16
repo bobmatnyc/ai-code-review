@@ -18,6 +18,7 @@
  */
 
 import { OutputFormat, ProgrammingLanguage, PriorityFilter } from './common';
+import { StructuredReview } from './structuredReview';
 
 /**
  * Types of code reviews supported by the tool
@@ -427,7 +428,7 @@ export interface ReviewResult {
   /**
    * Structured review data (if available)
    */
-  structuredData?: any; // Will be typed as StructuredReview when parsed
+  structuredData?: StructuredReview;
 
   /**
    * Command line options used for this review
@@ -457,13 +458,13 @@ export interface ReviewResult {
   /**
    * Token analysis results if available
    */
-  tokenAnalysis?: any;
+  tokenAnalysis?: import('../analysis/tokens').TokenAnalysisResult;
 
   /**
    * Raw response from the API (used in some strategies)
    * @deprecated Use structuredData instead
    */
-  response?: any;
+  response?: StructuredReview;
 
   /**
    * Output format of the review
@@ -475,5 +476,5 @@ export interface ReviewResult {
    * Metadata for the review
    * @deprecated Use structuredData instead
    */
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }

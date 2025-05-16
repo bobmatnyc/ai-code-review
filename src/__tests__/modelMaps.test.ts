@@ -27,7 +27,7 @@ describe('modelMaps', () => {
       const sampleModel = MODEL_MAP['gemini:gemini-2.5-pro'];
       expect(sampleModel).toBeDefined();
       expect(sampleModel.apiIdentifier).toBe('gemini-2.5-pro-preview-05-06');
-      expect(sampleModel.displayName).toBe('Gemini 2.5 Pro');
+      expect(sampleModel.displayName).toBe('Gemini 2.5 Pro (DEPRECATED - Use gemini-2.5-pro-preview)');
       expect(sampleModel.provider).toBe('gemini');
       expect(sampleModel.contextWindow).toBe(1000000);
       expect(sampleModel.apiKeyEnvVar).toBe('AI_CODE_REVIEW_GOOGLE_API_KEY');
@@ -55,19 +55,18 @@ describe('modelMaps', () => {
       );
 
       // Verify we have the expected number of Gemini models
-      expect(geminiModels.length).toBe(5);
+      expect(geminiModels.length).toBe(4);
 
       // Verify specific model keys exist
       expect(geminiModels).toContain('gemini:gemini-2.5-pro');
-      expect(geminiModels).toContain('gemini:gemini-1.5-pro');
-      expect(geminiModels).toContain('gemini:gemini-1.5-flash');
+      expect(geminiModels).toContain('gemini:gemini-2.5-pro-preview');
       expect(geminiModels).toContain('gemini:gemini-2.0-flash');
       expect(geminiModels).toContain('gemini:gemini-2.0-flash-lite');
 
       // Verify properties of a specific model
       const gemini25Pro = MODEL_MAP['gemini:gemini-2.5-pro'];
       expect(gemini25Pro.apiIdentifier).toBe('gemini-2.5-pro-preview-05-06');
-      expect(gemini25Pro.displayName).toBe('Gemini 2.5 Pro');
+      expect(gemini25Pro.displayName).toBe('Gemini 2.5 Pro (DEPRECATED - Use gemini-2.5-pro-preview)');
       expect(gemini25Pro.useV1Beta).toBe(true);
       expect(gemini25Pro.contextWindow).toBe(1000000);
     });
@@ -156,11 +155,11 @@ describe('modelMaps', () => {
   describe('MODELS array', () => {
     it('should have the correct models for each provider', () => {
       // Check Gemini models
-      expect(MODELS.gemini.length).toBe(5);
+      expect(MODELS.gemini.length).toBe(4);
       expect(MODELS.gemini).toContain('gemini:gemini-2.5-pro');
+      expect(MODELS.gemini).toContain('gemini:gemini-2.5-pro-preview');
       expect(MODELS.gemini).toContain('gemini:gemini-2.0-flash');
-      expect(MODELS.gemini).toContain('gemini:gemini-1.5-pro');
-      expect(MODELS.gemini).toContain('gemini:gemini-1.5-flash');
+      expect(MODELS.gemini).toContain('gemini:gemini-2.0-flash-lite');
 
       // Check Anthropic models
       expect(MODELS.anthropic.length).toBe(5);
@@ -211,7 +210,7 @@ describe('modelMaps', () => {
     describe('getModelsByProvider', () => {
       it('should return all models for a provider', () => {
         const geminiModels = getModelsByProvider('gemini');
-        expect(geminiModels.length).toBe(5);
+        expect(geminiModels.length).toBe(4);
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModelsByProvider('anthropic');
@@ -224,7 +223,7 @@ describe('modelMaps', () => {
     describe('getModels', () => {
       it('should return the default models for a provider', () => {
         const geminiModels = getModels('gemini');
-        expect(geminiModels.length).toBe(5);
+        expect(geminiModels.length).toBe(4);
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModels('anthropic');
