@@ -112,8 +112,13 @@ export class GeminiClient extends AbstractClient {
       return true;
     }
     
+    // Get the selected model from config
+    const { getConfig } = await import('../../utils/config');
+    const config = getConfig();
+    const selectedModel = config.selectedModel;
+    
     // Get model information
-    const { isCorrect, modelName } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    const { isCorrect, modelName } = this.isModelSupported(selectedModel);
     
     // If this is not a Gemini model, just return true without initializing
     if (!isCorrect) {
@@ -129,20 +134,29 @@ export class GeminiClient extends AbstractClient {
     }
     
     try {
-      logger.info(`Initializing Gemini model: ${this.modelName}...`);
+      // Get the proper API identifier from the model map
+      const { MODEL_MAP } = await import('../utils/modelMaps');
+      const modelMapping = MODEL_MAP[selectedModel];
+      
+      // Use the API identifier from the mapping
+      const apiModelName = modelMapping?.apiIdentifier || this.modelName;
+      const useV1Beta = modelMapping?.useV1Beta || false;
+      
+      logger.info(`Initializing Gemini model: ${this.modelName} (API: ${apiModelName})...`);
       
       // Initialize the Google Generative AI client
       this.genAI = new GoogleGenerativeAI(this.apiKey || '');
       
-      // Set the custom model information
+      // Set the custom model information with the proper API identifier
       this.customModel = {
-        name: this.modelName,
-        displayName: this.modelName
+        name: apiModelName,  // Use the actual API identifier
+        displayName: this.modelName,
+        useV1Beta: useV1Beta
       };
       
       // Mark as initialized
       this.isInitialized = true;
-      logger.info(`Successfully initialized Gemini model: ${this.modelName}`);
+      logger.info(`Successfully initialized Gemini model: ${this.modelName} (API: ${apiModelName})`);
       return true;
     } catch (error) {
       logger.error(
@@ -170,14 +184,7 @@ export class GeminiClient extends AbstractClient {
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions
   ): Promise<ReviewResult> {
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
-    
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `Gemini client was called with an invalid model. This is likely a bug in the client selection logic.`
-      );
-    }
+    // No need for additional validation - the client factory already ensures we're the right client
     
     try {
       // Initialize if needed
@@ -242,14 +249,7 @@ export class GeminiClient extends AbstractClient {
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions
   ): Promise<ReviewResult> {
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
-    
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `Gemini client was called with an invalid model. This is likely a bug in the client selection logic.`
-      );
-    }
+    // No need for additional validation - the client factory already ensures we're the right client
     
     try {
       // Initialize if needed
@@ -352,10 +352,78 @@ export class GeminiClient extends AbstractClient {
       
       const model = this.genAI.getGenerativeModel(modelOptions);
       
+      // Determine if we need to use structured JSON output (interactive mode)
+      const isInteractiveMode = options?.interactive === true;
+      
       // Generate content
-      // Add a prefix to the prompt to instruct the model not to repeat the instructions
-      // and to provide output in a structured format
-      const outputInstructions = `
+      // Add a prefix to the prompt to instruct the model on output format
+      let outputInstructions = '';
+      
+      if (isInteractiveMode) {
+        // In interactive mode, request structured JSON that matches our schema
+        outputInstructions = `
+You are a helpful AI assistant that provides code reviews. Focus on providing actionable feedback. Do not repeat the instructions in your response.
+
+CRITICAL INSTRUCTION: Your response MUST be valid JSON that follows the exact schema below.
+DO NOT include any text, markdown, or explanations outside of this JSON structure.
+DO NOT use markdown code blocks. Return ONLY the raw JSON object.
+
+IMPORTANT: DO NOT include comments in your JSON response. In the schema below, comments are shown for explanation, but your output must be valid JSON without comments.
+
+The response must validate against this schema:
+{
+  "review": {
+    "version": "1.0",
+    "timestamp": "2024-05-15T12:00:00Z", 
+    "files": [
+      {
+        "filePath": "path/to/file.ts", 
+        "issues": [
+          {
+            "id": "ISSUE-1", 
+            "priority": "HIGH", 
+            "description": "A clear description of the issue",
+            "location": {
+              "startLine": 10, 
+              "endLine": 15 
+            },
+            "currentCode": "function example() {\\n  // Problematic code here\\n}", 
+            "suggestedCode": "function example() {\\n  // Improved code here\\n}", 
+            "explanation": "Detailed explanation of why this change is recommended"
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "highPriorityIssues": 1, 
+      "mediumPriorityIssues": 2, 
+      "lowPriorityIssues": 3, 
+      "totalIssues": 6 
+    }
+  }
+}
+
+Guidelines for filling the schema:
+1. Each issue must have a unique ID (e.g., "ISSUE-1", "ISSUE-2")
+2. Priority must be exactly one of: "HIGH", "MEDIUM", "LOW" - use uppercase only
+3. Location should include the start and end line numbers of the affected code
+4. Current code should be the exact code snippet that needs to be changed
+5. Suggested code should be the improved version of the code
+6. Explanation should provide a detailed rationale for the suggested change
+7. The summary should accurately count the number of issues by priority
+8. Ensure counts are accurate - totalIssues should equal the sum of all priority counts
+9. For string fields, ensure all quotes and backslashes are properly escaped
+10. For code snippets, use double backslashes for newlines (\\n) and escape any quotes or backslashes
+
+CRITICAL: YOUR OUTPUT MUST BE VALID JSON WITH NO TEXT OUTSIDE THE JSON STRUCTURE.
+DO NOT USE COMMENTS IN YOUR FINAL JSON. 
+DO NOT USE MARKDOWN CODE BLOCKS.
+DO NOT START WITH TRIPLE BACKTICKS OR END WITH TRIPLE BACKTICKS.
+DO NOT EXPLAIN OR DESCRIBE YOUR RESPONSE.
+`;
+      } else {
+        // In standard mode, use markdown format
+        outputInstructions = `
 You are a helpful AI assistant that provides code reviews. Focus on providing actionable feedback. Do not repeat the instructions in your response.
 
 IMPORTANT: Format your response as a well-structured Markdown document with the following sections:
@@ -390,8 +458,12 @@ For each high priority issue:
 
 Ensure your response is well-formatted Markdown with proper headings, bullet points, and code blocks.
 `;
+      }
       
       const modifiedPrompt = outputInstructions + '\n\n' + prompt;
+      
+      // Adjust temperature based on whether we need structured JSON
+      const temperature = isInteractiveMode ? 0.1 : 0.2;
       
       const result = await withRetry(() =>
         model.generateContent({
@@ -402,7 +474,7 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
             }
           ],
           generationConfig: {
-            temperature: 0.2,
+            temperature: temperature,
             topP: 0.8,
             topK: 40,
             maxOutputTokens: MAX_TOKENS_PER_REQUEST
@@ -413,6 +485,29 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
       // Extract the response text
       const response = result.response;
       const text = response.text();
+      
+      // For interactive mode, do a basic validation to ensure we have JSON
+      if (isInteractiveMode) {
+        try {
+          // Check if the response starts and ends with JSON braces
+          const trimmedText = text.trim();
+          if (!trimmedText.startsWith('{') || !trimmedText.endsWith('}')) {
+            logger.warn('Response from Gemini is not properly formatted as JSON. Attempting to extract JSON...');
+            
+            // Try to extract JSON from response
+            const jsonMatch = trimmedText.match(/({[\s\S]*})/);
+            if (jsonMatch) {
+              return jsonMatch[1];
+            } else {
+              logger.error('Failed to extract JSON from Gemini response');
+              throw new Error('Gemini API returned a response that is not valid JSON');
+            }
+          }
+        } catch (error) {
+          logger.error('Error validating JSON response:', error);
+          throw new Error('Gemini API returned a response that is not valid JSON');
+        }
+      }
       
       return text;
     } catch (error) {

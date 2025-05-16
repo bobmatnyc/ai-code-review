@@ -54,24 +54,6 @@ function getHardcodedModels() {
   return {
     models: [
       { 
-        name: "models/gemini-1.5-pro",
-        displayName: "Gemini 1.5 Pro",
-        description: "Balanced performance model with multimodal capabilities",
-        inputTokenLimit: 1000000,
-        outputTokenLimit: 8192,
-        supportedGenerationMethods: ["generateContent"],
-        version: "1.5.0"
-      },
-      { 
-        name: "models/gemini-1.5-flash",
-        displayName: "Gemini 1.5 Flash",
-        description: "Fast model with good quality/speed balance",
-        inputTokenLimit: 1000000,
-        outputTokenLimit: 8192,
-        supportedGenerationMethods: ["generateContent"],
-        version: "1.5.0"
-      },
-      { 
         name: "models/gemini-2.5-pro-preview-05-06",
         displayName: "Gemini 2.5 Pro Preview",
         description: "Latest cutting-edge Gemini model (preview)",

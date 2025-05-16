@@ -21,6 +21,31 @@ import logger from '../logger';
  */
 export function parseReviewJson(jsonString: string): ReviewSchema | null {
   try {
+    // Step 1: First attempt to parse as direct JSON if the string is already properly formatted
+    // This should be the fast path for models that correctly return structured JSON
+    if (jsonString.trim().startsWith('{') && jsonString.trim().endsWith('}')) {
+      try {
+        // Try to parse directly first - this is the ideal case and should work with the
+        // updated model instructions that request structured JSON
+        const directJson = JSON.parse(jsonString);
+        
+        // Validate using Zod schema
+        const directValidation = reviewSchema.safeParse(directJson);
+        if (directValidation.success) {
+          logger.debug('Successfully parsed direct JSON response');
+          return directValidation.data;
+        } else if (directJson.review) {
+          // Basic validation passed
+          logger.debug('Direct JSON has review property but failed schema validation, using fallback');
+          return directJson as ReviewSchema;
+        }
+      } catch (e) {
+        // If direct parsing fails, continue with the extraction approaches
+        logger.debug('Direct parsing failed, attempting extraction patterns');
+      }
+    }
+    
+    // Step 2: If direct parsing fails, try various extraction patterns
     // Try to extract JSON from the response with improved language marker handling
     // Handle various formats:
     // 1. ```json {...}```
@@ -35,18 +60,27 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
     const anyCodeBlockMatch = !jsonBlockMatch ? 
       jsonString.match(/```(?:[\w]*)?[\s\n]*({[\s\S]*?})[\s\n]*```/) : null;
       
-    // Specific check for code blocks with 'typescript' marker that aren't proper JSON
-    const typescriptBlockMatch = !jsonBlockMatch && !anyCodeBlockMatch ?
-      jsonString.match(/```typescript\s*([\s\S]*?)\s*```/) : null;
-    if (typescriptBlockMatch) {
-      // Don't treat TypeScript code as JSON - log a warning
-      logger.warn("Found TypeScript code block but not valid JSON. Skipping JSON parsing attempt for this block.");
+    // Check for code blocks with language markers that aren't proper JSON
+    const languageBlockRegex = /```(typescript|javascript|js|ts|jsx|tsx|java|python|ruby|go|rust|c|cpp|csharp|php)\s*([\s\S]*?)\s*```/;
+    const languageBlockMatch = !jsonBlockMatch && !anyCodeBlockMatch ?
+      jsonString.match(languageBlockRegex) : null;
+    
+    if (languageBlockMatch) {
+      // Don't treat language-specific code blocks as JSON - log a warning
+      const language = languageBlockMatch[1];
+      logger.warn(`Found ${language} code block but not valid JSON. Skipping JSON parsing attempt for this block.`);
+      // Return early with null to avoid trying to parse code as JSON
+      return null;
     }
 
     // If no code block match at all, try other patterns for JSON outside code blocks
-    const jsonOutsideBlockMatch = !jsonBlockMatch && !anyCodeBlockMatch ? 
-      jsonString.match(/({[\s\S]*?"review"[\s\S]*?})\s*$/) || 
-      jsonString.match(/({[\s\S]*?})\s*$/) : null;
+    // First look for review patterns - the most likely structure
+    const reviewJsonPattern = /({[\s\S]*?"review"[\s\S]*?})/;
+    const reviewJsonMatch = jsonString.match(reviewJsonPattern);
+    
+    // Then fall back to any JSON-like patterns
+    const anyJsonPattern = /({[\s\S]*?})/;
+    const anyJsonMatch = !reviewJsonMatch ? jsonString.match(anyJsonPattern) : null;
 
     // Determine which match to use
     let jsonContent = jsonString; // default to full string
@@ -57,13 +91,30 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
     } else if (anyCodeBlockMatch) {
       logger.debug('Found code block with JSON-like content, attempting to parse');
       jsonContent = anyCodeBlockMatch[1];
-    } else if (jsonOutsideBlockMatch) {
-      logger.debug('Found JSON-like content outside code blocks');
-      jsonContent = jsonOutsideBlockMatch[1];
+    } else if (reviewJsonMatch) {
+      logger.debug('Found review JSON content outside code blocks');
+      jsonContent = reviewJsonMatch[1];
+    } else if (anyJsonMatch) {
+      logger.debug('Found generic JSON-like content');
+      jsonContent = anyJsonMatch[1];
     } else {
       logger.debug('No JSON content patterns found, attempting to parse raw content');
     }
 
+    // Clean up the content - remove comments that might be in the JSON
+    // Remove both single-line and inline comments
+    jsonContent = jsonContent
+      .replace(/\/\/.*?(?=\n|$)/g, '') // Remove inline comments (// style)
+      .replace(/^\s*\/\/.*$/gm, '') // Remove single-line comments
+      .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
+      .replace(/,\s*}/g, '}') // Fix trailing commas that might appear after removing comments
+      .replace(/,\s*]/g, ']'); // Fix trailing commas in arrays
+      
+    // Additional cleanup for specific JSON parsing issues
+    jsonContent = jsonContent
+      .replace(/([{,])\s*"(\w+)":\s*"([^"]*)",\s*\/\/.*?(?=\n|$)/g, '$1"$2":"$3",') // Clean inline comments after values
+      .replace(/([{,])\s*"(\w+)":\s*(\d+),\s*\/\/.*?(?=\n|$)/g, '$1"$2":$3,'); // Clean inline comments after numeric values
+    
     // Parse the JSON
     const parsedJson = JSON.parse(jsonContent);
 
@@ -71,6 +122,7 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
     const validationResult = reviewSchema.safeParse(parsedJson);
 
     if (validationResult.success) {
+      logger.debug('Successfully validated review JSON with Zod schema');
       return validationResult.data;
     } else {
       logger.warn(

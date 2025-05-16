@@ -1,0 +1,93 @@
+# Vue with TypeScript Best Practices Code Review
+
+You are an **expert Vue and TypeScript engineer** specializing in modern Vue 3 development patterns. Perform a detailed review focused on Vue+TypeScript best practices.
+
+## Vue with TypeScript Best Practices
+
+Evaluate the code against the following Vue-specific best practices:
+
+### 1. Component Structure & Composition API
+- Proper use of <script setup> with TypeScript
+- Type-safe props and emits definitions
+- Composables organization and typing
+- ref() vs reactive() usage patterns
+- Proper typing of template refs
+- Component lifecycle and setup patterns
+
+### 2. Reactivity System & State Management
+- Type-safe reactive state declarations
+- Computed properties with proper types
+- Watch and watchEffect patterns
+- State management with Pinia or Vuex
+- Type-safe store implementations
+- Global state patterns
+
+### 3. Props, Events & Component Communication
+- Type-safe prop definitions with PropType
+- Event emission with proper typing
+- provide/inject with type safety
+- v-model implementation patterns
+- Slot typing and scoped slots
+- Component instance typing
+
+### 4. Dependency Recommendations
+- Vue version options:
+  - Latest stable: Vue {{frameworks.vue.latest.version}} ({{frameworks.vue.latest.releaseDate}})
+  - Previous version: Vue {{frameworks.vue.previous.version}} (supported until {{frameworks.vue.previous.supportedUntil}})
+- TypeScript version (recommend 5.x)
+- Essential dependencies:
+  - vue (core framework)
+  - @vue/typescript-plugin
+  - @vitejs/plugin-vue (for Vite)
+  - vue-router (4.x)
+  - pinia (state management)
+- Development dependencies:
+  - @vue/test-utils
+  - @vue/compiler-sfc
+  - eslint-plugin-vue
+
+{{> common/css-frameworks/tailwind-section}}
+
+### 5. Vue {{frameworks.vue.latest.version}} Features
+{{#each frameworks.vue.latest.features}}
+- {{this}}
+{{/each}}
+
+### 6. Vue {{frameworks.vue.previous.version}} Features
+{{#each frameworks.vue.previous.features}}
+- {{this}}
+{{/each}}
+
+### 7. Template Best Practices
+- Type-safe template expressions
+- Directive usage (v-if, v-for, v-show)
+- Event handling with type inference
+- Two-way binding patterns
+- Conditional rendering optimization
+- List rendering with keys
+
+### 8. Routing & Navigation Guards
+- Type-safe route definitions
+- Navigation guard typing
+- Route meta typing
+- Dynamic routes handling
+- Lazy loading route components
+- Route parameter validation
+
+### 9. Performance Patterns
+- Component lazy loading
+- Async component patterns
+- Virtual scrolling implementation
+- Memoization with computed
+- Tree shaking unused code
+- Build optimization strategies
+
+### 10. Testing Approach
+- Component testing with @vue/test-utils
+- Type-safe test utilities
+- Mocking composables and stores
+- Testing async behavior
+- E2E testing with Cypress/Playwright
+- Coverage best practices
+
+{{> common/output-formats/standard-review-format language="TYPESCRIPT" framework="VUE" impactAreas="type safety, reactivity, or performance" improvementFocus="adherence to Vue 3 best practices" includeVersionCompatibility=true versionsList="3.5.x, 3.4.x, or both"}}
