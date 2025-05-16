@@ -166,6 +166,16 @@ This tool analyzes code from specified files or directories in sibling projects 
 - **Error Recovery**: Robust error handling with graceful recovery
 - **Code Focus**: Analyzes executable code files only, excluding configuration and documentation files
 
+## Security Best Practices
+
+**⚠️ IMPORTANT: Never commit real API keys to your repository!**
+
+- Always use environment variables for API keys
+- Add `.env.local` to your `.gitignore` file
+- Use placeholder values in example files (like `your_api_key_here`)
+- Review code before committing to ensure no secrets are included
+- Consider using secret scanning tools in your CI/CD pipeline
+
 ## Installation
 
 ### Global Installation

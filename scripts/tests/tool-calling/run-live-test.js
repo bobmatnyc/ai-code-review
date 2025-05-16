@@ -13,7 +13,7 @@ const projectRoot = path.join(__dirname, '../../..');
 const fs = require('fs');
 
 // Set required environment variables
-process.env.SERPAPI_KEY = process.env.SERPAPI_KEY || 'mock_serpapi_key_for_testing';
+process.env.SERPAPI_KEY = process.env.SERPAPI_KEY || 'MOCK-NOT-REAL-serpapi-key';
 
 // Define models to test
 let openaiEnabled = !!process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
@@ -22,8 +22,8 @@ let anthropicEnabled = !!process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
 // This script is primarily for demonstration, so we'll mock API keys if needed
 if (!openaiEnabled && !anthropicEnabled) {
   console.log('No API keys found, simulating API keys for demonstration purposes');
-  process.env.AI_CODE_REVIEW_OPENAI_API_KEY = 'sk-mock-openai-key';
-  process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = 'sk-mock-anthropic-key';
+  process.env.AI_CODE_REVIEW_OPENAI_API_KEY = 'MOCK-NOT-REAL-openai-key';
+  process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = 'MOCK-NOT-REAL-anthropic-key';
   openaiEnabled = true;
   anthropicEnabled = true;
 }
