@@ -152,7 +152,7 @@ export function extractSection(
 
       if (priorityLevel) {
         const regex = new RegExp(
-          `[#]{1,3}\s*(?:🟥|🟧|🟩)?\s*${priorityLevel}\s*priority`,
+          `[#]{1,3}\\s*(?:🟥|🟧|🟩)?\\s*${priorityLevel}\\s*priority`,
           'i'
         );
         const match = content.match(regex);
@@ -263,28 +263,28 @@ export async function parseSuggestions(
     try {
       // Extract issue description using multiple patterns
       let issueDescription = '';
-      let issueMatch = issueBlock.match(/\*\*Issue\*\*:([^\*]+)/);
+      let issueMatch = issueBlock.match(/\*\*Issue\*\*:([^*]+)/);
       if (!issueMatch) {
         // Try alternative patterns
-        issueMatch = issueBlock.match(/\d+\.\s*\*\*Issue\*\*:([^\*]+)/);
+        issueMatch = issueBlock.match(/\d+\.\s*\*\*Issue\*\*:([^*]+)/);
       }
       if (!issueMatch) {
         issueMatch = issueBlock.match(/[#]{1,3}\s+Issue:([^\n]+)/);
       }
       if (!issueMatch) {
-        issueMatch = issueBlock.match(/\*\*Finding\*\*:([^\*]+)/);
+        issueMatch = issueBlock.match(/\*\*Finding\*\*:([^*]+)/);
       }
       if (!issueMatch) {
-        issueMatch = issueBlock.match(/\*\*Performance Issue\*\*:([^\*]+)/);
+        issueMatch = issueBlock.match(/\*\*Performance Issue\*\*:([^*]+)/);
       }
       if (!issueMatch) continue;
       issueDescription = issueMatch[1].trim();
 
       // Extract file path using multiple patterns
       let filePath = '';
-      let fileMatch = issueBlock.match(/\*\*File\*\*:([^\*]+)/);
+      let fileMatch = issueBlock.match(/\*\*File\*\*:([^*]+)/);
       if (!fileMatch) {
-        fileMatch = issueBlock.match(/\*\*Location\*\*:([^\*]+)/);
+        fileMatch = issueBlock.match(/\*\*Location\*\*:([^*]+)/);
       }
       if (!fileMatch) {
         fileMatch = issueBlock.match(/File:([^\n]+)/);
@@ -295,7 +295,7 @@ export async function parseSuggestions(
       if (!fileMatch) {
         // Try to find any path-like string in the issue block
         const pathMatch = issueBlock.match(
-          /(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-\.\/_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/
+          /(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-./_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/
         );
         if (pathMatch) {
           filePath = pathMatch[0].trim();
@@ -332,13 +332,13 @@ export async function parseSuggestions(
       const fullFilePath = path.resolve(projectPath, cleanFilePath);
 
       // Extract location
-      const locationMatch = issueBlock.match(/\*\*Location\*\*:([^\*]+)/);
+      const locationMatch = issueBlock.match(/\*\*Location\*\*:([^*]+)/);
       const location = locationMatch ? locationMatch[1].trim() : '';
 
       // Extract code blocks with more flexible pattern matching
       // Match code blocks with or without language specifier
       const codeBlockMatches =
-        issueBlock.match(/```(?:[a-zA-Z0-9_\-]*)?\s*([\s\S]*?)```/g) || [];
+        issueBlock.match(/```(?:[a-zA-Z0-9_-]*)?\s*([\s\S]*?)```/g) || [];
 
       // If no code blocks found with triple backticks, try alternative formats
       let codeBlocks: string[] = [];
@@ -346,13 +346,13 @@ export async function parseSuggestions(
       if (codeBlockMatches.length > 0) {
         codeBlocks = codeBlockMatches.map((block: string) => {
           // Extract the content inside the code block
-          const content = block.replace(/```(?:[a-zA-Z0-9_\-]*)?\s*|```$/g, '');
+          const content = block.replace(/```(?:[a-zA-Z0-9_-]*)?\s*|```$/g, '');
           return content.trim();
         });
       } else {
         // Try to find code blocks with indentation (4 spaces or tab)
         const indentedCodeBlockMatch = issueBlock.match(
-          /(?:^|\n)(?: {4}|\t)([^\n]+(?:\n(?: {4}|\t)[^\n]+)*)/g
+/(?:^|\n)(?: {4}|\t)([^\n]+(?:\n(?: {4}|\t)[^\n]+)*)/g
         );
         if (indentedCodeBlockMatch) {
           codeBlocks = indentedCodeBlockMatch.map((block: string) => {

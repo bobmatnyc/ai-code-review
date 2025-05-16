@@ -397,11 +397,11 @@ export async function detectProjectType(
       if (!requiredFilesExist) continue;
       
       // Check optional files if specified
-      let optionalFilesScore = 0;
+      let _optionalFilesScore = 0;
       if (signature.optionalFiles && signature.optionalFiles.length > 0) {
         for (const file of signature.optionalFiles) {
           if (existsSync(path.join(projectPath, file))) {
-            optionalFilesScore++;
+            _optionalFilesScore++;
           }
         }
       }
