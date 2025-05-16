@@ -115,7 +115,7 @@ describe('templateLoader', () => {
     });
     
     // Mock fs.readFileSync
-    (fs.readFileSync as jest.Mock).mockImplementation((filePath: string, encoding: string) => {
+    (fs.readFileSync as jest.Mock).mockImplementation((filePath: string, _encoding: string) => {
       if (filePath.includes('framework-versions.json')) {
         return JSON.stringify({
           frameworks: {
@@ -146,7 +146,7 @@ describe('templateLoader', () => {
     });
     
     // Mock fs.readdirSync
-    (fs.readdirSync as jest.Mock).mockImplementation((dirPath: string, options: any) => {
+    (fs.readdirSync as jest.Mock).mockImplementation((dirPath: string, _options: any) => {
       if (dirPath.includes('frameworks') && !dirPath.includes('react')) {
         return ['react', 'angular', 'vue'];
       }
