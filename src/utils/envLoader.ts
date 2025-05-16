@@ -79,8 +79,9 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
           debugLog(`Found .env.local in tool directory: ${potentialEnvPath}`);
           found = true;
           break;
-        } catch {
-          // Continue to next directory
+        } catch (statError) {
+          // File doesn't exist in this directory, continue to next
+          debugLog(`No .env.local in ${potentialEnvPath}`)
         }
       }
       
@@ -97,10 +98,12 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
     } catch (error) {
       // Don't fail if we can't find the .env.local file
       // Just return a warning message instead
-      traceEnvVarLoading(`Environment file not found: ${envLocalPath}. Continuing without it.`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      traceEnvVarLoading(`Environment file not found: ${envLocalPath} (${errorMessage}). Continuing without it.`);
       return {
         success: true,
-        message: `No .env.local file found. You may need to set API keys via environment variables or command line options.`
+        message: `No .env.local file found. You may need to set API keys via environment variables or command line options.`,
+        envFile: envLocalPath
       };
     }
 
@@ -141,10 +144,13 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
       message: `Successfully loaded environment variables from ${envLocalPath}`,
       envFile: envLocalPath
     };
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error loading environment variables: ${errorMessage}`);
     return {
       success: false,
-      message: `Unexpected error loading environment variables: ${error.message || error}`
+      message: `Unexpected error loading environment variables: ${errorMessage}`,
+      envFile: envFilePath
     };
   }
 }

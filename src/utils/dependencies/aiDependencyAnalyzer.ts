@@ -309,12 +309,22 @@ async function getProjectFileSample(projectPath: string): Promise<ProjectFileSam
   
   try {
     // Get directory structure using ls
-    const { stdout: dirOutput } = await execAsync(`ls -la ${projectPath}`);
-    result.directoryStructure = dirOutput;
+    try {
+      const { stdout: dirOutput } = await execAsync(`ls -la ${projectPath}`);
+      result.directoryStructure = dirOutput;
+    } catch (error) {
+      logger.warn(`Error getting directory structure: ${error instanceof Error ? error.message : String(error)}`);
+      result.directoryStructure = 'Unable to retrieve directory structure';
+    }
     
     // Find package.json files
-    const { stdout: packageFilesOutput } = await execAsync(`find ${projectPath} -name "package.json" -not -path "*/node_modules/*" -not -path "*/\\.*/*" | head -5`);
-    const packageFilePaths = packageFilesOutput.trim().split('\n').filter(Boolean);
+    let packageFilePaths: string[] = [];
+    try {
+      const { stdout: packageFilesOutput } = await execAsync(`find ${projectPath} -name "package.json" -not -path "*/node_modules/*" -not -path "*/\\.*/*" | head -5`);
+      packageFilePaths = packageFilesOutput.trim().split('\n').filter(Boolean);
+    } catch (error) {
+      logger.warn(`Error finding package.json files: ${error instanceof Error ? error.message : String(error)}`);
+    }
     
     // Process each package.json file
     for (const filePath of packageFilePaths) {
@@ -334,12 +344,22 @@ async function getProjectFileSample(projectPath: string): Promise<ProjectFileSam
     }
     
     // Get total file count (excluding node_modules and hidden directories)
-    const { stdout: totalFilesOutput } = await execAsync(`find ${projectPath} -type f -not -path "*/node_modules/*" -not -path "*/\\.*/*" | wc -l`);
-    result.totalFileCount = parseInt(totalFilesOutput.trim(), 10);
+    try {
+      const { stdout: totalFilesOutput } = await execAsync(`find ${projectPath} -type f -not -path "*/node_modules/*" -not -path "*/\\.*/*" | wc -l`);
+      result.totalFileCount = parseInt(totalFilesOutput.trim(), 10);
+    } catch (error) {
+      logger.warn(`Error counting files: ${error instanceof Error ? error.message : String(error)}`);
+      result.totalFileCount = 0;
+    }
     
     // Find source files (JS, TS, etc.)
-    const { stdout: sourceFilesOutput } = await execAsync(`find ${projectPath} -type f \\( -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" \\) -not -path "*/node_modules/*" -not -path "*/\\.*/*" | sort -R | head -20`);
-    const sourceFilePaths = sourceFilesOutput.trim().split('\n').filter(Boolean);
+    let sourceFilePaths: string[] = [];
+    try {
+      const { stdout: sourceFilesOutput } = await execAsync(`find ${projectPath} -type f \\( -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" \\) -not -path "*/node_modules/*" -not -path "*/\\.*/*" | sort -R | head -20`);
+      sourceFilePaths = sourceFilesOutput.trim().split('\n').filter(Boolean);
+    } catch (error) {
+      logger.warn(`Error finding source files: ${error instanceof Error ? error.message : String(error)}`);
+    }
     
     // Process each source file to extract imports
     for (const filePath of sourceFilePaths) {

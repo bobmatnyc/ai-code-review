@@ -93,11 +93,18 @@ export async function discoverFiles(
 export async function readFilesContent(
   filePaths: string[],
   projectPath: string
-): Promise<FileInfo[]> {
+): Promise<{ fileInfos: FileInfo[]; errors: Array<{ path: string; error: string }> }> {
   const fileInfos: FileInfo[] = [];
+  const errors: Array<{ path: string; error: string }> = [];
 
   for (const filePath of filePaths) {
     try {
+      // Check if file exists and is readable
+      if (!await pathExists(filePath)) {
+        errors.push({ path: filePath, error: 'File does not exist' });
+        continue;
+      }
+
       // Read file content
       const fileContent = await fs.readFile(filePath, 'utf-8');
 
@@ -111,12 +118,15 @@ export async function readFilesContent(
         content: fileContent
       });
     } catch (error) {
-      logger.error(
-        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
-      );
-      // Continue with other files instead of failing completely
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error reading file ${filePath}: ${errorMessage}`);
+      errors.push({ path: filePath, error: errorMessage });
     }
   }
 
-  return fileInfos;
+  if (errors.length > 0) {
+    logger.warn(`Failed to read ${errors.length} file(s)`);
+  }
+
+  return { fileInfos, errors };
 }
