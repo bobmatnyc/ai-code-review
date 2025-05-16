@@ -25,14 +25,14 @@ import {
   formatConsolidatedReviewPrompt
 } from '../utils/promptFormatter';
 import { loadPromptTemplate } from '../utils/promptLoader';
-import { getLanguageFromExtension } from '../utils/languageDetection';
+// import { getLanguageFromExtension } from '../utils/languageDetection'; // Not used in this implementation
 import { 
-  makeAnthropicRequest, 
-  AnthropicResponse, 
-  MAX_TOKENS_PER_REQUEST 
+  makeAnthropicRequest 
+  // AnthropicResponse, // Not used in this implementation
+  // MAX_TOKENS_PER_REQUEST // Not used in this implementation
 } from '../utils/anthropicApiClient';
 import { 
-  parseJsonResponse, 
+  // parseJsonResponse, // Not used in this implementation
   testAnthropicApiAccess 
 } from '../utils/anthropicModelHelpers';
 
@@ -155,7 +155,7 @@ export class AnthropicClient extends AbstractClient {
       }
       
       // Get the language from file extension
-      const language = getLanguageFromExtension(filePath);
+      // const language = getLanguageFromExtension(filePath); // Currently unused
       
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);
