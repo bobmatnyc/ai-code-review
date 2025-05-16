@@ -14,8 +14,8 @@ import { BaseReviewStrategy, IReviewStrategy } from './ReviewStrategy';
 import {
   FileInfo,
   ReviewOptions,
-  ReviewResult,
-  ReviewType
+  ReviewResult
+  // ReviewType // Not used in this file
 } from '../types/review';
 import { StructuredReview } from '../types/structuredReview';
 import { ProjectDocs } from '../utils/files/projectDocs';

@@ -10,7 +10,7 @@
 import logger from '../../utils/logger';
 import { getModelMapping } from './modelMaps';
 import { ProjectDocs } from '../../utils/projectDocs';
-import { FileInfo, ReviewOptions, ReviewResult, ReviewCost, ReviewType } from '../../types/review';
+import { FileInfo, ReviewOptions, ReviewResult, ReviewCost /* , ReviewType */ } from '../../types/review'; // ReviewType not used
 import { loadPromptTemplate, formatConsolidatedReviewPrompt } from './index';
 import { extractPackageInfo } from '../../utils/dependencies/packageAnalyzer';
 import { getCostInfoFromText } from './tokenCounter';
