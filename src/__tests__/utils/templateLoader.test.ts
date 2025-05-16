@@ -36,7 +36,7 @@ describe('templateLoader', () => {
   const mockTemplatesDir = '/mock/templates';
   const mockTemplatePath = 'languages/typescript/best-practices.hbs';
   const mockTemplateContent = 'Hello {{name}}!';
-  const mockVariables = { name: 'World' };
+  // const mockVariables = { name: 'World' }; // Not used
   
   // Set up mocks before each test
   beforeEach(() => {
@@ -44,7 +44,7 @@ describe('templateLoader', () => {
     jest.clearAllMocks();
     
     // Mock path.resolve
-    (path.resolve as jest.Mock).mockImplementation((dir: string, ...segments: string[]) => {
+    (path.resolve as jest.Mock).mockImplementation((_dir: string, ..._segments: string[]) => {
       return mockTemplatesDir;
     });
     

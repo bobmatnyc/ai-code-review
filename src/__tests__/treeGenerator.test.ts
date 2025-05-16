@@ -61,7 +61,7 @@ describe('File Tree Generator', () => {
     // Pass null to simulate an error
     const files = ['file1.txt', 'file2.txt'];
     
-    // @ts-ignore - Deliberately passing incorrect value to test error handling
+    // @ts-expect-error - Deliberately passing incorrect value to test error handling
     const originalGenerateFileTree = generateFileTree;
     
     // Replace with a mock that throws
