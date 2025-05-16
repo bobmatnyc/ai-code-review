@@ -7,8 +7,8 @@
  * based on configured API keys.
  */
 
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+// import * as dotenv from 'dotenv'; // Not used in this file
+// import * as path from 'path'; // Not used in this file
 import { loadEnvVariables } from '../utils/envLoader';
 import { listModels, printCurrentModel } from '../clients/utils/modelLister';
 import yargs from 'yargs';
