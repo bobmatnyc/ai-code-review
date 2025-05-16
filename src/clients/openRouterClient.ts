@@ -22,17 +22,17 @@ import {
   ReviewOptions
 } from '../types/review';
 import { getConfig } from '../utils/config';
-import { ProjectDocs, addProjectDocsToPrompt } from '../utils/projectDocs';
+import { ProjectDocs /* , addProjectDocsToPrompt */ } from '../utils/projectDocs'; // addProjectDocsToPrompt not used
 import logger from '../utils/logger';
 import {
-  generateDirectoryStructure,
+  // generateDirectoryStructure, // Not used in this file
   validateOpenRouterApiKey,
   isDebugMode
 } from './utils';
 import { getCostInfoFromText } from './utils/tokenCounter';
 import { loadPromptTemplate } from './utils/promptLoader';
 import { ApiError } from '../utils/apiErrorHandler';
-import { getLanguageFromExtension } from './utils/languageDetection';
+// import { getLanguageFromExtension } from './utils/languageDetection'; // Not used in this file
 import {
   formatSingleFileReviewPrompt,
   formatConsolidatedReviewPrompt

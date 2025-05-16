@@ -27,7 +27,7 @@ import {
   formatConsolidatedReviewPrompt
 } from '../utils/promptFormatter';
 import { loadPromptTemplate } from '../utils/promptLoader';
-import { getLanguageFromExtension } from '../utils/languageDetection';
+// import { getLanguageFromExtension } from '../utils/languageDetection'; // Not used in this implementation
 
 const MAX_TOKENS_PER_REQUEST = 4000;
 

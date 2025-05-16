@@ -36,8 +36,8 @@ import {
 import { getCostInfoFromText } from './utils/tokenCounter';
 import { loadPromptTemplate } from './utils/promptLoader';
 import { ApiError } from '../utils/apiErrorHandler';
-import { getLanguageFromExtension } from './utils/languageDetection';
-import { supportsToolCalling as supportsToolCallingFn, getModelMapping } from './utils/modelMaps';
+// import { getLanguageFromExtension } from './utils/languageDetection'; // Not used in this file
+import { /* supportsToolCalling as supportsToolCallingFn, */ getModelMapping } from './utils/modelMaps'; // supportsToolCallingFn not used
 import { ALL_TOOLS } from './utils/toolCalling';
 import { openAIToolCallingHandler } from './utils/openAIToolCallingHandler';
 import { executeToolCall } from './utils/toolExecutor';

@@ -26,7 +26,7 @@ import {
   formatConsolidatedReviewPrompt
 } from '../utils/promptFormatter';
 import { loadPromptTemplate } from '../utils/promptLoader';
-import { getLanguageFromExtension } from '../utils/languageDetection';
+// import { getLanguageFromExtension } from '../utils/languageDetection'; // Not used in this implementation
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { globalRateLimiter } from '../../utils/rateLimiter';
 
