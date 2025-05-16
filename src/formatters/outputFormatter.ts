@@ -17,7 +17,7 @@
  * structured regardless of the review type or content.
  */
 
-import { ReviewResult } from '../types/review';
+import { ReviewResult, ReviewType, PassCost, ReviewCost } from '../types/review';
 import { StructuredReview, ReviewIssue } from '../types/structuredReview';
 import { sanitizeContent } from '../utils/parsing/sanitizer';
 import logger from '../utils/logger';

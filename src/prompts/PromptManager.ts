@@ -339,23 +339,8 @@ export class PromptManager {
       language = options.language.toLowerCase();
     }
     
-    // Detect framework if project path is provided
-    if (options?.projectPath) {
-      const frameworkResult = await detectFramework(options.projectPath);
-      if (frameworkResult) {
-        framework = frameworkResult.framework;
-        // Log both language and framework detection
-        if (framework !== 'none' && frameworkResult.confidence > 0.6) {
-          logger.info(`Detected language: ${frameworkResult.language}, framework: ${framework} (confidence: ${frameworkResult.confidence.toFixed(2)})`);
-          
-          if (frameworkResult.additionalFrameworks && frameworkResult.additionalFrameworks.length > 0) {
-            logger.info(`Additional frameworks detected: ${frameworkResult.additionalFrameworks.join(', ')}`);
-          }
-        } else {
-          logger.info(`Detected language: ${frameworkResult.language}, no specific framework detected`);
-        }
-      }
-    }
+    // Use framework from options if provided
+    framework = options?.framework || framework;
 
     // Check if we should use a cached prompt
     if (options?.useCache !== false) {

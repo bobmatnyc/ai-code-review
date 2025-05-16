@@ -39,7 +39,7 @@ export async function saveRemovalScript(
     const scriptPath = path.join(outputDir, filename);
 
     // Write the script to file
-    await fs.writeFile(scriptPath, reviewResult.metadata.removalScript, {
+    await fs.writeFile(scriptPath, reviewResult.metadata.removalScript as string, {
       mode: 0o755
     }); // Make it executable
 

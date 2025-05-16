@@ -57,7 +57,8 @@ This mock review demonstrates the tool calling feature has been successfully imp
       inputTokens: 1000,
       outputTokens: 1500,
       totalTokens: 2500,
-      estimatedCost: 0.05
+      estimatedCost: 0.05,
+      formattedCost: '$0.05'
     }
   };
 }

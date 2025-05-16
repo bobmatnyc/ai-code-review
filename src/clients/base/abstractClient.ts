@@ -14,6 +14,7 @@ import {
   ReviewOptions,
   ReviewCost
 } from '../../types/review';
+import { StructuredReview } from '../../types/structuredReview';
 import { ProjectDocs } from '../../utils/projectDocs';
 import logger from '../../utils/logger';
 
@@ -146,7 +147,7 @@ export abstract class AbstractClient {
       filePath,
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData
+      structuredData: structuredData as StructuredReview | undefined
     };
   }
 
