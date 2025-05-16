@@ -32,7 +32,7 @@ export async function consolidateReview(
     await client.initialize();
     
     // Extract provider from the configured model
-    const [_provider] = configuredModel.split(':');
+    // const [_provider] = configuredModel.split(':'); // Not used in this implementation
     
     // Create a consolidated prompt that includes the multi-pass results
     const consolidationSystemPrompt = getConsolidationSystemPrompt();
@@ -127,7 +127,7 @@ Make this report comprehensive but focused on high-value insights. Be specific a
  */
 function getConsolidationPrompt(review: ReviewResult): string {
   const passCount = review.costInfo?.passCount || 5;
-  const _fileCount = review.files?.length || 200;
+  // const _fileCount = review.files?.length || 200; // Not used in this prompt
   const projectName = review.projectName || 'ai-code-review';
   
   return `I have conducted a multi-pass code review of a project named "${projectName}" using the "${review.reviewType}" review type. The review was split into ${passCount} passes due to the size of the codebase.
