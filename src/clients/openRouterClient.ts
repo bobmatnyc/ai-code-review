@@ -136,7 +136,7 @@ export async function generateOpenRouterReview(
     let cost: ReviewCost | undefined;
 
     // Get the language from the file extension
-    const language = getLanguageFromExtension(filePath);
+    // const language = getLanguageFromExtension(filePath); // Currently unused
 
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType, options);

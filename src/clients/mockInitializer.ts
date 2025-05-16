@@ -75,10 +75,10 @@ export const mockInitializeAnthropic = async function(): Promise<boolean> {
 };
 
 export const mockOpenAIArchitecturalReview = async function(
-  files: FileInfo[], 
-  project: string, 
-  projectDocs?: ProjectDocs | null, 
-  options?: ReviewOptions
+  _files: FileInfo[], 
+  _project: string, 
+  _projectDocs?: ProjectDocs | null, 
+  _options?: ReviewOptions
 ): Promise<ReviewResult> {
   console.log('[MOCK] Generating architectural review with OpenAI');
   await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate delay
@@ -86,10 +86,10 @@ export const mockOpenAIArchitecturalReview = async function(
 };
 
 export const mockAnthropicArchitecturalReview = async function(
-  files: FileInfo[], 
-  project: string, 
-  projectDocs?: ProjectDocs | null, 
-  options?: ReviewOptions
+  _files: FileInfo[], 
+  _project: string, 
+  _projectDocs?: ProjectDocs | null, 
+  _options?: ReviewOptions
 ): Promise<ReviewResult> {
   console.log('[MOCK] Generating architectural review with Anthropic');
   await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate delay

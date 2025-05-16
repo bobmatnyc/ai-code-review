@@ -143,7 +143,7 @@ export class OpenRouterClient extends AbstractClient {
       }
       
       // Get the language from file extension
-      const language = getLanguageFromExtension(filePath);
+      // const language = getLanguageFromExtension(filePath); // Currently unused
       
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);

@@ -222,7 +222,7 @@ export async function generateReview(
     await globalRateLimiter.acquire();
 
     // Get the language from the file extension
-    const language = getLanguageFromExtension(filePath);
+    // const language = getLanguageFromExtension(filePath); // Not used in formatSingleFileReviewPrompt
 
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType, options);

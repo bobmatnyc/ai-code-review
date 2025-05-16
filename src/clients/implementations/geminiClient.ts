@@ -196,7 +196,7 @@ export class GeminiClient extends AbstractClient {
       await globalRateLimiter.acquire();
       
       // Get the language from file extension
-      const language = getLanguageFromExtension(filePath);
+      // const language = getLanguageFromExtension(filePath); // Currently unused
       
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);

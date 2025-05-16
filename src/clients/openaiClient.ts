@@ -25,7 +25,7 @@ import { getConfig } from '../utils/config';
 import { ProjectDocs } from '../utils/projectDocs';
 import logger from '../utils/logger';
 import {
-  generateDirectoryStructure,
+  // generateDirectoryStructure, // Not used in this file
   validateOpenAIApiKey,
   isDebugMode
 } from './utils';
@@ -172,7 +172,7 @@ export async function generateOpenAIReview(
     let cost: ReviewCost | undefined;
 
     // Get the language from the file extension
-    const language = getLanguageFromExtension(filePath);
+    // const language = getLanguageFromExtension(filePath); // Currently unused
 
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType, options);
