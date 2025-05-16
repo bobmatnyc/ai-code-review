@@ -479,8 +479,9 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     readline.createInterface.mockReturnValueOnce(mockRlInterface);
     
     // Create a spy that simulates the exit behavior
-    const orchestrateSpy = jest.spyOn(require('../../core/reviewOrchestrator'), 'orchestrateReview')
-      .mockImplementation(async (target, opts) => {
+    const reviewOrchestratorModule = jest.requireMock('../../core/reviewOrchestrator') as { orchestrateReview: typeof orchestrateReview };
+    const orchestrateSpy = jest.spyOn(reviewOrchestratorModule, 'orchestrateReview')
+      .mockImplementation(async (_target, _opts) => {
         // Simulate readline question being called
         await new Promise<void>((resolve) => {
           mockQuestion('Proceed with multi-pass review? (y/N): ', (answer: string) => {

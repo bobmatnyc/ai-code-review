@@ -8,7 +8,7 @@ jest.mock('../../utils/logger');
 
 // Import after mocking
 import { ConsolidatedReviewStrategy } from '../../strategies/ConsolidatedReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewType } from '../../types/review';
+import { FileInfo, ReviewOptions } from '../../types/review';
 import { ApiClientConfig } from '../../core/ApiClientSelector';
 import { ProjectDocs } from '../../utils/projectDocs';
 import { generateReview } from '../../core/ReviewGenerator';
