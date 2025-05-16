@@ -111,7 +111,7 @@ async function executeGraphQLQuery(query: string, variables: any, token: string)
 export async function getProjectInfo(config: GitHubProjectsConfig): Promise<any> {
   try {
     let query;
-    let variables: any = {};
+    const variables: any = {};
 
     if (config.projectId) {
       // Query by project ID

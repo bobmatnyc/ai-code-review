@@ -8,10 +8,7 @@
 
 import logger from '../logger';
 import { ReviewResult } from '../../types/review';
-import { formatTokenAnalysis } from '../../analysis/tokens';
-import { getCostInfoFromText } from '../../clients/utils/tokenCounter';
-import { ClientFactory, ClientType } from '../../clients/factory/clientFactory';
-import { AbstractClient } from '../../clients/base/abstractClient';
+import { ClientFactory } from '../../clients/factory/clientFactory';
 import { getConfig } from '../../utils/config';
 
 /**
@@ -35,7 +32,7 @@ export async function consolidateReview(
     await client.initialize();
     
     // Extract provider from the configured model
-    const [provider] = configuredModel.split(':');
+    const [_provider] = configuredModel.split(':');
     
     // Create a consolidated prompt that includes the multi-pass results
     const consolidationSystemPrompt = getConsolidationSystemPrompt();
@@ -130,7 +127,7 @@ Make this report comprehensive but focused on high-value insights. Be specific a
  */
 function getConsolidationPrompt(review: ReviewResult): string {
   const passCount = review.costInfo?.passCount || 5;
-  const fileCount = review.files?.length || 200;
+  const _fileCount = review.files?.length || 200;
   const projectName = review.projectName || 'ai-code-review';
   
   return `I have conducted a multi-pass code review of a project named "${projectName}" using the "${review.reviewType}" review type. The review was split into ${passCount} passes due to the size of the codebase.
@@ -172,7 +169,7 @@ function createFallbackConsolidation(review: ReviewResult): string {
   
   let match;
   while ((match = passRegex.exec(review.content)) !== null) {
-    const [_, passNumberStr, fileCountStr, summaryContent] = match;
+    const [, passNumberStr, fileCountStr, summaryContent] = match;
     passes.push({
       passNumber: parseInt(passNumberStr, 10),
       fileCount: parseInt(fileCountStr, 10),

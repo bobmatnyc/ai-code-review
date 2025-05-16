@@ -859,9 +859,9 @@ function formatSchemaBasedReviewAsMarkdown(
   const summary = review.summary || {};
   
   // Create issues sections by priority
-  let highPriorityIssues: any[] = [];
-  let mediumPriorityIssues: any[] = [];
-  let lowPriorityIssues: any[] = [];
+  const highPriorityIssues: any[] = [];
+  const mediumPriorityIssues: any[] = [];
+  const lowPriorityIssues: any[] = [];
   
   // Collect all issues from all files
   files.forEach((file: any) => {
