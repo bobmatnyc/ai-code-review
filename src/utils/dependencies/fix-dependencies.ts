@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-// This script fixes the dependency security scanner by modifying how it handles stack analysis
+/**
+ * @fileoverview Script that fixes the dependency security scanner by modifying how it handles stack analysis
+ */
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
 console.log('Fixing dependency scanner...');
 

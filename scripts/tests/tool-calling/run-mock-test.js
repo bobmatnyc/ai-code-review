@@ -77,7 +77,7 @@ try {
   process.env.SERPAPI_KEY = 'MOCK-NOT-REAL-serpapi-key';
   
   // Create our own minimal test instead of running the full CLI
-  const mockInitializer = require('../../../src/clients/mockInitializer');
+  const mockInitializer = require('../../../src/clients/mockInitializer.ts');
   const { extractPackageInfo } = require('../../../src/utils/dependencies/packageAnalyzer');
   const { searchPackageSecurity, batchSearchPackageSecurity } = require('../../../src/utils/dependencies/serpApiHelper');
   
