@@ -178,7 +178,10 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     process.env = { ...originalProcessEnv };
     
     // Setup process.exit mock for all tests
-    mockExit = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+    mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | string | null) => {
+      // Just record the call, don't actually exit
+      return undefined as never;
+    });
     
     // Set environment variables needed for the tests
     process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-2.5-pro';

@@ -15,14 +15,22 @@ import { getPromptTemplate, checkTemplatesAvailability } from '../../utils/templ
 jest.mock('fs');
 jest.mock('path');
 jest.mock('../../utils/templates/promptTemplateManager');
-jest.mock('../../utils/logger', () => ({
-  logger: {
+jest.mock('../../utils/logger', () => {
+  const mockLogger = {
     debug: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
-  },
-}));
+  };
+  return {
+    __esModule: true,
+    default: mockLogger,
+    debug: mockLogger.debug,
+    info: mockLogger.info,
+    warn: mockLogger.warn,
+    error: mockLogger.error,
+  };
+});
 
 describe('bundledPrompts with template integration', () => {
   // Sample bundled prompt content
@@ -40,7 +48,7 @@ describe('bundledPrompts with template integration', () => {
     
     // Mock getPromptTemplate to return sample template content
     (getPromptTemplate as jest.Mock).mockImplementation((reviewType: ReviewType, language?: string, framework?: string) => {
-      if (reviewType === ReviewType.BEST_PRACTICES && language === 'typescript') {
+      if (reviewType === 'best-practices' && language === 'typescript') {
         return sampleTemplatePrompt;
       }
       return undefined;
@@ -71,7 +79,7 @@ describe('bundledPrompts with template integration', () => {
       }
       
       // Test the implementation
-      const result = getNewBundledPrompt(ReviewType.BEST_PRACTICES, 'typescript');
+      const result = getNewBundledPrompt('best-practices', 'typescript');
       
       // Should use bundled prompt since template system is not available
       expect(result).not.toBe(sampleTemplatePrompt);
@@ -98,11 +106,11 @@ describe('bundledPrompts with template integration', () => {
       }
       
       // Test the implementation
-      const result = getNewBundledPrompt(ReviewType.BEST_PRACTICES, 'typescript');
+      const result = getNewBundledPrompt('best-practices', 'typescript');
       
       // Should use template prompt since template system is available
       expect(result).toBe(sampleTemplatePrompt);
-      expect(getPromptTemplate).toHaveBeenCalledWith(ReviewType.BEST_PRACTICES, 'typescript', undefined);
+      expect(getPromptTemplate).toHaveBeenCalledWith('best-practices', 'typescript', undefined);
     });
     
     it('should fall back to bundled prompt when template is not found', () => {
@@ -128,11 +136,11 @@ describe('bundledPrompts with template integration', () => {
       }
       
       // Test the implementation
-      const result = getNewBundledPrompt(ReviewType.BEST_PRACTICES, 'typescript');
+      const result = getNewBundledPrompt('best-practices', 'typescript');
       
       // Should fall back to bundled prompt
       expect(result).not.toBe(sampleTemplatePrompt);
-      expect(getPromptTemplate).toHaveBeenCalledWith(ReviewType.BEST_PRACTICES, 'typescript', undefined);
+      expect(getPromptTemplate).toHaveBeenCalledWith('best-practices', 'typescript', undefined);
     });
   });
   
@@ -146,7 +154,7 @@ describe('bundledPrompts with template integration', () => {
       // Mock getPromptTemplate to return templates for some review types but not others
       (getPromptTemplate as jest.Mock).mockImplementation((reviewType: ReviewType, language?: string, framework?: string) => {
         // Only return templates for certain review types to simulate partial migration
-        if (reviewType === ReviewType.BEST_PRACTICES) {
+        if (reviewType === 'best-practices') {
           return sampleTemplatePrompt;
         }
         return undefined; // No template for other review types yet
@@ -171,11 +179,11 @@ describe('bundledPrompts with template integration', () => {
       }
       
       // Test with a review type that has been migrated to templates
-      const bestPracticesResult = getNewBundledPrompt(ReviewType.BEST_PRACTICES, 'typescript');
+      const bestPracticesResult = getNewBundledPrompt('best-practices', 'typescript');
       expect(bestPracticesResult).toBe(sampleTemplatePrompt);
       
       // Test with a review type that hasn't been migrated yet
-      const securityResult = getNewBundledPrompt(ReviewType.SECURITY, 'typescript');
+      const securityResult = getNewBundledPrompt('security', 'typescript');
       expect(securityResult).not.toBe(sampleTemplatePrompt);
     });
   });

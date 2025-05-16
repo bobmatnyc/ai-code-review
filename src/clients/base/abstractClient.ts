@@ -95,7 +95,7 @@ export abstract class AbstractClient {
    * @param content The response content to process
    * @returns The processed structured data or null
    */
-  protected processResponseForStructuredData(content: string): any | null {
+  protected processResponseForStructuredData(content: string): unknown | null {
     try {
       // First, check if the response is wrapped in a code block
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);

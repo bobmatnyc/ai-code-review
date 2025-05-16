@@ -10,6 +10,7 @@ import logger from '../utils/logger';
 import { getApiKeyType } from '../utils/apiUtils';
 // Import the client wrappers directly
 import { initializeAnyOpenRouterModel } from '../clients/openRouterClientWrapper';
+import { AbstractClient } from '../clients/base/abstractClient';
 
 /**
  * API client types supported by the application
@@ -30,7 +31,7 @@ export interface ApiClientConfig {
   initialized: boolean;
   provider?: string;
   apiKey?: string;
-  client?: any;
+  client?: AbstractClient;
 }
 
 /**

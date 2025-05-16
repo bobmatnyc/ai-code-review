@@ -16,7 +16,7 @@ import { getCostInfoFromText } from '../utils/tokenCounter';
  * @param content The API response content
  * @returns Structured data object or null if not valid JSON
  */
-export function extractStructuredData(content: string): any | null {
+export function extractStructuredData(content: string): unknown | null {
   try {
     // Check if the response is wrapped in any code block with improved language marker handling
     // Handle various formats:
