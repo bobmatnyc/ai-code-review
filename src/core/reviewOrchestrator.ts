@@ -220,7 +220,20 @@ export async function orchestrateReview(
 
       try {
         // Read file contents for token analysis
-        const fileInfos = await readFilesContent(filesToReview, projectPath);
+        const { fileInfos, errors } = await readFilesContent(filesToReview, projectPath);
+        
+        // If we have errors reading files, report them but continue
+        if (errors.length > 0) {
+          console.warn(`Warning: Failed to read ${errors.length} file(s):`);
+          for (const error of errors) {
+            console.warn(`  - ${error.path}: ${error.error}`);
+          }
+        }
+        
+        // Ensure we have at least some files to analyze
+        if (fileInfos.length === 0) {
+          throw new Error('No files could be read for review. Please check file permissions and paths.');
+        }
         
         // Use the new TokenAnalyzer for more comprehensive analysis
         const { TokenAnalyzer } = await import('../analysis/tokens');
@@ -336,7 +349,20 @@ Note: This is an estimate based on approximate token counts and may vary
     const actualProjectName = projectName || 'unknown-project';
 
     // Read file contents
-    const fileInfos = await readFilesContent(filesToReview, projectPath);
+    const { fileInfos, errors } = await readFilesContent(filesToReview, projectPath);
+    
+    // If we have errors reading files, report them but continue
+    if (errors.length > 0) {
+      logger.warn(`Failed to read ${errors.length} file(s):`);
+      for (const error of errors) {
+        logger.warn(`  ${error.path}: ${error.error}`);
+      }
+    }
+    
+    // Ensure we have at least some files to review
+    if (fileInfos.length === 0) {
+      throw new Error('No files could be read for review. Please check file permissions and paths.');
+    }
 
     // Read project documentation if enabled
     let projectDocs = null;

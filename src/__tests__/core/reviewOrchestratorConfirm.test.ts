@@ -68,11 +68,14 @@ const { estimateMultiPassReviewCost } = require('../../utils/estimationUtils');
 jest.mock('../../core/fileDiscovery', () => {
   return {
   discoverFiles: jest.fn().mockResolvedValue(['file1.ts', 'file2.ts', 'file3.ts']),
-  readFilesContent: jest.fn().mockResolvedValue([
-    { path: 'file1.ts', content: 'content1', relativePath: 'file1.ts' },
-    { path: 'file2.ts', content: 'content2', relativePath: 'file2.ts' },
-    { path: 'file3.ts', content: 'content3', relativePath: 'file3.ts' }
-  ])
+  readFilesContent: jest.fn().mockResolvedValue({
+    fileInfos: [
+      { path: 'file1.ts', content: 'content1', relativePath: 'file1.ts' },
+      { path: 'file2.ts', content: 'content2', relativePath: 'file2.ts' },
+      { path: 'file3.ts', content: 'content3', relativePath: 'file3.ts' }
+    ],
+    errors: []
+  })
 };
 });
 
