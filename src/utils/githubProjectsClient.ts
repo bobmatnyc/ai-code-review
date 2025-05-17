@@ -8,11 +8,11 @@
 
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
-import path from 'path';
+// import path from 'path'; // TODO: Remove if not needed
 import logger from './logger';
 
 // GitHub API endpoints
-const GITHUB_API_URL = 'https://api.github.com';
+// const GITHUB_API_URL = 'https://api.github.com'; // TODO: Remove if not needed
 const GITHUB_GRAPHQL_URL = 'https://api.github.com/graphql';
 
 /**
