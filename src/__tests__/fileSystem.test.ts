@@ -16,6 +16,13 @@ import { generateVersionedOutputPath } from '../utils/PathGenerator';
 jest.mock('fs/promises');
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
+// Mock pathValidator to allow spying on pathExists in FileWriter tests
+jest.mock('../utils/pathValidator', () => ({
+  pathExists: jest.fn(),
+  isDirectory: jest.fn(),
+  isFile: jest.fn()
+}));
+
 // Mock fs sync module
 jest.mock('fs', () => ({
   accessSync: jest.fn(),
@@ -154,10 +161,8 @@ describe('File System Utilities', () => {
     describe('ensureDirectoryExists', () => {
       it('should create directory if it does not exist', async () => {
         // Mock pathExists to return false (directory doesn't exist)
-        const pathValidatorModule = jest.requireMock('../utils/pathValidator') as { pathExists: typeof pathExists };
-        jest
-          .spyOn(pathValidatorModule, 'pathExists')
-          .mockReturnValue(false);
+        const { pathExists: mockedPathExists } = require('../utils/pathValidator');
+        mockedPathExists.mockReturnValue(false);
         mockedFs.mkdir.mockResolvedValue(undefined);
 
         await ensureDirectoryExists('/path/to/new/directory');
@@ -169,10 +174,8 @@ describe('File System Utilities', () => {
 
       it('should not create directory if it already exists', async () => {
         // Mock pathExists to return true (directory exists)
-        const pathValidatorModule = jest.requireMock('../utils/pathValidator') as { pathExists: typeof pathExists };
-        jest
-          .spyOn(pathValidatorModule, 'pathExists')
-          .mockReturnValue(true);
+        const { pathExists: mockedPathExists } = require('../utils/pathValidator');
+        mockedPathExists.mockReturnValue(true);
 
         await ensureDirectoryExists('/path/to/existing/directory');
 
