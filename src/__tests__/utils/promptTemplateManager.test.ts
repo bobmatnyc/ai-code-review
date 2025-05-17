@@ -139,7 +139,7 @@ describe('promptTemplateManager', () => {
     
     it('should return false when templates directory does not exist', () => {
       (fs.existsSync as jest.Mock).mockImplementation((_filePath: string) => {
-        return !filePath.includes(mockTemplatesDir);
+        return !_filePath.includes(mockTemplatesDir);
       });
       
       const result = checkTemplatesAvailability();
@@ -148,7 +148,7 @@ describe('promptTemplateManager', () => {
     
     it('should return false when required subdirectories are missing', () => {
       (fs.existsSync as jest.Mock).mockImplementation((_filePath: string) => {
-        return !filePath.includes('frameworks') && filePath !== `${mockTemplatesDir}/frameworks`;
+        return !_filePath.includes('frameworks') && _filePath !== `${mockTemplatesDir}/frameworks`;
       });
       
       const result = checkTemplatesAvailability();
@@ -157,7 +157,7 @@ describe('promptTemplateManager', () => {
     
     it('should return false when framework variables are missing', () => {
       (fs.existsSync as jest.Mock).mockImplementation((_filePath: string) => {
-        return !filePath.includes('framework-versions.json');
+        return !_filePath.includes('framework-versions.json');
       });
       
       const result = checkTemplatesAvailability();
