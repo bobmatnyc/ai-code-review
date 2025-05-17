@@ -8,9 +8,9 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { pathExists, isDirectory, isFile } from '../utils/pathValidator';
-import { readFile } from '../utils/fileReader';
-import { writeFile, ensureDirectoryExists } from '../utils/fileWriter';
-import { generateVersionedOutputPath } from '../utils/pathGenerator';
+import { readFile } from '../utils/FileReader';
+import { writeFile, ensureDirectoryExists } from '../utils/FileWriter';
+import { generateVersionedOutputPath } from '../utils/PathGenerator';
 
 // Mock fs module
 jest.mock('fs/promises');
