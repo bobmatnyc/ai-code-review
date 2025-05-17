@@ -263,7 +263,7 @@ export async function detectFramework(projectPath: string): Promise<FrameworkDet
  * @param projectPath Path to project root directory
  * @returns Promise resolving to language name
  */
-async function detectPrimaryLanguage(projectPath: string): Promise<string | null> {
+export async function detectPrimaryLanguage(projectPath: string): Promise<string | null> {
   try {
     // Check for language-specific files
     const fileExtensionMap: Record<string, string[]> = {

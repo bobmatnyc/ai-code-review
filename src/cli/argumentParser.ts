@@ -15,11 +15,10 @@ import {
   ProgrammingLanguage,
   VALID_LANGUAGES,
   VALID_OUTPUT_FORMATS,
-  VALID_REVIEW_TYPES,
-  VALID_PRIORITY_FILTERS
+  VALID_REVIEW_TYPES
 } from '../types/common';
 import { SUPPORTED_LANGUAGES } from '../utils/i18n';
-import { LogLevel } from '../utils/logger';
+// import { LogLevel } from '../utils/logger'; // Not used in this file
 import { detectProjectType } from '../utils/detection';
 
 // Extended review options including CLI-specific options

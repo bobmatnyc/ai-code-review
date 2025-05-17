@@ -6,7 +6,7 @@
  */
 
 import { BaseReviewStrategy } from './ReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import { FileInfo, ReviewOptions, ReviewResult /* , ReviewType */ } from '../types/review'; // ReviewType not used
 import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';

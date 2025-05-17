@@ -92,7 +92,8 @@ export class FocusedUnusedCodeReviewStrategy extends BaseReviewStrategy {
     if (reviewResult.response && reviewResult.outputFormat === 'json') {
       try {
         // Parse the JSON response
-        const parsedResult = JSON.parse(reviewResult.response);
+        const parsedResult = typeof reviewResult.response === 'string' ? 
+          JSON.parse(reviewResult.response) : reviewResult.response;
 
         // Check if it's a valid result with the expected structure
         if (
@@ -109,7 +110,7 @@ export class FocusedUnusedCodeReviewStrategy extends BaseReviewStrategy {
           const removalScript = generateFocusedRemovalScript(parsedResult);
 
           // Update the response with our formatted version
-          reviewResult.response = formattedMarkdown;
+          reviewResult.content = formattedMarkdown;
           reviewResult.outputFormat = 'markdown';
 
           // Store the removal script in the metadata

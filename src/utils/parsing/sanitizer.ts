@@ -210,6 +210,7 @@ export function sanitizeContent(
     case 'text':
     default:
       // For plain text, just remove control characters except for newlines and tabs
+      // eslint-disable-next-line no-control-regex
       return content.replace(/[\x00-\x09\x0B-\x1F\x7F]/g, '');
   }
 }
@@ -233,5 +234,6 @@ export function sanitizeFilename(filename: string | null | undefined): string {
   // Replace invalid characters with underscores
   // This regex matches characters that are generally unsafe in filenames across platforms:
   // / \ : * ? " < > | and control characters
-  return filename.replace(/[\/\\:\*\?"<>\|\x00-\x1F\x7F]/g, '_');
+  // eslint-disable-next-line no-control-regex
+  return filename.replace(/[/\\:*?"<>|\x00-\x1F\x7F]/g, '_');
 }

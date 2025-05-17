@@ -12,6 +12,7 @@ export * from './envLoader';
 export * from './config';
 export * from './fileSystem';
 export * from './priorityFilter';
+export * from './pathValidator';
 
 // API utilities
 export * from './api';

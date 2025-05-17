@@ -7,11 +7,11 @@
  * the Anthropic API without dealing with the HTTP details.
  */
 
-import logger, { LogLevel } from '../../utils/logger';
+import logger /* , { LogLevel } */ from '../../utils/logger'; // LogLevel not used
 import {
   handleFetchResponse,
-  safeJsonParse,
-  ApiError
+  safeJsonParse
+  // ApiError // Not used in this file
 } from '../../utils/apiErrorHandler';
 
 // The logger will be properly initialized at the application level

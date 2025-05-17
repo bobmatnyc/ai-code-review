@@ -111,7 +111,7 @@ export class MultiPassProgressTracker {
       return;
     }
     
-    const { currentPass, totalPasses, processedFiles, totalFiles, currentPhase, startTime } = this.progress;
+    const { currentPass, totalPasses, processedFiles: _processedFiles, totalFiles: _totalFiles, currentPhase, startTime } = this.progress;
     
     // Calculate elapsed time
     const elapsed = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);

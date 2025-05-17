@@ -34,7 +34,7 @@ jest.mock('readline', () => ({
 }));
 
 // Mock the exit function to prevent tests from exiting
-const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+jest.spyOn(process, 'exit').mockImplementation(() => {
   return undefined as never;
 });
 

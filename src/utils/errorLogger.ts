@@ -28,8 +28,8 @@ import logger from './logger';
  * @returns Promise resolving to the path of the error log file
  */
 export async function logError(
-  error: any,
-  context: Record<string, any> = {}
+  error: unknown,
+  context: Record<string, unknown> = {}
 ): Promise<string> {
   try {
     // Create error logs directory
@@ -43,8 +43,8 @@ export async function logError(
     // Format error object
     const errorObj = {
       timestamp: new Date().toISOString(),
-      message: error?.message || 'Unknown error',
-      stack: error?.stack,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
       context
     };
 

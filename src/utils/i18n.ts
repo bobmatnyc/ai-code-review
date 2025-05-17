@@ -42,7 +42,7 @@ export async function initI18n(
       debug: process.env.NODE_ENV === 'development',
       interpolation: {
         escapeValue: false, // Not needed for server-side
-        format: (value, format, lng) => {
+        format: (value, format, _lng) => {
           if (format === 'uppercase') return value.toUpperCase();
           if (format === 'lowercase') return value.toLowerCase();
           return value;

@@ -7,51 +7,41 @@
  */
 
 import logger from '../logger';
-import { ProjectReview } from '../../types/review';
-import { formatTokenAnalysis } from '../../analysis/tokens';
-import { getCostInfoFromText } from '../../clients/utils/tokenCounter';
-import { ClientFactory, ClientType } from '../../clients/factory/clientFactory';
-import { AbstractClient } from '../../clients/base/abstractClient';
+import { ReviewResult } from '../../types/review';
+import { ClientFactory } from '../../clients/factory/clientFactory';
 import { getConfig } from '../../utils/config';
 
 /**
- * API client configuration for consolidation
- */
-interface ConsolidationClientConfig {
-  /** The client instance */
-  client: AbstractClient;
-  /** The model name */
-  modelName: string;
-  /** The provider name */
-  provider: string;
-}
-
-/**
  * Consolidates a multi-pass review into a single coherent review using the
- * same client and model that was used for the original review
+ * configured client and model from environment/arguments
  * @param review The multi-pass review content to consolidate
  * @returns Promise resolving to the consolidated review content
  */
 export async function consolidateReview(
-  review: ProjectReview
+  review: ReviewResult
 ): Promise<string> {
   try {
-    // Get the client configuration based on the review's model info
-    const clientConfig = await getClientConfig(review);
+    // Use the configured model from environment/command line - no special logic
+    const config = getConfig();
+    const configuredModel = config.selectedModel;
     
-    if (!clientConfig) {
-      logger.warn('Could not determine appropriate client for consolidation, using fallback');
-      return createFallbackConsolidation(review);
-    }
+    logger.info(`Creating client with configured model ${configuredModel} for consolidation`);
+    
+    // Create the client - it will use the model mapping internally
+    const client = ClientFactory.createClient();
+    await client.initialize();
+    
+    // Extract provider from the configured model
+    // const [_provider] = configuredModel.split(':'); // Not used in this implementation
     
     // Create a consolidated prompt that includes the multi-pass results
     const consolidationSystemPrompt = getConsolidationSystemPrompt();
     const consolidationPrompt = getConsolidationPrompt(review);
     
-    logger.info(`Consolidating multi-pass review with ${clientConfig.provider}:${clientConfig.modelName}...`);
+    logger.info(`Consolidating multi-pass review with ${configuredModel}...`);
     
     // Use the client to send the consolidation request
-    const consolidationResult = await clientConfig.client.generateConsolidatedReview(
+    const consolidationResult = await client.generateConsolidatedReview(
       [], // Empty file list since we're just consolidating existing content
       review.projectName || 'ai-code-review',
       review.reviewType,
@@ -63,9 +53,13 @@ export async function consolidateReview(
         }
       },
       {
+        type: review.reviewType,
+        includeTests: false,
+        output: 'markdown',
         isConsolidation: true,
         consolidationMode: true,
-        skipFileContent: true
+        skipFileContent: true,
+        interactive: false // Always use markdown output for consolidation, not JSON
       }
     );
     
@@ -82,135 +76,6 @@ export async function consolidateReview(
   }
 }
 
-/**
- * Get client configuration based on the review's model info
- * @param review The review to consolidate
- * @returns Promise resolving to client configuration or undefined if not found
- */
-async function getClientConfig(review: ProjectReview): Promise<ConsolidationClientConfig | undefined> {
-  try {
-    // Extract model info from the review
-    const modelInfo = extractModelInfo(review);
-    if (!modelInfo) {
-      logger.warn('Could not extract model info from review');
-      return undefined;
-    }
-    
-    // Temporarily set the selected model in config to ensure correct client creation
-    const config = getConfig();
-    const originalModel = config.selectedModel;
-    config.selectedModel = modelInfo.fullModelName;
-    
-    // Create the appropriate client
-    const client = ClientFactory.createClient();
-    await client.initialize();
-    
-    // Restore original model selection
-    config.selectedModel = originalModel;
-    
-    return {
-      client,
-      modelName: modelInfo.modelName,
-      provider: modelInfo.provider
-    };
-  } catch (error) {
-    logger.error(`Error creating client for consolidation: ${error instanceof Error ? error.message : String(error)}`);
-    return undefined;
-  }
-}
-
-/**
- * Extract model info from a review
- * @param review The review to extract model info from
- * @returns The extracted model info or undefined if not found
- */
-function extractModelInfo(review: ProjectReview): { 
-  provider: string; 
-  modelName: string;
-  fullModelName: string;
-} | undefined {
-  // First check if modelUsed is available
-  if (review.modelUsed) {
-    const parts = review.modelUsed.split(':');
-    if (parts.length === 2) {
-      return {
-        provider: parts[0],
-        modelName: parts[1],
-        fullModelName: review.modelUsed
-      };
-    }
-    
-    // No provider prefix, try to detect from model name
-    return detectProviderFromModelName(review.modelUsed);
-  }
-  
-  // Try to extract from metadata in content
-  const modelNameMatch = review.content.match(/Model Name\s*\|\s*([^|\n]+)/);
-  const modelProviderMatch = review.content.match(/Model Provider\s*\|\s*([^|\n]+)/);
-  
-  if (modelNameMatch && modelProviderMatch) {
-    const modelName = modelNameMatch[1].trim();
-    const provider = modelProviderMatch[1].trim().toLowerCase();
-    
-    return {
-      provider,
-      modelName,
-      fullModelName: `${provider}:${modelName}`
-    };
-  }
-  
-  // Try to find model name in the content and infer provider
-  const contentModelMatch = review.content.match(/Model(?:\sused)?:\s*([a-zA-Z0-9.-]+)/i);
-  if (contentModelMatch) {
-    return detectProviderFromModelName(contentModelMatch[1].trim());
-  }
-  
-  return undefined;
-}
-
-/**
- * Detect provider from a model name
- * @param modelName The model name
- * @returns The detected model info or undefined if detection fails
- */
-function detectProviderFromModelName(modelName: string): { 
-  provider: string; 
-  modelName: string;
-  fullModelName: string;
-} | undefined {
-  const lowerModelName = modelName.toLowerCase();
-  
-  if (lowerModelName.includes('gpt') || lowerModelName.includes('openai')) {
-    return {
-      provider: 'openai',
-      modelName,
-      fullModelName: `openai:${modelName}`
-    };
-  }
-  
-  if (lowerModelName.includes('claude') || lowerModelName.includes('anthropic')) {
-    return {
-      provider: 'anthropic',
-      modelName,
-      fullModelName: `anthropic:${modelName}`
-    };
-  }
-  
-  if (lowerModelName.includes('gemini') || lowerModelName.includes('google')) {
-    return {
-      provider: 'gemini',
-      modelName,
-      fullModelName: `gemini:${modelName}`
-    };
-  }
-  
-  // Default to gemini if we can't detect
-  return {
-    provider: 'gemini',
-    modelName: 'gemini-1.5-pro',
-    fullModelName: 'gemini:gemini-1.5-pro'
-  };
-}
 
 /**
  * Creates a system prompt for review consolidation
@@ -260,9 +125,9 @@ Make this report comprehensive but focused on high-value insights. Be specific a
  * @param review The review content to consolidate
  * @returns The user prompt
  */
-function getConsolidationPrompt(review: ProjectReview): string {
+function getConsolidationPrompt(review: ReviewResult): string {
   const passCount = review.costInfo?.passCount || 5;
-  const fileCount = review.files?.length || 200;
+  // const _fileCount = review.files?.length || 200; // Not used in this prompt
   const projectName = review.projectName || 'ai-code-review';
   
   return `I have conducted a multi-pass code review of a project named "${projectName}" using the "${review.reviewType}" review type. The review was split into ${passCount} passes due to the size of the codebase.
@@ -292,7 +157,7 @@ IMPORTANT: Use the actual current date (${new Date().toLocaleDateString()}) in y
  * @param review The review to consolidate
  * @returns Fallback consolidated content
  */
-function createFallbackConsolidation(review: ProjectReview): string {
+function createFallbackConsolidation(review: ReviewResult): string {
   logger.info('Creating fallback consolidation from multi-pass results...');
   
   // Extract project name
@@ -304,7 +169,7 @@ function createFallbackConsolidation(review: ProjectReview): string {
   
   let match;
   while ((match = passRegex.exec(review.content)) !== null) {
-    const [_, passNumberStr, fileCountStr, summaryContent] = match;
+    const [, passNumberStr, fileCountStr, summaryContent] = match;
     passes.push({
       passNumber: parseInt(passNumberStr, 10),
       fileCount: parseInt(fileCountStr, 10),
@@ -334,7 +199,7 @@ function createFallbackConsolidation(review: ProjectReview): string {
   };
   
   // Process each pass to extract findings
-  review.content.split(/## Pass \d+/).forEach(passContent => {
+  review.content.split(/## Pass \d+/).forEach((passContent: string) => {
     // Extract findings by priority
     let highMatch;
     while ((highMatch = highPriorityRegex.exec(passContent)) !== null) {

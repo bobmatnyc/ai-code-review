@@ -22,7 +22,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'ApiError';
@@ -39,7 +39,7 @@ export class RateLimitError extends ApiError {
     message: string,
     public retryAfter?: number,
     statusCode?: number,
-    details?: any
+    details?: unknown
   ) {
     super(message, statusCode, details);
     this.name = 'RateLimitError';
@@ -52,7 +52,7 @@ export class RateLimitError extends ApiError {
  * Error thrown when authentication fails
  */
 export class AuthenticationError extends ApiError {
-  constructor(message: string, statusCode?: number, details?: any) {
+  constructor(message: string, statusCode?: number, details?: unknown) {
     super(message, statusCode, details);
     this.name = 'AuthenticationError';
     // Ensure instanceof works correctly in ES5
@@ -64,7 +64,7 @@ export class AuthenticationError extends ApiError {
  * Error thrown when a resource is not found
  */
 export class NotFoundError extends ApiError {
-  constructor(message: string, statusCode?: number, details?: any) {
+  constructor(message: string, statusCode?: number, details?: unknown) {
     super(message, statusCode, details);
     this.name = 'NotFoundError';
     // Ensure instanceof works correctly in ES5
@@ -76,7 +76,7 @@ export class NotFoundError extends ApiError {
  * Error thrown when the API returns an invalid response format
  */
 export class InvalidResponseError extends ApiError {
-  constructor(message: string, statusCode?: number, details?: any) {
+  constructor(message: string, statusCode?: number, details?: unknown) {
     super(message, statusCode, details);
     this.name = 'InvalidResponseError';
     // Ensure instanceof works correctly in ES5
@@ -115,9 +115,9 @@ export class InvalidResponseError extends ApiError {
  * }
  */
 export async function handleFetchResponse(
-  response: Response | any,
+  response: Response,
   apiName: string
-): Promise<Response | any> {
+): Promise<Response> {
   if (!response.ok) {
     // Try to get the error body
     let errorBody: string | object = 'Unknown error';
