@@ -11,7 +11,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { FileInfo } from '../../types/review';
 import logger from '../logger';
-import { promises as fsPromises } from 'fs';
+// import { promises as fsPromises } from 'fs'; // TODO: Remove if not needed
 
 /**
  * Supported file extensions for code review - focus on executable code only
@@ -270,7 +270,7 @@ export async function discoverFiles(
 export async function readFileInfo(filePath: string): Promise<FileInfo> {
   try {
     const content = await fs.readFile(filePath, 'utf-8');
-    const language = getLanguageForFile(filePath);
+    // const language = getLanguageForFile(filePath); // TODO: Remove if not needed
 
     return {
       path: filePath,
