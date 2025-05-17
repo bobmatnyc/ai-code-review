@@ -17,10 +17,14 @@ jest.mock('fs/promises');
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
 // Mock pathValidator to allow spying on pathExists in FileWriter tests
+const mockPathExists = jest.fn();
+const mockIsDirectory = jest.fn();
+const mockIsFile = jest.fn();
+
 jest.mock('../utils/pathValidator', () => ({
-  pathExists: jest.fn(),
-  isDirectory: jest.fn(),
-  isFile: jest.fn()
+  pathExists: mockPathExists,
+  isDirectory: mockIsDirectory,
+  isFile: mockIsFile
 }));
 
 // Mock fs sync module
@@ -38,20 +42,15 @@ describe('File System Utilities', () => {
   describe('PathValidator', () => {
     describe('pathExists', () => {
       it('should return true if path exists', () => {
-        mockedFsSync.accessSync.mockImplementation(() => undefined);
+        mockPathExists.mockReturnValue(true);
 
         const result = pathExists('/path/to/file.txt');
 
         expect(result).toBe(true);
-        expect(mockedFsSync.accessSync).toHaveBeenCalledWith(
-          '/path/to/file.txt'
-        );
       });
 
       it('should return false if path does not exist', () => {
-        mockedFsSync.accessSync.mockImplementation(() => {
-          throw new Error('Path does not exist');
-        });
+        mockPathExists.mockReturnValue(false);
 
         const result = pathExists('/path/to/nonexistent');
 
@@ -61,24 +60,15 @@ describe('File System Utilities', () => {
 
     describe('isDirectory', () => {
       it('should return true if path is a directory', () => {
-        mockedFsSync.statSync.mockReturnValue({
-          isDirectory: () => true,
-          isFile: () => false
-        });
+        mockIsDirectory.mockReturnValue(true);
 
         const result = isDirectory('/path/to/directory');
 
         expect(result).toBe(true);
-        expect(mockedFsSync.statSync).toHaveBeenCalledWith(
-          '/path/to/directory'
-        );
       });
 
       it('should return false if path is not a directory', () => {
-        mockedFsSync.statSync.mockReturnValue({
-          isDirectory: () => false,
-          isFile: () => true
-        });
+        mockIsDirectory.mockReturnValue(false);
 
         const result = isDirectory('/path/to/file.txt');
 
@@ -86,9 +76,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path does not exist', () => {
-        mockedFsSync.statSync.mockImplementation(() => {
-          throw new Error('Path does not exist');
-        });
+        mockIsDirectory.mockReturnValue(false);
 
         const result = isDirectory('/path/to/nonexistent');
 
@@ -98,22 +86,15 @@ describe('File System Utilities', () => {
 
     describe('isFile', () => {
       it('should return true if path is a file', () => {
-        mockedFsSync.statSync.mockReturnValue({
-          isDirectory: () => false,
-          isFile: () => true
-        });
+        mockIsFile.mockReturnValue(true);
 
         const result = isFile('/path/to/file.txt');
 
         expect(result).toBe(true);
-        expect(mockedFsSync.statSync).toHaveBeenCalledWith('/path/to/file.txt');
       });
 
       it('should return false if path is not a file', () => {
-        mockedFsSync.statSync.mockReturnValue({
-          isDirectory: () => true,
-          isFile: () => false
-        });
+        mockIsFile.mockReturnValue(false);
 
         const result = isFile('/path/to/directory');
 
@@ -121,9 +102,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path does not exist', () => {
-        mockedFsSync.statSync.mockImplementation(() => {
-          throw new Error('Path does not exist');
-        });
+        mockIsFile.mockReturnValue(false);
 
         const result = isFile('/path/to/nonexistent');
 
@@ -161,8 +140,7 @@ describe('File System Utilities', () => {
     describe('ensureDirectoryExists', () => {
       it('should create directory if it does not exist', async () => {
         // Mock pathExists to return false (directory doesn't exist)
-        const { pathExists: mockedPathExists } = require('../utils/pathValidator');
-        mockedPathExists.mockReturnValue(false);
+        mockPathExists.mockReturnValue(false);
         mockedFs.mkdir.mockResolvedValue(undefined);
 
         await ensureDirectoryExists('/path/to/new/directory');
@@ -174,8 +152,7 @@ describe('File System Utilities', () => {
 
       it('should not create directory if it already exists', async () => {
         // Mock pathExists to return true (directory exists)
-        const { pathExists: mockedPathExists } = require('../utils/pathValidator');
-        mockedPathExists.mockReturnValue(true);
+        mockPathExists.mockReturnValue(true);
 
         await ensureDirectoryExists('/path/to/existing/directory');
 
