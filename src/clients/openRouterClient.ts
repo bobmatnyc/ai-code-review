@@ -22,17 +22,17 @@ import {
   ReviewOptions
 } from '../types/review';
 import { getConfig } from '../utils/config';
-import { ProjectDocs, addProjectDocsToPrompt } from '../utils/projectDocs';
+import { ProjectDocs /* , addProjectDocsToPrompt */ } from '../utils/projectDocs'; // addProjectDocsToPrompt not used
 import logger from '../utils/logger';
 import {
-  generateDirectoryStructure,
+  // generateDirectoryStructure, // Not used in this file
   validateOpenRouterApiKey,
   isDebugMode
 } from './utils';
 import { getCostInfoFromText } from './utils/tokenCounter';
 import { loadPromptTemplate } from './utils/promptLoader';
 import { ApiError } from '../utils/apiErrorHandler';
-import { getLanguageFromExtension } from './utils/languageDetection';
+// import { getLanguageFromExtension } from './utils/languageDetection'; // Not used in this file
 import {
   formatSingleFileReviewPrompt,
   formatConsolidatedReviewPrompt
@@ -69,7 +69,7 @@ function isOpenRouterModel(): {
  * @returns Promise resolving to a boolean indicating if initialization was successful
  */
 export async function initializeAnyOpenRouterModel(): Promise<boolean> {
-  const { isCorrect, adapter, modelName } = isOpenRouterModel();
+  const { isCorrect, adapter: _adapter, modelName } = isOpenRouterModel(); // adapter not used
 
   // If this is not an OpenRouter model, just return true without initializing
   if (!isCorrect) {
@@ -136,7 +136,7 @@ export async function generateOpenRouterReview(
     let cost: ReviewCost | undefined;
 
     // Get the language from the file extension
-    const language = getLanguageFromExtension(filePath);
+    // const language = getLanguageFromExtension(filePath); // Currently unused
 
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType, options);

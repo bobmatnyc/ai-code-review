@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import * as path from 'path';
-import * as dotenv from 'dotenv';
+// import * as path from 'path'; // Not used in this file
+// import * as dotenv from 'dotenv'; // Not used in this file
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Import the environment variable loader

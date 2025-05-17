@@ -32,10 +32,11 @@ import {
   ReviewOptions
 } from '../types/review';
 import { getCostInfoFromText } from './utils/tokenCounter';
-import { ProjectDocs, formatProjectDocs } from '../utils/projectDocs';
+import { ProjectDocs } from '../utils/projectDocs';
+// import { formatProjectDocs } from '../utils/projectDocs'; // Not used in this specific implementation
 import { loadPromptTemplate } from './utils/promptLoader';
-import { getLanguageFromExtension } from './utils/languageDetection';
-import { generateDirectoryStructure } from './utils';
+// import { getLanguageFromExtension } from './utils/languageDetection'; // Not used in this file
+// import { generateDirectoryStructure } from './utils'; // Not used in this specific implementation
 // Model mapping has been removed; using raw model name as API name
 import {
   formatSingleFileReviewPrompt,
@@ -221,7 +222,7 @@ export async function generateReview(
     await globalRateLimiter.acquire();
 
     // Get the language from the file extension
-    const language = getLanguageFromExtension(filePath);
+    // const language = getLanguageFromExtension(filePath); // Not used in formatSingleFileReviewPrompt
 
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType, options);

@@ -26,9 +26,10 @@ export interface ModelMapping {
 
 // Hard-coded model mappings to avoid relying on external JSON files
 export const MODEL_MAP: Record<string, ModelMapping> = {
-  "gemini:gemini-2.5-pro": {
+  // Default model for the tool - this one is the most advanced
+  "gemini:gemini-2.5-pro-preview": {
     "apiIdentifier": "gemini-2.5-pro-preview-05-06",
-    "displayName": "Gemini 2.5 Pro",
+    "displayName": "Gemini 2.5 Pro Preview",
     "provider": "gemini",
     "useV1Beta": true,
     "contextWindow": 1000000,
@@ -36,23 +37,14 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "apiKeyEnvVar": "AI_CODE_REVIEW_GOOGLE_API_KEY",
     "supportsToolCalling": false
   },
-  "gemini:gemini-1.5-pro": {
-    "apiIdentifier": "gemini-1.5-pro",
-    "displayName": "Gemini 1.5 Pro",
+  // Backward compatibility entry with warning
+  "gemini:gemini-2.5-pro": {
+    "apiIdentifier": "gemini-2.5-pro-preview-05-06",
+    "displayName": "Gemini 2.5 Pro (DEPRECATED - Use gemini-2.5-pro-preview)",
     "provider": "gemini",
-    "useV1Beta": false,
+    "useV1Beta": true,
     "contextWindow": 1000000,
-    "description": "Balanced performance and quality for most tasks",
-    "apiKeyEnvVar": "AI_CODE_REVIEW_GOOGLE_API_KEY",
-    "supportsToolCalling": false
-  },
-  "gemini:gemini-1.5-flash": {
-    "apiIdentifier": "gemini-1.5-flash",
-    "displayName": "Gemini 1.5 Flash",
-    "provider": "gemini",
-    "useV1Beta": false,
-    "contextWindow": 1000000,
-    "description": "Fast, efficient model for high-throughput applications",
+    "description": "DEPRECATED - Please use gemini:gemini-2.5-pro-preview instead",
     "apiKeyEnvVar": "AI_CODE_REVIEW_GOOGLE_API_KEY",
     "supportsToolCalling": false
   },

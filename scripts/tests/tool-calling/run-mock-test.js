@@ -24,8 +24,8 @@ const testDir = path.join(projectRoot, 'test-env');
 // Check if API keys are available
 // For testing purposes, we'll mock the presence of API keys
 console.log('\x1b[33mSetting mock API keys for testing purposes...\x1b[0m');
-process.env.AI_CODE_REVIEW_OPENAI_API_KEY = process.env.AI_CODE_REVIEW_OPENAI_API_KEY || 'sk-mock-openai-key';
-process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || 'sk-mock-anthropic-key';
+process.env.AI_CODE_REVIEW_OPENAI_API_KEY = process.env.AI_CODE_REVIEW_OPENAI_API_KEY || 'MOCK-NOT-REAL-openai-key';
+process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || 'MOCK-NOT-REAL-anthropic-key';
 
 const hasOpenAIKey = true; // Mock having OpenAI API key
 const hasAnthropicKey = true; // Mock having Anthropic API key
@@ -74,10 +74,10 @@ try {
   console.log('Mock implementation installed');
   
   // Set dummy SERPAPI_KEY for testing
-  process.env.SERPAPI_KEY = 'dummy_key_for_testing';
+  process.env.SERPAPI_KEY = 'MOCK-NOT-REAL-serpapi-key';
   
   // Create our own minimal test instead of running the full CLI
-  const mockInitializer = require('../../../src/clients/mockInitializer');
+  const mockInitializer = require('../../../src/clients/mockInitializer.ts');
   const { extractPackageInfo } = require('../../../src/utils/dependencies/packageAnalyzer');
   const { searchPackageSecurity, batchSearchPackageSecurity } = require('../../../src/utils/dependencies/serpApiHelper');
   

@@ -38,7 +38,7 @@ const COLORS = {
 };
 
 // Track if we're initializing to avoid circular dependencies
-let isInitializing = false;
+const isInitializing = false;
 
 // Get the current log level from environment variables
 function getCurrentLogLevel(): LogLevel {

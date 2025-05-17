@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2025-05-16
+
+### Added
+- Comprehensive framework-specific best practices templates for Angular, Vue, Django, and Laravel
+- Improved JSON output formatting for interactive mode responses
+- Added support for structured JSON responses in review results
+- Added automatic detection and parsing of JSON content in review outputs
+
+### Fixed
+- Fixed model mapping issue where `gemini-2.5-pro` was not properly mapped to `gemini-2.5-pro-preview-05-06`
+- Fixed JSON output formatting in quick-fixes and other review types
+- Fixed consolidated review to use markdown format instead of JSON
+- Simplified model selection logic to use only configured models without fallbacks
+- Fixed regex-based model extraction in favor of direct model passing
+- Improved error handling for structured JSON responses
+
+### Changed
+- Updated Gemini client to properly request structured JSON when in interactive mode
+- Enhanced review parser to handle language-specific code blocks without treating them as JSON
+- Improved output formatter to automatically detect and format JSON responses as markdown
+- Updated default model to Gemini 2.5 Pro Preview throughout the codebase
+- Simplified consolidation logic to use configured model directly without special selection
+
 ## [3.0.4] - 2025-05-15
 
 ### Added

@@ -26,8 +26,8 @@ import {
   formatConsolidatedReviewPrompt
 } from '../utils/promptFormatter';
 import { loadPromptTemplate } from '../utils/promptLoader';
-import { getLanguageFromExtension } from '../utils/languageDetection';
-import { supportsToolCalling, getModelMapping } from '../utils/modelMaps';
+// import { getLanguageFromExtension } from '../utils/languageDetection'; // Not used in this implementation
+import { /* supportsToolCalling, */ getModelMapping } from '../utils/modelMaps'; // supportsToolCalling not used
 import { ALL_TOOLS } from '../utils/toolCalling';
 import { openAIToolCallingHandler } from '../utils/openAIToolCallingHandler';
 import { executeToolCall } from '../utils/toolExecutor';
@@ -147,7 +147,7 @@ export class OpenAIClient extends AbstractClient {
       }
       
       // Get the language from file extension
-      const language = getLanguageFromExtension(filePath);
+      // const language = getLanguageFromExtension(filePath); // Currently unused
       
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);

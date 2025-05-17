@@ -7,7 +7,7 @@
  */
 
 import { validateTargetPath } from '../utils/pathValidator';
-import path from 'path';
+// import path from 'path'; // Not used in this file
 import fs from 'fs';
 
 // Mock fs module
@@ -18,7 +18,7 @@ jest.mock('fs', () => ({
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
 // Save original process.cwd
-const originalCwd = process.cwd;
+// const originalCwd = process.cwd; // Not used
 
 describe('validateTargetPath', () => {
   beforeEach(() => {

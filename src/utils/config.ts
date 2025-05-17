@@ -18,6 +18,7 @@ import logger from './logger';
 import path from 'path';
 import fs from 'fs';
 import { z } from 'zod';
+import { CliOptions } from '../cli/argumentParser';
 
 /**
  * Zod schema for application configuration
@@ -53,7 +54,7 @@ let config: AppConfig | null = null;
  * @returns Validated configuration object
  * @throws Error if required environment variables are missing
  */
-function loadConfig(cliOptions?: any): AppConfig {
+function loadConfig(cliOptions?: CliOptions): AppConfig {
   // Get API keys from environment variables
   const googleApiKeyResult = getGoogleApiKey();
   const openRouterApiKeyResult = getOpenRouterApiKey();
@@ -72,7 +73,7 @@ function loadConfig(cliOptions?: any): AppConfig {
   const selectedModel =
     cliOptions?.model ||
     process.env.AI_CODE_REVIEW_MODEL ||
-    'gemini:gemini-1.5-pro';
+    'gemini:gemini-2.5-pro-preview';
 
   // Get debug mode
   const debug =
@@ -129,7 +130,7 @@ function loadConfig(cliOptions?: any): AppConfig {
  * @param cliOptions Optional CLI options that override environment variables
  * @returns Application configuration
  */
-export function getConfig(cliOptions?: any): AppConfig {
+export function getConfig(cliOptions?: CliOptions): AppConfig {
   if (!config || cliOptions) {
     try {
       config = loadConfig(cliOptions);

@@ -20,14 +20,22 @@ import { loadPromptTemplate, listAvailableTemplates } from '../../utils/template
 jest.mock('fs');
 jest.mock('path');
 jest.mock('../../utils/templates/templateLoader');
-jest.mock('../../utils/logger', () => ({
-  logger: {
+jest.mock('../../utils/logger', () => {
+  const mockLogger = {
     debug: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
-  },
-}));
+  };
+  return {
+    __esModule: true,
+    default: mockLogger,
+    debug: mockLogger.debug,
+    info: mockLogger.info,
+    warn: mockLogger.warn,
+    error: mockLogger.error,
+  };
+});
 
 describe('promptTemplateManager', () => {
   const mockTemplatesDir = '/mock/templates';
@@ -37,7 +45,7 @@ describe('promptTemplateManager', () => {
     jest.clearAllMocks();
     
     // Mock path.resolve
-    (path.resolve as jest.Mock).mockImplementation((dir: string, ...segments: string[]) => {
+    (path.resolve as jest.Mock).mockImplementation((_dir: string, ..._segments: string[]) => {
       return mockTemplatesDir;
     });
     
@@ -86,7 +94,7 @@ describe('promptTemplateManager', () => {
     });
     
     // Mock fs.existsSync
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+    (fs.existsSync as jest.Mock).mockImplementation((_filePath: string) => {
       // By default, all directories and files exist
       return true;
     });
@@ -94,19 +102,19 @@ describe('promptTemplateManager', () => {
   
   describe('getPromptTemplate', () => {
     it('should return a template for a valid review type, language, and framework', () => {
-      const template = getPromptTemplate(ReviewType.BEST_PRACTICES, 'typescript', 'react');
+      const template = getPromptTemplate('best-practices', 'typescript', 'react');
       expect(template).toBe('React TypeScript Best Practices Template');
       expect(loadPromptTemplate).toHaveBeenCalledWith('best-practices', 'typescript', 'react');
     });
     
     it('should handle language mapping correctly', () => {
-      getPromptTemplate(ReviewType.BEST_PRACTICES, 'javascript', 'react');
+      getPromptTemplate('best-practices', 'javascript', 'react');
       // JavaScript should map to TypeScript templates
       expect(loadPromptTemplate).toHaveBeenCalledWith('best-practices', 'typescript', 'react');
     });
     
     it('should handle framework mapping correctly', () => {
-      getPromptTemplate(ReviewType.BEST_PRACTICES, 'typescript', 'next.js');
+      getPromptTemplate('best-practices', 'typescript', 'next.js');
       // next.js should map to nextjs directory
       expect(loadPromptTemplate).toHaveBeenCalledWith('best-practices', 'typescript', 'nextjs');
     });
@@ -118,7 +126,7 @@ describe('promptTemplateManager', () => {
     
     it('should return undefined when template loading fails', () => {
       (loadPromptTemplate as jest.Mock).mockReturnValue(null);
-      const template = getPromptTemplate(ReviewType.BEST_PRACTICES, 'typescript', 'react');
+      const template = getPromptTemplate('best-practices', 'typescript', 'react');
       expect(template).toBeUndefined();
     });
   });
@@ -130,8 +138,8 @@ describe('promptTemplateManager', () => {
     });
     
     it('should return false when templates directory does not exist', () => {
-      (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-        return !filePath.includes(mockTemplatesDir);
+      (fs.existsSync as jest.Mock).mockImplementation((_filePath: string) => {
+        return !_filePath.includes(mockTemplatesDir);
       });
       
       const result = checkTemplatesAvailability();
@@ -139,8 +147,8 @@ describe('promptTemplateManager', () => {
     });
     
     it('should return false when required subdirectories are missing', () => {
-      (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-        return !filePath.includes('frameworks') && filePath !== `${mockTemplatesDir}/frameworks`;
+      (fs.existsSync as jest.Mock).mockImplementation((_filePath: string) => {
+        return !_filePath.includes('frameworks') && _filePath !== `${mockTemplatesDir}/frameworks`;
       });
       
       const result = checkTemplatesAvailability();
@@ -148,8 +156,8 @@ describe('promptTemplateManager', () => {
     });
     
     it('should return false when framework variables are missing', () => {
-      (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-        return !filePath.includes('framework-versions.json');
+      (fs.existsSync as jest.Mock).mockImplementation((_filePath: string) => {
+        return !_filePath.includes('framework-versions.json');
       });
       
       const result = checkTemplatesAvailability();

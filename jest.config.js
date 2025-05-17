@@ -13,7 +13,7 @@ module.exports = {
   resetMocks: true,
   restoreMocks: true,
   testTimeout: 15000, // 15 seconds timeout for API tests
-  setupFiles: ['./src/tests/setup.js'],
+  setupFiles: ['./src/tests/setup.ts'],
   transform: {
     '^.+\\.tsx?$': ['babel-jest', {
       presets: ['@babel/preset-env', '@babel/preset-typescript']

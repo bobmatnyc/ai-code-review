@@ -14,6 +14,7 @@ import {
   ReviewOptions,
   ReviewCost
 } from '../../types/review';
+import { StructuredReview } from '../../types/structuredReview';
 import { ProjectDocs } from '../../utils/projectDocs';
 import logger from '../../utils/logger';
 
@@ -95,7 +96,7 @@ export abstract class AbstractClient {
    * @param content The response content to process
    * @returns The processed structured data or null
    */
-  protected processResponseForStructuredData(content: string): any | null {
+  protected processResponseForStructuredData(content: string): unknown | null {
     try {
       // First, check if the response is wrapped in a code block
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -146,7 +147,7 @@ export abstract class AbstractClient {
       filePath,
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData
+      structuredData: structuredData as StructuredReview | undefined
     };
   }
 

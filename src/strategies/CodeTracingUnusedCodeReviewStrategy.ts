@@ -14,9 +14,10 @@ import { BaseReviewStrategy, IReviewStrategy } from './ReviewStrategy';
 import {
   FileInfo,
   ReviewOptions,
-  ReviewResult,
-  ReviewType
+  ReviewResult
+  // ReviewType // Not used in this file
 } from '../types/review';
+import { StructuredReview } from '../types/structuredReview';
 import { ProjectDocs } from '../utils/files/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { CodeTracingUnusedCodeReview } from '../prompts/schemas/code-tracing-unused-code-schema';
@@ -112,7 +113,7 @@ export class CodeTracingUnusedCodeReviewStrategy
           totalUnusedElements: 0,
           highConfidenceCount: 0,
           filesWithUnusedCode: 0,
-          potentialCodeReduction: ''
+          potentialCodeReduction: '0%'
         }
       };
       logger.info(
@@ -154,7 +155,7 @@ export class CodeTracingUnusedCodeReviewStrategy
       content: formattedResponse,
       timestamp: new Date().toISOString(),
       modelUsed: apiClientConfig.modelName,
-      structuredData: response
+      structuredData: response as unknown as StructuredReview | undefined
     };
   }
 

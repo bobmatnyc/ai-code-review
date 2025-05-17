@@ -7,3 +7,4 @@
 
 export * from './projectTypeDetector';
 export * from './frameworkDetector';
+export { detectPrimaryLanguage } from './frameworkDetector';

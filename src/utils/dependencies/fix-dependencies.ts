@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-// This script fixes the dependency security scanner by modifying how it handles stack analysis
+/**
+ * @fileoverview Script that fixes the dependency security scanner by modifying how it handles stack analysis
+ */
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
 console.log('Fixing dependency scanner...');
 
@@ -11,7 +13,7 @@ console.log('Fixing dependency scanner...');
 const packageSecurityAnalyzerPath = path.join(__dirname, 'packageSecurityAnalyzer.ts');
 
 // Read the file
-let content = fs.readFileSync(packageSecurityAnalyzerPath, 'utf8');
+const content = fs.readFileSync(packageSecurityAnalyzerPath, 'utf8');
 
 // Modify the createDependencySecuritySection function to make OWASP dependency check the primary method
 const modifiedContent = content.replace(

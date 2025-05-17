@@ -5,7 +5,7 @@
  * hierarchical tree structure for display in a markdown file.
  */
 
-import path from 'path';
+// import path from 'path'; // Not used in this file
 import logger from './logger';
 
 /**
@@ -100,7 +100,7 @@ function generateMarkdownTree(
     const children = Array.from(node.children.entries());
     
     for (let i = 0; i < children.length; i++) {
-      const [name, childNode] = children[i];
+      const [_name, childNode] = children[i];
       const isLastChild = i === children.length - 1;
       result += generateMarkdownTree(childNode, '', isLastChild, '');
     }
@@ -129,7 +129,7 @@ function generateMarkdownTree(
     });
   
   for (let i = 0; i < children.length; i++) {
-    const [name, childNode] = children[i];
+    const [_name, childNode] = children[i];
     const isLastChild = i === children.length - 1;
     result += generateMarkdownTree(childNode, `${indent}${prefix}${childPrefix}`, isLastChild, '');
   }

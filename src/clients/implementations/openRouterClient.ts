@@ -27,7 +27,7 @@ import {
   formatConsolidatedReviewPrompt
 } from '../utils/promptFormatter';
 import { loadPromptTemplate } from '../utils/promptLoader';
-import { getLanguageFromExtension } from '../utils/languageDetection';
+// import { getLanguageFromExtension } from '../utils/languageDetection'; // Not used in this implementation
 
 const MAX_TOKENS_PER_REQUEST = 4000;
 
@@ -143,7 +143,7 @@ export class OpenRouterClient extends AbstractClient {
       }
       
       // Get the language from file extension
-      const language = getLanguageFromExtension(filePath);
+      // const language = getLanguageFromExtension(filePath); // Currently unused
       
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);

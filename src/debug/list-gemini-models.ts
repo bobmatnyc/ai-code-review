@@ -11,71 +11,82 @@ import * as dotenv from 'dotenv';
 // Load environment variables
 dotenv.config({ path: '.env.local' });
 
-async function listGeminiModels() {
+/**
+ * Helper function to get models from the API or fallback to hardcoded list
+ */
+async function getModels() {
   // Get API key from environment variable
   const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
   
   if (!apiKey) {
     console.error('No Google API key found. Set AI_CODE_REVIEW_GOOGLE_API_KEY in your .env.local file.');
-    return;
+    return { models: [] };
   }
   
+  console.log('Initializing Google Generative AI client...');
+  const genAI = new GoogleGenerativeAI(apiKey);
+  
+  console.log('Fetching available models...');
+  // Make an API call to list available models
+  // While listModels is not officially documented, we can try using it
   try {
-    console.log('Initializing Google Generative AI client...');
-    const genAI = new GoogleGenerativeAI(apiKey);
+    // @ts-ignore - This method exists but is not in the type definitions
+    const modelList = await genAI.listModels();
     
-    console.log('Fetching available models...');
-    // Note: listModels is not part of the public API, use hardcoded models instead
-    // This is a debug script anyway
-    const result = {
-      models: [
-        { 
-          name: "models/gemini-1.5-pro",
-          displayName: "Gemini 1.5 Pro",
-          description: "Balanced performance model with multimodal capabilities",
-          inputTokenLimit: 1000000,
-          outputTokenLimit: 8192,
-          supportedGenerationMethods: ["generateContent"],
-          version: "1.5.0"
-        },
-        { 
-          name: "models/gemini-1.5-flash",
-          displayName: "Gemini 1.5 Flash",
-          description: "Fast model with good quality/speed balance",
-          inputTokenLimit: 1000000,
-          outputTokenLimit: 8192,
-          supportedGenerationMethods: ["generateContent"],
-          version: "1.5.0"
-        },
-        { 
-          name: "models/gemini-2.5-pro-preview-05-06",
-          displayName: "Gemini 2.5 Pro Preview",
-          description: "Latest cutting-edge Gemini model (preview)",
-          inputTokenLimit: 1000000,
-          outputTokenLimit: 8192,
-          supportedGenerationMethods: ["generateContent"],
-          version: "2.5.0-preview"
-        },
-        { 
-          name: "models/gemini-2.0-flash",
-          displayName: "Gemini 2.0 Flash",
-          description: "Cost-effective model with good performance",
-          inputTokenLimit: 1000000,
-          outputTokenLimit: 8192,
-          supportedGenerationMethods: ["generateContent"],
-          version: "2.0.0"
-        },
-        { 
-          name: "models/gemini-2.0-flash-lite",
-          displayName: "Gemini 2.0 Flash Lite",
-          description: "Lightweight and fast Gemini model",
-          inputTokenLimit: 1000000,
-          outputTokenLimit: 8192,
-          supportedGenerationMethods: ["generateContent"],
-          version: "2.0.0"
-        }
-      ]
-    };
+    // If API call fails, fall back to our hardcoded knowledge
+    if (!modelList || !modelList.models) {
+      console.log('API call did not return models, using hardcoded list instead.');
+      return getHardcodedModels();
+    }
+    
+    return modelList;
+  } catch (error) {
+    console.log('Error listing models via API, using hardcoded list instead:', error);
+    // Fallback to hardcoded list
+    return getHardcodedModels();
+  }
+}
+
+/**
+ * Return hardcoded model information
+ */
+function getHardcodedModels() {
+  return {
+    models: [
+      { 
+        name: "models/gemini-2.5-pro-preview-05-06",
+        displayName: "Gemini 2.5 Pro Preview",
+        description: "Latest cutting-edge Gemini model (preview)",
+        inputTokenLimit: 1000000,
+        outputTokenLimit: 8192,
+        supportedGenerationMethods: ["generateContent"],
+        version: "2.5.0-preview"
+      },
+      { 
+        name: "models/gemini-2.0-flash",
+        displayName: "Gemini 2.0 Flash",
+        description: "Cost-effective model with good performance",
+        inputTokenLimit: 1000000,
+        outputTokenLimit: 8192,
+        supportedGenerationMethods: ["generateContent"],
+        version: "2.0.0"
+      },
+      { 
+        name: "models/gemini-2.0-flash-lite",
+        displayName: "Gemini 2.0 Flash Lite",
+        description: "Lightweight and fast Gemini model",
+        inputTokenLimit: 1000000,
+        outputTokenLimit: 8192,
+        supportedGenerationMethods: ["generateContent"],
+        version: "2.0.0"
+      }
+    ]
+  };
+}
+
+async function listGeminiModels() {
+  try {
+    const result = await getModels();
     
     console.log('\nAvailable models:');
     console.log('----------------');

@@ -4,8 +4,11 @@
  * This module mocks the initialization of LLM clients to avoid actual API calls.
  */
 
+import { ReviewResult, ReviewType, FileInfo, ReviewOptions } from '../types/review';
+import { ProjectDocs } from '../utils/projectDocs';
+
 // Mock response for testing
-function mockResponse(type, model) {
+function mockResponse(type: string, model: string): ReviewResult {
   const timestamp = new Date().toISOString();
   
   return {
@@ -49,41 +52,46 @@ This mock review demonstrates the tool calling feature has been successfully imp
     modelUsed: `${type}:${model}`,
     timestamp,
     filePath: 'architectural',
-    reviewType: 'architectural',
+    reviewType: 'architectural' as ReviewType,
     cost: {
-      promptTokens: 1000,
-      completionTokens: 1500,
+      inputTokens: 1000,
+      outputTokens: 1500,
       totalTokens: 2500,
-      costUSD: 0.05
+      estimatedCost: 0.05,
+      formattedCost: '$0.05'
     }
   };
 }
 
 // Export mock initializers
-module.exports = {
-  // Mock OpenAI initializer
-  mockInitializeOpenAI: async function() {
-    console.log('[MOCK] Initializing OpenAI client');
-    return true;
-  },
-  
-  // Mock Anthropic initializer
-  mockInitializeAnthropic: async function() {
-    console.log('[MOCK] Initializing Anthropic client');
-    return true;
-  },
-  
-  // Mock OpenAI architectural review
-  mockOpenAIArchitecturalReview: async function(files, project, projectDocs, options) {
-    console.log('[MOCK] Generating architectural review with OpenAI');
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate delay
-    return mockResponse('openai', 'gpt-4o');
-  },
-  
-  // Mock Anthropic architectural review
-  mockAnthropicArchitecturalReview: async function(files, project, projectDocs, options) {
-    console.log('[MOCK] Generating architectural review with Anthropic');
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate delay
-    return mockResponse('anthropic', 'claude-3-opus');
-  }
+export const mockInitializeOpenAI = async function(): Promise<boolean> {
+  console.log('[MOCK] Initializing OpenAI client');
+  return true;
+};
+
+export const mockInitializeAnthropic = async function(): Promise<boolean> {
+  console.log('[MOCK] Initializing Anthropic client');
+  return true;
+};
+
+export const mockOpenAIArchitecturalReview = async function(
+  _files: FileInfo[], 
+  _project: string, 
+  _projectDocs?: ProjectDocs | null, 
+  _options?: ReviewOptions
+): Promise<ReviewResult> {
+  console.log('[MOCK] Generating architectural review with OpenAI');
+  await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate delay
+  return mockResponse('openai', 'gpt-4o');
+};
+
+export const mockAnthropicArchitecturalReview = async function(
+  _files: FileInfo[], 
+  _project: string, 
+  _projectDocs?: ProjectDocs | null, 
+  _options?: ReviewOptions
+): Promise<ReviewResult> {
+  console.log('[MOCK] Generating architectural review with Anthropic');
+  await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate delay
+  return mockResponse('anthropic', 'claude-3-opus');
 };

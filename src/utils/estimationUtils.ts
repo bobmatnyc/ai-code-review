@@ -11,10 +11,8 @@ import path from 'path';
 import fs from 'fs/promises';
 import {
   estimateTokenCount,
-  calculateCost,
   formatCost,
-  getCostInfo,
-  EstimatorFactory
+  getCostInfo
 } from '../estimators';
 import logger from './logger';
 import { FileInfo } from '../types/review';

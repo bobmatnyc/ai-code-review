@@ -62,12 +62,26 @@ function walk(dir) {
   });
 }
 
-const promptsDir = path.resolve(__dirname, '../prompts');
-if (!fs.existsSync(promptsDir)) {
-  console.error(`prompts directory not found at ${promptsDir}`);
+// Check both prompts and promptText directories
+const promptsDirs = [
+  path.resolve(__dirname, '../prompts'),
+  path.resolve(__dirname, '../promptText')
+];
+
+let foundDir = null;
+for (const dir of promptsDirs) {
+  if (fs.existsSync(dir)) {
+    foundDir = dir;
+    break;
+  }
+}
+
+if (!foundDir) {
+  console.error(`prompts or promptText directory not found`);
   process.exit(1);
 }
-walk(promptsDir);
+
+walk(foundDir);
 if (failed) {
   console.error('Prompt validation failed.');
   process.exit(1);

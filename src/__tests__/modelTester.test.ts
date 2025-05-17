@@ -6,7 +6,7 @@
  */
 
 // Import the functions we want to test
-import { TestResult } from '../clients/utils/modelTester';
+// import { TestResult } from '../clients/utils/modelTester'; // Not used in this placeholder test
 
 // This is a very basic test that doesn't actually test functionality
 // but ensures we have test coverage for the file

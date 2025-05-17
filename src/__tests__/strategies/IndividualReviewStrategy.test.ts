@@ -3,7 +3,7 @@
  */
 
 import { IndividualReviewStrategy } from '../../strategies/IndividualReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewType } from '../../types/review';
+import { FileInfo, ReviewOptions } from '../../types/review';
 import { ApiClientConfig } from '../../core/ApiClientSelector';
 import { ProjectDocs } from '../../utils/projectDocs';
 
