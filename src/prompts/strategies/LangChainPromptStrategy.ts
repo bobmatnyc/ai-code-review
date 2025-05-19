@@ -127,16 +127,25 @@ export class LangChainPromptStrategy extends PromptStrategy {
       TYPE: 'type',
       MODEL: 'models',
       SCHEMA_INSTRUCTIONS: 'schemaInstructions',
-      LANGUAGE_INSTRUCTIONS: 'languageInstructions'
+      LANGUAGE_INSTRUCTIONS: 'languageInstructions',
+      CI_DATA: 'ciData'
     };
 
     // Fill in the input values from the options
     for (const variable of inputVariables) {
       const optionKey = optionsMap[variable];
       if (optionKey && typeof optionKey === 'string' && optionKey in options) {
-        inputValues[variable] = String(
-          options[optionKey as keyof ReviewOptions]
-        );
+        // Special handling for CI data
+        if (optionKey === 'ciData' && options.ciData) {
+          const { formatCIDataForPrompt } = require('../../utils/ciDataCollector');
+          // If we have a file path, use it to get file-specific CI data
+          const filePath = inputValues['FILE_PATH'] || options['filePath'];
+          inputValues[variable] = formatCIDataForPrompt(options.ciData, filePath);
+        } else {
+          inputValues[variable] = String(
+            options[optionKey as keyof ReviewOptions]
+          );
+        }
       } else {
         // Try to look up directly in options
         if (variable in options) {

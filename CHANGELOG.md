@@ -12,12 +12,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved JSON output formatting for interactive mode responses
 - Added support for structured JSON responses in review results
 - Added automatic detection and parsing of JSON content in review outputs
+- Added CI local check script (`npm run ci:local`) for pre-push validation
+- Enhanced workflow instructions in INSTRUCTIONS.md with CI best practices
+- Added CI data collection for all review types with per-file error counts
+- Integrated TypeScript and ESLint error counts into code review prompts
 
 ### Fixed
 - Fixed model mapping issue where `gemini-2.5-pro` was not properly mapped to `gemini-2.5-pro-preview-05-06`
 - Fixed JSON output formatting in quick-fixes and other review types
 - Fixed consolidated review to use markdown format instead of JSON
 - Simplified model selection logic to use only configured models without fallbacks
+- Fixed CI workflow issues including build scripts, module resolution, and lint errors
+- Updated package scripts from pnpm to npm for consistency
+- Removed automatic Gemini fallback in IndividualReviewStrategy - now fails gracefully with helpful error messages
+
+### Changed
+- Updated INSTRUCTIONS.md to emphasize CI checks before closing tickets
+- Added detailed CI troubleshooting guide and common issue prevention
+- Changed workflow commands from pnpm to npm throughout documentation
+- Added explicit documentation against automatic fallback strategies - user configuration must be respected
 - Fixed regex-based model extraction in favor of direct model passing
 - Improved error handling for structured JSON responses
 

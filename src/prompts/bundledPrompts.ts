@@ -52,6 +52,8 @@ Provide your analysis in the following sections:
 
 {{LANGUAGE_INSTRUCTIONS}}
 
+{{CI_DATA}}
+
 {{SCHEMA_INSTRUCTIONS}}`,
 
     'quick-fixes': `# Quick Fixes Code Review
@@ -73,6 +75,8 @@ Focus on:
 - Small-scale refactoring opportunities
 - Potential edge cases that aren't handled
 
+{{CI_DATA}}
+
 ## Output Format
 
 For each issue you identify:
@@ -83,6 +87,8 @@ For each issue you identify:
 5. **Priority**: Rate the issue as High, Medium, or Low priority
 
 Group issues by priority and include a summary of the most critical fixes at the beginning.
+
+IMPORTANT: Include fixes for any TypeScript compilation errors or ESLint violations from the CI data above.
 
 {{LANGUAGE_INSTRUCTIONS}}
 
@@ -117,6 +123,8 @@ Include a summary section at the beginning with an overall security assessment a
 
 {{LANGUAGE_INSTRUCTIONS}}
 
+{{CI_DATA}}
+
 {{SCHEMA_INSTRUCTIONS}}`,
 
     'performance': `# Performance Code Review
@@ -147,6 +155,8 @@ For each performance issue you identify:
 Include a summary section with an overall performance assessment and prioritized list of optimizations.
 
 {{LANGUAGE_INSTRUCTIONS}}
+
+{{CI_DATA}}
 
 {{SCHEMA_INSTRUCTIONS}}`,
 
@@ -185,6 +195,8 @@ For each instance of unused code you identify:
 Include a summary section with the total number of unused elements found, grouped by type and confidence level.
 
 {{LANGUAGE_INSTRUCTIONS}}
+
+{{CI_DATA}}
 
 {{SCHEMA_INSTRUCTIONS}}`,
 
@@ -239,6 +251,8 @@ For each area of improvement you identify:
 
 Prioritize your recommendations by impact, focusing on changes that will significantly improve the codebase.
 
+{{CI_DATA}}
+
 {{SCHEMA_INSTRUCTIONS}}
 
 Remember to balance theoretical best practices with pragmatic considerations for the specific codebase context.`
@@ -275,6 +289,8 @@ Provide your analysis in the following sections:
 5. **Code Examples**: Where appropriate, provide TypeScript code examples to illustrate your recommendations
 
 This code is written in TYPESCRIPT. Please provide language-specific advice.
+
+{{CI_DATA}}
 
 {{SCHEMA_INSTRUCTIONS}}`,
 
@@ -324,6 +340,8 @@ For each area of improvement you identify:
 Prioritize your recommendations by impact, focusing on changes that will significantly improve the codebase's type safety and maintainability.
 
 This code is written in TYPESCRIPT. Please provide language-specific advice.
+
+{{CI_DATA}}
 
 {{SCHEMA_INSTRUCTIONS}}`
   },

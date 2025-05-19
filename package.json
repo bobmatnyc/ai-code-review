@@ -8,6 +8,7 @@
     "prebuild": "rm -rf dist",
     "build": "npm run test && npm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
     "build:types": "tsc --emitDeclarationOnly",
+    "ci:local": "./scripts/ci-local.sh",
     "postbuild": "./scripts/link-global.sh",
     "start": "node dist/index.js",
     "dev": "ts-node --transpile-only src/index.ts",

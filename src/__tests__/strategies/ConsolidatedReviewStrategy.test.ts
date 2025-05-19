@@ -5,6 +5,12 @@
 // Mock dependencies before importing
 jest.mock('../../core/ReviewGenerator');
 jest.mock('../../utils/logger');
+jest.mock('../../utils/ciDataCollector', () => ({
+  collectCIData: jest.fn().mockResolvedValue({
+    typeCheckErrors: 0,
+    lintErrors: 0
+  })
+}));
 
 // Import after mocking
 import { ConsolidatedReviewStrategy } from '../../strategies/ConsolidatedReviewStrategy';
