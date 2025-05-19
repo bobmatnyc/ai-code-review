@@ -16,6 +16,7 @@ import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
 import logger from '../utils/logger';
+import { collectCIData } from '../utils/ciDataCollector';
 
 /**
  * Strategy for consolidated reviews of multiple files
@@ -46,6 +47,14 @@ export class ConsolidatedReviewStrategy extends BaseReviewStrategy {
     apiClientConfig: ApiClientConfig
   ): Promise<ReviewResult> {
     logger.info(`Executing consolidated ${this.reviewType} review strategy...`);
+
+    // Collect CI data if we're reviewing TypeScript files
+    let ciData = undefined;
+    if (options.language === 'typescript' || files.some(f => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))) {
+      logger.info('Collecting CI data for TypeScript project...');
+      ciData = await collectCIData(process.cwd());
+      options.ciData = ciData;
+    }
 
     // Generate the review using the selected API client
     return generateReview(

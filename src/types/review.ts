@@ -198,6 +198,17 @@ export interface ReviewOptions {
   code?: string;
 
   /**
+   * CI/CD data to include in the review
+   * @internal
+   */
+  ciData?: {
+    typeCheckErrors?: number;
+    lintErrors?: number;
+    typeCheckOutput?: string;
+    lintOutput?: string;
+  };
+
+  /**
    * Example demos for few-shot learning
    * @internal
    */

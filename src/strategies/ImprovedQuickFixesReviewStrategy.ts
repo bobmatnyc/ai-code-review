@@ -16,6 +16,7 @@ import { PromptManager } from '../prompts/PromptManager';
 import { PromptCache } from '../prompts/cache/PromptCache';
 import { getQuickFixesReviewFormatInstructions } from '../prompts/schemas/quick-fixes-schema';
 import path from 'path';
+import { collectCIData, formatCIDataForPrompt } from '../utils/ciDataCollector';
 
 /**
  * Strategy for improved quick fixes review using LangChain
@@ -47,6 +48,13 @@ export class ImprovedQuickFixesReviewStrategy extends ConsolidatedReviewStrategy
     logger.info(
       `Executing improved quick fixes review strategy for ${files.length} files...`
     );
+
+    // Collect CI data if reviewing TypeScript files
+    let ciData = undefined;
+    if (options.language === 'typescript' || files.some(f => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))) {
+      logger.info('Collecting CI data for TypeScript project...');
+      ciData = await collectCIData(process.cwd());
+    }
 
     // Determine appropriate prompt file based on language
     let promptFile: string;
@@ -82,7 +90,8 @@ export class ImprovedQuickFixesReviewStrategy extends ConsolidatedReviewStrategy
       ...options,
       type: this.reviewType,
       schemaInstructions: getQuickFixesReviewFormatInstructions(),
-      promptFile: promptFile
+      promptFile: promptFile,
+      ciData: ciData
     };
 
     // Use LangChain prompt strategy if available

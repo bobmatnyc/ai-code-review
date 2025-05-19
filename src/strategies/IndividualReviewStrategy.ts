@@ -25,9 +25,8 @@ import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { displayReviewResults } from '../utils/reviewActionHandler';
 import { getPriorityFilterFromArgs } from '../utils/priorityFilter';
+import { collectCIData } from '../utils/ciDataCollector';
 
-// Import only the Gemini client by default (fallback)
-import { generateReview as generateGeminiReview } from '../clients/geminiClient';
 // Import the OpenAI wrapper for individual reviews
 import { generateOpenAIReview, initializeAnyOpenAIModel } from '../clients/openaiClientWrapper';
 
@@ -69,6 +68,14 @@ export class IndividualReviewStrategy extends BaseReviewStrategy {
       throw new Error('No files to review');
     }
 
+    // Collect CI data once for all files if reviewing TypeScript
+    let ciData = undefined;
+    if (options.language === 'typescript' || files.some(f => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))) {
+      logger.info('Collecting CI data for TypeScript project...');
+      ciData = await collectCIData(process.cwd());
+      options.ciData = ciData;
+    }
+
     // For now, just review the first file to maintain compatibility with the current interface
     const file = files[0];
 
@@ -94,6 +101,10 @@ export class IndividualReviewStrategy extends BaseReviewStrategy {
           options
         );
       } else if (apiClientConfig.clientType === 'Google') {
+        // Dynamically import the Gemini client
+        const { generateReview: generateGeminiReview } = 
+          await import('../clients/geminiClient.js');
+        
         review = await generateGeminiReview(
           file.content,
           file.path,
@@ -127,14 +138,12 @@ export class IndividualReviewStrategy extends BaseReviewStrategy {
           options
         );
       } else {
-        // No API client available, use mock responses
-        logger.warn('No API client available. Using mock responses.');
-        review = await generateGeminiReview(
-          file.content,
-          file.path,
-          this.reviewType,
-          projectDocs,
-          options
+        throw new Error(
+          `No API client configured. Please set up one of the following: ` +
+          `Google (AI_CODE_REVIEW_GOOGLE_API_KEY), ` +
+          `Anthropic (AI_CODE_REVIEW_ANTHROPIC_API_KEY), ` +
+          `OpenAI (AI_CODE_REVIEW_OPENAI_API_KEY), or ` +
+          `OpenRouter (AI_CODE_REVIEW_OPENROUTER_API_KEY)`
         );
       }
 

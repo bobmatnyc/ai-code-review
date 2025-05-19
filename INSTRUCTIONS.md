@@ -12,9 +12,10 @@ Updated: 5-05-2025
 
 1. **Validate assumptions** – ask clarifying questions before proceeding.
 2. **Implement with simplicity** – prefer minimal, working code.
-3. **Test and lint rigorously** – `pnpm lint && pnpm typecheck && pnpm test`.
-4. **Document intent** – not just behavior.
-5. **Confirm before architectural shifts or abstractions.**
+3. **Test and lint rigorously** – `npm run lint && npm run build:types && npm test`.
+4. **Verify CI checks before closing tickets** – run full CI pipeline locally.
+5. **Document intent** – not just behavior.
+6. **Confirm before architectural shifts or abstractions.**
 
 > You are expected to follow all rules by default. No mocks, hacks, or shortcuts unless explicitly approved.
 
@@ -27,6 +28,7 @@ Updated: 5-05-2025
 * **Validate all assumptions** – ask before introducing new paradigms.
 * **Follow monorepo principles** – workspace isolation, shared utilities.
 * **Document clearly** – capture why, not just how.
+* **No implicit fallbacks** – when configurations fail, fail gracefully with clear errors. Never automatically fall back to different services.
 
 ---
 
@@ -88,9 +90,10 @@ Updated: 5-05-2025
 
 ### Automation
 
-* Use `pnpm` for package management, builds, tests, and CI.
-* `pnpm lint && pnpm typecheck && pnpm test` required before merge.
+* Use `npm` for package management, builds, tests, and CI.
+* `npm run lint && npm run build:types && npm test` required before merge.
 * Feature branches only. Use squash merges.
+* Run full CI checks locally before pushing: `npm run ci:local`
 
 ---
 
@@ -106,10 +109,11 @@ Updated: 5-05-2025
 ## 🧪 6. Testing Standards
 
 * All utilities and APIs must have unit tests.
-* Use **Vitest** (`pnpm test`).
+* Use **Jest** (`npm test`).
 * Minimum 80% coverage unless annotated with `@low-test-priority`.
 * Avoid snapshots unless explicitly justified.
 * Prefer real API interactions over mocks.
+* Ensure all mocked modules match actual export signatures.
 
 ---
 
@@ -117,8 +121,26 @@ Updated: 5-05-2025
 
 * Pre-commit hooks must run lint, type-check, and tests.
 * Do not merge if any check fails.
+* Verify CI status before closing any ticket.
 * Secrets must go in `.env.local` – never hardcoded.
 * All API clients must include comments: purpose, inputs, outputs.
+
+### CI Pre-flight Checklist
+
+Before pushing changes or closing tickets:
+
+1. **Run full CI locally:**
+   ```bash
+   npm run lint
+   npm run build:types
+   npm test
+   npm run build
+   ```
+
+2. **Fix all errors before pushing** – don't rely on CI to catch issues
+3. **Verify package-lock.json** is up to date: `npm install`
+4. **Check for unused imports** – remove them to avoid lint errors
+5. **Verify module case sensitivity** – ensure all imports match actual filenames
 
 ---
 
@@ -135,6 +157,43 @@ Updated: 5-05-2025
 * Run linting and type checks after every change.
 * Build and verify tests before handing off code.
 * Follow existing conventions and naming patterns.
+* Fix all lint/type errors before pushing changes.
+
+### Common Issues to Watch For
+
+1. **Module Resolution:**
+   - Use exact case for imports (e.g., `pathValidator.ts` not `PathValidator.ts`)
+   - Export all utilities from their index files
+   - Ensure mocked modules in tests match actual exports
+
+2. **TypeScript Compilation:**
+   - Remove unused imports immediately
+   - Use proper types, avoid `any`
+   - Ensure all files are included in `tsconfig.json`
+
+3. **Package Management:**
+   - Always run `npm install` after changing dependencies
+   - Keep `package-lock.json` synchronized
+   - Use npm (not pnpm) for all operations
+
+### Fallback Behavior
+
+1. **API Client Selection:**
+   - Never implement automatic fallbacks between AI services
+   - If the user's configured service is unavailable, fail with a clear error
+   - List all available options in error messages
+   - Fallback strategies must be explicitly configured by the user
+
+2. **Configuration Failures:**
+   - When required environment variables are missing, fail immediately
+   - Provide specific guidance on which variables need to be set
+   - Never assume a default service or configuration
+   - Always respect user intent - if they configured Service A, never use Service B
+
+3. **Error Messages:**
+   - Include actionable steps to resolve configuration issues
+   - List specific environment variables needed
+   - Provide example values or formats where appropriate
 
 ---
 
@@ -257,8 +316,20 @@ git push -u origin feature/new-dashboard
 ### 🔍 PR & Merge Rules
 
 - Always **rebase** before opening PRs.
+- **Run full CI checks locally** before pushing any changes.
+- **Wait for all CI checks to pass** before requesting review.
+- **Fix all CI failures immediately** – don't leave broken builds.
 - **Squash-merge** in GitHub. Clean up the title to follow commit conventions.
 - Only merge if CI passes and code is reviewed.
+
+### ✅ Before Closing Issues
+
+Never close an issue until:
+1. All code changes are merged to main
+2. CI checks are passing on main
+3. Any documentation updates are complete
+4. Tests have been added/updated as needed
+5. The fix has been verified in the CI environment
 
 ### 🚫 Avoid
 
@@ -353,6 +424,27 @@ Apply appropriate `type:` and `theme:` labels.
 * `ROADMAP.md` → use Milestones
 * `PROGRESS.md` → use Labels + Issues
 * Task trackers (Notion, Google Docs) → link Issues and **Design Docs**
+
+---
+
+## 🚀 Quick Reference: CI Commands
+
+Run these commands before pushing any changes:
+
+```bash
+# Full CI check (run all in sequence)
+npm run lint          # Check code style
+npm run build:types   # Check TypeScript types
+npm test             # Run all tests
+npm run build        # Build the project
+
+# Fix common issues
+npm install          # Sync package-lock.json
+npm run lint:fix     # Auto-fix lint issues (if available)
+
+# Verify everything at once
+npm run ci:local     # Run full CI pipeline locally (if configured)
+```
 
 ---
 
