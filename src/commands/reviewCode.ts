@@ -73,6 +73,48 @@ export async function reviewCode(
       delete (options as any)['confirm'];
     }
 
+    // Handle auto-fix option if provided
+    if ((options as any)['auto-fix'] !== undefined) {
+      options.autoFix = (options as any)['auto-fix'] as boolean;
+      delete (options as any)['auto-fix'];
+    }
+
+    // Handle include-tests option if provided
+    if ((options as any)['include-tests'] !== undefined) {
+      options.includeTests = (options as any)['include-tests'] as boolean;
+      delete (options as any)['include-tests'];
+    }
+
+    // Handle include-project-docs option if provided
+    if ((options as any)['include-project-docs'] !== undefined) {
+      options.includeProjectDocs = (options as any)['include-project-docs'] as boolean;
+      delete (options as any)['include-project-docs'];
+    }
+
+    // Handle use-ts-prune option if provided
+    if ((options as any)['use-ts-prune'] !== undefined) {
+      options.useTsPrune = (options as any)['use-ts-prune'] as boolean;
+      delete (options as any)['use-ts-prune'];
+    }
+
+    // Handle use-eslint option if provided
+    if ((options as any)['use-eslint'] !== undefined) {
+      options.useEslint = (options as any)['use-eslint'] as boolean;
+      delete (options as any)['use-eslint'];
+    }
+
+    // Handle trace-code option if provided
+    if ((options as any)['trace-code'] !== undefined) {
+      options.traceCode = (options as any)['trace-code'] as boolean;
+      delete (options as any)['trace-code'];
+    }
+
+    // Handle test-api option if provided
+    if ((options as any)['test-api'] !== undefined) {
+      options.testApi = (options as any)['test-api'] as boolean;
+      delete (options as any)['test-api'];
+    }
+
     // Delegate to the review orchestrator
     await orchestrateReview(target, options);
   } catch (error) {

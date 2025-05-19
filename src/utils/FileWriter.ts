@@ -17,7 +17,7 @@ import logger from './logger';
  */
 export async function ensureDirectoryExists(dirPath: string): Promise<void> {
   try {
-    if (!(await pathExists(dirPath))) {
+    if (!pathExists(dirPath)) {
       await fs.mkdir(dirPath, { recursive: true });
       logger.debug(`Created directory: ${dirPath}`);
     }

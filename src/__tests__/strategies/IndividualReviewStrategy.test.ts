@@ -8,11 +8,25 @@ import { ApiClientConfig } from '../../core/ApiClientSelector';
 import { ProjectDocs } from '../../utils/projectDocs';
 
 // Mock dependencies
-jest.mock('../../clients/geminiClient');
 jest.mock('../../utils/logger');
+jest.mock('../../utils/ciDataCollector', () => ({
+  collectCIData: jest.fn().mockResolvedValue({
+    typeCheckErrors: 0,
+    lintErrors: 0
+  })
+}));
 
-// Import the mocked module
-import { generateReview } from '../../clients/geminiClient';
+// Create mock for dynamically imported module
+const mockGenerateReview = jest.fn();
+jest.mock('../../clients/geminiClient.js', () => ({
+  generateReview: mockGenerateReview
+}), { virtual: true });
+
+// Mock dynamic import
+jest.mock('../clients/geminiClient.js', () => ({
+  __esModule: true,
+  generateReview: mockGenerateReview
+}), { virtual: true });
 
 describe('IndividualReviewStrategy', () => {
   let strategy: IndividualReviewStrategy;
@@ -54,9 +68,10 @@ describe('IndividualReviewStrategy', () => {
     
     // Reset mocks
     jest.resetAllMocks();
+    mockGenerateReview.mockReset();
     
     // Mock implementation of generateReview
-    (generateReview as jest.Mock).mockResolvedValue({
+    mockGenerateReview.mockResolvedValue({
       filePath: 'test.ts',
       reviewType: 'quick-fixes',
       content: 'Review content',
@@ -75,7 +90,7 @@ describe('IndividualReviewStrategy', () => {
     );
     
     // Verify generateReview was called with correct parameters
-    expect(generateReview).toHaveBeenCalledWith(
+    expect(mockGenerateReview).toHaveBeenCalledWith(
       mockFiles[0].content,
       mockFiles[0].path,
       'quick-fixes',
@@ -107,7 +122,7 @@ describe('IndividualReviewStrategy', () => {
   
   test('execute should handle errors from generateReview', async () => {
     // Mock generateReview to throw an error
-    (generateReview as jest.Mock).mockRejectedValue(new Error('Test error'));
+    mockGenerateReview.mockRejectedValue(new Error('Test error'));
     
     // Execute the strategy and expect it to throw
     await expect(
@@ -135,7 +150,7 @@ describe('IndividualReviewStrategy', () => {
     );
     
     // Verify generateReview was called with the correct review type
-    expect(generateReview).toHaveBeenCalledWith(
+    expect(mockGenerateReview).toHaveBeenCalledWith(
       mockFiles[0].content,
       mockFiles[0].path,
       'security',
