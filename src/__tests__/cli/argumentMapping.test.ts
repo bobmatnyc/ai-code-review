@@ -5,15 +5,19 @@
  * properties in the ReviewOptions object and passed to the command handlers.
  */
 
-import { reviewCode } from '../../commands/reviewCode';
-import { orchestrateReview } from '../../core/reviewOrchestrator';
+// Mock process.exit globally before any imports
+// And create a global mock that can be tracked
+const mockExit = jest.fn();
+Object.defineProperty(process, 'exit', {
+  value: mockExit,
+  configurable: true
+});
 
-// Mock the review orchestrator
+// Mock all dependencies before imports
 jest.mock('../../core/reviewOrchestrator', () => ({
   orchestrateReview: jest.fn()
 }));
 
-// Mock the logger
 jest.mock('../../utils/logger', () => ({
   __esModule: true,
   default: {
@@ -24,14 +28,30 @@ jest.mock('../../utils/logger', () => ({
   }
 }));
 
-// Mock the exit function to prevent tests from exiting
-const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-  return undefined as never;
-});
+jest.mock('../../utils/ciDataCollector', () => ({
+  collectCIData: jest.fn().mockResolvedValue({
+    typeCheckErrors: 0,
+    lintErrors: 0
+  })
+}));
+
+import { reviewCode } from '../../commands/reviewCode';
+import { orchestrateReview } from '../../core/reviewOrchestrator';
+
+// Note: console.error is also mocked in the Error Handling describe block
 
 describe('CLI Argument Mapping Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the mockExit function
+    mockExit.mockReset();
+    // Ensure the orchestrateReview mock returns a resolved promise
+    (orchestrateReview as jest.Mock).mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockExit.mockClear();
   });
 
   /**

@@ -5,7 +5,7 @@
  * to manage API request rates and prevent exceeding rate limits.
  */
 
-import { RateLimiter } from '../utils/rateLimiter';
+import { RateLimiter } from '../utils/api/rateLimiter';
 
 // Mock Date.now() to control time in tests
 const originalDateNow = Date.now;
@@ -129,7 +129,7 @@ describe('RateLimiter', () => {
   describe('globalRateLimiter', () => {
     it('should export a global rate limiter instance', () => {
       // Import the global rate limiter
-      const { globalRateLimiter } = jest.requireMock('../utils/rateLimiter') as { globalRateLimiter: RateLimiter };
+      const { globalRateLimiter } = require('../utils/api/rateLimiter') as { globalRateLimiter: RateLimiter };
 
       // Should be an instance of RateLimiter
       expect(globalRateLimiter).toBeInstanceOf(RateLimiter);
