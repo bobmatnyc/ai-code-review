@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2025-05-21
+
+### Added
+- Implemented JSON configuration file support via configFileManager
+- Added command-line option to specify config file path (--config)
+- Added command-line option to generate sample config (--generate-config)
+- Implemented full smart file selection functionality with support for:
+  - .gitignore patterns (previously implemented)
+  - .eslintignore patterns (new)
+  - tsconfig.json configuration (new)
+- Added proper documentation for smart file selection
+
+### Fixed
+- Implemented missing features that were mentioned in CHANGELOG but not fully implemented
+- Fixed JSON configuration file handling for consistent configuration management
+- Fixed smart file selection to correctly use project configuration files
+
 ## [3.1.0] - 2025-05-20
 
 ### Added
