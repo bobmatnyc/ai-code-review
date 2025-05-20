@@ -1,0 +1,171 @@
+/**
+ * @fileoverview Tests for smart file selection functionality
+ */
+
+import * as path from 'path';
+import * as fs from 'fs';
+import {
+  loadEslintIgnorePatterns,
+  loadTsConfig,
+  matchesTsConfig,
+  applySmartFiltering
+} from '../../utils/files/smartFileSelector';
+
+// Mock fs module
+jest.mock('fs', () => ({
+  promises: {
+    access: jest.fn(),
+    readFile: jest.fn()
+  },
+  existsSync: jest.fn(),
+  readFileSync: jest.fn()
+}));
+
+// Mock fileFilters module
+jest.mock('../../utils/fileFilters', () => ({
+  loadGitignorePatterns: jest.fn().mockResolvedValue([]),
+  shouldExcludeFile: jest.fn().mockImplementation((filePath, patterns) => {
+    // Only exclude paths that contain 'ignored'
+    return patterns.some(pattern => filePath.includes(pattern));
+  })
+}));
+
+describe('Smart File Selector', () => {
+  const PROJECT_DIR = '/test/project';
+  
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  
+  describe('loadEslintIgnorePatterns', () => {
+    it('should load .eslintignore patterns', async () => {
+      const mockContent = 'node_modules\n# Comment\ndist\n';
+      (fs.promises.access as jest.Mock).mockResolvedValue(undefined);
+      (fs.promises.readFile as jest.Mock).mockResolvedValue(mockContent);
+      
+      const patterns = await loadEslintIgnorePatterns(PROJECT_DIR);
+      
+      expect(fs.promises.access).toHaveBeenCalledWith(path.join(PROJECT_DIR, '.eslintignore'));
+      expect(fs.promises.readFile).toHaveBeenCalledWith(path.join(PROJECT_DIR, '.eslintignore'), 'utf-8');
+      expect(patterns).toEqual(['node_modules', 'dist']);
+    });
+    
+    it('should return empty array if .eslintignore does not exist', async () => {
+      (fs.promises.access as jest.Mock).mockRejectedValue(new Error('File not found'));
+      
+      const patterns = await loadEslintIgnorePatterns(PROJECT_DIR);
+      
+      expect(patterns).toEqual([]);
+    });
+  });
+  
+  describe('loadTsConfig', () => {
+    it('should load tsconfig.json', async () => {
+      const mockConfig = {
+        compilerOptions: { target: 'ES2022' },
+        include: ['src/**/*'],
+        exclude: ['**/*.test.ts']
+      };
+      
+      (fs.promises.access as jest.Mock).mockResolvedValue(undefined);
+      (fs.promises.readFile as jest.Mock).mockResolvedValue(JSON.stringify(mockConfig));
+      
+      const config = await loadTsConfig(PROJECT_DIR);
+      
+      expect(fs.promises.access).toHaveBeenCalledWith(path.join(PROJECT_DIR, 'tsconfig.json'));
+      expect(fs.promises.readFile).toHaveBeenCalledWith(path.join(PROJECT_DIR, 'tsconfig.json'), 'utf-8');
+      expect(config).toEqual(mockConfig);
+    });
+    
+    it('should return null if tsconfig.json does not exist', async () => {
+      (fs.promises.access as jest.Mock).mockRejectedValue(new Error('File not found'));
+      
+      const config = await loadTsConfig(PROJECT_DIR);
+      
+      expect(config).toBeNull();
+    });
+    
+    it('should return null if tsconfig.json cannot be parsed', async () => {
+      (fs.promises.access as jest.Mock).mockResolvedValue(undefined);
+      (fs.promises.readFile as jest.Mock).mockResolvedValue('invalid json');
+      
+      const config = await loadTsConfig(PROJECT_DIR);
+      
+      expect(config).toBeNull();
+    });
+  });
+  
+  describe('matchesTsConfig', () => {
+    it('should match files that are included in tsconfig.json', () => {
+      const tsConfig = {
+        include: ['src/**/*'],
+        exclude: ['**/*.test.ts']
+      };
+      
+      expect(matchesTsConfig('/test/project/src/app.ts', tsConfig, PROJECT_DIR)).toBe(true);
+      expect(matchesTsConfig('/test/project/src/nested/file.ts', tsConfig, PROJECT_DIR)).toBe(true);
+    });
+    
+    it('should exclude files that match exclude patterns', () => {
+      const tsConfig = {
+        include: ['src/**/*'],
+        exclude: ['**/*.test.ts', '**/node_modules/**']
+      };
+      
+      expect(matchesTsConfig('/test/project/src/app.test.ts', tsConfig, PROJECT_DIR)).toBe(false);
+      expect(matchesTsConfig('/test/project/node_modules/package/index.ts', tsConfig, PROJECT_DIR)).toBe(false);
+    });
+    
+    it('should only include files explicitly listed in files array if it exists', () => {
+      const tsConfig = {
+        files: ['src/app.ts', 'src/index.ts'],
+        include: ['src/**/*'], // Should be ignored if files is present
+        exclude: ['**/*.test.ts'] // Should still be applied
+      };
+      
+      expect(matchesTsConfig('/test/project/src/app.ts', tsConfig, PROJECT_DIR)).toBe(true);
+      expect(matchesTsConfig('/test/project/src/index.ts', tsConfig, PROJECT_DIR)).toBe(true);
+      expect(matchesTsConfig('/test/project/src/other.ts', tsConfig, PROJECT_DIR)).toBe(false);
+    });
+    
+    it('should include all files if tsconfig is null', () => {
+      expect(matchesTsConfig('/test/project/src/app.ts', null, PROJECT_DIR)).toBe(true);
+    });
+  });
+  
+  describe('applySmartFiltering', () => {
+    it('should filter files based on gitignore, eslintignore, and tsconfig', async () => {
+      // Setup mock implementations
+      const mockFileList = [
+        '/test/project/src/app.ts',
+        '/test/project/src/app.test.ts',
+        '/test/project/node_modules/package/index.ts',
+        '/test/project/src/utils/helpers.ts',
+        '/test/project/dist/app.js',
+        '/test/project/ignored-by-eslint.ts'
+      ];
+      
+      // Mock loadGitignorePatterns
+      const { loadGitignorePatterns } = require('../../utils/fileFilters');
+      loadGitignorePatterns.mockResolvedValue(['node_modules', 'dist']);
+      
+      // Mock loadEslintIgnorePatterns
+      jest.spyOn(require('../../utils/files/smartFileSelector'), 'loadEslintIgnorePatterns')
+        .mockResolvedValue(['ignored-by-eslint']);
+      
+      // Mock loadTsConfig
+      jest.spyOn(require('../../utils/files/smartFileSelector'), 'loadTsConfig')
+        .mockResolvedValue({
+          include: ['src/**/*'],
+          exclude: ['**/*.test.ts']
+        });
+      
+      const filteredFiles = await applySmartFiltering(mockFileList, PROJECT_DIR);
+      
+      // Should only include the src files that aren't tests or otherwise excluded
+      expect(filteredFiles).toEqual([
+        '/test/project/src/utils/helpers.ts'
+      ]);
+    });
+  });
+});
