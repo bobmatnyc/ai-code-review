@@ -16,7 +16,7 @@ declare module '../formatters/outputFormatter' {
   ): string;
 
   function formatStructuredReviewAsMarkdown(
-    structuredReview: any,
+    structuredReview: import('./structuredReview').StructuredReview,
     filePath: string | undefined,
     reviewType: string,
     timestamp: string,

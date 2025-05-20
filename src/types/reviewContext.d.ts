@@ -39,7 +39,7 @@ declare module '../analysis/context' {
   }
   
   export class ReviewContext {
-    constructor(projectName: string, reviewType: string, files: any[]);
+    constructor(projectName: string, reviewType: string, files: import('../types/review').FileInfo[]);
     
     startPass(): number;
     getCurrentPass(): number;
@@ -55,7 +55,7 @@ declare module '../analysis/context' {
     addGeneralNote(note: string): void;
     getGeneralNotes(): string[];
     generateNextPassContext(files: string[], maxContextLength?: number): string;
-    toJSON(): object;
-    static fromJSON(json: any): ReviewContext;
+    toJSON(): Record<string, unknown>;
+    static fromJSON(json: Record<string, unknown>): ReviewContext;
   }
 }

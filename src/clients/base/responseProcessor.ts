@@ -33,12 +33,12 @@ export function extractStructuredData(content: string): StructuredReview | undef
     // 4. Plain JSON without code blocks
     
     // Enhanced regex to handle various language markers, especially typescript
-    jsonBlockMatch = content.match(/```(?:json)\s*([\s\S]*?)\s*```/);
+    jsonBlockMatch = content.match(/```(?:json)\s*([\s\S]*?)\s*```/) || null;
     
     // If no explicit JSON block, look for any code block (with any language marker or none)
     // that contains what looks like JSON content (starting with { and ending with })
     if (!jsonBlockMatch) {
-      anyCodeBlockMatch = content.match(/```(?:[\w]*)?[\s\n]*([\s\S]*?)[\s\n]*```/);
+      anyCodeBlockMatch = content.match(/```(?:[\w]*)?[\s\n]*([\s\S]*?)[\s\n]*```/) || null;
       
       // Additional check for typescript blocks specifically
       if (anyCodeBlockMatch && content.includes('```typescript')) {
@@ -202,9 +202,13 @@ export function extractStructuredData(content: string): StructuredReview | undef
       
       // Also log if we found code blocks but couldn't parse the content
       if (jsonBlockMatch) {
-        logger.debug(`Found JSON code block but content couldn't be parsed as JSON: ${jsonBlockMatch[1]?.substring(0, 100)}`);
+        if (jsonBlockMatch && jsonBlockMatch[1]) {
+          logger.debug(`Found JSON code block but content couldn't be parsed as JSON: ${jsonBlockMatch[1].substring(0, 100)}`);
+        }
       } else if (anyCodeBlockMatch) {
-        logger.debug(`Found non-JSON code block but content couldn't be parsed as JSON: ${anyCodeBlockMatch[1]?.substring(0, 100)}`);
+        if (anyCodeBlockMatch && anyCodeBlockMatch[1]) {
+          logger.debug(`Found non-JSON code block but content couldn't be parsed as JSON: ${anyCodeBlockMatch[1].substring(0, 100)}`);
+        }
       }
     }
     

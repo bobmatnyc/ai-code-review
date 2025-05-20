@@ -242,6 +242,11 @@ export async function generateArchitecturalAnthropicReview(
         
         // Make the initial API request with tools
         const apiModelName = await getApiModelName(modelName);
+        // Ensure API key is present
+        if (!apiKey) {
+          throw new Error('Anthropic API key is missing');
+        }
+        
         const data = await makeAnthropicRequest(
           apiKey,
           apiModelName,
@@ -302,6 +307,11 @@ export async function generateArchitecturalAnthropicReview(
           });
           
           // Make the final API request with tool results
+          // Ensure API key is present
+          if (!apiKey) {
+            throw new Error('Anthropic API key is missing');
+          }
+          
           const finalData = await makeAnthropicConversationRequest(
             apiKey,
             apiModelName,
