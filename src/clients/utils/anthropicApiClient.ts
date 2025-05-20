@@ -36,7 +36,7 @@ export async function fetchWithRetry(
   retries?: number
 ): Promise<Response> {
   // Use the configured max retries or fall back to default
-  const maxRetries = retries ?? configManager.getRateLimitConfig().maxRetries;
+  const maxRetries = retries !== undefined ? retries : configManager.getRateLimitConfig().maxRetries;
   for (let i = 0; i < maxRetries; i++) {
     try {
       // Only log detailed debug info if debug mode is enabled
@@ -60,7 +60,7 @@ export async function fetchWithRetry(
         // Convert headers to plain object safely without using iterator spread
         const headersObj: Record<string, string> = {};
         res.headers.forEach((value, key) => {
-          headersObj[key] = value;
+          if (key && value) headersObj[key] = value;
         });
         console.error(`Headers: ${JSON.stringify(headersObj, null, 2)}`);
         console.error(`==== END RESPONSE HEADERS ====\n`);
@@ -133,7 +133,7 @@ export async function fetchWithRetry(
  * @returns Promise resolving to a boolean indicating success
  */
 export async function testAnthropicApiAccess(
-  apiKey: string | undefined,
+  apiKey: string,
   modelName: string
 ): Promise<boolean> {
   try {
@@ -202,7 +202,7 @@ export async function testAnthropicApiAccess(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey || '',
+          'x-api-key': apiKey,
           'anthropic-version': configManager.getApiVersion('anthropic'),
           'anthropic-beta': 'messages-2023-12-15',
           'Accept': 'application/json'
@@ -269,7 +269,7 @@ export async function testAnthropicApiAccess(
  * @returns Promise resolving to the response data
  */
 export async function makeAnthropicRequest(
-  apiKey: string | undefined,
+  apiKey: string,
   modelName: string,
   systemPrompt: string,
   userPrompt: string,
@@ -309,7 +309,7 @@ export async function makeAnthropicRequest(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey || '',
+        'x-api-key': apiKey,
         'anthropic-version': configManager.getApiVersion('anthropic'),
         'anthropic-beta': 'messages-2023-12-15',
         'Accept': 'application/json'
@@ -335,7 +335,7 @@ export async function makeAnthropicRequest(
  * @throws Error if the API request fails or returns invalid data
  */
 export async function makeAnthropicConversationRequest(
-  apiKey: string | undefined,
+  apiKey: string,
   modelName: string,
   messages: Array<{ role: string; content: unknown }>,
   temperature: number = 0.2
