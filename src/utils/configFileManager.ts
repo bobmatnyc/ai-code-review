@@ -1,0 +1,308 @@
+/**
+ * @fileoverview Configuration file manager for JSON config files.
+ *
+ * This module provides functions for loading, parsing, and generating
+ * JSON configuration files for the AI code review tool.
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
+import logger from './logger';
+import { ReviewOptions } from '../types/review';
+
+/**
+ * Interface for the JSON configuration file structure
+ */
+export interface JsonConfig {
+  output?: {
+    format?: string;
+    dir?: string;
+  };
+  review?: {
+    type?: string;
+    interactive?: boolean;
+    include_tests?: boolean;
+    include_project_docs?: boolean;
+    include_dependency_analysis?: boolean;
+    consolidated?: boolean;
+    individual?: boolean;
+    trace_code?: boolean;
+    use_ts_prune?: boolean;
+    use_eslint?: boolean;
+    auto_fix?: boolean;
+    prompt_all?: boolean;
+    confirm?: boolean;
+  };
+  api?: {
+    model?: string;
+    keys?: {
+      google?: string | null;
+      openrouter?: string | null;
+      anthropic?: string | null;
+      openai?: string | null;
+    };
+    test_api?: boolean;
+  };
+  prompts?: {
+    prompt_file?: string;
+    prompt_fragment?: string;
+    prompt_fragment_position?: 'start' | 'middle' | 'end';
+    prompt_strategy?: string;
+    use_cache?: boolean;
+  };
+  system?: {
+    debug?: boolean;
+    log_level?: string;
+  };
+}
+
+/**
+ * Default configuration file path
+ */
+const DEFAULT_CONFIG_FILE = '.ai-code-review.json';
+
+/**
+ * Load a JSON configuration file
+ * @param configFilePath Path to the configuration file
+ * @returns The parsed configuration or null if the file doesn't exist
+ */
+export function loadConfigFile(configFilePath?: string): JsonConfig | null {
+  // Determine the configuration file path
+  const filePath = configFilePath || path.resolve(process.cwd(), DEFAULT_CONFIG_FILE);
+  
+  try {
+    // Check if the file exists
+    if (!fs.existsSync(filePath)) {
+      // File doesn't exist
+      if (configFilePath) {
+        // Only log an error if the path was explicitly specified
+        logger.error(`Configuration file not found: ${filePath}`);
+      } else {
+        // Just debug log if using the default path
+        logger.debug(`No configuration file found at ${filePath}`);
+      }
+      return null;
+    }
+    
+    // Read and parse the file
+    const content = fs.readFileSync(filePath, 'utf-8');
+    
+    try {
+      // Parse the JSON content
+      const config = JSON.parse(content) as JsonConfig;
+      logger.info(`Loaded configuration from ${filePath}`);
+      return config;
+    } catch (parseError) {
+      logger.error(`Error parsing configuration file: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      logger.error(`Please check the JSON syntax in ${filePath}`);
+      return null;
+    }
+  } catch (error) {
+    logger.error(`Error reading configuration file: ${error instanceof Error ? error.message : String(error)}`);
+    return null;
+  }
+}
+
+/**
+ * Apply JSON configuration to review options
+ * @param config The JSON configuration
+ * @param options The review options to modify
+ * @returns The modified review options
+ */
+export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions): ReviewOptions {
+  // Make a copy of the options to avoid modifying the original
+  const newOptions = { ...options };
+  
+  // Apply output configuration
+  if (config.output) {
+    if (config.output.format && !newOptions.output) {
+      newOptions.output = config.output.format as any;
+    }
+    if (config.output.dir && !newOptions.outputDir) {
+      newOptions.outputDir = config.output.dir;
+    }
+  }
+  
+  // Apply review configuration
+  if (config.review) {
+    if (config.review.type && !newOptions.type) {
+      newOptions.type = config.review.type as any;
+    }
+    if (config.review.interactive !== undefined && newOptions.interactive === undefined) {
+      newOptions.interactive = config.review.interactive;
+    }
+    if (config.review.include_tests !== undefined && newOptions.includeTests === undefined) {
+      newOptions.includeTests = config.review.include_tests;
+    }
+    if (config.review.include_project_docs !== undefined && newOptions.includeProjectDocs === undefined) {
+      newOptions.includeProjectDocs = config.review.include_project_docs;
+    }
+    if (config.review.include_dependency_analysis !== undefined && newOptions.includeDependencyAnalysis === undefined) {
+      newOptions.includeDependencyAnalysis = config.review.include_dependency_analysis;
+    }
+    if (config.review.consolidated !== undefined && newOptions.consolidated === undefined) {
+      newOptions.consolidated = config.review.consolidated;
+    }
+    if (config.review.individual !== undefined && newOptions.individual === undefined) {
+      newOptions.individual = config.review.individual;
+    }
+    if (config.review.trace_code !== undefined && newOptions.traceCode === undefined) {
+      newOptions.traceCode = config.review.trace_code;
+    }
+    if (config.review.use_ts_prune !== undefined && newOptions.useTsPrune === undefined) {
+      newOptions.useTsPrune = config.review.use_ts_prune;
+    }
+    if (config.review.use_eslint !== undefined && newOptions.useEslint === undefined) {
+      newOptions.useEslint = config.review.use_eslint;
+    }
+    if (config.review.auto_fix !== undefined && newOptions.autoFix === undefined) {
+      newOptions.autoFix = config.review.auto_fix;
+    }
+    if (config.review.prompt_all !== undefined && newOptions.promptAll === undefined) {
+      newOptions.promptAll = config.review.prompt_all;
+    }
+    if (config.review.confirm !== undefined && newOptions.noConfirm === undefined) {
+      // noConfirm is the inverse of confirm
+      newOptions.noConfirm = !config.review.confirm;
+    }
+  }
+  
+  // Apply API configuration
+  if (config.api) {
+    if (config.api.model && !newOptions.model) {
+      newOptions.model = config.api.model;
+    }
+    if (config.api.test_api !== undefined && newOptions.testApi === undefined) {
+      newOptions.testApi = config.api.test_api;
+    }
+    
+    // Handle API keys
+    if (config.api.keys) {
+      // If apiKey doesn't exist on newOptions, create it
+      if (!newOptions.apiKey) {
+        newOptions.apiKey = {};
+      }
+      
+      // Only set API keys if they are not already set and are non-null in the config
+      if (config.api.keys.google && !newOptions.apiKey.google) {
+        newOptions.apiKey.google = config.api.keys.google;
+      }
+      if (config.api.keys.openrouter && !newOptions.apiKey.openrouter) {
+        newOptions.apiKey.openrouter = config.api.keys.openrouter;
+      }
+      if (config.api.keys.anthropic && !newOptions.apiKey.anthropic) {
+        newOptions.apiKey.anthropic = config.api.keys.anthropic;
+      }
+      if (config.api.keys.openai && !newOptions.apiKey.openai) {
+        newOptions.apiKey.openai = config.api.keys.openai;
+      }
+    }
+  }
+  
+  // Apply prompts configuration
+  if (config.prompts) {
+    if (config.prompts.prompt_file && !newOptions.promptFile) {
+      newOptions.promptFile = config.prompts.prompt_file;
+    }
+    if (config.prompts.prompt_fragment && !newOptions.promptFragments) {
+      // Create a promptFragments array if it doesn't exist
+      newOptions.promptFragments = [{
+        content: config.prompts.prompt_fragment,
+        position: config.prompts.prompt_fragment_position || 'middle',
+        priority: 5
+      }];
+    }
+    if (config.prompts.prompt_strategy && !newOptions.promptStrategy) {
+      newOptions.promptStrategy = config.prompts.prompt_strategy;
+    }
+    if (config.prompts.use_cache !== undefined && newOptions.useCache === undefined) {
+      newOptions.useCache = config.prompts.use_cache;
+    }
+  }
+  
+  // Apply system configuration
+  if (config.system) {
+    if (config.system.debug !== undefined && newOptions.debug === undefined) {
+      newOptions.debug = config.system.debug;
+    }
+    if (config.system.log_level && !newOptions.logLevel) {
+      newOptions.logLevel = config.system.log_level;
+    }
+  }
+  
+  return newOptions;
+}
+
+/**
+ * Generate a sample configuration file
+ * @returns A JSON string containing the sample configuration
+ */
+export function generateSampleConfig(): string {
+  const sampleConfig: JsonConfig = {
+    output: {
+      format: 'markdown',
+      dir: './ai-code-review-docs'
+    },
+    review: {
+      type: 'quick-fixes',
+      interactive: false,
+      include_tests: false,
+      include_project_docs: true,
+      include_dependency_analysis: true,
+      individual: false,
+      trace_code: false,
+      use_ts_prune: false,
+      use_eslint: false,
+      auto_fix: false,
+      prompt_all: false,
+      confirm: true
+    },
+    api: {
+      model: 'gemini:gemini-1.5-pro',
+      keys: {
+        google: null,
+        openrouter: null,
+        anthropic: null,
+        openai: null
+      },
+      test_api: false
+    },
+    prompts: {
+      prompt_file: null,
+      prompt_fragment: null,
+      prompt_fragment_position: 'middle',
+      prompt_strategy: null,
+      use_cache: true
+    },
+    system: {
+      debug: false,
+      log_level: 'info'
+    }
+  };
+  
+  // Generate a commented version of the JSON
+  return JSON.stringify(sampleConfig, null, 2);
+}
+
+/**
+ * Save a sample configuration file
+ * @param outputPath Path to save the configuration file
+ * @returns True if the file was saved successfully, false otherwise
+ */
+export function saveSampleConfig(outputPath: string): boolean {
+  try {
+    const sampleConfig = generateSampleConfig();
+    fs.writeFileSync(outputPath, sampleConfig);
+    return true;
+  } catch (error) {
+    logger.error(`Error saving sample configuration: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+}
+
+export default {
+  loadConfigFile,
+  applyConfigToOptions,
+  generateSampleConfig,
+  saveSampleConfig
+};

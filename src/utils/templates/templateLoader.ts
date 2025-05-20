@@ -9,9 +9,30 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as Handlebars from 'handlebars';
 import logger from '../logger';
+import configManager from '../configManager';
 
-// Define the base path for templates
-const TEMPLATES_DIR = path.resolve(process.cwd(), 'promptText');
+// Get the templates directory from configuration or use a fallback
+const getTemplatesDir = (): string => {
+  try {
+    // Use the configured path from configManager
+    const configuredPath = configManager.getPathsConfig().promptsDir;
+    if (configuredPath && fs.existsSync(configuredPath)) {
+      logger.debug(`Using configured templates directory: ${configuredPath}`);
+      return configuredPath;
+    }
+    
+    // Fallback to default
+    const defaultPath = path.resolve(process.cwd(), 'promptText');
+    logger.debug(`Using default templates directory: ${defaultPath}`);
+    return defaultPath;
+  } catch (error) {
+    // If there's any error with the configuration, use default
+    logger.warn(`Error getting templates directory from config: ${error instanceof Error ? error.message : String(error)}`);
+    const fallbackPath = path.resolve(process.cwd(), 'promptText');
+    logger.debug(`Using fallback templates directory: ${fallbackPath}`);
+    return fallbackPath;
+  }
+};
 
 // Interface for framework version information
 interface FrameworkVersion {
@@ -66,7 +87,7 @@ function initializeHandlebars(): void {
   });
 
   // Register partials by scanning the common directory
-  const partialsDir = path.join(TEMPLATES_DIR, 'common');
+  const partialsDir = path.join(getTemplatesDir(), 'common');
   registerPartials(partialsDir, '');
 }
 
@@ -132,7 +153,7 @@ function loadTemplateVariables(): Record<string, unknown> {
   
   try {
     // Check if variables directory exists
-    const variablesDir = path.join(TEMPLATES_DIR, 'common', 'variables');
+    const variablesDir = path.join(getTemplatesDir(), 'common', 'variables');
     if (!fs.existsSync(variablesDir)) {
       logger.warn(`Variables directory not found: ${variablesDir}`);
       return variables;
@@ -240,7 +261,7 @@ function loadTemplate(templatePath: string): HandlebarsTemplateDelegate | null {
     return templateCache[templatePath];
   }
   
-  const fullPath = path.join(TEMPLATES_DIR, templatePath);
+  const fullPath = path.join(getTemplatesDir(), templatePath);
   
   // Check if template exists
   if (!fs.existsSync(fullPath)) {
@@ -357,7 +378,7 @@ export function listAvailableTemplates(): Record<string, string[]> {
   
   try {
     // Scan frameworks directory
-    const frameworksDir = path.join(TEMPLATES_DIR, 'frameworks');
+    const frameworksDir = path.join(getTemplatesDir(), 'frameworks');
     if (fs.existsSync(frameworksDir)) {
       try {
         const entries = fs.readdirSync(frameworksDir, { withFileTypes: true });
@@ -376,7 +397,7 @@ export function listAvailableTemplates(): Record<string, string[]> {
     }
     
     // Scan languages directory
-    const languagesDir = path.join(TEMPLATES_DIR, 'languages');
+    const languagesDir = path.join(getTemplatesDir(), 'languages');
     if (fs.existsSync(languagesDir)) {
       try {
         const entries = fs.readdirSync(languagesDir, { withFileTypes: true });
@@ -448,10 +469,29 @@ export function listAvailableTemplates(): Record<string, string[]> {
 }
 
 /**
+ * Clear the template cache to force reloading of templates
+ * This is useful when the configuration changes
+ */
+export function clearTemplateCache(): void {
+  // Reset cache and Handlebars registrations
+  for (const key in templateCache) {
+    delete templateCache[key];
+  }
+  
+  // Clear registered partials
+  for (const key in Handlebars.partials) {
+    Handlebars.unregisterPartial(key);
+  }
+  
+  logger.debug('Template cache cleared');
+}
+
+/**
  * Export loadPromptTemplate as default
  */
 export default {
   renderTemplate,
   loadPromptTemplate,
-  listAvailableTemplates
+  listAvailableTemplates,
+  clearTemplateCache
 };

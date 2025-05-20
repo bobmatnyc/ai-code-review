@@ -20,6 +20,7 @@ import {
 import { SUPPORTED_LANGUAGES } from '../utils/i18n';
 // import { LogLevel } from '../utils/logger'; // Not used in this file
 import { detectProjectType } from '../utils/detection';
+import configFileManager from '../utils/configFileManager';
 
 // Extended review options including CLI-specific options
 export interface CliOptions extends ReviewOptions {
@@ -29,6 +30,8 @@ export interface CliOptions extends ReviewOptions {
   model?: string;
   outputDir?: string;
   logLevel?: string;
+  config?: string;
+  generateConfig?: boolean;
   apiKey?: {
     google?: string;
     openrouter?: string;
@@ -252,6 +255,15 @@ export async function parseArguments(): Promise<CliOptions> {
         default: false,
         describe: 'Show the tool installation directory and environment file locations'
       })
+      .option('config', {
+        type: 'string',
+        describe: 'Path to a JSON configuration file'
+      })
+      .option('generate-config', {
+        type: 'boolean',
+        default: false,
+        describe: 'Generate a sample configuration file to stdout'
+      })
       .strict() // Report errors for unknown options
       .help()
       .parseAsync();
@@ -275,6 +287,7 @@ export async function parseArguments(): Promise<CliOptions> {
     // Process other config overrides
     if (argv['output-dir']) argv.outputDir = argv['output-dir'] as string;
     if (argv['log-level']) argv.logLevel = argv['log-level'] as string;
+    if (argv['generate-config']) argv.generateConfig = argv['generate-config'] as boolean;
 
     // Auto-detect language if not specified
     if (!argv.language) {
@@ -409,6 +422,34 @@ export function validateArguments(options: CliOptions): CliOptions {
  * @returns The validated command-line arguments
  */
 export async function getCommandLineArguments(): Promise<CliOptions> {
+  // Parse arguments from command line
   const parsedArgs = await parseArguments();
-  return validateArguments(parsedArgs);
+  
+  // Handle generate-config flag
+  if (parsedArgs.generateConfig || parsedArgs['generate-config']) {
+    // Print sample config to stdout and exit
+    console.log(configFileManager.generateSampleConfig());
+    process.exit(0);
+  }
+  
+  // Load config file if specified
+  const configFilePath = parsedArgs.config;
+  const configData = configFileManager.loadConfigFile(configFilePath);
+  
+  // Apply config file values to options (CLI args take precedence)
+  let finalOptions = parsedArgs;
+  if (configData) {
+    // Apply config file values, but CLI args still take precedence
+    finalOptions = configFileManager.applyConfigToOptions(configData, parsedArgs);
+    
+    // Map any snake_case config values to camelCase
+    if (configFilePath) {
+      logger.info(`Applied configuration from ${configFilePath}`);
+    } else {
+      logger.info('Applied configuration from default .ai-code-review.json file');
+    }
+  }
+  
+  // Validate arguments
+  return validateArguments(finalOptions);
 }

@@ -12,6 +12,7 @@ import { AIJsonResponse } from '../../types/apiResponses';
 import { ApiError } from '../../utils/apiErrorHandler';
 import logger from '../../utils/logger';
 import { getCostInfoFromText } from '../utils/tokenCounter';
+import configManager from '../../utils/configManager';
 
 /**
  * Process API response content and extract structured data if possible
@@ -193,7 +194,7 @@ export function extractStructuredData(content: string): StructuredReview | undef
     }
     
     // In debug mode, log additional details to help diagnose the issue
-    if (process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase() === 'debug') {
+    if (configManager.getApplicationConfig().logLevel.value === 'debug') {
       const snippet = content.length > 200 ? 
         content.substring(0, 100) + '...' + content.substring(content.length - 100) : 
         content;
