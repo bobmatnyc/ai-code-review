@@ -212,7 +212,7 @@ export interface ReviewOptions {
    * Example demos for few-shot learning
    * @internal
    */
-  examples?: any[];
+  examples?: Record<string, unknown>[];
   
   /**
    * Whether to use multi-pass review for large files

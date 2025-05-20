@@ -109,7 +109,11 @@ export async function generateAnthropicReview(
       // Get the API model name
       const apiModelName = await getApiModelName(modelName);
       
-      // Make the API request
+      // Make the API request (null check handled by validateApiKey)
+      if (!apiKey) {
+        throw new Error('Anthropic API key is missing');
+      }
+      
       const data = await makeAnthropicRequest(
         apiKey,
         apiModelName,
@@ -233,6 +237,12 @@ export async function generateAnthropicConsolidatedReview(
 
       // Make the API request
       const apiModelName = await getApiModelName(modelName);
+      
+      // Ensure API key is present
+      if (!apiKey) {
+        throw new Error('Anthropic API key is missing');
+      }
+      
       const data = await makeAnthropicRequest(
         apiKey,
         apiModelName,

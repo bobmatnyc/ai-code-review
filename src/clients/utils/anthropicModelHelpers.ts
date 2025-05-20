@@ -282,6 +282,12 @@ export async function initializeAnthropicClient(): Promise<boolean> {
 
   try {
     // Test API access with the specified model
+    // Ensure apiKey is defined
+    if (!apiKey) {
+      logger.error('Anthropic API key is missing');
+      return false;
+    }
+    
     const success = await testAnthropicApiAccess(apiKey, modelName);
     
     if (success) {
