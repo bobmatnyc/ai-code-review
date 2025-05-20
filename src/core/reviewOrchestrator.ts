@@ -5,6 +5,26 @@
  * selecting the appropriate API client, and managing the review workflow.
  */
 
+import path from 'path';
+import { createDirectory } from '../utils/fileSystem';
+import { ReviewOptions } from '../types/review';
+import { FileInfo, discoverFiles, readFilesContent } from './fileDiscovery';
+import logger from '../utils/logger';
+import { getApiKeyType } from '../utils/apiUtils';
+import { runApiConnectionTests } from '../__tests__/apiConnection.test';
+import { getConfig } from '../utils/config';
+import { ProgrammingLanguage } from '../types/common';
+import {
+  estimateFromFilePaths,
+  formatEstimation
+} from '../utils/estimationUtils';
+import { parseModelString } from '../clients/utils/modelMaps';
+import {
+  listModels,
+  printCurrentModel,
+  listModelConfigs
+} from '../clients/utils/modelLister';
+
 /**
  * Helper function to parse and display provider and model information
  * 
@@ -39,26 +59,6 @@ function getProviderDisplayInfo(modelName: string): { provider: string; model: s
   }
 }
 
-import path from 'path';
-import { createDirectory } from '../utils/fileSystem';
-import { ReviewOptions } from '../types/review';
-import { FileInfo, discoverFiles, readFilesContent } from './fileDiscovery';
-import logger from '../utils/logger';
-import { getApiKeyType } from '../utils/apiUtils';
-import { runApiConnectionTests } from '../__tests__/apiConnection.test';
-import { getConfig } from '../utils/config';
-import { ProgrammingLanguage } from '../types/common';
-import {
-  estimateFromFilePaths,
-  formatEstimation
-} from '../utils/estimationUtils';
-import { parseModelString } from '../clients/utils/modelMaps';
-import {
-  listModels,
-  printCurrentModel,
-  listModelConfigs
-} from '../clients/utils/modelLister';
-
 // Import strategy-related modules
 import { StrategyFactory } from '../strategies/StrategyFactory';
 import { selectApiClient } from './ApiClientSelector';
@@ -89,6 +89,16 @@ export async function orchestrateReview(
   // Initialize configuration 
   getConfig();
   try {
+    // Validate input parameters
+    if (options === undefined) {
+      throw new Error('Review options object must be provided');
+    }
+    
+    // Validate that options contains a review type
+    if (!options.type) {
+      throw new Error('Review type must be specified in options');
+    }
+    
     // Ensure target is defined with a default of "." for current directory
     const effectiveTarget = target || '.';
     
@@ -201,14 +211,54 @@ export async function orchestrateReview(
     }
 
     // Discover files to review
-    const filesToReview = await discoverFiles(
-      effectiveTarget,
-      projectPath,
-      options.includeTests
-    );
-
-    if (filesToReview.length === 0) {
-      return; // No files to review, exit early
+    let filesToReview: string[];
+    try {
+      filesToReview = await discoverFiles(
+        effectiveTarget,
+        projectPath,
+        options.includeTests
+      );
+      
+      // Log the number of files discovered
+      logger.info(`Discovered ${filesToReview.length} files to review`);
+      
+      if (filesToReview.length === 0) {
+        logger.warn(`No files found for review in ${effectiveTarget}`);
+        logger.info('This could be due to:');
+        logger.info('1. The path does not exist or is not accessible');
+        logger.info('2. All files are excluded by .gitignore patterns');
+        logger.info('3. There are no supported file types in the specified path');
+        
+        if (!options.includeTests) {
+          logger.info('4. Test files are excluded by default. Use --include-tests to include them');
+        }
+        
+        return; // No files to review, exit early
+      }
+      
+      // In debug mode, list the first few files discovered
+      if (options.debug && filesToReview.length > 0) {
+        const maxFilesToLog = 10;
+        logger.debug(`First ${Math.min(filesToReview.length, maxFilesToLog)} files to review:`);
+        for (let i = 0; i < Math.min(filesToReview.length, maxFilesToLog); i++) {
+          logger.debug(`  - ${filesToReview[i]}`);
+        }
+        
+        if (filesToReview.length > maxFilesToLog) {
+          logger.debug(`  ... and ${filesToReview.length - maxFilesToLog} more files`);
+        }
+      }
+    } catch (error) {
+      // Handle file discovery errors
+      logger.error(`Failed to discover files for review: ${
+        error instanceof Error ? error.message : String(error)
+      }`);
+      
+      if (error instanceof Error && error.stack) {
+        logger.debug(`Error stack trace: ${error.stack}`);
+      }
+      
+      throw new Error(`Could not discover files to review in ${effectiveTarget}. Please verify the path exists and is accessible.`);
     }
 
     // If estimate flag is set, calculate and display token usage and cost estimates
@@ -350,19 +400,122 @@ Note: This is an estimate based on approximate token counts and may vary
     const actualProjectName = projectName || 'unknown-project';
 
     // Read file contents
-    const { fileInfos, errors } = await readFilesContent(filesToReview, projectPath);
+    let fileInfos: FileInfo[] = [];
+    let errors: Array<{ path: string; error: string }> = [];
     
-    // If we have errors reading files, report them but continue
-    if (errors.length > 0) {
-      logger.warn(`Failed to read ${errors.length} file(s):`);
-      for (const error of errors) {
-        logger.warn(`  ${error.path}: ${error.error}`);
+    try {
+      logger.info('Reading file contents...');
+      const result = await readFilesContent(filesToReview, projectPath);
+      fileInfos = result.fileInfos;
+      errors = result.errors;
+      
+      // Log statistics about the read operation
+      logger.info(`Successfully read ${fileInfos.length} out of ${filesToReview.length} files`);
+      
+      // If we have errors reading files, report them but continue
+      if (errors.length > 0) {
+        logger.warn(`Failed to read ${errors.length} file(s):`);
+        
+        // Log the first 10 errors
+        const maxErrorsToLog = 10;
+        errors.slice(0, maxErrorsToLog).forEach(error => {
+          logger.warn(`  ${error.path}: ${error.error}`);
+        });
+        
+        // If there are more errors, just mention the count
+        if (errors.length > maxErrorsToLog) {
+          logger.warn(`  ... and ${errors.length - maxErrorsToLog} more errors`);
+        }
+        
+        // In debug mode, log all errors
+        if (options.debug) {
+          logger.debug('All file read errors:');
+          errors.forEach(error => {
+            logger.debug(`  ${error.path}: ${error.error}`);
+          });
+        }
       }
-    }
-    
-    // Ensure we have at least some files to review
-    if (fileInfos.length === 0) {
-      throw new Error('No files could be read for review. Please check file permissions and paths.');
+      
+      // Ensure we have at least some files to review
+      if (fileInfos.length === 0) {
+        const errorMessage = 'No files could be read for review.';
+        logger.error(errorMessage);
+        
+        // Provide more detailed guidance based on the errors
+        if (errors.length > 0) {
+          logger.error('Errors encountered while reading files:');
+          const commonErrorPatterns = {
+            permission: ['permission denied', 'EACCES'],
+            notFound: ['no such file', 'ENOENT'],
+            encoding: ['encoding', 'invalid byte', 'character'],
+            size: ['too large', 'exceeds', 'size limit']
+          };
+          
+          // Categorize errors to provide better guidance
+          const categorizedErrors = {
+            permission: 0,
+            notFound: 0,
+            encoding: 0,
+            size: 0,
+            other: 0
+          };
+          
+          errors.forEach(error => {
+            const errorLowerCase = error.error.toLowerCase();
+            let categorized = false;
+            
+            for (const [category, patterns] of Object.entries(commonErrorPatterns)) {
+              if (patterns.some(pattern => errorLowerCase.includes(pattern.toLowerCase()))) {
+                categorizedErrors[category as keyof typeof categorizedErrors]++;
+                categorized = true;
+                break;
+              }
+            }
+            
+            if (!categorized) {
+              categorizedErrors.other++;
+            }
+          });
+          
+          // Provide guidance based on error categories
+          if (categorizedErrors.permission > 0) {
+            logger.error(`  - ${categorizedErrors.permission} file(s) could not be read due to permission issues. Check file permissions.`);
+          }
+          if (categorizedErrors.notFound > 0) {
+            logger.error(`  - ${categorizedErrors.notFound} file(s) were not found. The file list may be out of date.`);
+          }
+          if (categorizedErrors.encoding > 0) {
+            logger.error(`  - ${categorizedErrors.encoding} file(s) had encoding issues. These might be binary files not suitable for review.`);
+          }
+          if (categorizedErrors.size > 0) {
+            logger.error(`  - ${categorizedErrors.size} file(s) were too large to process.`);
+          }
+          if (categorizedErrors.other > 0) {
+            logger.error(`  - ${categorizedErrors.other} file(s) failed due to other issues.`);
+          }
+        }
+        
+        throw new Error(`${errorMessage} Please check file permissions and paths.`);
+      }
+    } catch (error) {
+      // Handle file reading errors not caught by readFilesContent
+      if (error instanceof Error && error.message.includes('No files could be read')) {
+        // This is an error we created above, so just rethrow it
+        throw error;
+      } else {
+        // This is an unexpected error
+        logger.error(`Unexpected error when reading file contents: ${
+          error instanceof Error ? error.message : String(error)
+        }`);
+        
+        if (error instanceof Error && error.stack) {
+          logger.debug(`Error stack trace: ${error.stack}`);
+        }
+        
+        throw new Error(`Failed to read files for review: ${
+          error instanceof Error ? error.message : String(error)
+        }`);
+      }
     }
 
     // Read project documentation if enabled
@@ -474,41 +627,239 @@ Estimated Cost: ${costEstimation.formattedCost}
 
     // Create and execute the appropriate strategy based on review options
     logger.info(`Creating ${options.multiPass ? 'multi-pass ' : ''}${options.type} review strategy...`);
-    const strategy = StrategyFactory.createStrategy(options);
+    
+    let strategy;
+    try {
+      strategy = StrategyFactory.createStrategy(options);
+      
+      if (!strategy) {
+        throw new Error(`Failed to create strategy for review type: ${options.type}`);
+      }
+      
+      logger.info(`Created strategy: ${strategy.constructor.name}`);
+    } catch (error) {
+      // Handle strategy creation errors
+      logger.error(`Failed to create review strategy: ${
+        error instanceof Error ? error.message : String(error)
+      }`);
+      
+      // Provide troubleshooting guidance
+      logger.error('This might be due to:');
+      logger.error('1. An invalid review type or option combination');
+      logger.error('2. Missing configuration for the requested strategy');
+      logger.error('3. A plugin that failed to load correctly');
+      
+      throw new Error(`Could not create review strategy. Please check your review options and configuration.`);
+    }
 
     // Execute the strategy
     logger.info(`Executing review strategy...`);
-    const review = await strategy.execute(
-      fileInfos,
-      actualProjectName,
-      projectDocs,
-      options,
-      apiClientConfig
-    );
+    let review;
+    try {
+      // Log any extra strategy-specific parameters
+      if (options.multiPass) {
+        logger.info(`Using multi-pass mode with context maintenance factor: ${options.contextMaintenanceFactor || 0.15}`);
+      }
+      
+      // Start timing the execution
+      const startTime = Date.now();
+      
+      review = await strategy.execute(
+        fileInfos,
+        actualProjectName,
+        projectDocs,
+        options,
+        apiClientConfig
+      );
+      
+      // Log execution timing
+      const executionTime = (Date.now() - startTime) / 1000;
+      logger.info(`Strategy execution completed in ${executionTime.toFixed(2)} seconds`);
+      
+      // Validate the review result
+      if (!review || !review.content) {
+        throw new Error('Strategy execution returned an empty or invalid review result');
+      }
+    } catch (error) {
+      // Handle strategy execution errors
+      logger.error(`Failed to execute review strategy: ${
+        error instanceof Error ? error.message : String(error)
+      }`);
+      
+      if (error instanceof Error && error.stack) {
+        logger.debug(`Error stack trace: ${error.stack}`);
+      }
+      
+      // Check if this is an API-related error and provide better guidance
+      const errorString = String(error);
+      if (errorString.includes('API') || errorString.includes('authentication') || 
+          errorString.includes('key') || errorString.includes('token')) {
+        logger.error('This appears to be an API or authentication error. Please check:');
+        logger.error('1. Your API keys are correctly set in the environment variables');
+        logger.error('2. You have sufficient quota and permissions with the API provider');
+        logger.error('3. The selected model is available and correctly configured');
+        logger.error(`Run with --test-api flag to test API connections`);
+      }
+      
+      throw new Error(`Failed to execute review strategy: ${
+        error instanceof Error ? error.message : String(error)
+      }`);
+    }
 
     // Get the target name (last part of the path)
     const targetName = path.basename(effectiveTarget);
-
+    
     // Save the review output with file tree
-    const outputPath = await saveReviewOutput(
-      review,
-      options,
-      outputBaseDir,
-      apiClientConfig.modelName,
-      targetName,
-      fileInfos
-    );
-
+    let outputPath: string;
+    try {
+      logger.info('Saving review output...');
+      outputPath = await saveReviewOutput(
+        review,
+        options,
+        outputBaseDir,
+        apiClientConfig.modelName,
+        targetName,
+        fileInfos
+      );
+      
+      logger.info(`Review output saved to: ${outputPath}`);
+    } catch (error) {
+      // Handle output saving errors
+      logger.error(`Failed to save review output: ${
+        error instanceof Error ? error.message : String(error)
+      }`);
+      
+      if (error instanceof Error && error.stack) {
+        logger.debug(`Error stack trace: ${error.stack}`);
+      }
+      
+      throw new Error('Failed to save review output. Please check directory permissions and available disk space.');
+    }
+    
     // If interactive mode is enabled, display the review results
     if (options.interactive) {
-      await displayReviewInteractively(outputPath, projectPath, options);
+      try {
+        logger.info('Displaying review results interactively...');
+        await displayReviewInteractively(outputPath, projectPath, options);
+        logger.info('Interactive review session completed');
+      } catch (error) {
+        // Handle interactive display errors
+        logger.error(`Failed to display review interactively: ${
+          error instanceof Error ? error.message : String(error)
+        }`);
+        
+        if (error instanceof Error && error.stack) {
+          logger.debug(`Error stack trace: ${error.stack}`);
+        }
+        
+        // Don't throw an error here, as the review has been completed and saved
+        logger.info(`Review output is available at: ${outputPath}`);
+      }
     }
-
-    logger.info('Review completed!');
+    
+    // Calculate and log review summary statistics
+    try {
+      // Calculate some basic stats about the review
+      const reviewSizeKB = Math.round(review.content.length / 1024);
+      const filesReviewed = fileInfos.length;
+      const totalSizeKB = Math.round(
+        fileInfos.reduce((sum, file) => sum + file.content.length, 0) / 1024
+      );
+      
+      // Log summary information
+      logger.info('Review Summary:');
+      logger.info(`- Files reviewed: ${filesReviewed}`);
+      logger.info(`- Total size of reviewed files: ${totalSizeKB} KB`);
+      logger.info(`- Review content size: ${reviewSizeKB} KB`);
+      logger.info(`- Review type: ${options.type}${options.multiPass ? ' (multi-pass)' : ''}`);
+      
+      if (review.costInfo || review.cost) {
+        const costInfo = review.costInfo || review.cost;
+        if (costInfo) {
+          const { inputTokens, outputTokens, totalTokens, estimatedCost } = costInfo;
+          logger.info(`- Tokens: ${totalTokens?.toLocaleString() || 'N/A'} (${inputTokens?.toLocaleString() || 'N/A'} in, ${outputTokens?.toLocaleString() || 'N/A'} out)`);
+          logger.info(`- Estimated cost: $${estimatedCost?.toFixed(6) || 'N/A'}`);
+        }
+      }
+      
+      logger.info(`- Output saved to: ${outputPath}`);
+    } catch (error) {
+      // Just log any errors with summary statistics, don't fail the whole process
+      logger.debug(`Error generating summary statistics: ${
+        error instanceof Error ? error.message : String(error)
+      }`);
+    }
+    
+    logger.info('Review completed successfully!');
   } catch (error) {
-    logger.error(
-      `An unexpected error occurred during the review process: ${error instanceof Error ? error.message : String(error)}`
-    );
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`An error occurred during the review process: ${errorMessage}`);
+    
+    // Log the error stack trace in debug mode
+    if (error instanceof Error && error.stack && options?.debug) {
+      logger.debug(`Error stack trace: ${error.stack}`);
+    }
+    
+    // Check if this is related to an API key issue
+    if (errorMessage.includes('API key') || 
+        errorMessage.includes('authentication') || 
+        errorMessage.includes('credentials')) {
+      logger.error('This appears to be an API key or authentication issue.');
+      logger.error('Please check:');
+      logger.error('1. You have set the appropriate API keys in your environment variables');
+      logger.error('2. The API keys are correctly formatted and valid');
+      logger.error('3. Your API key has sufficient permissions and quota');
+      logger.error('');
+      logger.error('Required environment variables depend on your chosen model:');
+      logger.error('- For Google Gemini: AI_CODE_REVIEW_GOOGLE_API_KEY');
+      logger.error('- For Anthropic Claude: AI_CODE_REVIEW_ANTHROPIC_API_KEY');
+      logger.error('- For OpenAI: AI_CODE_REVIEW_OPENAI_API_KEY');
+      logger.error('- For OpenRouter: AI_CODE_REVIEW_OPENROUTER_API_KEY');
+      logger.error('');
+      logger.error('You can run with the --test-api flag to diagnose API connection issues.');
+    }
+    // Check if this is a file or directory not found issue
+    else if (errorMessage.includes('no such file') || 
+             errorMessage.includes('ENOENT') || 
+             errorMessage.includes('not found') ||
+             errorMessage.includes('does not exist')) {
+      logger.error('This appears to be a file or directory not found issue.');
+      logger.error('Please check:');
+      logger.error('1. The target path exists and is accessible');
+      logger.error('2. You are running the command from the correct directory');
+      logger.error('3. File permissions allow reading the targeted files');
+    }
+    // Check if this is a model-related issue
+    else if (errorMessage.includes('model') && 
+            (errorMessage.includes('not found') || 
+             errorMessage.includes('unavailable') || 
+             errorMessage.includes('invalid'))) {
+      logger.error('This appears to be an issue with the AI model configuration.');
+      logger.error('Please check:');
+      logger.error('1. The model specified in AI_CODE_REVIEW_MODEL is valid');
+      logger.error('2. You have the correct API key for the model provider');
+      logger.error('3. The model is available and not deprecated');
+      logger.error('');
+      logger.error('You can use --listmodels to see available models based on your API keys.');
+    }
+    // Check if this is a file reading or processing issue
+    else if (errorMessage.includes('read') || 
+             errorMessage.includes('file') || 
+             errorMessage.includes('permission') || 
+             errorMessage.includes('access')) {
+      logger.error('This appears to be a file access or processing issue.');
+      logger.error('Please check:');
+      logger.error('1. You have read permissions for all files in the target path');
+      logger.error('2. None of the files are locked by other processes');
+      logger.error('3. The files are valid and not corrupted');
+    }
+    
+    // General advice for all errors
+    logger.error('');
+    logger.error('For more detailed information, run with the --debug flag.');
+    logger.error('If the issue persists, please report it with the error details above.');
+    
+    // Exit with error code
     process.exit(1);
   }
 }

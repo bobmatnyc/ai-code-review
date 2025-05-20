@@ -7,19 +7,14 @@
  * the Anthropic API without dealing with the HTTP details.
  */
 
-import logger /* , { LogLevel } */ from '../../utils/logger'; // LogLevel not used
+import logger from '../../utils/logger';
 import {
   handleFetchResponse,
   safeJsonParse
-  // ApiError // Not used in this file
 } from '../../utils/apiErrorHandler';
+import configManager from '../../utils/configManager';
 
 // The logger will be properly initialized at the application level
-
-/**
- * Maximum tokens to request from the API for a single response
- */
-export const MAX_TOKENS_PER_REQUEST = 4000;
 
 /**
  * Interface for responses from the Anthropic API
@@ -38,49 +33,60 @@ export interface AnthropicResponse {
 export async function fetchWithRetry(
   url: string,
   options: RequestInit,
-  retries = 3
+  retries?: number
 ): Promise<Response> {
-  for (let i = 0; i < retries; i++) {
+  // Use the configured max retries or fall back to default
+  const maxRetries = retries ?? configManager.getRateLimitConfig().maxRetries;
+  for (let i = 0; i < maxRetries; i++) {
     try {
-      console.error(`\n\n==== ANTHROPIC API REQUEST ====`);
-      console.error(`Attempt: ${i + 1}/${retries}`);
-      console.error(`URL: ${url}`);
-      console.error(`Method: ${options.method}`);
-      console.error(`Headers: ${JSON.stringify(options.headers, null, 2)}`);
-      console.error(`Body (first 500 chars): ${String(options.body).substring(0, 500)}...`);
-      console.error(`==== END REQUEST ====\n`);
+      // Only log detailed debug info if debug mode is enabled
+      if (configManager.getApplicationConfig().debug.value) {
+        console.error(`\n\n==== ANTHROPIC API REQUEST ====`);
+        console.error(`Attempt: ${i + 1}/${maxRetries}`);
+        console.error(`URL: ${url}`);
+        console.error(`Method: ${options.method}`);
+        console.error(`Headers: ${JSON.stringify(options.headers, null, 2)}`);
+        console.error(`Body (first 500 chars): ${String(options.body).substring(0, 500)}...`);
+        console.error(`==== END REQUEST ====\n`);
+      }
       
       const res = await fetch(url, options);
       
-      console.error(`\n\n==== ANTHROPIC API RESPONSE ====`);
-      console.error(`Status: ${res.status}`);
-      console.error(`Status Text: ${res.statusText}`);
-      console.error(`Headers: ${JSON.stringify(Object.fromEntries([...res.headers.entries()]), null, 2)}`);
-      console.error(`==== END RESPONSE HEADERS ====\n`);
+      // Only log detailed debug info if debug mode is enabled
+      if (configManager.getApplicationConfig().debug.value) {
+        console.error(`\n\n==== ANTHROPIC API RESPONSE ====`);
+        console.error(`Status: ${res.status}`);
+        console.error(`Status Text: ${res.statusText}`);
+        console.error(`Headers: ${JSON.stringify(Object.fromEntries([...res.headers.entries()]), null, 2)}`);
+        console.error(`==== END RESPONSE HEADERS ====\n`);
+      }
 
       if (res.ok) return res;
 
       // Try to get more detailed error information
       try {
         const errorText = await res.text();
-        console.error(`\n\n==== ANTHROPIC API ERROR DETAILS ====`);
-        console.error(`Error response body: ${errorText}`);
-        
-        // Attempt to parse and log structured error information
-        try {
-          const errorJson = JSON.parse(errorText);
-          console.error(`Error type: ${errorJson.type || 'unknown'}`);
-          console.error(`Error message: ${errorJson.message || 'unknown'}`);
-          if (errorJson.error) {
-            console.error(`Detailed error: ${JSON.stringify(errorJson.error, null, 2)}`);
+        // Only log detailed error info if debug mode is enabled
+        if (configManager.getApplicationConfig().debug.value) {
+          console.error(`\n\n==== ANTHROPIC API ERROR DETAILS ====`);
+          console.error(`Error response body: ${errorText}`);
+          
+          // Attempt to parse and log structured error information
+          try {
+            const errorJson = JSON.parse(errorText);
+            console.error(`Error type: ${errorJson.type || 'unknown'}`);
+            console.error(`Error message: ${errorJson.message || 'unknown'}`);
+            if (errorJson.error) {
+              console.error(`Detailed error: ${JSON.stringify(errorJson.error, null, 2)}`);
+            }
+          } catch (jsonError) {
+            console.error(`Error response is not valid JSON: ${
+              jsonError instanceof Error ? jsonError.message : String(jsonError)
+            }`);
           }
-        } catch (jsonError) {
-          console.error(`Error response is not valid JSON: ${
-            jsonError instanceof Error ? jsonError.message : String(jsonError)
-          }`);
+          
+          console.error(`==== END ERROR DETAILS ====\n\n`);
         }
-        
-        console.error(`==== END ERROR DETAILS ====\n\n`);
         
         // Clone the response with the error text since we've consumed the stream
         return new Response(errorText, { 
@@ -93,8 +99,10 @@ export async function fetchWithRetry(
       }
 
       if (res.status === 429 || res.status >= 500) {
-        logger.debug(`Retrying after ${1000 * (i + 1)}ms delay...`);
-        await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+        // Use configured retry delay with exponential backoff
+        const retryDelay = configManager.getRateLimitConfig().retryDelayMs * (i + 1);
+        logger.debug(`Retrying after ${retryDelay}ms delay...`);
+        await new Promise(r => setTimeout(r, retryDelay));
       } else {
         logger.debug(`Non-retryable error status: ${res.status}`);
         throw new Error(
@@ -103,9 +111,11 @@ export async function fetchWithRetry(
       }
     } catch (error) {
       logger.debug(`Fetch error: ${error}`);
-      if (i === retries - 1) throw error;
-      logger.debug(`Retrying after ${1000 * (i + 1)}ms delay...`);
-      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+      if (i === (maxRetries - 1)) throw error;
+      // Use configured retry delay with exponential backoff
+      const retryDelay = configManager.getRateLimitConfig().retryDelayMs * (i + 1);
+      logger.debug(`Retrying after ${retryDelay}ms delay...`);
+      await new Promise(r => setTimeout(r, retryDelay));
     }
   }
   throw new Error('Anthropic API request failed after all retry attempts');
@@ -122,12 +132,14 @@ export async function testAnthropicApiAccess(
   modelName: string
 ): Promise<boolean> {
   try {
-    // DIRECT CONSOLE OUTPUT - bypassing logger completely
-    console.error("\n\n==== ANTHROPIC API DEBUG ====");
-    console.error(`Testing model: ${modelName}`);
-    console.error(`API URL: https://api.anthropic.com/v1/messages`);
-    console.error(`API Version: 2023-06-01`);
-    console.error(`============================\n`);
+    // Only log detailed debug info if debug mode is enabled
+    if (configManager.getApplicationConfig().debug.value) {
+      console.error("\n\n==== ANTHROPIC API DEBUG ====");
+      console.error(`Testing model: ${modelName}`);
+      console.error(`API URL: ${configManager.getApiEndpoint('anthropic')}`);
+      console.error(`API Version: ${configManager.getApiVersion('anthropic')}`);
+      console.error(`============================\n`);
+    }
     
     // Regular logging
     logger.info(`Initializing Anthropic model: ${modelName}...`);
@@ -161,17 +173,20 @@ export async function testAnthropicApiAccess(
     logger.debug(`Request body: ${JSON.stringify(requestBody, null, 2)}`);
 
     // Direct console logging to help debug issues
-    console.log(`\n\n==== ANTHROPIC API REQUEST ====`);
-    console.log(`URL: https://api.anthropic.com/v1/messages`);
-    console.log(`API Version: 2023-06-01`);
-    console.log(`API Beta: messages-2023-12-15`);
-    console.log(`Converted model: ${modelName} → ${apiModelName}`);
-    console.log(`API Key exists: ${apiKey ? 'YES' : 'NO'}`);
-    console.log(`API Key first 5 chars: ${apiKey?.substring(0, 5)}...`);
-    console.log(`============================\n`);
+    // Only log detailed debug info if debug mode is enabled
+    if (configManager.getApplicationConfig().debug.value) {
+      console.log(`\n\n==== ANTHROPIC API REQUEST ====`);
+      console.log(`URL: ${configManager.getApiEndpoint('anthropic')}`);
+      console.log(`API Version: ${configManager.getApiVersion('anthropic')}`);
+      console.log(`API Beta: messages-2023-12-15`);
+      console.log(`Converted model: ${modelName} → ${apiModelName}`);
+      console.log(`API Key exists: ${apiKey ? 'YES' : 'NO'}`);
+      console.log(`API Key first 5 chars: ${apiKey?.substring(0, 5)}...`);
+      console.log(`============================\n`);
+    }
     
-    // Use the standard API endpoint
-    const apiEndpoint = 'https://api.anthropic.com/v1/messages';
+    // Use the configured API endpoint
+    const apiEndpoint = configManager.getApiEndpoint('anthropic');
     
     const response = await fetchWithRetry(
       apiEndpoint,
@@ -180,7 +195,7 @@ export async function testAnthropicApiAccess(
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey || '',
-          'anthropic-version': '2023-06-01',
+          'anthropic-version': configManager.getApiVersion('anthropic'),
           'anthropic-beta': 'messages-2023-12-15',
           'Accept': 'application/json'
         },
@@ -266,7 +281,7 @@ export async function makeAnthropicRequest(
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }],
     temperature,
-    max_tokens: MAX_TOKENS_PER_REQUEST
+    max_tokens: configManager.getTokenConfig('anthropic').maxTokensPerRequest
   };
 
   // Add tools if provided
@@ -274,8 +289,8 @@ export async function makeAnthropicRequest(
     requestOptions.tools = tools;
   }
 
-  // Make the API request using the standard messages endpoint
-  const apiEndpoint = 'https://api.anthropic.com/v1/messages';
+  // Use the configured API endpoint
+  const apiEndpoint = configManager.getApiEndpoint('anthropic');
   
   const response = await fetchWithRetry(
     apiEndpoint,
@@ -284,7 +299,7 @@ export async function makeAnthropicRequest(
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey || '',
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': configManager.getApiVersion('anthropic'),
         'anthropic-beta': 'messages-2023-12-15',
         'Accept': 'application/json'
       },
@@ -306,49 +321,148 @@ export async function makeAnthropicRequest(
  * @param messages The full conversation history
  * @param temperature The temperature parameter
  * @returns Promise resolving to the response data
+ * @throws Error if the API request fails or returns invalid data
  */
 export async function makeAnthropicConversationRequest(
   apiKey: string | undefined,
   modelName: string,
-  messages: Array<{ role: string; content: any }>,
+  messages: Array<{ role: string; content: unknown }>,
   temperature: number = 0.2
 ): Promise<AnthropicResponse> {
-  // Get proper API model name from model mappings
-  const { getApiModelName } = await import('./anthropicModelHelpers');
-  
-  // Look up the API-friendly model name from our model mappings
-  const apiModelName = await getApiModelName(modelName);
-  logger.debug(`makeAnthropicConversationRequest: Using model ${apiModelName} from mappings (model: ${modelName})`);
-  
-  // Make the API request using the standard messages endpoint
-  const apiEndpoint = 'https://api.anthropic.com/v1/messages';
-  
-  const response = await fetchWithRetry(
-    apiEndpoint,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey || '',
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'messages-2023-12-15',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        model: apiModelName,
-        messages,
-        temperature,
-        max_tokens: MAX_TOKENS_PER_REQUEST
-      })
-    }
-  );
-
-  // Handle error responses
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Anthropic API error: ${errorBody}`);
+  if (!apiKey) {
+    logger.error('Anthropic API key is missing');
+    throw new Error('Anthropic API key is required but was not provided');
   }
-
-  // Parse and return the response
-  return response.json();
+  
+  if (!modelName) {
+    logger.error('Model name is missing');
+    throw new Error('Model name is required but was not provided');
+  }
+  
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    logger.error('Invalid or empty messages array provided');
+    throw new Error('Valid messages array is required for conversation request');
+  }
+  
+  try {
+    // Get proper API model name from model mappings
+    const { getApiModelName } = await import('./anthropicModelHelpers');
+    
+    // Look up the API-friendly model name from our model mappings
+    const apiModelName = await getApiModelName(modelName);
+    logger.debug(`makeAnthropicConversationRequest: Using model ${apiModelName} from mappings (model: ${modelName})`);
+    
+    // Validate the messages array format
+    for (const message of messages) {
+      if (!message.role || (message.role !== 'user' && message.role !== 'assistant' && message.role !== 'system')) {
+        logger.error(`Invalid message role: ${message.role}`);
+        throw new Error(`Message role must be "user", "assistant", or "system", but got "${message.role}"`);
+      }
+      
+      if (message.content === undefined || message.content === null) {
+        logger.error('Message content is missing');
+        throw new Error('Message content is required for all messages');
+      }
+    }
+    
+    // Use the configured API endpoint
+    const apiEndpoint = configManager.getApiEndpoint('anthropic');
+    
+    logger.debug(`Making request to Anthropic API: ${apiEndpoint}`);
+    logger.debug(`Using model: ${apiModelName}`);
+    logger.debug(`Message count: ${messages.length}`);
+    
+    try {
+      const response = await fetchWithRetry(
+        apiEndpoint,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': configManager.getApiVersion('anthropic'),
+            'anthropic-beta': 'messages-2023-12-15',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            model: apiModelName,
+            messages,
+            temperature,
+            max_tokens: configManager.getTokenConfig('anthropic').maxTokensPerRequest
+          })
+        }
+      );
+      
+      // Handle error responses
+      if (!response.ok) {
+        let errorBody = 'Unknown error';
+        try {
+          errorBody = await response.text();
+          
+          // Attempt to parse error as JSON for more details
+          try {
+            const errorJson = JSON.parse(errorBody);
+            const errorType = errorJson.type || 'unknown';
+            const errorMessage = errorJson.message || errorBody;
+            
+            logger.error(`Anthropic API error (${errorType}): ${errorMessage}`);
+            logger.debug(`Full error response: ${JSON.stringify(errorJson, null, 2)}`);
+            
+            throw new Error(`Anthropic API error (${errorType}): ${errorMessage}`);
+          } catch (parseError) {
+            // If we can't parse as JSON, use the raw error body
+            logger.error(`Anthropic API error: ${errorBody}`);
+            throw new Error(`Anthropic API error: ${errorBody}`);
+          }
+        } catch (readError) {
+          // If we can't even read the error response
+          logger.error(`Anthropic API error (status ${response.status}): ${response.statusText}`);
+          logger.debug(`Error reading error response: ${
+            readError instanceof Error ? readError.message : String(readError)
+          }`);
+          
+          throw new Error(`Anthropic API error (status ${response.status}): ${response.statusText}`);
+        }
+      }
+  
+      // Parse the response
+      try {
+        const jsonResponse = await response.json() as AnthropicResponse;
+        
+        // Validate the response format
+        if (!jsonResponse.content || !Array.isArray(jsonResponse.content)) {
+          logger.error('Invalid response format from Anthropic API: missing or invalid content array');
+          throw new Error('Invalid response format from Anthropic API: missing or invalid content array');
+        }
+        
+        return jsonResponse;
+      } catch (parseError) {
+        logger.error(`Error parsing Anthropic API response: ${
+          parseError instanceof Error ? parseError.message : String(parseError)
+        }`);
+        throw new Error(`Failed to parse Anthropic API response: ${
+          parseError instanceof Error ? parseError.message : String(parseError)
+        }`);
+      }
+    } catch (fetchError) {
+      // This will catch errors from fetchWithRetry
+      if (fetchError instanceof Error) {
+        logger.error(`Error communicating with Anthropic API: ${fetchError.message}`);
+        throw fetchError; // Rethrow with original stack trace
+      } else {
+        logger.error(`Unknown error communicating with Anthropic API: ${String(fetchError)}`);
+        throw new Error(`Unknown error communicating with Anthropic API: ${String(fetchError)}`);
+      }
+    }
+  } catch (error) {
+    // Catch any other errors in this function
+    if (error instanceof Error) {
+      // If it's already an Error object, just rethrow it
+      throw error;
+    } else {
+      // If it's some other type, wrap it in an Error
+      logger.error(`Unexpected error in makeAnthropicConversationRequest: ${String(error)}`);
+      throw new Error(`Unexpected error in makeAnthropicConversationRequest: ${String(error)}`);
+    }
+  }
 }

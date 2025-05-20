@@ -8,6 +8,7 @@
 
 import { ReviewResult, ReviewCost, ReviewType } from '../../types/review';
 import { StructuredReview } from '../../types/structuredReview';
+import { AIJsonResponse } from '../../types/apiResponses';
 import { ApiError } from '../../utils/apiErrorHandler';
 import logger from '../../utils/logger';
 import { getCostInfoFromText } from '../utils/tokenCounter';
@@ -17,7 +18,7 @@ import { getCostInfoFromText } from '../utils/tokenCounter';
  * @param content The API response content
  * @returns Structured data object or null if not valid JSON
  */
-export function extractStructuredData(content: string): unknown | null {
+export function extractStructuredData(content: string): StructuredReview | undefined {
   // Declare these outside try block so they're accessible in catch block
   let jsonBlockMatch: RegExpMatchArray | null = null;
   let anyCodeBlockMatch: RegExpMatchArray | null = null;
@@ -40,11 +41,11 @@ export function extractStructuredData(content: string): unknown | null {
     
     if (jsonBlockMatch) {
       // If we have a JSON code block, use its content
-      jsonContent = jsonBlockMatch[1];
+      jsonContent = jsonBlockMatch[1] || '';
       logger.debug('Found JSON code block, extracting content');
     } else if (anyCodeBlockMatch) {
       // If we have any other code block, use its content but check if it starts with {
-      const blockContent = anyCodeBlockMatch[1].trim();
+      const blockContent = (anyCodeBlockMatch[1] || '').trim();
       if (blockContent.startsWith('{') && blockContent.endsWith('}')) {
         jsonContent = blockContent;
         logger.debug('Found code block with JSON-like content, attempting to parse');
@@ -60,14 +61,76 @@ export function extractStructuredData(content: string): unknown | null {
     }
 
     // Parse the JSON content
-    const structuredData = JSON.parse(jsonContent);
+    const parsedData = JSON.parse(jsonContent) as AIJsonResponse | StructuredReview;
 
-    // Validate basic structure
-    if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-      logger.warn('Response is valid JSON but does not have the expected structure');
+    // Attempt to determine which format we have (AIJsonResponse or direct StructuredReview)
+    if ('review' in parsedData) {
+      // We have an AIJsonResponse, convert it to StructuredReview
+      const aiResponse = parsedData as AIJsonResponse;
+      
+      if (!aiResponse.review) {
+        logger.warn('Response is valid JSON but missing "review" property');
+        return undefined;
+      }
+      
+      // Convert the AIJsonResponse format to StructuredReview format
+      const review: StructuredReview = {
+        summary: aiResponse.review.summary ? 
+          typeof aiResponse.review.summary === 'string' ? 
+            aiResponse.review.summary : 
+            JSON.stringify(aiResponse.review.summary) : 
+          'No summary provided',
+        issues: []
+      };
+      
+      // Process issues if available
+      if (aiResponse.review.files && Array.isArray(aiResponse.review.files)) {
+        // Collect issues from all files
+        aiResponse.review.files.forEach(file => {
+          if (file.issues && Array.isArray(file.issues)) {
+            file.issues.forEach(issue => {
+              if (issue.id && issue.description) {
+                review.issues.push({
+                  title: issue.id,
+                  description: issue.description,
+                  priority: mapPriority(issue.priority),
+                  type: 'other',
+                  filePath: file.filePath || '',
+                  lineNumbers: issue.location ? 
+                    `${issue.location.startLine || ''}-${issue.location.endLine || ''}` : 
+                    undefined,
+                  codeSnippet: issue.currentCode,
+                  suggestedFix: issue.suggestedCode,
+                  impact: issue.explanation
+                });
+              }
+            });
+          }
+        });
+      }
+      
+      // Add recommendations and positive aspects if available
+      if (aiResponse.review.recommendations) {
+        review.recommendations = aiResponse.review.recommendations;
+      }
+      
+      if (aiResponse.review.positiveAspects) {
+        review.positiveAspects = aiResponse.review.positiveAspects;
+      }
+      
+      return review;
+    } else {
+      // We assume it's already a StructuredReview format
+      const structuredData = parsedData as StructuredReview;
+      
+      // Validate basic structure
+      if (typeof structuredData.summary === 'undefined' || !Array.isArray(structuredData.issues)) {
+        logger.warn('Response is valid JSON but does not have the expected StructuredReview structure');
+        return undefined;
+      }
+      
+      return structuredData;
     }
-
-    return structuredData;
   } catch (parseError) {
     const errorMsg = parseError instanceof Error ? parseError.message : String(parseError);
     logger.warn(`Response is not valid JSON: ${errorMsg}`);
@@ -85,8 +148,24 @@ export function extractStructuredData(content: string): unknown | null {
       }
     }
     
-    return null;
+    return undefined;
   }
+}
+
+/**
+ * Map priority string to IssuePriority type
+ * @param priority String priority value (may be undefined or in different case)
+ * @returns Normalized IssuePriority value
+ */
+function mapPriority(priority: string | undefined): 'high' | 'medium' | 'low' {
+  if (!priority) return 'medium';
+  
+  const normalizedPriority = priority.toLowerCase();
+  
+  if (normalizedPriority.includes('high')) return 'high';
+  if (normalizedPriority.includes('low')) return 'low';
+  
+  return 'medium';
 }
 
 /**
@@ -128,7 +207,7 @@ export function createStandardReviewResult(
     filePath,
     reviewType,
     timestamp: new Date().toISOString(),
-    structuredData: structuredData as StructuredReview | undefined
+    structuredData
   };
 }
 
