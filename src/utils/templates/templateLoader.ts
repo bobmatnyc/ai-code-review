@@ -77,26 +77,48 @@ function initializeHandlebars(): void {
  * @param prefix Prefix for partial names (based on directory hierarchy)
  */
 function registerPartials(dirPath: string, prefix: string): void {
-  if (!fs.existsSync(dirPath)) {
-    logger.warn(`Partials directory not found: ${dirPath}`);
-    return;
-  }
-
-  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-  
-  for (const entry of entries) {
-    const fullPath = path.join(dirPath, entry.name);
-    
-    if (entry.isDirectory()) {
-      // Recurse into subdirectories
-      registerPartials(fullPath, `${prefix}${entry.name}/`);
-    } else if (entry.name.endsWith('.hbs')) {
-      // Register .hbs files as partials
-      const partialName = `${prefix}${entry.name.replace('.hbs', '')}`;
-      const partialContent = fs.readFileSync(fullPath, 'utf-8');
-      Handlebars.registerPartial(`common/${partialName}`, partialContent);
-      logger.debug(`Registered partial: common/${partialName}`);
+  try {
+    // Check if directory exists
+    if (!fs.existsSync(dirPath)) {
+      logger.warn(`Partials directory not found: ${dirPath}`);
+      return;
     }
+
+    // Read directory entries
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      
+      if (entry.isDirectory()) {
+        // Recurse into subdirectories
+        registerPartials(fullPath, `${prefix}${entry.name}/`);
+      } else if (entry.name.endsWith('.hbs')) {
+        try {
+          // Register .hbs files as partials
+          const partialName = `${prefix}${entry.name.replace('.hbs', '')}`;
+          const partialContent = fs.readFileSync(fullPath, 'utf-8');
+          Handlebars.registerPartial(`common/${partialName}`, partialContent);
+          logger.debug(`Registered partial: common/${partialName}`);
+        } catch (partialError) {
+          // Handle errors for individual partial files
+          logger.error(
+            `Error registering partial ${fullPath}: ${
+              partialError instanceof Error ? partialError.message : String(partialError)
+            }`
+          );
+          // Continue with other partials even if one fails
+        }
+      }
+    }
+  } catch (error) {
+    // Handle directory reading errors
+    logger.error(
+      `Error scanning partials directory ${dirPath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    // Return so calling code knows registration may be incomplete
   }
 }
 
@@ -105,32 +127,103 @@ function registerPartials(dirPath: string, prefix: string): void {
  * 
  * @returns Combined variables object for template rendering
  */
-function loadTemplateVariables(): Record<string, any> {
-  const variables: Record<string, any> = {};
+function loadTemplateVariables(): Record<string, unknown> {
+  const variables: Record<string, unknown> = {};
   
-  // Load framework versions data
-  const frameworksPath = path.join(TEMPLATES_DIR, 'common', 'variables', 'framework-versions.json');
-  if (fs.existsSync(frameworksPath)) {
-    try {
-      const frameworkData = JSON.parse(fs.readFileSync(frameworksPath, 'utf-8')) as FrameworkData;
-      variables.frameworks = frameworkData.frameworks;
-    } catch (error) {
-      logger.error(`Error loading framework versions data: ${error}`);
+  try {
+    // Check if variables directory exists
+    const variablesDir = path.join(TEMPLATES_DIR, 'common', 'variables');
+    if (!fs.existsSync(variablesDir)) {
+      logger.warn(`Variables directory not found: ${variablesDir}`);
+      return variables;
     }
-  }
-  
-  // Load CSS frameworks data
-  const cssFrameworksPath = path.join(TEMPLATES_DIR, 'common', 'variables', 'css-frameworks.json');
-  if (fs.existsSync(cssFrameworksPath)) {
-    try {
-      const cssFrameworkData = JSON.parse(fs.readFileSync(cssFrameworksPath, 'utf-8')) as CssFrameworkData;
-      variables.cssFrameworks = cssFrameworkData.cssFrameworks;
-    } catch (error) {
-      logger.error(`Error loading CSS frameworks data: ${error}`);
+    
+    // Load framework versions data
+    const frameworksPath = path.join(variablesDir, 'framework-versions.json');
+    if (fs.existsSync(frameworksPath)) {
+      try {
+        const fileContents = fs.readFileSync(frameworksPath, 'utf-8');
+        const frameworkData = JSON.parse(fileContents) as FrameworkData;
+        variables.frameworks = frameworkData.frameworks;
+        logger.debug('Successfully loaded framework versions data');
+      } catch (readError) {
+        logger.error(
+          `Error reading or parsing framework versions data: ${
+            readError instanceof Error ? readError.message : String(readError)
+          }`
+        );
+        // Provide empty frameworks object instead of leaving it undefined
+        variables.frameworks = {};
+      }
+    } else {
+      logger.debug(`Framework versions file not found: ${frameworksPath}`);
+      variables.frameworks = {};
     }
+    
+    // Load CSS frameworks data
+    const cssFrameworksPath = path.join(variablesDir, 'css-frameworks.json');
+    if (fs.existsSync(cssFrameworksPath)) {
+      try {
+        const fileContents = fs.readFileSync(cssFrameworksPath, 'utf-8');
+        const cssFrameworkData = JSON.parse(fileContents) as CssFrameworkData;
+        variables.cssFrameworks = cssFrameworkData.cssFrameworks;
+        logger.debug('Successfully loaded CSS frameworks data');
+      } catch (readError) {
+        logger.error(
+          `Error reading or parsing CSS frameworks data: ${
+            readError instanceof Error ? readError.message : String(readError)
+          }`
+        );
+        // Provide empty cssFrameworks object instead of leaving it undefined
+        variables.cssFrameworks = {};
+      }
+    } else {
+      logger.debug(`CSS frameworks file not found: ${cssFrameworksPath}`);
+      variables.cssFrameworks = {};
+    }
+    
+    // Scan the variables directory for other JSON files and load them
+    try {
+      const entries = fs.readdirSync(variablesDir);
+      const otherJsonFiles = entries.filter(entry => 
+        entry.endsWith('.json') && 
+        entry !== 'framework-versions.json' && 
+        entry !== 'css-frameworks.json'
+      );
+      
+      for (const jsonFile of otherJsonFiles) {
+        try {
+          const filePath = path.join(variablesDir, jsonFile);
+          const fileContents = fs.readFileSync(filePath, 'utf-8');
+          const data = JSON.parse(fileContents);
+          
+          // Use the filename without extension as the variable key
+          const key = jsonFile.replace('.json', '');
+          variables[key] = data;
+          logger.debug(`Loaded additional variable file: ${jsonFile}`);
+        } catch (fileError) {
+          logger.error(
+            `Error reading or parsing ${jsonFile}: ${
+              fileError instanceof Error ? fileError.message : String(fileError)
+            }`
+          );
+        }
+      }
+    } catch (scanError) {
+      logger.error(
+        `Error scanning variables directory for additional JSON files: ${
+          scanError instanceof Error ? scanError.message : String(scanError)
+        }`
+      );
+    }
+  } catch (error) {
+    // Catch any unexpected errors
+    logger.error(
+      `Unexpected error loading template variables: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
-  
-  // Can add more variable sources here as needed
   
   return variables;
 }
@@ -262,26 +355,93 @@ export function listAvailableTemplates(): Record<string, string[]> {
     reviewTypes: []
   };
   
-  // Scan frameworks directory
-  const frameworksDir = path.join(TEMPLATES_DIR, 'frameworks');
-  if (fs.existsSync(frameworksDir)) {
-    result.frameworks = fs.readdirSync(frameworksDir)
-      .filter(entry => fs.statSync(path.join(frameworksDir, entry)).isDirectory());
-  }
-  
-  // Scan languages directory
-  const languagesDir = path.join(TEMPLATES_DIR, 'languages');
-  if (fs.existsSync(languagesDir)) {
-    result.languages = fs.readdirSync(languagesDir)
-      .filter(entry => fs.statSync(path.join(languagesDir, entry)).isDirectory());
-  }
-  
-  // Get review types from any framework (assuming all frameworks have the same review types)
-  if (result.frameworks.length > 0) {
-    const firstFrameworkDir = path.join(frameworksDir, result.frameworks[0]);
-    result.reviewTypes = fs.readdirSync(firstFrameworkDir)
-      .filter(entry => entry.endsWith('.hbs'))
-      .map(entry => entry.replace('.hbs', ''));
+  try {
+    // Scan frameworks directory
+    const frameworksDir = path.join(TEMPLATES_DIR, 'frameworks');
+    if (fs.existsSync(frameworksDir)) {
+      try {
+        const entries = fs.readdirSync(frameworksDir, { withFileTypes: true });
+        result.frameworks = entries
+          .filter(entry => entry.isDirectory())
+          .map(entry => entry.name);
+      } catch (error) {
+        logger.error(
+          `Error reading frameworks directory ${frameworksDir}: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    } else {
+      logger.debug(`Frameworks directory not found: ${frameworksDir}`);
+    }
+    
+    // Scan languages directory
+    const languagesDir = path.join(TEMPLATES_DIR, 'languages');
+    if (fs.existsSync(languagesDir)) {
+      try {
+        const entries = fs.readdirSync(languagesDir, { withFileTypes: true });
+        result.languages = entries
+          .filter(entry => entry.isDirectory())
+          .map(entry => entry.name);
+      } catch (error) {
+        logger.error(
+          `Error reading languages directory ${languagesDir}: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    } else {
+      logger.debug(`Languages directory not found: ${languagesDir}`);
+    }
+    
+    // Get review types from any framework (assuming all frameworks have the same review types)
+    // or from the generic directory if no frameworks are available
+    if (result.frameworks && result.frameworks.length > 0) {
+      try {
+        const firstFramework = result.frameworks[0];
+        if (firstFramework) {
+          const firstFrameworkDir = path.join(frameworksDir, firstFramework);
+          if (fs.existsSync(firstFrameworkDir)) {
+            const entries = fs.readdirSync(firstFrameworkDir);
+            result.reviewTypes = entries
+              .filter(entry => entry.endsWith('.hbs'))
+              .map(entry => entry.replace('.hbs', ''));
+          }
+        }
+      } catch (error) {
+        logger.error(
+          `Error reading review types from framework directory: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    }
+    
+    // If we couldn't get review types from frameworks, try the generic directory
+    if (!result.reviewTypes || result.reviewTypes.length === 0) {
+      try {
+        const genericDir = path.join(languagesDir, 'generic');
+        if (fs.existsSync(genericDir)) {
+          const entries = fs.readdirSync(genericDir);
+          result.reviewTypes = entries
+            .filter(entry => entry.endsWith('.hbs'))
+            .map(entry => entry.replace('.hbs', ''));
+        }
+      } catch (error) {
+        logger.error(
+          `Error reading review types from generic directory: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    }
+  } catch (error) {
+    // Catch any other unexpected errors
+    logger.error(
+      `Unexpected error listing available templates: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
   
   return result;
