@@ -5,7 +5,7 @@
  * selecting the appropriate API client, and managing the review workflow.
  */
 
-import path from 'path';
+import * as path from 'path';
 import { createDirectory } from '../utils/fileSystem';
 import { ReviewOptions } from '../types/review';
 import { FileInfo, discoverFiles, readFilesContent } from './fileDiscovery';

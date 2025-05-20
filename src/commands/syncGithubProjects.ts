@@ -6,8 +6,7 @@
  * Projects and from GitHub Projects to PROJECT.md.
  */
 
-import path from 'path';
-import fs from 'fs/promises';
+import * as path from 'path';
 import { fileExists } from '../utils/files/fileSystem';
 import logger from '../utils/logger';
 import {
@@ -93,39 +92,3 @@ export async function handleSyncGitHubProjectsCommand(): Promise<void> {
   }
 }
 
-/**
- * Print help information
- */
-function printHelp(): void {
-  console.log(`
-Sync PROJECT.md with GitHub Projects
-
-Usage:
-  sync-github-projects [options]
-
-Options:
-  --direction, -d     Sync direction: 'to-github' or 'from-github' (default: 'to-github')
-  --project-path, -p  Path to the project directory (default: current directory)
-  --description-only, --desc  Update only the project readme with PROJECT.md content (default: false)
-  --help, -h          Show this help message
-
-Environment Variables:
-  GITHUB_TOKEN         GitHub API token (required)
-  GITHUB_PROJECT_ID    GitHub Project ID (required if GITHUB_PROJECT_NUMBER not provided)
-  GITHUB_PROJECT_NUMBER GitHub Project number (required if GITHUB_PROJECT_ID not provided)
-  GITHUB_OWNER         GitHub owner (default: 'bobmatnyc')
-
-Examples:
-  # Update GitHub Project readme with PROJECT.md content
-  sync-github-projects --description-only
-
-  # Sync PROJECT.md to GitHub Projects as items
-  sync-github-projects
-
-  # Sync GitHub Projects to PROJECT.md
-  sync-github-projects --direction from-github
-
-  # Specify project path
-  sync-github-projects --project-path /path/to/project
-  `);
-}

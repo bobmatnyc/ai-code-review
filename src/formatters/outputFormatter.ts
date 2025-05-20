@@ -17,7 +17,7 @@
  * structured regardless of the review type or content.
  */
 
-import { ReviewResult, ReviewType, PassCost, ReviewCost } from '../types/review';
+import { ReviewResult, ReviewType, PassCost } from '../types/review';
 import { StructuredReview, ReviewIssue } from '../types/structuredReview';
 import { sanitizeContent } from '../utils/parsing/sanitizer';
 import logger from '../utils/logger';
@@ -58,11 +58,6 @@ export function formatReviewOutput(
  * @returns JSON string
  */
 function formatAsJson(review: ReviewResult): string {
-  // Create a copy of the review object to avoid modifying the original
-  const jsonOutput: Record<string, any> = {
-    ...review
-  };
-  
   // Determine model information
   let modelInfo = 'AI';
   let modelVendor = 'Unknown';
@@ -161,7 +156,7 @@ function formatAsJson(review: ReviewResult): string {
         perPassCosts: PassCost[] | null;
       } | null;
     };
-    cost: ReviewCost | null;
+    cost: any | null;
     tool: {
       version: string;
       commandOptions: string | null;
