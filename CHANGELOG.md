@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed CI workflow issues including build scripts, module resolution, and lint errors
 - Updated package scripts from pnpm to npm for consistency
 - Removed automatic Gemini fallback in IndividualReviewStrategy - now fails gracefully with helpful error messages
+- Fixed failing tests in reviewOrchestratorConfirm.test.ts related to prompt confirmation and multipass reviews
+- Fixed import path issues in rateLimiter.test.ts after API utils refactoring
+- Fixed nested test structure issues that were causing Jest failures
+- Fixed issues with process.exit mocking in test environment
+- Fixed module import circular dependencies in various tests
+- Fixed mocking issues with fileSystem and dynamically imported modules
 
 ### Changed
 - Updated INSTRUCTIONS.md to emphasize CI checks before closing tickets
@@ -33,8 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added explicit documentation against automatic fallback strategies - user configuration must be respected
 - Fixed regex-based model extraction in favor of direct model passing
 - Improved error handling for structured JSON responses
-
-### Changed
 - Updated Gemini client to properly request structured JSON when in interactive mode
 - Enhanced review parser to handle language-specific code blocks without treating them as JSON
 - Improved output formatter to automatically detect and format JSON responses as markdown
