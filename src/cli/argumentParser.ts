@@ -437,10 +437,16 @@ export async function getCommandLineArguments(): Promise<CliOptions> {
   const configData = configFileManager.loadConfigFile(configFilePath);
   
   // Apply config file values to options (CLI args take precedence)
-  let finalOptions = parsedArgs;
+  let finalOptions: CliOptions = parsedArgs;
   if (configData) {
     // Apply config file values, but CLI args still take precedence
-    finalOptions = configFileManager.applyConfigToOptions(configData, parsedArgs);
+    const updatedOptions = configFileManager.applyConfigToOptions(configData, parsedArgs);
+    
+    // Ensure we maintain the target property which is required in CliOptions
+    finalOptions = {
+      ...updatedOptions,
+      target: parsedArgs.target
+    } as CliOptions;
     
     // Map any snake_case config values to camelCase
     if (configFilePath) {
