@@ -31,11 +31,19 @@ export function extractStructuredData(content: string): StructuredReview | undef
     // 3. ```{...}```
     // 4. Plain JSON without code blocks
     
-    // First try to find code blocks with JSON content
-    jsonBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    // Enhanced regex to handle various language markers, especially typescript
+    jsonBlockMatch = content.match(/```(?:json)\s*([\s\S]*?)\s*```/);
     
-    // If no JSON block, look for any code block (could have typescript or other language marker)
-    anyCodeBlockMatch = !jsonBlockMatch ? content.match(/```(?:[\w]*)?[\s\n]*([\s\S]*?)[\s\n]*```/) : null;
+    // If no explicit JSON block, look for any code block (with any language marker or none)
+    // that contains what looks like JSON content (starting with { and ending with })
+    if (!jsonBlockMatch) {
+      anyCodeBlockMatch = content.match(/```(?:[\w]*)?[\s\n]*([\s\S]*?)[\s\n]*```/);
+      
+      // Additional check for typescript blocks specifically
+      if (anyCodeBlockMatch && content.includes('```typescript')) {
+        logger.debug('Detected typescript code block, will check if it contains valid JSON');
+      }
+    }
     
     let jsonContent = '';
     
@@ -46,7 +54,43 @@ export function extractStructuredData(content: string): StructuredReview | undef
     } else if (anyCodeBlockMatch) {
       // If we have any other code block, use its content but check if it starts with {
       const blockContent = (anyCodeBlockMatch[1] || '').trim();
-      if (blockContent.startsWith('{') && blockContent.endsWith('}')) {
+      
+      // Special handling for TypeScript blocks that might contain JSON objects
+      if (content.includes('```typescript') || content.includes('```ts')) {
+        logger.debug('Analyzing TypeScript code block for JSON content');
+        
+        // Check if the TypeScript block contains a JSON object literal
+        if (blockContent.includes('{') && blockContent.includes('}')) {
+          // Look for a properly formatted object within the TypeScript code
+          const objectMatch = blockContent.match(/(\{[\s\S]*\})/);
+          if (objectMatch && objectMatch[1]) {
+            const potentialJson = objectMatch[1].trim();
+            try {
+              // Try to verify it's parsable JSON
+              JSON.parse(potentialJson);
+              jsonContent = potentialJson;
+              logger.debug('Successfully extracted JSON object from TypeScript code block');
+            } catch (parseError) {
+              // Not valid JSON, continue with regular processing
+              logger.debug('TypeScript block contains object syntax but not valid JSON');
+              if (blockContent.startsWith('{') && blockContent.endsWith('}')) {
+                jsonContent = blockContent;
+                logger.debug('Using TypeScript block content for potential parsing');
+              } else {
+                logger.debug('TypeScript code block is not JSON-compatible, falling back to raw content');
+                jsonContent = content;
+              }
+            }
+          } else {
+            logger.debug('No valid object literal found in TypeScript code block');
+            jsonContent = content;
+          }
+        } else {
+          logger.debug('TypeScript code block doesn\'t contain object literals, falling back to raw content');
+          jsonContent = content;
+        }
+      } else if (blockContent.startsWith('{') && blockContent.endsWith('}')) {
+        // For non-TypeScript blocks, check if the content looks like JSON
         jsonContent = blockContent;
         logger.debug('Found code block with JSON-like content, attempting to parse');
       } else {
@@ -135,6 +179,19 @@ export function extractStructuredData(content: string): StructuredReview | undef
     const errorMsg = parseError instanceof Error ? parseError.message : String(parseError);
     logger.warn(`Response is not valid JSON: ${errorMsg}`);
     
+    // Always provide basic info regardless of log level
+    const contentPreview = content.substring(0, 50).replace(/\n/g, ' ');
+    logger.info(`JSON parse error with content starting with: "${contentPreview}..."`);
+    
+    // Check for common patterns that might be causing issues
+    if (content.includes('```typescript') || content.includes('```ts')) {
+      logger.info('Content contains TypeScript code blocks that may be causing parsing issues');
+    }
+    
+    if (content.includes('```json')) {
+      logger.info('Content contains JSON code blocks that could not be parsed properly');
+    }
+    
     // In debug mode, log additional details to help diagnose the issue
     if (process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase() === 'debug') {
       const snippet = content.length > 200 ? 
@@ -143,12 +200,30 @@ export function extractStructuredData(content: string): StructuredReview | undef
       logger.debug(`Content snippet causing JSON parse error: ${snippet}`);
       
       // Also log if we found code blocks but couldn't parse the content
-      if (jsonBlockMatch || anyCodeBlockMatch) {
-        logger.debug(`Found code blocks but content couldn't be parsed as JSON`);
+      if (jsonBlockMatch) {
+        logger.debug(`Found JSON code block but content couldn't be parsed as JSON: ${jsonBlockMatch[1]?.substring(0, 100)}`);
+      } else if (anyCodeBlockMatch) {
+        logger.debug(`Found non-JSON code block but content couldn't be parsed as JSON: ${anyCodeBlockMatch[1]?.substring(0, 100)}`);
       }
     }
     
-    return undefined;
+    // Try to create a basic structured response as a fallback
+    try {
+      // If we can't parse JSON but have a content string, create a simple summary
+      return {
+        summary: "AI generated a response that couldn't be parsed as structured data",
+        issues: [{
+          title: "Response format issue",
+          description: "The response couldn't be parsed into structured format. Please see the full text for details.",
+          priority: "medium",
+          type: "other",
+          filePath: "unknown" // Required field in ReviewIssue
+        }]
+      };
+    } catch (fallbackError) {
+      logger.debug('Failed to create fallback structured response');
+      return undefined;
+    }
   }
 }
 
