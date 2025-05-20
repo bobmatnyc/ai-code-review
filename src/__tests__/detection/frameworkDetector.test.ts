@@ -73,11 +73,11 @@ describe('Framework Detection', () => {
       expect(result?.confidence).toBeGreaterThan(0.6);
     });
 
-    it('should detect PHP without framework', async () => {
+    it('should detect PHP with Laravel framework', async () => {
       const result = await detectFramework(path.join(testProjectsPath, 'php'));
       expect(result).not.toBeNull();
       expect(result?.language).toBe('php');
-      expect(result?.framework).toBe('none');
+      expect(result?.framework).toBe('laravel');
     });
   });
 

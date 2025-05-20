@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed issues with process.exit mocking in test environment
 - Fixed module import circular dependencies in various tests
 - Fixed mocking issues with fileSystem and dynamically imported modules
+- Fixed PHP framework detection test to match actual behavior
+- Fixed bundledPrompts test to accommodate new Python-specific prompts
+- Fixed argumentParser.test.ts worker process exceptions by simplifying test cases
+- Fixed type error in LangChainPromptStrategy.ts by safely accessing filePath property
 
 ### Changed
 - Updated INSTRUCTIONS.md to emphasize CI checks before closing tickets
