@@ -138,8 +138,9 @@ export class LangChainPromptStrategy extends PromptStrategy {
         // Special handling for CI data
         if (optionKey === 'ciData' && options.ciData) {
           const { formatCIDataForPrompt } = require('../../utils/ciDataCollector');
-          // If we have a file path, use it to get file-specific CI data
-          const filePath = inputValues['FILE_PATH'] || options['filePath'];
+          // Use the mapped FILE_PATH value if available, otherwise default to undefined
+          // This ensures we don't try to access a property that doesn't exist on ReviewOptions
+          const filePath = inputValues['FILE_PATH'] || undefined;
           inputValues[variable] = formatCIDataForPrompt(options.ciData, filePath);
         } else {
           inputValues[variable] = String(

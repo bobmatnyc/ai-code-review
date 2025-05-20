@@ -44,14 +44,15 @@ describe('bundledPrompts', () => {
       expect(tsPrompt).not.toBe(genericPrompt);
     });
 
-    it('should fall back to generic prompts when language-specific ones are not available', () => {
-      // Test a language that doesn't have specific prompts
+    it('should have language-specific prompts when available', () => {
+      // Test a language that has specific prompts
       const pythonPrompt = getBundledPrompt('quick-fixes', 'python');
       const genericPrompt = getBundledPrompt('quick-fixes');
       
       expect(pythonPrompt).toBeDefined();
       expect(genericPrompt).toBeDefined();
-      expect(pythonPrompt).toBe(genericPrompt);
+      // Python now has a specific prompt, so we expect them to be different
+      expect(pythonPrompt).not.toBe(genericPrompt);
     });
   });
 
@@ -67,7 +68,7 @@ describe('bundledPrompts', () => {
       expect(prompt).toContain('Quick Fixes Code Review');
     });
 
-    it('should handle placeholders in bundled prompts', async () => {
+    it('should include language-specific information in prompts', async () => {
       const promptManager = PromptManager.getInstance();
       
       // Get a prompt template with language option
@@ -76,9 +77,10 @@ describe('bundledPrompts', () => {
         type: 'quick-fixes'
       });
       
-      // Verify language placeholder was replaced
+      // Verify language-specific content is present
       expect(prompt).toBeDefined();
-      expect(prompt).toContain('This code is written in JAVASCRIPT');
+      // Check that it's the TypeScript template (since JavaScript uses TypeScript templates)
+      expect(prompt).toContain('TypeScript Quick Fixes');
     });
   });
 });
