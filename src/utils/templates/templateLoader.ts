@@ -360,7 +360,7 @@ export function loadPromptTemplate(
     return rendered;
   }
   
-  logger.error(`No template found for reviewType=${reviewType}, language=${language || 'undefined'}, framework=${framework || 'undefined'}`);
+  logger.error(`No template found for reviewType=${reviewType}, language=${language ?? 'undefined'}, framework=${framework ?? 'undefined'}`);
   return null;
 }
 
@@ -417,7 +417,7 @@ export function listAvailableTemplates(): Record<string, string[]> {
     
     // Get review types from any framework (assuming all frameworks have the same review types)
     // or from the generic directory if no frameworks are available
-    if (result.frameworks && result.frameworks.length > 0) {
+    if (Array.isArray(result.frameworks) && result.frameworks.length > 0) {
       try {
         const firstFramework = result.frameworks[0];
         if (firstFramework) {
@@ -439,7 +439,7 @@ export function listAvailableTemplates(): Record<string, string[]> {
     }
     
     // If we couldn't get review types from frameworks, try the generic directory
-    if (!result.reviewTypes || result.reviewTypes.length === 0) {
+    if (!Array.isArray(result.reviewTypes) || result.reviewTypes.length === 0) {
       try {
         const genericDir = path.join(languagesDir, 'generic');
         if (fs.existsSync(genericDir)) {
