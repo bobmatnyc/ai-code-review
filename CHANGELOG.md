@@ -18,8 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrated TypeScript and ESLint error counts into code review prompts
 - Added structured API response interfaces in new `apiResponses.ts` module
 - Implemented a configManager singleton for centralized configuration access
+- Enabled TypeScript's noUnusedLocals and noUnusedParameters for improved code quality
 - Added comprehensive configuration interfaces with Zod validation schema
 - Added configuration types for API keys, endpoints, rate limits, and token usage
+- Implemented smart file selection using project configuration files:
+  - Uses tsconfig.json for TypeScript project filtering
+  - Respects .eslintignore patterns in addition to .gitignore
+  - Improves review focus on relevant files
 
 ### Fixed
 - Fixed model mapping issue where `gemini-2.5-pro` was not properly mapped to `gemini-2.5-pro-preview-05-06`
