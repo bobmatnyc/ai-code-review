@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import logger from './logger';
 import { ReviewOptions } from '../types/review';
+import { CliOptions } from '../cli/argumentParser';
 
 /**
  * Interface for the JSON configuration file structure
@@ -118,8 +119,8 @@ export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions)
     if (config.output.format && !newOptions.output) {
       newOptions.output = config.output.format as any;
     }
-    if (config.output.dir && !newOptions.outputDir) {
-      newOptions.outputDir = config.output.dir;
+    if (config.output.dir && !(newOptions as CliOptions).outputDir) {
+      (newOptions as CliOptions).outputDir = config.output.dir;
     }
   }
   
@@ -169,8 +170,8 @@ export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions)
   
   // Apply API configuration
   if (config.api) {
-    if (config.api.model && !newOptions.model) {
-      newOptions.model = config.api.model;
+    if (config.api.model && !(newOptions as CliOptions).model) {
+      (newOptions as CliOptions).model = config.api.model;
     }
     if (config.api.test_api !== undefined && newOptions.testApi === undefined) {
       newOptions.testApi = config.api.test_api;
@@ -179,22 +180,23 @@ export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions)
     // Handle API keys
     if (config.api.keys) {
       // If apiKey doesn't exist on newOptions, create it
-      if (!newOptions.apiKey) {
-        newOptions.apiKey = {};
+      const cliOptions = newOptions as CliOptions;
+      if (!cliOptions.apiKey) {
+        cliOptions.apiKey = {};
       }
       
       // Only set API keys if they are not already set and are non-null in the config
-      if (config.api.keys.google && !newOptions.apiKey.google) {
-        newOptions.apiKey.google = config.api.keys.google;
+      if (config.api.keys.google && !cliOptions.apiKey.google) {
+        cliOptions.apiKey.google = config.api.keys.google;
       }
-      if (config.api.keys.openrouter && !newOptions.apiKey.openrouter) {
-        newOptions.apiKey.openrouter = config.api.keys.openrouter;
+      if (config.api.keys.openrouter && !cliOptions.apiKey.openrouter) {
+        cliOptions.apiKey.openrouter = config.api.keys.openrouter;
       }
-      if (config.api.keys.anthropic && !newOptions.apiKey.anthropic) {
-        newOptions.apiKey.anthropic = config.api.keys.anthropic;
+      if (config.api.keys.anthropic && !cliOptions.apiKey.anthropic) {
+        cliOptions.apiKey.anthropic = config.api.keys.anthropic;
       }
-      if (config.api.keys.openai && !newOptions.apiKey.openai) {
-        newOptions.apiKey.openai = config.api.keys.openai;
+      if (config.api.keys.openai && !cliOptions.apiKey.openai) {
+        cliOptions.apiKey.openai = config.api.keys.openai;
       }
     }
   }
@@ -225,8 +227,8 @@ export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions)
     if (config.system.debug !== undefined && newOptions.debug === undefined) {
       newOptions.debug = config.system.debug;
     }
-    if (config.system.log_level && !newOptions.logLevel) {
-      newOptions.logLevel = config.system.log_level;
+    if (config.system.log_level && !(newOptions as CliOptions).logLevel) {
+      (newOptions as CliOptions).logLevel = config.system.log_level;
     }
   }
   
