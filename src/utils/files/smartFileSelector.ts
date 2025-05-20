@@ -50,7 +50,7 @@ export async function loadEslintIgnorePatterns(projectDir: string): Promise<stri
       .filter(line => line && !line.startsWith('#'));
   } catch (error) {
     // Only log as error if it's not just a file not found issue
-    if (error instanceof Error && error.code !== 'ENOENT') {
+    if (error instanceof Error && (error as NodeJS.ErrnoException).code !== 'ENOENT') {
       logger.error(`Error reading .eslintignore: ${error}`);
     } else {
       const eslintIgnorePath = path.join(projectDir, '.eslintignore');
@@ -91,7 +91,7 @@ export async function loadTsConfig(projectDir: string): Promise<TsConfig | null>
     }
   } catch (error) {
     // Only log as error if it's not just a file not found issue
-    if (error instanceof Error && error.code !== 'ENOENT') {
+    if (error instanceof Error && (error as NodeJS.ErrnoException).code !== 'ENOENT') {
       logger.error(`Error reading tsconfig.json: ${error}`);
     } else {
       const tsConfigPath = path.join(projectDir, 'tsconfig.json');
