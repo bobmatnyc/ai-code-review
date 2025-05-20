@@ -41,12 +41,20 @@ export async function loadEslintIgnorePatterns(projectDir: string): Promise<stri
     
     // Read and parse .eslintignore
     const content = await fs.promises.readFile(eslintIgnorePath, 'utf-8');
+    if (!content) {
+      return [];
+    }
     return content
       .split('\n')
       .map(line => line.trim())
       .filter(line => line && !line.startsWith('#'));
   } catch (error) {
-    logger.error(`Error reading .eslintignore: ${error}`);
+    // Only log as error if it's not just a file not found issue
+    if (error.code !== 'ENOENT') {
+      logger.error(`Error reading .eslintignore: ${error}`);
+    } else {
+      logger.debug(`No .eslintignore file found at ${eslintIgnorePath}`);
+    }
     return [];
   }
 }
@@ -71,6 +79,9 @@ export async function loadTsConfig(projectDir: string): Promise<TsConfig | null>
     
     // Read and parse tsconfig.json
     const content = await fs.promises.readFile(tsConfigPath, 'utf-8');
+    if (!content) {
+      return null;
+    }
     try {
       return JSON.parse(content) as TsConfig;
     } catch (parseError) {
@@ -78,7 +89,12 @@ export async function loadTsConfig(projectDir: string): Promise<TsConfig | null>
       return null;
     }
   } catch (error) {
-    logger.error(`Error reading tsconfig.json: ${error}`);
+    // Only log as error if it's not just a file not found issue
+    if (error.code !== 'ENOENT') {
+      logger.error(`Error reading tsconfig.json: ${error}`);
+    } else {
+      logger.debug(`No tsconfig.json file found at ${tsConfigPath}`);
+    }
     return null;
   }
 }
