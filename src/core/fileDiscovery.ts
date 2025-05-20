@@ -12,6 +12,7 @@ import {
   getFilesToReview as getFilteredFiles, 
   loadGitignorePatterns 
 } from '../utils/fileFilters';
+import { applySmartFiltering } from '../utils/files/smartFileSelector';
 import logger from '../utils/logger';
 
 /**
@@ -62,12 +63,18 @@ export async function discoverFiles(
     logger.debug(`Loaded ${gitignorePatterns.length} patterns from .gitignore in ${targetPath}`);
     
     // Get files to review using the existing filter utility
-    const filesToReview = await getFilteredFiles(
+    let filesToReview = await getFilteredFiles(
       targetPath,
       isFileTarget,
       includeTests,
       gitignorePatterns
     );
+
+    // Apply smart filtering (tsconfig.json and .eslintignore)
+    if (filesToReview.length > 0) {
+      logger.info('Applying smart filtering based on project configuration files...');
+      filesToReview = await applySmartFiltering(filesToReview, projectPath);
+    }
 
     if (filesToReview.length === 0) {
       logger.info('No files found to review.');
