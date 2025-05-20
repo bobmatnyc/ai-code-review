@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1] - 2025-05-22
+
+### Fixed
+- Improved type safety in type declaration files by replacing `any` types with proper interfaces
+- Added null/undefined checks to prevent potential runtime errors
+- Fixed property name inconsistency in configManager between openrouter and openRouter
+- Corrected string | undefined type issues in API clients with proper null checks
+- Fixed optional chaining usage in templateLoader.ts 
+- Added proper type conversion in LangChainUtils for examples
+- Added proper API response interfaces to improve type checking
+
 ## [3.2.0] - 2025-05-21
 
 ### Added
