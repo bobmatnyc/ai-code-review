@@ -77,6 +77,9 @@ describe('templateLoader', () => {
       if (joined.endsWith('/languages') || joined.includes('promptText/languages')) {
         return `${mockTemplatesDir}/languages`;
       }
+      if (joined.includes('languages/generic')) {
+        return `${mockTemplatesDir}/languages/generic`;
+      }
       if (joined.includes('frameworks/react')) {
         return `${mockTemplatesDir}/frameworks/react`;
       }
@@ -111,6 +114,8 @@ describe('templateLoader', () => {
         `${mockTemplatesDir}/languages/generic/best-practices.hbs`,
         `${mockTemplatesDir}/frameworks`,
         `${mockTemplatesDir}/languages`,
+        `${mockTemplatesDir}/languages/generic`,
+        `${mockTemplatesDir}/frameworks/react`,
       ].includes(filePath);
     });
     
@@ -146,23 +151,41 @@ describe('templateLoader', () => {
     });
     
     // Mock fs.readdirSync
-    (fs.readdirSync as jest.Mock).mockImplementation((dirPath: string, _options: any) => {
-      if (dirPath.includes('frameworks') && !dirPath.includes('react')) {
-        return ['react', 'angular', 'vue'];
+    (fs.readdirSync as jest.Mock).mockImplementation((dirPath: string, options?: any) => {
+      // Check for withFileTypes option which is used in listAvailableTemplates
+      const withFileTypes = options && options.withFileTypes;
+      
+      if (dirPath.includes('frameworks')) {
+        if (dirPath.includes('frameworks/react')) {
+          return withFileTypes 
+            ? ['best-practices.hbs', 'security-review.hbs'].map(name => ({ name, isDirectory: () => false }))
+            : ['best-practices.hbs', 'security-review.hbs'];
+        }
+        // Main frameworks directory
+        return withFileTypes 
+          ? ['react', 'angular', 'vue'].map(name => ({ name, isDirectory: () => true }))
+          : ['react', 'angular', 'vue'];
       }
+      
       if (dirPath.includes('languages')) {
-        return ['typescript', 'python', 'ruby'];
+        if (dirPath.includes('languages/generic')) {
+          return withFileTypes
+            ? ['best-practices.hbs', 'security-review.hbs'].map(name => ({ name, isDirectory: () => false }))
+            : ['best-practices.hbs', 'security-review.hbs'];
+        }
+        // Main languages directory
+        return withFileTypes
+          ? ['typescript', 'python', 'ruby', 'generic'].map(name => ({ name, isDirectory: () => true }))
+          : ['typescript', 'python', 'ruby', 'generic'];
       }
-      if (dirPath.includes('frameworks/react')) {
-        return ['best-practices.hbs', 'security-review.hbs'];
-      }
-      return [];
+      
+      return withFileTypes ? [] : [];
     });
     
     // Mock fs.statSync
     (fs.statSync as jest.Mock).mockImplementation((filePath: string) => {
       return {
-        isDirectory: () => ['react', 'angular', 'vue', 'typescript', 'python', 'ruby'].some(dir => filePath.includes(dir))
+        isDirectory: () => ['react', 'angular', 'vue', 'typescript', 'python', 'ruby', 'generic'].some(dir => filePath.includes(dir))
       };
     });
   });
@@ -249,6 +272,7 @@ describe('templateLoader', () => {
       expect(result.frameworks).toContain('react');
       expect(result.languages).toContain('typescript');
       expect(result.reviewTypes).toContain('best-practices');
+      expect(result.reviewTypes).toContain('security-review');
     });
     
     it('should handle missing directories', () => {
@@ -259,6 +283,7 @@ describe('templateLoader', () => {
           `${mockTemplatesDir}/common/variables/framework-versions.json`,
           `${mockTemplatesDir}/common/variables/css-frameworks.json`,
           `${mockTemplatesDir}/languages`,
+          `${mockTemplatesDir}/languages/generic`,
         ].includes(filePath);
       });
       
@@ -266,6 +291,28 @@ describe('templateLoader', () => {
       
       expect(result.frameworks).toEqual([]);
       expect(result.languages).toContain('typescript');
+      expect(result.reviewTypes).toHaveLength(2);
+      expect(result.reviewTypes).toContain('best-practices');
+      expect(result.reviewTypes).toContain('security-review');
+    });
+    
+    it('should get review types from generic directory when frameworks are not available', () => {
+      // Make frameworks directory not exist but ensure generic directory exists
+      (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+        return !filePath.includes('frameworks') && [
+          `${mockTemplatesDir}`,
+          `${mockTemplatesDir}/common/variables/framework-versions.json`,
+          `${mockTemplatesDir}/common/variables/css-frameworks.json`,
+          `${mockTemplatesDir}/languages`,
+          `${mockTemplatesDir}/languages/generic`,
+        ].includes(filePath);
+      });
+      
+      const result = listAvailableTemplates();
+      
+      expect(result.frameworks).toEqual([]);
+      expect(result.reviewTypes).toContain('best-practices');
+      expect(result.reviewTypes).toContain('security-review');
     });
   });
 });

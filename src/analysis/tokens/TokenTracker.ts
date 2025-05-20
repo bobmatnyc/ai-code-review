@@ -100,8 +100,7 @@ export class TokenTracker {
   private currentPass: number = 0;
   /** Current pass start time */
   private currentPassStartTime: number = 0;
-  /** Current pass files */
-  private currentPassFiles: string[] = [];
+  // We don't need to track this separately as it's already stored in passTokenUsage
 
   /**
    * Create a new token tracker
@@ -132,20 +131,19 @@ export class TokenTracker {
 
     this.currentPass = passNumber;
     this.currentPassStartTime = Date.now();
-    this.currentPassFiles = [...files];
-
+    
     logger.debug(`TokenTracker: Started tracking pass ${passNumber} with ${files.length} files`);
     
-    // Initialize the pass token usage
+    // Initialize the pass token usage with all required properties
     this.passTokenUsage[passNumber - 1] = {
-      passNumber,
+      passNumber: passNumber,  // Explicit assignment to avoid type issues
       inputTokens: 0,
       outputTokens: 0,
       totalTokens: 0,
       estimatedCost: 0,
       timeTakenMs: 0,
       files: [...files],
-      isConsolidation
+      isConsolidation: isConsolidation
     };
   }
 
@@ -163,9 +161,9 @@ export class TokenTracker {
   ): PassTokenUsage {
     if (!this.isActive) {
       logger.warn('TokenTracker is not active, cannot record token usage');
-      // Return empty usage
+      // Return empty usage with explicit property assignments
       return {
-        passNumber,
+        passNumber: passNumber,
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
@@ -179,7 +177,7 @@ export class TokenTracker {
     // Ensure the pass exists
     if (!this.passTokenUsage[passNumber - 1]) {
       this.passTokenUsage[passNumber - 1] = {
-        passNumber,
+        passNumber: passNumber,
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
@@ -198,19 +196,32 @@ export class TokenTracker {
     
     // Update the pass token usage
     const passUsage = this.passTokenUsage[passNumber - 1];
-    passUsage.inputTokens += inputTokens;
-    passUsage.outputTokens += outputTokens;
-    passUsage.totalTokens += totalTokens;
-    passUsage.estimatedCost += estimatedCost;
-    
-    // Calculate time taken if this is the current pass
-    if (passNumber === this.currentPass) {
-      passUsage.timeTakenMs = Date.now() - this.currentPassStartTime;
+    if (passUsage) {
+      passUsage.inputTokens += inputTokens;
+      passUsage.outputTokens += outputTokens;
+      passUsage.totalTokens += totalTokens;
+      passUsage.estimatedCost += estimatedCost;
+      
+      // Calculate time taken if this is the current pass
+      if (passNumber === this.currentPass) {
+        passUsage.timeTakenMs = Date.now() - this.currentPassStartTime;
+      }
+    } else {
+      logger.warn(`Pass ${passNumber} does not exist in TokenTracker during token recording`);
     }
 
     logger.debug(`TokenTracker: Recorded ${inputTokens} input, ${outputTokens} output tokens for pass ${passNumber}`);
     
-    return { ...passUsage };
+    return passUsage ? { ...passUsage } : {
+      passNumber: passNumber,
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      estimatedCost: 0,
+      timeTakenMs: 0,
+      files: [],
+      isConsolidation: false
+    };
   }
 
   /**
@@ -221,9 +232,9 @@ export class TokenTracker {
   public completePass(passNumber: number = this.currentPass): PassTokenUsage {
     if (!this.isActive) {
       logger.warn('TokenTracker is not active, cannot complete pass');
-      // Return empty usage
+      // Return empty usage with explicit property assignments
       return {
-        passNumber,
+        passNumber: passNumber,
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
@@ -238,7 +249,7 @@ export class TokenTracker {
     if (!this.passTokenUsage[passNumber - 1]) {
       logger.warn(`Pass ${passNumber} does not exist in TokenTracker`);
       return {
-        passNumber,
+        passNumber: passNumber,
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
@@ -251,12 +262,26 @@ export class TokenTracker {
 
     // Complete the pass
     const passUsage = this.passTokenUsage[passNumber - 1];
-    passUsage.timeTakenMs = Date.now() - this.currentPassStartTime;
+    if (passUsage) {
+      passUsage.timeTakenMs = Date.now() - this.currentPassStartTime;
 
-    logger.info(`TokenTracker: Completed pass ${passNumber} with ${passUsage.totalTokens} tokens (${passUsage.inputTokens} input, ${passUsage.outputTokens} output)`);
-    logger.info(`TokenTracker: Pass ${passNumber} estimated cost: ${formatCost(passUsage.estimatedCost)}`);
-    
-    return { ...passUsage };
+      logger.info(`TokenTracker: Completed pass ${passNumber} with ${passUsage.totalTokens} tokens (${passUsage.inputTokens} input, ${passUsage.outputTokens} output)`);
+      logger.info(`TokenTracker: Pass ${passNumber} estimated cost: ${formatCost(passUsage.estimatedCost)}`);
+      
+      return { ...passUsage };
+    } else {
+      logger.warn(`Pass ${passNumber} does not exist in TokenTracker during completion`);
+      return {
+        passNumber: passNumber,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        estimatedCost: 0,
+        timeTakenMs: 0,
+        files: [],
+        isConsolidation: false
+      };
+    }
   }
 
   /**

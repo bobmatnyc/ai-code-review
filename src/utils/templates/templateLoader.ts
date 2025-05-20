@@ -19,14 +19,14 @@ interface FrameworkVersion {
   releaseDate: string;
   supportedUntil: string;
   features: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Interface for framework information
 interface Framework {
   latest: FrameworkVersion;
   previous: FrameworkVersion;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Interface for framework data
@@ -61,7 +61,7 @@ const templateCache: Record<string, HandlebarsTemplateDelegate> = {};
  */
 function initializeHandlebars(): void {
   // Register comparison helper
-  Handlebars.registerHelper('eq', function(this: any, arg1: any, arg2: any, options: any) {
+  Handlebars.registerHelper('eq', function(this: unknown, arg1: unknown, arg2: unknown, options: Handlebars.HelperOptions) {
     return (arg1 === arg2) ? options.fn(this) : options.inverse(this);
   });
 
@@ -272,7 +272,7 @@ function loadTemplate(templatePath: string): HandlebarsTemplateDelegate | null {
  */
 export function renderTemplate(
   templatePath: string, 
-  customVars: Record<string, any> = {}
+  customVars: Record<string, unknown> = {}
 ): string | null {
   // Initialize Handlebars if not already initialized
   if (Object.keys(Handlebars.partials).length === 0) {
@@ -339,7 +339,7 @@ export function loadPromptTemplate(
     return rendered;
   }
   
-  logger.error(`No template found for reviewType=${reviewType}, language=${language}, framework=${framework}`);
+  logger.error(`No template found for reviewType=${reviewType}, language=${language || 'undefined'}, framework=${framework || 'undefined'}`);
   return null;
 }
 

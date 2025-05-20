@@ -340,7 +340,20 @@ export function getApiKey(provider: ApiProvider): string | undefined {
  */
 export function getApiEndpoint(provider: ApiProvider): string {
   const config = getApplicationConfig();
-  return config.apiEndpoints[provider].value;
+  
+  // Ensure we're using the correct case for property names
+  switch (provider) {
+    case 'gemini':
+      return config.apiEndpoints.gemini.value;
+    case 'openrouter':
+      return config.apiEndpoints.openRouter.value;
+    case 'anthropic':
+      return config.apiEndpoints.anthropic.value;
+    case 'openai':
+      return config.apiEndpoints.openai.value;
+    default:
+      return config.apiEndpoints.gemini.value;
+  }
 }
 
 /**
@@ -350,7 +363,20 @@ export function getApiEndpoint(provider: ApiProvider): string {
  */
 export function getApiVersion(provider: ApiProvider): string {
   const config = getApplicationConfig();
-  return config.apiVersions[provider].value;
+  
+  // Ensure we're using the correct case for property names
+  switch (provider) {
+    case 'gemini':
+      return config.apiVersions.gemini.value;
+    case 'openrouter':
+      return config.apiVersions.openRouter.value;
+    case 'anthropic':
+      return config.apiVersions.anthropic.value;
+    case 'openai':
+      return config.apiVersions.openai.value;
+    default:
+      return config.apiVersions.gemini.value;
+  }
 }
 
 /**
@@ -384,11 +410,49 @@ export function getTokenConfig(provider: ApiProvider): {
   costPerOutputToken: number;
 } {
   const config = getApplicationConfig();
+  
+  // For contextWindowSize, costPerInputToken, and costPerOutputToken,
+  // we need to handle the property name mismatch explicitly
+  let contextWindowSize: number;
+  let costPerInputToken: number;
+  let costPerOutputToken: number;
+  
+  // Get tokens configuration for easier access
+  const tokens = config.tokens;
+  
+  switch (provider) {
+    case 'gemini':
+      contextWindowSize = tokens.contextWindowSize.gemini.value;
+      costPerInputToken = tokens.costPerInputToken.gemini.value;
+      costPerOutputToken = tokens.costPerOutputToken.gemini.value;
+      break;
+    case 'openrouter':
+      // Use type assertion to bypass TypeScript's property check
+      contextWindowSize = tokens.contextWindowSize['openRouter' as unknown as 'openrouter'].value;
+      costPerInputToken = tokens.costPerInputToken['openRouter' as unknown as 'openrouter'].value;
+      costPerOutputToken = tokens.costPerOutputToken['openRouter' as unknown as 'openrouter'].value;
+      break;
+    case 'anthropic':
+      contextWindowSize = tokens.contextWindowSize.anthropic.value;
+      costPerInputToken = tokens.costPerInputToken.anthropic.value;
+      costPerOutputToken = tokens.costPerOutputToken.anthropic.value;
+      break;
+    case 'openai':
+      contextWindowSize = tokens.contextWindowSize.openai.value;
+      costPerInputToken = tokens.costPerInputToken.openai.value;
+      costPerOutputToken = tokens.costPerOutputToken.openai.value;
+      break;
+    default:
+      contextWindowSize = tokens.contextWindowSize.gemini.value;
+      costPerInputToken = tokens.costPerInputToken.gemini.value;
+      costPerOutputToken = tokens.costPerOutputToken.gemini.value;
+  }
+  
   return {
     maxTokensPerRequest: config.tokens.maxTokensPerRequest.value,
-    contextWindowSize: config.tokens.contextWindowSize[provider].value,
-    costPerInputToken: config.tokens.costPerInputToken[provider].value,
-    costPerOutputToken: config.tokens.costPerOutputToken[provider].value
+    contextWindowSize,
+    costPerInputToken,
+    costPerOutputToken
   };
 }
 

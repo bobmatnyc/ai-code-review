@@ -26,7 +26,6 @@ import chalk from 'chalk';
  */
 export class StreamHandler {
   private content: string = '';
-  private reviewType: ReviewType;
   private startTime: number;
   private modelName: string;
 
@@ -36,7 +35,6 @@ export class StreamHandler {
    * @param modelName Name of the model being used
    */
   constructor(reviewType: ReviewType, modelName: string) {
-    this.reviewType = reviewType;
     this.startTime = Date.now();
     this.modelName = modelName;
 

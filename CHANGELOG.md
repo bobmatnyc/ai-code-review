@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.1.0] - 2025-05-16
+## [3.1.0] - 2025-05-20
 
 ### Added
 - Comprehensive framework-specific best practices templates for Angular, Vue, Django, and Laravel
@@ -47,6 +47,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed error in reviewOrchestrator.ts from imports being used before their declaration
 - Fixed potential null reference errors in templateLoader.ts
 - Fixed undefined handling in anthropicApiClient.ts retry mechanism
+- Fixed null/undefined type safety issues in TokenAnalyzer.ts and TokenTracker.ts
+- Fixed API model name checking in anthropicApiClient.ts to properly handle undefined values
+- Fixed templateLoader.ts to handle undefined language and framework parameters
+- Fixed reviewOrchestrator.ts to safely access potentially undefined properties
+- Fixed property name discrepancy in configManager.ts between type definition and implementation
+- Disabled noUncheckedIndexedAccess to optimize type safety vs. development experience
+- Removed unused variable 'providerForProperty' in configManager.ts
+- Removed unused imports from pathValidator in FileReader.ts
+- Removed unused property 'reviewType' in streamHandler.ts
+- Removed unused fs import in PathGenerator.ts
+- Fixed `any` type usage in templateLoader.ts with proper type definitions
+- Fixed unused imports in reviewOrchestrator.ts (formatEstimation, printCurrentModel, detectPrimaryLanguage, formatMultiPassEstimation)
+- Fixed `any` types in anthropicApiClient.ts with more specific Record<string, unknown> types
+- Fixed templateLoader.test.ts mock implementation to correctly handle withFileTypes option
 
 ### Changed
 - Updated INSTRUCTIONS.md to emphasize CI checks before closing tickets

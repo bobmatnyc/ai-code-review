@@ -149,6 +149,9 @@ export async function testAnthropicApiAccess(
     
     // Look up the API-friendly model name from our model mappings
     const apiModelName = await getApiModelName(modelName);
+    if (!apiModelName) {
+      throw new Error(`Could not determine API model name for ${modelName}`);
+    }
     
     logger.debug(`Test API access using model: ${apiModelName} (from ${modelName})`);
     console.error(`Test API access using model: ${apiModelName} (from ${modelName})`);
@@ -266,17 +269,20 @@ export async function makeAnthropicRequest(
   systemPrompt: string,
   userPrompt: string,
   temperature: number = 0.2,
-  tools?: any[]
+  tools?: Record<string, unknown>[]
 ): Promise<AnthropicResponse> {
   // Get proper API model name from model mappings
   const { getApiModelName } = await import('./anthropicModelHelpers');
   
   // Look up the API-friendly model name from our model mappings
   const apiModelName = await getApiModelName(modelName);
+  if (!apiModelName) {
+    throw new Error(`Could not determine API model name for ${modelName}`);
+  }
   logger.debug(`makeAnthropicRequest: Using model ${apiModelName} from mappings (model: ${modelName})`);
   
   // Prepare the request options
-  const requestOptions: Record<string, any> = {
+  const requestOptions: Record<string, unknown> = {
     model: apiModelName, // Use the format from our configuration
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }],
@@ -350,6 +356,9 @@ export async function makeAnthropicConversationRequest(
     
     // Look up the API-friendly model name from our model mappings
     const apiModelName = await getApiModelName(modelName);
+    if (!apiModelName) {
+      throw new Error(`Could not determine API model name for ${modelName}`);
+    }
     logger.debug(`makeAnthropicConversationRequest: Using model ${apiModelName} from mappings (model: ${modelName})`);
     
     // Validate the messages array format

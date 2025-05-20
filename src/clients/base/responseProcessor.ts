@@ -96,7 +96,7 @@ export function extractStructuredData(content: string): StructuredReview | undef
                   priority: mapPriority(issue.priority),
                   type: 'other',
                   filePath: file.filePath || '',
-                  lineNumbers: issue.location ? 
+                  lineNumbers: issue.location && (issue.location.startLine || issue.location.endLine) ? 
                     `${issue.location.startLine || ''}-${issue.location.endLine || ''}` : 
                     undefined,
                   codeSnippet: issue.currentCode,

@@ -6,7 +6,6 @@
  */
 
 import path from 'path';
-import fs from 'fs/promises';
 import { pathExists } from './pathValidator';
 import { ensureDirectoryExists } from './FileWriter';
 
