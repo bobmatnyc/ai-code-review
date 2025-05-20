@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Uses tsconfig.json for TypeScript project filtering
   - Respects .eslintignore patterns in addition to .gitignore
   - Improves review focus on relevant files
+- Integrated configManager with templateLoader for dynamic template directory resolution
+- Added template cache clearing functionality to support configuration changes at runtime
 
 ### Fixed
 - Fixed model mapping issue where `gemini-2.5-pro` was not properly mapped to `gemini-2.5-pro-preview-05-06`
@@ -66,6 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed unused imports in reviewOrchestrator.ts (formatEstimation, printCurrentModel, detectPrimaryLanguage, formatMultiPassEstimation)
 - Fixed `any` types in anthropicApiClient.ts with more specific Record<string, unknown> types
 - Fixed templateLoader.test.ts mock implementation to correctly handle withFileTypes option
+- Fixed hard-coded template directory path in templateLoader.ts to use configManager
+- Fixed hard-coded debug mode check in responseProcessor.ts to use configManager
+- Updated anthropicApiClient.ts to use configManager for more consistent configuration handling
 
 ### Changed
 - Updated INSTRUCTIONS.md to emphasize CI checks before closing tickets

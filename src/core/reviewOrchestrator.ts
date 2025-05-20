@@ -18,6 +18,7 @@ import {
   estimateFromFilePaths
 } from '../utils/estimationUtils';
 import { parseModelString } from '../clients/utils/modelMaps';
+import configManager from '../utils/configManager';
 import {
   listModels,
   listModelConfigs
@@ -155,9 +156,23 @@ export async function orchestrateReview(
     const projectPath = process.cwd();
     const projectName = path.basename(projectPath);
 
+    // Get the output directory from options, config, or default
+    const defaultOutputDir = 'ai-code-review-docs';
+    const configOutputDir = configManager.getPathsConfig().outputDir || defaultOutputDir;
+    const outputDir = options.outputDir || configOutputDir;
+    
+    // Determine if the path is absolute or relative
+    const outputBaseDir = path.isAbsolute(outputDir) 
+      ? outputDir 
+      : path.resolve(projectPath, outputDir);
+    
     // Create output directory
-    const outputBaseDir = path.resolve(projectPath, 'ai-code-review-docs');
     await createDirectory(outputBaseDir);
+    
+    // Log the output directory
+    if (outputDir !== defaultOutputDir) {
+      logger.info(`Using custom output directory: ${outputBaseDir}`);
+    }
 
     // Log project information
     logger.info(`Project: ${projectName}`);
