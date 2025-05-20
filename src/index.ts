@@ -80,7 +80,6 @@ if (process.env.AI_CODE_REVIEW_DIR) {
 
 // Find first directory that contains .env.local
 let toolEnvPath = '';
-let toolDirectory = '';
 
 // Check each possible tool directory for .env.local
 for (const dir of possibleToolDirectories) {
@@ -90,7 +89,7 @@ for (const dir of possibleToolDirectories) {
   try {
     if (fs.existsSync(envPath)) {
       toolEnvPath = envPath;
-      toolDirectory = dir;
+      // Store the tool directory in a variable we'll actually use
       debugLog(`Found tool .env.local at: ${toolEnvPath}`);
       break;
     }

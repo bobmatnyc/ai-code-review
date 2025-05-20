@@ -5,9 +5,9 @@
  * It supports variable substitution, partials, and conditional logic.
  */
 
-import fs from 'fs';
-import path from 'path';
-import Handlebars from 'handlebars';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as Handlebars from 'handlebars';
 import logger from '../logger';
 
 // Define the base path for templates

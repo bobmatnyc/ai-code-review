@@ -57,7 +57,12 @@ export async function fetchWithRetry(
         console.error(`\n\n==== ANTHROPIC API RESPONSE ====`);
         console.error(`Status: ${res.status}`);
         console.error(`Status Text: ${res.statusText}`);
-        console.error(`Headers: ${JSON.stringify(Object.fromEntries([...res.headers.entries()]), null, 2)}`);
+        // Convert headers to plain object safely without using iterator spread
+        const headersObj: Record<string, string> = {};
+        res.headers.forEach((value, key) => {
+          headersObj[key] = value;
+        });
+        console.error(`Headers: ${JSON.stringify(headersObj, null, 2)}`);
         console.error(`==== END RESPONSE HEADERS ====\n`);
       }
 

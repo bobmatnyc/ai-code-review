@@ -5,7 +5,6 @@
  * that include detailed evidence of why each element is considered unused.
  */
 
-import chalk from 'chalk';
 import {
   CodeTracingUnusedCodeReview,
   TracedUnusedElement
