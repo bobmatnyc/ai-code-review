@@ -40,7 +40,7 @@ import {
  * Anthropic client implementation
  */
 export class AnthropicClient extends AbstractClient {
-  protected apiKey: string | undefined;
+  protected apiKey: string = '';
   
   /**
    * Initialize with default values
@@ -49,7 +49,7 @@ export class AnthropicClient extends AbstractClient {
     super();
     this.modelName = '';
     this.isInitialized = false;
-    this.apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
+    this.apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || '';
   }
   
   /**
