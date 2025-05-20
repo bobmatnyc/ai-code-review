@@ -387,7 +387,14 @@ export class LangChainUtils {
       return getLangChainDefaultExamples(options.type || 'quick-fixes');
     }
 
-    return options.examples;
+    // Convert Record<string, unknown>[] to Record<string, string>[]
+    return options.examples.map(example => {
+      const stringExample: Record<string, string> = {};
+      Object.entries(example).forEach(([key, value]) => {
+        stringExample[key] = String(value);
+      });
+      return stringExample;
+    });
   }
 }
 

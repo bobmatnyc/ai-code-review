@@ -427,10 +427,10 @@ export function getTokenConfig(provider: ApiProvider): {
       costPerOutputToken = tokens.costPerOutputToken.gemini.value;
       break;
     case 'openrouter':
-      // Use type assertion to bypass TypeScript's property check
-      contextWindowSize = tokens.contextWindowSize['openRouter' as unknown as 'openrouter'].value;
-      costPerInputToken = tokens.costPerInputToken['openRouter' as unknown as 'openrouter'].value;
-      costPerOutputToken = tokens.costPerOutputToken['openRouter' as unknown as 'openrouter'].value;
+      // Access with consistent casing (match the enum-defined provider format)
+      contextWindowSize = tokens.contextWindowSize.openrouter.value;
+      costPerInputToken = tokens.costPerInputToken.openrouter.value;
+      costPerOutputToken = tokens.costPerOutputToken.openrouter.value;
       break;
     case 'anthropic':
       contextWindowSize = tokens.contextWindowSize.anthropic.value;

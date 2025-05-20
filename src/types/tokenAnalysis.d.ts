@@ -46,8 +46,8 @@ declare module '../analysis/tokens' {
   }
   
   export class TokenAnalyzer {
-    static analyzeFile(file: any, options: TokenAnalysisOptions): FileTokenAnalysis;
-    static analyzeFiles(files: any[], options: TokenAnalysisOptions): TokenAnalysisResult;
+    static analyzeFile(file: import('../types/review').FileInfo, options: TokenAnalysisOptions): FileTokenAnalysis;
+    static analyzeFiles(files: import('../types/review').FileInfo[], options: TokenAnalysisOptions): TokenAnalysisResult;
   }
   
   export function formatTokenAnalysis(
