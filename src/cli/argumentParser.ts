@@ -426,7 +426,7 @@ export async function getCommandLineArguments(): Promise<CliOptions> {
   const parsedArgs = await parseArguments();
   
   // Handle generate-config flag
-  if (parsedArgs.generateConfig || parsedArgs['generate-config']) {
+  if (parsedArgs.generateConfig) {
     // Print sample config to stdout and exit
     console.log(configFileManager.generateSampleConfig());
     process.exit(0);
