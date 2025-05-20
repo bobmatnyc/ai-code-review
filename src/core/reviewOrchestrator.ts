@@ -159,7 +159,8 @@ export async function orchestrateReview(
     // Get the output directory from options, config, or default
     const defaultOutputDir = 'ai-code-review-docs';
     const configOutputDir = configManager.getPathsConfig().outputDir || defaultOutputDir;
-    const outputDir = options.outputDir || configOutputDir;
+    const cliOptions = options as any; // Using any here as a temporary workaround
+    const outputDir = cliOptions.outputDir || configOutputDir;
     
     // Determine if the path is absolute or relative
     const outputBaseDir = path.isAbsolute(outputDir) 
