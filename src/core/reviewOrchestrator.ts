@@ -15,13 +15,11 @@ import { runApiConnectionTests } from '../__tests__/apiConnection.test';
 import { getConfig } from '../utils/config';
 import { ProgrammingLanguage } from '../types/common';
 import {
-  estimateFromFilePaths,
-  formatEstimation
+  estimateFromFilePaths
 } from '../utils/estimationUtils';
 import { parseModelString } from '../clients/utils/modelMaps';
 import {
   listModels,
-  printCurrentModel,
   listModelConfigs
 } from '../clients/utils/modelLister';
 
@@ -169,7 +167,7 @@ export async function orchestrateReview(
     let frameworkDetectionResult = null;
     if (!options.language) {
       try {
-        const { detectPrimaryLanguage, detectFramework } = await import('../utils/detection');
+        const { detectFramework } = await import('../utils/detection');
         frameworkDetectionResult = await detectFramework(projectPath);
         
         if (frameworkDetectionResult) {
@@ -288,7 +286,7 @@ export async function orchestrateReview(
         
         // Use the new TokenAnalyzer for more comprehensive analysis
         const { TokenAnalyzer } = await import('../analysis/tokens');
-        const { estimateMultiPassReviewCost, formatMultiPassEstimation } = await import('../utils/estimationUtils');
+        const { estimateMultiPassReviewCost } = await import('../utils/estimationUtils');
         
         const tokenAnalysisOptions = {
           reviewType: options.type,
@@ -329,13 +327,13 @@ Token Information:
 ${tokenAnalysis.chunkingRecommendation.chunkingRecommended ? 
   `Multi-Pass Analysis:
   Chunking Required: Yes
-  Reason: ${tokenAnalysis.chunkingRecommendation.reason}
+  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content exceeds context window'}
   Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}` : 
   `Multi-Pass Analysis:
   Chunking Required: No
-  Reason: ${tokenAnalysis.chunkingRecommendation.reason}`}
+  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content fits within context window'}`}
 
-Estimated Cost: ${costEstimation.formattedCost}
+Estimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}
 
 Note: This is an estimate based on approximate token counts and may vary
       based on the actual content and model behavior.
@@ -547,7 +545,7 @@ Note: This is an estimate based on approximate token counts and may vary
         // If chunking is recommended, provide analysis and ask for confirmation unless noConfirm is true
         if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {
           // Get cost estimate based on token analysis
-          const { estimateMultiPassReviewCost, formatMultiPassEstimation } = await import('../utils/estimationUtils');
+          const { estimateMultiPassReviewCost } = await import('../utils/estimationUtils');
           
           const costEstimation = await estimateMultiPassReviewCost(
             fileInfos,
@@ -578,10 +576,10 @@ Token Information:
   Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
 
 Multi-Pass Analysis:
-  Reason: ${tokenAnalysis.chunkingRecommendation.reason}
+  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content exceeds context window'}
   Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}
 
-Estimated Cost: ${costEstimation.formattedCost}
+Estimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}
 `);
           
           // Ask for confirmation unless noConfirm flag is set

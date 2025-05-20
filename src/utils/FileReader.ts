@@ -9,7 +9,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { FileInfo } from '../types/review';
 import logger from './logger';
-import { isFile, isDirectory } from './pathValidator';
 
 /**
  * Read a file and return its content

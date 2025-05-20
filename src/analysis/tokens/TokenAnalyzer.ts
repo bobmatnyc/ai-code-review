@@ -127,8 +127,13 @@ export class TokenAnalyzer {
       ? modelName.split(':')[1] 
       : modelName;
     
-    return TokenAnalyzer.MODEL_CONTEXT_SIZES[baseName] || 
-      TokenAnalyzer.MODEL_CONTEXT_SIZES.default;
+    // Use explicit existence check for default value
+    if (baseName && TokenAnalyzer.MODEL_CONTEXT_SIZES[baseName]) {
+      return TokenAnalyzer.MODEL_CONTEXT_SIZES[baseName];
+    }
+    
+    // We know default exists in our static map but TypeScript doesn't, so use a fallback
+    return TokenAnalyzer.MODEL_CONTEXT_SIZES.default || 100000;
   }
 
   /**
