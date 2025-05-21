@@ -15,12 +15,14 @@ import { runApiConnectionTests } from '../__tests__/apiConnection.test';
 import { getConfig } from '../utils/config';
 import { ProgrammingLanguage } from '../types/common';
 import {
-  estimateFromFilePaths
+  estimateFromFilePaths,
+  formatEstimation
 } from '../utils/estimationUtils';
 import { parseModelString } from '../clients/utils/modelMaps';
 import configManager from '../utils/configManager';
 import {
   listModels,
+  printCurrentModel,
   listModelConfigs
 } from '../clients/utils/modelLister';
 
@@ -58,6 +60,7 @@ function getProviderDisplayInfo(modelName: string): { provider: string; model: s
   }
 }
 
+//
 // Import strategy-related modules
 import { StrategyFactory } from '../strategies/StrategyFactory';
 import { selectApiClient } from './ApiClientSelector';

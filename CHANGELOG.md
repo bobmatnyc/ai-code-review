@@ -15,6 +15,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed optional chaining usage in templateLoader.ts 
 - Added proper type conversion in LangChainUtils for examples
 - Added proper API response interfaces to improve type checking
+- Fixed model mapping issue where `gemini-2.5-pro` was not properly mapped to `gemini-2.5-pro-preview-05-06`
+- Fixed JSON output formatting in quick-fixes and other review types
+- Fixed consolidated review to use markdown format instead of JSON
+- Simplified model selection logic to use only configured models without fallbacks
+- Fixed CI workflow issues including build scripts, module resolution, and lint errors
+- Updated package scripts from pnpm to npm for consistency
+- Removed automatic Gemini fallback in IndividualReviewStrategy - now fails gracefully with helpful error messages
+- Fixed failing tests in reviewOrchestratorConfirm.test.ts related to prompt confirmation and multipass reviews
+- Fixed import path issues in rateLimiter.test.ts after API utils refactoring
+- Fixed nested test structure issues that were causing Jest failures
+- Fixed issues with process.exit mocking in test environment
+- Fixed module import circular dependencies in various tests
+- Fixed mocking issues with fileSystem and dynamically imported modules
+- Fixed PHP framework detection test to match actual behavior
+- Fixed bundledPrompts test to accommodate new Python-specific prompts
+- Fixed argumentParser.test.ts worker process exceptions by simplifying test cases
+- Fixed type error in LangChainPromptStrategy.ts by safely accessing filePath property
+- Enhanced TypeScript configuration with stricter compiler options
+- Added explicit interfaces for API responses instead of using 'any' types
+- Improved error handling in critical operations with proper validation and recovery options
+- Implemented a centralized configuration system to eliminate hardcoded values
+- Fixed TypeScript errors caused by stricter compiler options (noUnusedParameters, noUnusedLocals, etc.)
+- Fixed error in reviewOrchestrator.ts from imports being used before their declaration
+- Fixed potential null reference errors in templateLoader.ts
+- Fixed undefined handling in anthropicApiClient.ts retry mechanism
+- Fixed null/undefined type safety issues in TokenAnalyzer.ts and TokenTracker.ts
+- Fixed API model name checking in anthropicApiClient.ts to properly handle undefined values
+- Fixed templateLoader.ts to handle undefined language and framework parameters
+- Fixed reviewOrchestrator.ts to safely access potentially undefined properties
+- Fixed property name discrepancy in configManager.ts between type definition and implementation
+- Disabled noUncheckedIndexedAccess to optimize type safety vs. development experience
+- Removed unused variable 'providerForProperty' in configManager.ts
+- Removed unused imports from pathValidator in FileReader.ts
+- Removed unused property 'reviewType' in streamHandler.ts
+- Removed unused fs import in PathGenerator.ts
+- Fixed `any` type usage in templateLoader.ts with proper type definitions
+- Fixed unused imports in reviewOrchestrator.ts (formatEstimation, printCurrentModel, detectPrimaryLanguage, formatMultiPassEstimation)
+- Fixed `any` types in anthropicApiClient.ts with more specific Record<string, unknown> types
+- Fixed templateLoader.test.ts mock implementation to correctly handle withFileTypes option
+- Fixed hard-coded template directory path in templateLoader.ts to use configManager
+- Fixed hard-coded debug mode check in responseProcessor.ts to use configManager
+- Updated anthropicApiClient.ts to use configManager for more consistent configuration handling
 
 ## [3.2.0] - 2025-05-21
 
@@ -27,11 +69,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - .eslintignore patterns (new)
   - tsconfig.json configuration (new)
 - Added proper documentation for smart file selection
+- Comprehensive framework-specific best practices templates for Angular, Vue, Django, and Laravel
+- Improved JSON output formatting for interactive mode responses
+- Added support for structured JSON responses in review results
+- Added automatic detection and parsing of JSON content in review outputs
+- Added CI local check script (`npm run ci:local`) for pre-push validation
+- Enhanced workflow instructions in INSTRUCTIONS.md with CI best practices
+- Added CI data collection for all review types with per-file error counts
+- Integrated TypeScript and ESLint error counts into code review prompts
+- Added structured API response interfaces in new `apiResponses.ts` module
+- Implemented a configManager singleton for centralized configuration access
+- Enabled TypeScript's noUnusedLocals and noUnusedParameters for improved code quality
+- Added comprehensive configuration interfaces with Zod validation schema
+- Added configuration types for API keys, endpoints, rate limits, and token usage
+- Implemented smart file selection using project configuration files:
+  - Uses tsconfig.json for TypeScript project filtering
+  - Respects .eslintignore patterns in addition to .gitignore
+  - Improves review focus on relevant files
+- Integrated configManager with templateLoader for dynamic template directory resolution
+- Added template cache clearing functionality to support configuration changes at runtime
 
 ### Fixed
 - Implemented missing features that were mentioned in CHANGELOG but not fully implemented
 - Fixed JSON configuration file handling for consistent configuration management
 - Fixed smart file selection to correctly use project configuration files
+
+### Changed
+- Updated INSTRUCTIONS.md to emphasize CI checks before closing tickets
+- Added detailed CI troubleshooting guide and common issue prevention
+- Changed workflow commands from pnpm to npm throughout documentation
+- Added explicit documentation against automatic fallback strategies - user configuration must be respected
+- Fixed regex-based model extraction in favor of direct model passing
+- Improved error handling for structured JSON responses
+- Updated Gemini client to properly request structured JSON when in interactive mode
+- Enhanced review parser to handle language-specific code blocks without treating them as JSON
+- Improved output formatter to automatically detect and format JSON responses as markdown
+- Updated default model to Gemini 2.5 Pro Preview throughout the codebase
+- Simplified consolidation logic to use configured model directly without special selection
 
 ## [3.1.0] - 2025-05-20
 
