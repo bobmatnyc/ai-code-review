@@ -9,6 +9,7 @@ import logger from '../logger';
 import { extractPackageInfo, PackageAnalysisResult, PackageInfo } from './packageAnalyzer';
 import { batchSearchPackageSecurity, hasSerpApiConfig } from './serpApiHelper';
 import { analyzePackagesWithStackAwareness, formatStackSummary } from './stackAwarePackageAnalyzer';
+import fs from 'fs';
 
 /**
  * Package security analysis result
@@ -271,7 +272,6 @@ export async function createDependencySecuritySection(projectPath: string): Prom
       
       // Check if the directory exists
       try {
-        const fs = require('fs');
         const stats = fs.statSync(projectPath);
         logger.info(`Project directory exists: ${stats.isDirectory()}`);
       } catch (err: unknown) {
@@ -301,7 +301,9 @@ export async function createDependencySecuritySection(projectPath: string): Prom
       try {
         console.log('Attempting to use dependency security scanner...');
         logger.info('Attempting to use dependency security scanner...');
-        const { createDependencySecuritySection } = require('./dependencySecurityScanner');
+        // Use dynamic import instead of require
+        const securityScanner = await import('./dependencySecurityScanner');
+        const { createDependencySecuritySection } = securityScanner;
         console.log('Scanner module loaded successfully');
         logger.info('Scanner module loaded successfully');
         

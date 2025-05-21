@@ -18,7 +18,7 @@ interface TsConfig {
   include?: string[];
   exclude?: string[];
   files?: string[];
-  compilerOptions?: Record<string, any>;
+  compilerOptions?: Record<string, unknown>;
 }
 
 /**
