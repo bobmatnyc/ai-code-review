@@ -156,6 +156,24 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "apiKeyEnvVar": "AI_CODE_REVIEW_OPENAI_API_KEY",
     "supportsToolCalling": false
   },
+  "openai:o3": {
+    "apiIdentifier": "o3",
+    "displayName": "o3",
+    "provider": "openai",
+    "contextWindow": 200000,
+    "description": "OpenAI's most advanced reasoning model with enhanced capabilities",
+    "apiKeyEnvVar": "AI_CODE_REVIEW_OPENAI_API_KEY",
+    "supportsToolCalling": true
+  },
+  "openai:o4-mini": {
+    "apiIdentifier": "o4-mini",
+    "displayName": "o4-mini",
+    "provider": "openai",
+    "contextWindow": 128000,
+    "description": "Compact and efficient reasoning model with competitive performance",
+    "apiKeyEnvVar": "AI_CODE_REVIEW_OPENAI_API_KEY",
+    "supportsToolCalling": true
+  },
   "openai:o4-mini-high": {
     "apiIdentifier": "o4-mini-high",
     "displayName": "o4-mini-high",
