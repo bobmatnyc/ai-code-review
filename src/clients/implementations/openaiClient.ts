@@ -116,6 +116,15 @@ export class OpenAIClient extends AbstractClient {
   }
   
   /**
+   * Get the API model name to use for requests
+   * @returns The actual model name to use in API requests
+   */
+  private getApiModelName(): string {
+    // For o4-mini-high, we need to use o4-mini in the actual API call
+    return this.modelName === 'o4-mini-high' ? 'o4-mini' : this.modelName;
+  }
+  
+  /**
    * Generate a review for a single file
    * @param fileContent Content of the file to review
    * @param filePath Path to the file
@@ -146,9 +155,6 @@ export class OpenAIClient extends AbstractClient {
         await this.initialize();
       }
       
-      // Get the language from file extension
-      // const language = getLanguageFromExtension(filePath); // Currently unused
-      
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);
       
@@ -163,22 +169,14 @@ export class OpenAIClient extends AbstractClient {
       try {
         logger.info(`Generating review with OpenAI ${this.modelName}...`);
         
-        // Make the API request
-        const response = await fetchWithRetry(
-          'https://api.openai.com/v1/chat/completions',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${this.apiKey}`
-            },
-            body: JSON.stringify({
-              model: this.modelName,
-              messages: [
-                {
-                  role: 'system',
-                  content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
-                  
+        // Prepare the API request body
+        const requestBody: Record<string, any> = {
+          model: this.getApiModelName(),
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+              
 IMPORTANT: Your response MUST be in the following JSON format:
 
 {
@@ -219,15 +217,31 @@ IMPORTANT: Your response MUST be in the following JSON format:
 Ensure your response is valid JSON. Do not include any text outside the JSON structure. 
 
 REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provide an overall assessment of the code quality.`
-                },
-                {
-                  role: 'user',
-                  content: prompt
-                }
-              ],
-              temperature: 0.2,
-              max_tokens: MAX_TOKENS_PER_REQUEST
-            })
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: MAX_TOKENS_PER_REQUEST
+        };
+        
+        // For o4-mini-high, we need to add response_format
+        if (this.modelName === 'o4-mini-high') {
+          requestBody.response_format = { type: "json_object" };
+        }
+        
+        // Make the API request
+        const response = await fetchWithRetry(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${this.apiKey}`
+            },
+            body: JSON.stringify(requestBody)
           }
         );
         
@@ -304,22 +318,14 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
       try {
         logger.info(`Generating consolidated review with OpenAI ${this.modelName}...`);
         
-        // Make the API request
-        const response = await fetchWithRetry(
-          'https://api.openai.com/v1/chat/completions',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${this.apiKey}`
-            },
-            body: JSON.stringify({
-              model: this.modelName,
-              messages: [
-                {
-                  role: 'system',
-                  content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
-                  
+        // Prepare the API request body
+        const requestBody: Record<string, any> = {
+          model: this.getApiModelName(),
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+              
 IMPORTANT: Your response MUST be in the following JSON format:
 
 {
@@ -360,15 +366,31 @@ IMPORTANT: Your response MUST be in the following JSON format:
 Ensure your response is valid JSON. Do not include any text outside the JSON structure. 
 
 REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provide an overall assessment of the code quality.`
-                },
-                {
-                  role: 'user',
-                  content: prompt
-                }
-              ],
-              temperature: 0.2,
-              max_tokens: MAX_TOKENS_PER_REQUEST
-            })
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: MAX_TOKENS_PER_REQUEST
+        };
+        
+        // For o4-mini-high, we need to add response_format
+        if (this.modelName === 'o4-mini-high') {
+          requestBody.response_format = { type: "json_object" };
+        }
+        
+        // Make the API request
+        const response = await fetchWithRetry(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${this.apiKey}`
+            },
+            body: JSON.stringify(requestBody)
           }
         );
         
@@ -482,6 +504,39 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           
           // Prepare the tools
           const tools = openAIToolCallingHandler.prepareTools(ALL_TOOLS);
+          
+          // Prepare initial request body  
+          const initialRequestBody: Record<string, any> = {
+            model: this.getApiModelName(),
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations. 
+                
+ESSENTIAL TASK: For ALL major dependencies in the project, you MUST use the available tools to thoroughly check for:
+1. Security vulnerabilities and CVEs
+2. Version updates and recommendations 
+3. Compatibility issues and breaking changes
+4. Deprecation warnings
+5. Maintenance status
+
+Always include a dedicated "Dependency Security Analysis" section in your review that summarizes the findings from your dependency security checks. This is a critical part of the architectural review.`
+              },
+              {
+                role: 'user',
+                content: promptWithPackages
+              }
+            ],
+            tools,
+            tool_choice: 'auto',
+            temperature: 0.2,
+            max_tokens: MAX_TOKENS_PER_REQUEST
+          };
+          
+          // For o4-mini-high, we need to add response_format
+          if (this.modelName === 'o4-mini-high') {
+            initialRequestBody.response_format = { type: "json_object" };
+          }
             
           // Make the initial request with tools
           response = await fetchWithRetry(
@@ -492,32 +547,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${this.apiKey}`
               },
-              body: JSON.stringify({
-                model: this.modelName,
-                messages: [
-                  {
-                    role: 'system',
-                    content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations. 
-                    
-ESSENTIAL TASK: For ALL major dependencies in the project, you MUST use the available tools to thoroughly check for:
-1. Security vulnerabilities and CVEs
-2. Version updates and recommendations 
-3. Compatibility issues and breaking changes
-4. Deprecation warnings
-5. Maintenance status
-
-Always include a dedicated "Dependency Security Analysis" section in your review that summarizes the findings from your dependency security checks. This is a critical part of the architectural review.`
-                  },
-                  {
-                    role: 'user',
-                    content: promptWithPackages
-                  }
-                ],
-                tools,
-                tool_choice: 'auto',
-                temperature: 0.2,
-                max_tokens: MAX_TOKENS_PER_REQUEST
-              })
+              body: JSON.stringify(initialRequestBody)
             }
           );
           
@@ -564,6 +594,19 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
               toolResults
             );
             
+            // Prepare final request body
+            const finalRequestBody: Record<string, any> = {
+              model: this.getApiModelName(),
+              messages: conversationWithResults,
+              temperature: 0.2,
+              max_tokens: MAX_TOKENS_PER_REQUEST
+            };
+            
+            // For o4-mini-high, we need to add response_format
+            if (this.modelName === 'o4-mini-high') {
+              finalRequestBody.response_format = { type: "json_object" };
+            }
+            
             // Make the final request
             const finalResponse = await fetchWithRetry(
               'https://api.openai.com/v1/chat/completions',
@@ -573,12 +616,7 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
                   'Content-Type': 'application/json',
                   Authorization: `Bearer ${this.apiKey}`
                 },
-                body: JSON.stringify({
-                  model: this.modelName,
-                  messages: conversationWithResults,
-                  temperature: 0.2,
-                  max_tokens: MAX_TOKENS_PER_REQUEST
-                })
+                body: JSON.stringify(finalRequestBody)
               }
             );
             
@@ -597,6 +635,28 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
           }
         } else {
           // Regular non-tool calling flow
+          // Prepare request body
+          const requestBody: Record<string, any> = {
+            model: this.getApiModelName(),
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations.`
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.2,
+            max_tokens: MAX_TOKENS_PER_REQUEST
+          };
+          
+          // For o4-mini-high, we need to add response_format
+          if (this.modelName === 'o4-mini-high') {
+            requestBody.response_format = { type: "json_object" };
+          }
+          
           response = await fetchWithRetry(
             'https://api.openai.com/v1/chat/completions',
             {
@@ -605,21 +665,7 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${this.apiKey}`
               },
-              body: JSON.stringify({
-                model: this.modelName,
-                messages: [
-                  {
-                    role: 'system',
-                    content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations.`
-                  },
-                  {
-                    role: 'user',
-                    content: prompt
-                  }
-                ],
-                temperature: 0.2,
-                max_tokens: MAX_TOKENS_PER_REQUEST
-              })
+              body: JSON.stringify(requestBody)
             }
           );
           
