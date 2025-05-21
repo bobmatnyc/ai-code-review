@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.5] - 2025-05-22
+
+### Fixed
+- Fixed critical issue with OpenAI o4-mini-high model in the OpenAI client
+- Added proper model name mapping from o4-mini-high to o4-mini for API calls
+- Added required response_format parameter for the o4-mini-high model
+- Fixed tool calling paths to properly handle the o4-mini-high model
+
 ## [3.2.4] - 2025-05-22
 
 ### Added
