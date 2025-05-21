@@ -120,8 +120,8 @@ export class OpenAIClient extends AbstractClient {
    * @returns The actual model name to use in API requests
    */
   private getApiModelName(): string {
-    // For o4-mini-high, we need to use o4-mini in the actual API call
-    return this.modelName === 'o4-mini-high' ? 'o4-mini' : this.modelName;
+    // Use the model name as configured in the model registry
+    return this.modelName;
   }
   
   /**
