@@ -227,11 +227,6 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           max_tokens: MAX_TOKENS_PER_REQUEST
         };
         
-        // For o4-mini-high, we need to add response_format
-        if (this.modelName === 'o4-mini-high') {
-          requestBody.response_format = { type: "json_object" };
-        }
-        
         // Make the API request
         const response = await fetchWithRetry(
           'https://api.openai.com/v1/chat/completions',
@@ -375,11 +370,6 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           temperature: 0.2,
           max_tokens: MAX_TOKENS_PER_REQUEST
         };
-        
-        // For o4-mini-high, we need to add response_format
-        if (this.modelName === 'o4-mini-high') {
-          requestBody.response_format = { type: "json_object" };
-        }
         
         // Make the API request
         const response = await fetchWithRetry(
@@ -532,11 +522,6 @@ Always include a dedicated "Dependency Security Analysis" section in your review
             temperature: 0.2,
             max_tokens: MAX_TOKENS_PER_REQUEST
           };
-          
-          // For o4-mini-high, we need to add response_format
-          if (this.modelName === 'o4-mini-high') {
-            initialRequestBody.response_format = { type: "json_object" };
-          }
             
           // Make the initial request with tools
           response = await fetchWithRetry(
@@ -602,11 +587,6 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
               max_tokens: MAX_TOKENS_PER_REQUEST
             };
             
-            // For o4-mini-high, we need to add response_format
-            if (this.modelName === 'o4-mini-high') {
-              finalRequestBody.response_format = { type: "json_object" };
-            }
-            
             // Make the final request
             const finalResponse = await fetchWithRetry(
               'https://api.openai.com/v1/chat/completions',
@@ -651,11 +631,6 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
             temperature: 0.2,
             max_tokens: MAX_TOKENS_PER_REQUEST
           };
-          
-          // For o4-mini-high, we need to add response_format
-          if (this.modelName === 'o4-mini-high') {
-            requestBody.response_format = { type: "json_object" };
-          }
           
           response = await fetchWithRetry(
             'https://api.openai.com/v1/chat/completions',
