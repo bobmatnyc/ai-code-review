@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.4] - 2025-05-22
+
+### Added
+- Added support for OpenAI's o4-mini-high model
+- Updated model registry and tests to include the new model
+- Set context window size to 128000 and enabled tool calling support
+- Added comprehensive test coverage for the new model
+
 ## [3.2.3] - 2025-05-22
 
 ### Fixed
