@@ -94,7 +94,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
   {
     language: 'ruby',
     requiredFiles: [],
-    additionalCheck: async (projectPath: string) => {
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
       // Check for .rb files
       try {
         const files = await fs.readdir(projectPath);
@@ -149,7 +149,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
   {
     language: 'python',
     requiredFiles: [],
-    additionalCheck: async (projectPath: string) => {
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
       // Check for .py files
       try {
         const files = await fs.readdir(projectPath);
@@ -188,7 +188,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
   {
     language: 'php',
     requiredFiles: [],
-    additionalCheck: async (projectPath: string) => {
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
       // Check for .php files
       try {
         const files = await fs.readdir(projectPath);
@@ -209,7 +209,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
   {
     language: 'typescript',
     requiredFiles: ['package.json'],
-    additionalCheck: async (projectPath: string) => {
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
       // Check for TypeScript in dependencies or devDependencies
       try {
         const packageJsonPath = path.join(projectPath, 'package.json');
@@ -227,7 +227,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
   {
     language: 'typescript',
     requiredFiles: [],
-    additionalCheck: async (projectPath: string) => {
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
       // Check for .ts files
       try {
         const files = await fs.readdir(projectPath);
@@ -244,7 +244,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
     language: 'javascript',
     requiredFiles: ['package.json'],
     optionalFiles: ['webpack.config.js', 'babel.config.js', '.babelrc'],
-    additionalCheck: async (projectPath: string) => {
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
       // TypeScript check to ensure this isn't a TypeScript project
       try {
         const files = await fs.readdir(projectPath);
@@ -261,7 +261,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
   {
     language: 'javascript',
     requiredFiles: [],
-    additionalCheck: async (projectPath: string) => {
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
       // Check for .js files
       try {
         const files = await fs.readdir(projectPath);

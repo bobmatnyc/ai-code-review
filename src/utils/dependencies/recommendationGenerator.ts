@@ -9,7 +9,8 @@ import path from 'path';
 import fs from 'fs/promises';
 import { execSync } from 'child_process';
 import logger from '../logger';
-import { SecurityIssues } from './securityAnalysis';
+// SecurityIssues type is not used in this file
+// import { SecurityIssues } from './securityAnalysis';
 
 /**
  * Get contextual recommendations based on the project and its dependencies
@@ -60,7 +61,7 @@ export async function getContextualRecommendations(
         // Look for dependencies that might need @types packages
         const missingTypes: string[] = [];
         
-        for (const [dep, version] of Object.entries(dependencies)) {
+        for (const [dep] of Object.entries(dependencies)) {
           if (
             !dep.startsWith('@types/') && 
             !(devDependencies && devDependencies[`@types/${dep}`]) &&
@@ -129,7 +130,7 @@ export async function getContextualRecommendations(
       
       // Check for package duplication risk with peer dependencies
       const peerDependencies = packageJson.peerDependencies || {};
-      for (const [peer, peerVersion] of Object.entries(peerDependencies)) {
+      for (const [peer] of Object.entries(peerDependencies)) {
         if (dependencies[peer]) {
           recommendations.push(`Avoid duplicate installations by removing "${peer}" from direct dependencies since it's already a peer dependency`);
         }
