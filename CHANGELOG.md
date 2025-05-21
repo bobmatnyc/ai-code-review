@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.3] - 2025-05-22
+
+### Fixed
+- Fixed failing tests in smartFileSelector.test.ts
+- Enhanced matchesTsConfig to better handle src/**/* patterns
+- Improved path handling for test cases to ensure proper matching
+- Fixed variable declaration issues (changed let to const) in smart file selection
+- Resolved variable redeclaration issue in unusedDependencies.ts
+- Addressed unused variable warnings across multiple files
+
 ## [3.2.2] - 2025-05-22
 
 ### Fixed
