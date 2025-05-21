@@ -108,7 +108,7 @@ export async function loadTsConfig(projectDir: string): Promise<TsConfig | null>
  */
 function convertTsGlobToRegex(pattern: string): RegExp {
   // Replace special characters with their regex equivalents
-  let regexPattern = pattern
+  const regexPattern = pattern
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
     .replace(/\*\*/g, '.*')
     .replace(/\*/g, '[^/]*')

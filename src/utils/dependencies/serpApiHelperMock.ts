@@ -168,7 +168,7 @@ export function hasSerpApiConfig(): boolean {
  */
 export async function searchPackageSecurity(
   packageInfo: PackageInfo,
-  ecosystem: 'npm' | 'composer' | 'pip' | 'gem'
+  _ecosystem: 'npm' | 'composer' | 'pip' | 'gem'
 ): Promise<DependencySecurityInfo | null> {
   logger.debug(`[MOCK] Searching for security info for ${packageInfo.name} ${packageInfo.version || ''}`);
   
