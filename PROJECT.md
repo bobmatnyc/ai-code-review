@@ -247,33 +247,115 @@ Output will be generated in the `/review/[project-name]/` directory, with subdir
    ```
 5. After implementing fixes, verify changes by running appropriate tests
 
-## Version Management
+## Release Management & Publishing
 
-### Version Update Process
+### Version Management
 // Added: 2025-05-21
-When updating the project version, you MUST update both locations where the version is stored:
+
+#### Dual Version System
+This project maintains versions in two locations:
 
 1. **package.json** - The source of truth for the npm package version
 2. **src/index.ts** - Contains a hardcoded `VERSION` constant for CLI --version flag reliability
 
-#### Critical Steps for Version Updates:
+The hardcoded version exists for reliability - it ensures the --version flag works correctly even when package.json reading fails due to npm installation issues or module resolution problems.
+
+#### Critical Steps for Version Updates
+
+**IMPORTANT**: Both versions must always be synchronized manually.
 
 1. **Update package.json version** (via npm version command or direct edit)
 2. **Update hardcoded version in src/index.ts** at line ~213:
    ```typescript
-   const VERSION = '3.2.7'; // Must match package.json version
+   const VERSION = '3.2.8'; // Must match package.json version
    ```
-3. **Rebuild the project** with `npm run build`
-4. **Verify version consistency** with `ai-code-review --show-version`
+3. **Update CHANGELOG.md** with the new release notes
+4. **Rebuild the project** with `npm run build`
+5. **Verify version consistency** with `ai-code-review --show-version`
+6. **Test the build** to ensure functionality
 
-#### Why Two Versions?
-The hardcoded version in src/index.ts exists for reliability - it ensures the --version flag works correctly even when package.json reading fails due to npm installation issues or module resolution problems. However, this means manual synchronization is required.
+### Publishing Process
+// Added: 2025-05-21
 
-#### Version Mismatch Detection
+#### Pre-Publication Checklist
+
+**Required Files and Tests**:
+1. ✅ Run full CI pipeline: `npm run lint && npm run build:types && npm test`
+2. ✅ All tests passing with no errors or warnings
+3. ✅ Version numbers match in package.json and src/index.ts
+4. ✅ CHANGELOG.md updated with release notes
+5. ✅ No uncommitted changes in git
+6. ✅ Local build works correctly (`npm run build`)
+7. ✅ Version command works (`ai-code-review --show-version`)
+
+#### Publication Steps
+
+```bash
+# 1. Version bump (choose one)
+npm version patch   # Bug fixes (e.g., 3.2.7 → 3.2.8)
+npm version minor   # New features (e.g., 3.2.8 → 3.3.0)
+npm version major   # Breaking changes (e.g., 3.3.0 → 4.0.0)
+
+# 2. Update hardcoded version in src/index.ts to match package.json
+
+# 3. Update CHANGELOG.md with release notes
+
+# 4. Commit version updates
+git add src/index.ts CHANGELOG.md
+git commit -m "chore: update version and changelog for vX.Y.Z"
+
+# 5. Build and publish
+npm run build
+npm publish
+
+# 6. Verify publication
+ai-code-review --show-version  # Should show new version
+```
+
+#### Post-Publication
+
+1. **Verify NPM publication**: Check https://www.npmjs.com/package/@bobmatnyc/ai-code-review
+2. **Test installation**: `npm install -g @bobmatnyc/ai-code-review@latest`
+3. **Tag release in git**: `git tag v3.2.8 && git push origin --tags`
+4. **Monitor for issues**: Check for any installation or functionality issues
+
+### Version Mismatch Troubleshooting
+// Added: 2025-05-21
+
 If you notice version mismatches between what the CLI reports and what's in package.json:
-1. Check the `VERSION` constant in src/index.ts
-2. Update it to match package.json
-3. Rebuild and test
 
-#### Future Enhancement
-Consider implementing an automated check in the build process to ensure both versions match, preventing this manual synchronization issue.
+1. **Check the `VERSION` constant** in src/index.ts (around line 213)
+2. **Update it to match package.json** exactly
+3. **Rebuild the project** with `npm run build`
+4. **Test the fix** with `ai-code-review --show-version`
+5. **Republish if necessary** (bump patch version if already published)
+
+### Release Notes Guidelines
+// Added: 2025-05-21
+
+Follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format:
+
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+- New features and functionality
+
+### Changed  
+- Changes to existing functionality
+
+### Fixed
+- Bug fixes and corrections
+
+### Removed
+- Features removed in this version
+```
+
+### Future Enhancements
+// Added: 2025-05-21
+
+Consider implementing:
+1. **Automated version synchronization** - Build script to ensure package.json and src/index.ts versions match
+2. **Pre-commit hooks** - Validate version consistency before commits
+3. **CI/CD pipeline** - Automated testing and publishing workflow
+4. **Release automation** - GitHub Actions for automated releases with proper tagging
