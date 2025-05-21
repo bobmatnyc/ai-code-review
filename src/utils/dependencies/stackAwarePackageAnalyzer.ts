@@ -250,7 +250,7 @@ export function formatStackSummary(analysisResult: StackAwarePackageAnalysisResu
     return '## Project Stack Analysis\n\n**Error**: Invalid analysis result\n\n';
   }
   
-  const { detectedStacks, primaryStack, allPackages, productionPackages, devPackages, frameworkPackages } = analysisResult;
+  const { primaryStack, allPackages, productionPackages, devPackages, frameworkPackages } = analysisResult;
   
   let summary = '## Project Stack Analysis\n\n';
   

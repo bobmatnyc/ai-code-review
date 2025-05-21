@@ -94,8 +94,6 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
       logger.debug(`Raw depcheck output type: ${typeof result.stdout}`);
       logger.debug(`Raw depcheck output sample: ${result.stdout.substring(0, 100)}...`);
       
-      let output;
-      
       // Handle special case with depcheck's output which might be array notation
       if (result.stdout.trim().startsWith('[')) {
         // This might be just an array of unused dependencies in string format
@@ -112,9 +110,9 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
       }
       
       // Regular case - try to parse full JSON object output
-      output = JSON.parse(result.stdout);
+      const outputData = JSON.parse(result.stdout);
       
-      if (!output || typeof output !== 'object') {
+      if (!outputData || typeof outputData !== 'object') {
         logger.warn('Depcheck returned invalid JSON structure');
         return ['Error: Invalid depcheck output format'];
       }
@@ -123,18 +121,19 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
       let unusedDeps: string[] = [];
       
       // Handle possible output formats
-      if (output.dependencies && typeof output.dependencies === 'object') {
+      if (outputData.dependencies && typeof outputData.dependencies === 'object') {
         // Normal format with dependencies and devDependencies objects
         unusedDeps = [
-          ...Object.keys(output.dependencies || {}),
-          ...Object.keys(output.devDependencies || {})
+          ...Object.keys(outputData.dependencies || {}),
+          ...Object.keys(outputData.devDependencies || {})
         ];
-      } else if (Array.isArray(output)) {
+      } else if (Array.isArray(outputData)) {
         // Simple array of dependency names
-        unusedDeps = output;
+        unusedDeps = outputData;
       } else {
         // Try to extract from any format we can find
-        for (const [key, value] of Object.entries(output)) {
+        for (const entry of Object.entries(outputData)) {
+          const value = entry[1]; // Get the value from the entry
           if (typeof value === 'object' && value !== null) {
             unusedDeps.push(...Object.keys(value));
           } else if (Array.isArray(value)) {

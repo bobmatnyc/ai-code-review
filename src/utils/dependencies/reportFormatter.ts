@@ -7,7 +7,6 @@
 
 import path from 'path';
 import fs from 'fs';
-import logger from '../logger';
 import { SecurityIssues } from './securityAnalysis';
 
 /**
