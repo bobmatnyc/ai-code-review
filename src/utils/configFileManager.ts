@@ -37,10 +37,10 @@ export interface JsonConfig {
   api?: {
     model?: string;
     keys?: {
-      google?: string | null;
-      openrouter?: string | null;
-      anthropic?: string | null;
-      openai?: string | null;
+      google?: string;
+      openrouter?: string;
+      anthropic?: string;
+      openai?: string;
     };
     test_api?: boolean;
   };
@@ -262,10 +262,10 @@ export function generateSampleConfig(): string {
     api: {
       model: 'gemini:gemini-1.5-pro',
       keys: {
-        google: null,
-        openrouter: null,
-        anthropic: null,
-        openai: null
+        google: undefined,
+        openrouter: undefined,
+        anthropic: undefined,
+        openai: undefined
       },
       test_api: false
     },

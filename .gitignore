@@ -81,3 +81,4 @@ test-projects/**/.env
 test-projects/**/__pycache__/
 test-projects/**/*.pyc
 test-projects/**/vendor/
+ai-report/quick-fixes-review---gemini-2-5-pro-2025-05-20T20-03-00-100Z.md
