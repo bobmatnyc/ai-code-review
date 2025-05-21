@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.8] - 2025-05-21
+
+### Fixed
+- Fixed critical version mismatch bug where CLI reported version 3.0.3 instead of the correct package.json version
+- Updated hardcoded VERSION constant in src/index.ts to match package.json version
+- Fixed --show-version flag to display accurate version information
+
+### Added  
+- Added comprehensive version management documentation to PROJECT.md
+- Documented critical steps for version updates to prevent future synchronization issues
+- Added troubleshooting guide for version mismatch detection
+
 ## [3.2.7] - 2025-05-22
 
 ### Fixed
