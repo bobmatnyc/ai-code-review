@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.7] - 2025-05-22
+
+### Fixed
+- Removed non-working OpenAI reasoning models (o3, o4-mini, o4-mini-high) that are not yet available in the public API
+- Cleaned up OpenAI client by removing special handling for o4-mini-high model
+- Updated model registry and tests to reflect working OpenAI models only (5 OpenAI models total)
+- Resolved "Failed after retries" error for o4-mini-high model by removing it from available models
+
 ## [3.2.6] - 2025-05-22
 
 ### Added

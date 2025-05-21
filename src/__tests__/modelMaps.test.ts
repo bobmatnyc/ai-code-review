@@ -104,16 +104,14 @@ describe('modelMaps', () => {
       );
 
       // Verify we have the expected number of OpenAI models
-      expect(openaiModels.length).toBe(8);
+      expect(openaiModels.length).toBe(5);
 
       // Verify specific model keys exist
       expect(openaiModels).toContain('openai:gpt-4.1');
       expect(openaiModels).toContain('openai:gpt-4o');
       expect(openaiModels).toContain('openai:gpt-4-turbo');
       expect(openaiModels).toContain('openai:gpt-3.5-turbo');
-      expect(openaiModels).toContain('openai:o3');
-      expect(openaiModels).toContain('openai:o4-mini');
-      expect(openaiModels).toContain('openai:o4-mini-high');
+      expect(openaiModels).toContain('openai:gpt-4.5');
 
       // Verify properties of a specific model
       const gpt4o = MODEL_MAP['openai:gpt-4o'];
@@ -170,7 +168,7 @@ describe('modelMaps', () => {
       expect(MODELS.anthropic).toContain('anthropic:claude-3.7-sonnet');
 
       // Check OpenAI models
-      expect(MODELS.openai.length).toBe(8);
+      expect(MODELS.openai.length).toBe(5);
       expect(MODELS.openai).toContain('openai:gpt-4o');
 
       // Check OpenRouter models
