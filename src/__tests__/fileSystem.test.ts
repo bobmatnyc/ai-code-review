@@ -18,7 +18,11 @@ jest.mock('fs/promises');
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
 // Mock pathValidator functions
-jest.mock('../utils/pathValidator');
+jest.mock('../utils/pathValidator', () => ({
+  pathExists: jest.fn(),
+  isDirectory: jest.fn(),
+  isFile: jest.fn()
+}));
 
 // Mock fs sync module
 jest.mock('fs', () => ({
