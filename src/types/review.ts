@@ -259,6 +259,41 @@ export interface ReviewOptions {
    * @internal
    */
   skipFileContent?: boolean;
+  
+  /**
+   * Output directory for review files
+   */
+  outputDir?: string;
+  
+  /**
+   * Log level to use for the review
+   */
+  logLevel?: string;
+
+  /**
+   * Model to use for the review
+   */
+  model?: string;
+  
+  /**
+   * API keys for different providers
+   */
+  apiKey?: {
+    google?: string;
+    openrouter?: string;
+    anthropic?: string;
+    openai?: string;
+  };
+  
+  /**
+   * Path to a configuration file
+   */
+  config?: string;
+  
+  /**
+   * Whether to generate a sample configuration file
+   */
+  generateConfig?: boolean;
 }
 
 /**

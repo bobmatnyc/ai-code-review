@@ -41,6 +41,9 @@ export async function loadEslintIgnorePatterns(projectDir: string): Promise<stri
     
     // Read and parse .eslintignore
     const content = await fs.promises.readFile(eslintIgnorePath, 'utf-8');
+    if (!content) {
+      return [];
+    }
     return content
       .split('\n')
       .map(line => line.trim())
@@ -77,6 +80,9 @@ export async function loadTsConfig(projectDir: string): Promise<TsConfig | null>
     
     // Read and parse tsconfig.json
     const content = await fs.promises.readFile(tsConfigPath, 'utf-8');
+    if (!content) {
+      return null;
+    }
     try {
       return JSON.parse(content) as TsConfig;
     } catch (parseError) {
