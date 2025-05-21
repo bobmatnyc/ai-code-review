@@ -287,7 +287,7 @@ export function createStandardReviewResult(
     filePath,
     reviewType,
     timestamp: new Date().toISOString(),
-    structuredData
+    structuredData: structuredData as StructuredReview | undefined
   };
 }
 
