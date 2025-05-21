@@ -246,3 +246,34 @@ Output will be generated in the `/review/[project-name]/` directory, with subdir
    pnpm run dev this path/to/file.ts --interactive
    ```
 5. After implementing fixes, verify changes by running appropriate tests
+
+## Version Management
+
+### Version Update Process
+// Added: 2025-05-21
+When updating the project version, you MUST update both locations where the version is stored:
+
+1. **package.json** - The source of truth for the npm package version
+2. **src/index.ts** - Contains a hardcoded `VERSION` constant for CLI --version flag reliability
+
+#### Critical Steps for Version Updates:
+
+1. **Update package.json version** (via npm version command or direct edit)
+2. **Update hardcoded version in src/index.ts** at line ~213:
+   ```typescript
+   const VERSION = '3.2.7'; // Must match package.json version
+   ```
+3. **Rebuild the project** with `npm run build`
+4. **Verify version consistency** with `ai-code-review --show-version`
+
+#### Why Two Versions?
+The hardcoded version in src/index.ts exists for reliability - it ensures the --version flag works correctly even when package.json reading fails due to npm installation issues or module resolution problems. However, this means manual synchronization is required.
+
+#### Version Mismatch Detection
+If you notice version mismatches between what the CLI reports and what's in package.json:
+1. Check the `VERSION` constant in src/index.ts
+2. Update it to match package.json
+3. Rebuild and test
+
+#### Future Enhancement
+Consider implementing an automated check in the build process to ensure both versions match, preventing this manual synchronization issue.
