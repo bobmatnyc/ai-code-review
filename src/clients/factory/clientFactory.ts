@@ -28,11 +28,12 @@ export enum ClientType {
 export class ClientFactory {
   /**
    * Create an appropriate client instance based on the selected model
+   * @param overrideModel Optional model to use instead of the configured one
    * @returns The client instance
    */
-  public static createClient(): AbstractClient {
+  public static createClient(overrideModel?: string): AbstractClient {
     const config = getConfig();
-    const selectedModel = config.selectedModel || '';
+    const selectedModel = overrideModel || config.selectedModel || '';
     
     // Detect the client type from the model name
     const clientType = ClientFactory.detectClientType(selectedModel);

@@ -121,7 +121,25 @@ export class OpenAIClient extends AbstractClient {
    */
   private getApiModelName(): string {
     // Use the model name as configured in the model registry
+    logger.debug(`[O3 DEBUG] getApiModelName returning: ${this.modelName}`);
     return this.modelName;
+  }
+  
+  /**
+   * Add max tokens parameter based on model type
+   * @param requestBody The request body to modify
+   */
+  private addMaxTokensParameter(requestBody: Record<string, any>): void {
+    // Use max_completion_tokens for o3 models, max_tokens for others
+    if (this.modelName.startsWith('o3')) {
+      requestBody.max_completion_tokens = MAX_TOKENS_PER_REQUEST;
+      // o3 models don't support temperature parameter
+      delete requestBody.temperature;
+      logger.debug(`[O3 DEBUG] Model: ${this.modelName}, Added max_completion_tokens: ${requestBody.max_completion_tokens}`);
+      logger.debug(`[O3 DEBUG] Full request body: ${JSON.stringify(requestBody, null, 2)}`);
+    } else {
+      requestBody.max_tokens = MAX_TOKENS_PER_REQUEST;
+    }
   }
   
   /**
@@ -223,9 +241,11 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
               content: prompt
             }
           ],
-          temperature: 0.2,
-          max_tokens: MAX_TOKENS_PER_REQUEST
+          temperature: 0.2
         };
+        
+        // Add max tokens parameter based on model type
+        this.addMaxTokensParameter(requestBody);
         
         // Make the API request
         const response = await fetchWithRetry(
@@ -280,6 +300,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions
   ): Promise<ReviewResult> {
+    logger.debug(`[O3 DEBUG] generateConsolidatedReview called with model: ${this.modelName}`);
     const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
     
     // Make sure this is the correct client
@@ -312,6 +333,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
       
       try {
         logger.info(`Generating consolidated review with OpenAI ${this.modelName}...`);
+        logger.debug(`[O3 DEBUG] About to prepare API request body`);
         
         // Prepare the API request body
         const requestBody: Record<string, any> = {
@@ -367,9 +389,11 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
               content: prompt
             }
           ],
-          temperature: 0.2,
-          max_tokens: MAX_TOKENS_PER_REQUEST
+          temperature: 0.2
         };
+        
+        // Add max tokens parameter based on model type
+        this.addMaxTokensParameter(requestBody);
         
         // Make the API request
         const response = await fetchWithRetry(
@@ -401,6 +425,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           reviewType
         );
       } catch (error) {
+        logger.error(`[O3 DEBUG] Error in generateConsolidatedReview: ${error instanceof Error ? error.message : String(error)}`);
         throw handleApiError(
           error, 
           'generate consolidated review', 
@@ -519,9 +544,11 @@ Always include a dedicated "Dependency Security Analysis" section in your review
             ],
             tools,
             tool_choice: 'auto',
-            temperature: 0.2,
-            max_tokens: MAX_TOKENS_PER_REQUEST
+            temperature: 0.2
           };
+          
+          // Add max tokens parameter based on model type
+          this.addMaxTokensParameter(initialRequestBody);
             
           // Make the initial request with tools
           response = await fetchWithRetry(
@@ -583,9 +610,11 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
             const finalRequestBody: Record<string, any> = {
               model: this.getApiModelName(),
               messages: conversationWithResults,
-              temperature: 0.2,
-              max_tokens: MAX_TOKENS_PER_REQUEST
+              temperature: 0.2
             };
+            
+            // Add max tokens parameter based on model type
+            this.addMaxTokensParameter(finalRequestBody);
             
             // Make the final request
             const finalResponse = await fetchWithRetry(
@@ -628,9 +657,11 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
                 content: prompt
               }
             ],
-            temperature: 0.2,
-            max_tokens: MAX_TOKENS_PER_REQUEST
+            temperature: 0.2
           };
+          
+          // Add max tokens parameter based on model type
+          this.addMaxTokensParameter(requestBody);
           
           response = await fetchWithRetry(
             'https://api.openai.com/v1/chat/completions',

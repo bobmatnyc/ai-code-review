@@ -32,6 +32,7 @@ export const appConfigSchema = z.object({
 
   // Model configuration
   selectedModel: z.string(),
+  writerModel: z.string().optional(),
 
   // Other configuration
   debug: z.boolean(),
@@ -75,6 +76,12 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
     process.env.AI_CODE_REVIEW_MODEL ||
     'gemini:gemini-2.5-pro-preview';
 
+  // Get writer model (CLI override takes precedence)
+  const writerModel =
+    cliOptions?.writerModel ||
+    process.env.AI_CODE_REVIEW_WRITER_MODEL ||
+    undefined;
+
   // Get debug mode
   const debug =
     cliOptions?.debug ||
@@ -105,6 +112,7 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
     anthropicApiKey,
     openAIApiKey,
     selectedModel,
+    writerModel,
     debug,
     logLevel,
     contextPaths,

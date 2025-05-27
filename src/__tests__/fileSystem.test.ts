@@ -242,6 +242,19 @@ describe('File System Utilities', () => {
 
         expect(path.extname(result)).toBe('.txt');
       });
+
+      it('should handle current directory gracefully', async () => {
+        const result = await generateVersionedOutputPath(
+          '/base/dir',
+          'review',
+          '.md',
+          'o3',
+          '.'
+        );
+        
+        expect(result).toMatch(/review-current-dir-o3-\d{4}-\d{2}-\d{2}/);
+        expect(result).not.toMatch(/---/); // Should not have triple dashes
+      });
     });
   });
 });

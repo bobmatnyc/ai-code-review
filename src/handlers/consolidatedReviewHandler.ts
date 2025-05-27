@@ -75,7 +75,7 @@ export async function handleConsolidatedReview(
 
   try {
     // Select the appropriate API client
-    const apiClientConfig = await selectApiClient();
+    const apiClientConfig = await selectApiClient(options);
 
     // Generate the review using the selected API client
     const review = await generateReview(

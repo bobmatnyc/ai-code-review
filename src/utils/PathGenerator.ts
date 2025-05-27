@@ -35,7 +35,15 @@ export async function generateVersionedOutputPath(
   const cleanModelName = modelName.replace(/[^a-zA-Z0-9-]/g, '-');
 
   // Clean up the target name for use in a filename
-  const cleanTargetName = targetName.replace(/[^a-zA-Z0-9-]/g, '-');
+  let cleanTargetName = targetName.replace(/[^a-zA-Z0-9-]/g, '-');
+  
+  // Handle special cases for target names
+  if (targetName === '.' || cleanTargetName === '-' || cleanTargetName === '') {
+    cleanTargetName = 'current-dir';
+  }
+  
+  // Remove any sequential dashes
+  cleanTargetName = cleanTargetName.replace(/-+/g, '-').replace(/^-|-$/g, '');
 
   // Generate the filename
   const filename = `${prefix}-${cleanTargetName}-${cleanModelName}-${timestamp}${extension}`;
