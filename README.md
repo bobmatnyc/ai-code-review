@@ -691,6 +691,10 @@ Alternatively, you can manually place your `.env.local` file in one of these loc
 # Specify which model to use for code reviews using the format provider:model
 # The tool will automatically map this to the correct API model name
 AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+# or
+# AI_CODE_REVIEW_MODEL=openai:o3
+# or
+# AI_CODE_REVIEW_MODEL=openai:o3-mini
 
 # See the Supported Models section for all available models and their API mappings
 
@@ -757,6 +761,8 @@ You can see all available models and their mappings by running `ai-code-review -
 | `openai:gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4-turbo-preview` |
 | `openai:gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4o` |
 | `openai:gpt-4` | Original GPT-4 model | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4` |
+| `openai:o3` | OpenAI's latest advanced reasoning model | `AI_CODE_REVIEW_OPENAI_API_KEY` | `o3` |
+| `openai:o3-mini` | Smaller, more efficient version of o3 | `AI_CODE_REVIEW_OPENAI_API_KEY` | `o3-mini` |
 
 ### Extending the Model Mapping System
 
