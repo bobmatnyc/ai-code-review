@@ -36,9 +36,10 @@ export interface ApiClientConfig {
 
 /**
  * Select and initialize the appropriate API client based on available API keys
+ * @param _cliOptions Optional CLI options (reserved for future use)
  * @returns Promise resolving to the API client configuration
  */
-export async function selectApiClient(): Promise<ApiClientConfig> {
+export async function selectApiClient(_cliOptions?: any): Promise<ApiClientConfig> {
   logger.debug('selectApiClient called');
 
   // Check which API key is available based on the model specified in environment variables
