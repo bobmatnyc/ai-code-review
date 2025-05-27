@@ -350,6 +350,7 @@ Options:
   --listmodels            Display all available AI models based on your configured API keys (default: false)
   --models                Show all supported AI models and their configuration details, regardless of API key availability (default: false)
   --test-api              Verify AI provider API connections before starting the review (default: false)
+  --writer-model <model>  Use a different model for report consolidation/writing (e.g., openai:gpt-4o-mini)
   --no-confirm            Skip confirmation for multi-pass reviews and proceed automatically (default: false)
   
   # Unused Code Detection Options (for --type unused-code)
@@ -582,6 +583,43 @@ ai-code-review src/utils --type unused-code --prompt-strategy langchain
 ai-code-review src/components --type quick-fixes --prompt-strategy langchain
 ```
 
+### Separate Writer Model for Consolidation
+
+For multi-pass reviews and report consolidation, you can specify a separate model for the final report generation. This is useful for optimizing costs by using a more powerful model for code analysis and a cheaper/faster model for report writing.
+
+#### Using Writer Model
+
+There are two ways to specify a writer model:
+
+1. **Via Command Line:**
+   ```bash
+   # Use Claude Opus for analysis, Haiku for report writing
+   ai-code-review . --model anthropic:claude-3-opus --writer-model anthropic:claude-3-haiku
+   
+   # Use GPT-4 for analysis, GPT-4o-mini for consolidation
+   ai-code-review . --model openai:gpt-4 --writer-model openai:gpt-4o-mini
+   ```
+
+2. **Via Environment Variable:**
+   ```bash
+   # In your .env.local file
+   AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus
+   AI_CODE_REVIEW_WRITER_MODEL=anthropic:claude-3-haiku
+   ```
+
+#### Benefits
+
+- **Cost Optimization**: Report consolidation primarily involves summarization and formatting, not deep code analysis. A cheaper model can handle this effectively with 10-20x cost savings.
+- **Performance**: Faster models can speed up the consolidation phase without sacrificing quality.
+- **Flexibility**: Use the best model for each task - powerful models for understanding code, efficient models for writing reports.
+
+#### How It Works
+
+1. The primary model (specified by `--model` or `AI_CODE_REVIEW_MODEL`) performs the code analysis
+2. For multi-pass reviews, each pass uses the primary model
+3. The writer model (specified by `--writer-model` or `AI_CODE_REVIEW_WRITER_MODEL`) consolidates the results into the final report
+4. If no writer model is specified, the primary model is used for all tasks
+
 ### GitHub Projects Integration
 
 You can integrate your PROJECT.md file with GitHub Projects to better manage your project documentation and tasks. This allows you to maintain your project documentation in both Markdown format and in GitHub's project management interface.
@@ -695,6 +733,10 @@ AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
 # AI_CODE_REVIEW_MODEL=openai:o3
 # or
 # AI_CODE_REVIEW_MODEL=openai:o3-mini
+
+# Optionally specify a different model for report consolidation/writing
+# This allows using a cheaper/faster model for the final report generation
+AI_CODE_REVIEW_WRITER_MODEL=openai:gpt-4o-mini
 
 # See the Supported Models section for all available models and their API mappings
 

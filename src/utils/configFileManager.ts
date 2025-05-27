@@ -36,6 +36,7 @@ export interface JsonConfig {
   };
   api?: {
     model?: string;
+    writer_model?: string;
     keys?: {
       google?: string;
       openrouter?: string;
@@ -173,6 +174,9 @@ export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions)
     if (config.api.model && !(newOptions as CliOptions).model) {
       (newOptions as CliOptions).model = config.api.model;
     }
+    if (config.api.writer_model && !(newOptions as CliOptions).writerModel) {
+      (newOptions as CliOptions).writerModel = config.api.writer_model;
+    }
     if (config.api.test_api !== undefined && newOptions.testApi === undefined) {
       newOptions.testApi = config.api.test_api;
     }
@@ -261,6 +265,7 @@ export function generateSampleConfig(): string {
     },
     api: {
       model: 'gemini:gemini-1.5-pro',
+      writer_model: undefined,
       keys: {
         google: undefined,
         openrouter: undefined,

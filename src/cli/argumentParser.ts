@@ -28,6 +28,7 @@ export interface CliOptions extends ReviewOptions {
   version?: boolean;
   uiLanguage?: string;
   model?: string;
+  writerModel?: string;
   outputDir?: string;
   logLevel?: string;
   config?: string;
@@ -225,6 +226,10 @@ export async function parseArguments(): Promise<CliOptions> {
         alias: 'm',
         type: 'string',
         describe: 'Override the model to use (format: provider:model-name)'
+      })
+      .option('writer-model', {
+        type: 'string',
+        describe: 'Override the model to use for report consolidation/writing (format: provider:model-name)'
       })
       .option('output-dir', {
         type: 'string',

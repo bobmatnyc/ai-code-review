@@ -543,7 +543,14 @@ Note: This is an estimate based on approximate token counts and may vary
     }
     
     // Get the API client configuration
-    const apiClientConfig = await selectApiClient();
+    const apiClientConfig = await selectApiClient(options);
+    
+    // Log writer model if configured
+    const config = getConfig(options as any);
+    logger.debug(`Config writerModel: ${config.writerModel}`);
+    if (config.writerModel) {
+      logger.info(`Using writer model for consolidation: ${config.writerModel}`);
+    }
     
     // Perform token analysis to check if content exceeds context window
     if (!options.multiPass && !options.individual) {
