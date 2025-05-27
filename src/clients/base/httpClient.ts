@@ -22,13 +22,17 @@ export async function fetchWithRetry(
   options: RequestInit,
   retries = 3
 ): Promise<Response> {
+  logger.debug(`[FETCH DEBUG] fetchWithRetry called with url: ${url}`);
   for (let i = 0; i < retries; i++) {
     try {
+      logger.debug(`Making API request to ${url} (attempt ${i + 1}/${retries})`);
       const res = await fetch(url, options);
       
       if (res.ok) {
         return res;
       }
+      
+      logger.error(`[FETCH DEBUG] Request failed with status: ${res.status}`);
       
       // Handle rate limiting and server errors with exponential backoff
       if (res.status === 429 || res.status >= 500) {
@@ -41,7 +45,25 @@ export async function fetchWithRetry(
         // For other errors, try to get more detailed information
         try {
           const errorBody = await res.json();
-          logger.error(`API error response: ${JSON.stringify(errorBody)}`);
+          logger.error(`API error response: ${JSON.stringify(errorBody, null, 2)}`);
+          logger.error(`Request URL: ${url}`);
+          logger.error(`Request headers: ${JSON.stringify(options.headers, null, 2)}`);
+          // Log request body if it exists (but mask API keys)
+          if (options.body) {
+            try {
+              const body = JSON.parse(options.body as string);
+              if (body.messages) {
+                // Only log message structure, not content
+                logger.error(`Request had ${body.messages.length} messages`);
+              }
+              logger.error(`Request model: ${body.model}`);
+              logger.error(`Request max_tokens: ${body.max_tokens}`);
+              logger.error(`Request max_completion_tokens: ${body.max_completion_tokens}`);
+            } catch {
+              // If body isn't JSON, just note that
+              logger.error('Request body was not JSON');
+            }
+          }
           throw new ApiError(
             `API request failed with status ${res.status}: ${
               errorBody.error?.message || JSON.stringify(errorBody)

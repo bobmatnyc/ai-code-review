@@ -47,23 +47,21 @@ export async function consolidateReview(
       
       // Use the client to send the consolidation request
       const consolidationResult = await client.generateConsolidatedReview(
-        [], // Empty file list since we're just consolidating existing content
+        [{
+          path: 'MULTI_PASS_REVIEW.md',
+          relativePath: 'MULTI_PASS_REVIEW.md', 
+          content: review.content
+        }], // Pass the multi-pass content as a file
         review.projectName || 'ai-code-review',
         review.reviewType,
-        {
-          custom: {
-            'MULTI_PASS_REVIEW.md': review.content,
-            'CONSOLIDATION_SYSTEM_PROMPT.md': consolidationSystemPrompt,
-            'CONSOLIDATION_USER_PROMPT.md': consolidationPrompt
-          }
-        },
+        null, // No project docs needed for consolidation
         {
           type: review.reviewType,
           includeTests: false,
           output: 'markdown',
           isConsolidation: true,
           consolidationMode: true,
-          skipFileContent: true,
+          skipFileContent: false,
           interactive: false // Always use markdown output for consolidation, not JSON
         }
       );
@@ -97,7 +95,14 @@ export async function consolidateReview(
 function getConsolidationSystemPrompt(): string {
   return `You are an expert code reviewer tasked with creating a consolidated final report from a multi-pass review. 
   
-The review was conducted in multiple passes due to the large size of the codebase. 
+The review was conducted in multiple passes due to the large size of the codebase. You will receive the complete multi-pass review content and need to:
+
+1. Extract and deduplicate all findings across all passes
+2. Organize findings by priority (High/Critical, Medium/Important, Low/Minor)
+3. Create a coherent executive summary
+4. Provide overall grading and recommendations
+
+The input contains multiple review passes in the format "## Pass X: Review of Y Files" followed by the review content for that pass.
 
 Your task is to:
 1. Analyze all the findings from each pass
@@ -150,17 +155,20 @@ Here are the results from all passes:
 ${review.content}
 
 Please create a unified, consolidated report that:
-1. Combines all findings into a cohesive analysis
-2. Eliminates redundancy
-3. Prioritizes issues by importance
-4. Provides a comprehensive grade for the code quality
+1. Extracts ALL issues from each pass (look for sections like "### High Priority", "### Medium Priority", "### Low Priority", "#### Issue Title", etc.)
+2. Deduplicates issues that appear in multiple passes
+3. Organizes all issues into three clear sections:
+   - **Critical Issues (High Priority)**: List all high-priority/critical findings
+   - **Important Issues (Medium Priority)**: List all medium-priority/important findings  
+   - **Minor Issues (Low Priority)**: List all low-priority/minor findings
+4. Provides a comprehensive grade for the code quality with detailed category breakdowns
 5. Maintains all the valuable insights from each pass
 
-Remember to use the grading system as described in your instructions.
+IMPORTANT: Make sure to actually extract and list the specific issues found in each pass. Do not leave the issue sections empty.
 
-The consolidated report should begin with "# Consolidated Code Review Report: ${projectName}" followed by today's date and a summary of the project and review process.
+The consolidated report should begin with "# Consolidated Code Review Report: ${projectName}"
 
-Do not include pass numbers or file details that were used to split the review. Present this as a unified analysis.
+Present this as a unified analysis without mentioning individual pass numbers.
 
 IMPORTANT: Use the actual current date (${new Date().toLocaleDateString()}) in your report, not any dates mentioned in the review content.`;
 }
@@ -176,66 +184,99 @@ function createFallbackConsolidation(review: ReviewResult): string {
   // Extract project name
   const projectName = review.projectName || 'ai-code-review';
   
-  // Extract key information from each pass
-  const passRegex = /## Pass (\d+): Review of (\d+) Files\s+# Code Review\s+## Summary([\s\S]*?)(?=## Pass|$)/g;
-  const passes: { passNumber: number, fileCount: number, summary: string }[] = [];
+  // Extract key information from each pass - more flexible regex
+  const passRegex = /## Pass (\d+): Review of (\d+) Files([\s\S]*?)(?=## Pass \d+:|$)/g;
+  const passes: { passNumber: number, fileCount: number, content: string }[] = [];
   
   let match;
   while ((match = passRegex.exec(review.content)) !== null) {
-    const [, passNumberStr, fileCountStr, summaryContent] = match;
+    const [, passNumberStr, fileCountStr, passContent] = match;
     passes.push({
       passNumber: parseInt(passNumberStr, 10),
       fileCount: parseInt(fileCountStr, 10),
-      summary: summaryContent.trim()
+      content: passContent.trim()
     });
   }
+  
+  logger.debug(`Found ${passes.length} passes in multi-pass review`);
   
   // Deduplicate findings across passes
   const highPriorityFindings = new Set<string>();
   const mediumPriorityFindings = new Set<string>();
   const lowPriorityFindings = new Set<string>();
   
-  // Regular expressions to extract findings from each pass
-  const highPriorityRegex = /### High Priority\s+([\s\S]*?)(?=### Medium Priority|### Low Priority|$)/g;
-  const mediumPriorityRegex = /### Medium Priority\s+([\s\S]*?)(?=### High Priority|### Low Priority|$)/g;
-  const lowPriorityRegex = /### Low Priority\s+([\s\S]*?)(?=### High Priority|### Medium Priority|$)/g;
+  // Regular expressions to extract findings from each pass - support multiple formats
+  const highPriorityRegex = /### (?:High Priority|Critical Issues?)([\s\S]*?)(?=###|## Pass|$)/gi;
+  const mediumPriorityRegex = /### (?:Medium Priority|Important Issues?)([\s\S]*?)(?=###|## Pass|$)/gi;
+  const lowPriorityRegex = /### (?:Low Priority|Minor Issues?)([\s\S]*?)(?=###|## Pass|$)/gi;
   
-  // Extract issue titles from content blocks
+  // Extract issue titles from content blocks - support multiple formats
   const extractIssueTitles = (content: string): string[] => {
-    const issueTitleRegex = /- \*\*Issue title:\*\* (.*?)(?=\s+- \*\*File path|$)/g;
     const titles: string[] = [];
-    let titleMatch;
-    while ((titleMatch = issueTitleRegex.exec(content)) !== null) {
-      titles.push(titleMatch[1].trim());
+    
+    // Format 1: - **Issue title:** <title>
+    const issueTitleRegex1 = /- \*\*Issue title:\*\* (.*?)(?=\n|$)/g;
+    let match1;
+    while ((match1 = issueTitleRegex1.exec(content)) !== null) {
+      titles.push(match1[1].trim());
     }
+    
+    // Format 2: #### <title> (o3 format)
+    const issueTitleRegex2 = /####\s+([^\n]+)/g;
+    let match2;
+    while ((match2 = issueTitleRegex2.exec(content)) !== null) {
+      titles.push(match2[1].trim());
+    }
+    
+    // Format 3: Simple bullet points starting with issues
+    const issueTitleRegex3 = /^[\s-]*\*?\s*(.+?)$/gm;
+    if (titles.length === 0) { // Only use this if no other format found
+      let match3;
+      while ((match3 = issueTitleRegex3.exec(content)) !== null) {
+        const line = match3[1].trim();
+        // Filter out meta lines
+        if (line && !line.startsWith('Location:') && !line.startsWith('Type:') && 
+            !line.startsWith('Description:') && !line.startsWith('Impact:')) {
+          titles.push(line);
+        }
+      }
+    }
+    
     return titles;
   };
   
   // Process each pass to extract findings
-  review.content.split(/## Pass \d+/).forEach((passContent: string) => {
+  passes.forEach(pass => {
+    const passContent = pass.content;
+    
     // Extract findings by priority
     let highMatch;
+    highPriorityRegex.lastIndex = 0; // Reset regex
     while ((highMatch = highPriorityRegex.exec(passContent)) !== null) {
       extractIssueTitles(highMatch[1]).forEach(title => highPriorityFindings.add(title));
     }
     
     let mediumMatch;
+    mediumPriorityRegex.lastIndex = 0; // Reset regex
     while ((mediumMatch = mediumPriorityRegex.exec(passContent)) !== null) {
       extractIssueTitles(mediumMatch[1]).forEach(title => mediumPriorityFindings.add(title));
     }
     
     let lowMatch;
+    lowPriorityRegex.lastIndex = 0; // Reset regex
     while ((lowMatch = lowPriorityRegex.exec(passContent)) !== null) {
       extractIssueTitles(lowMatch[1]).forEach(title => lowPriorityFindings.add(title));
     }
   });
+  
+  logger.debug(`Extracted findings - High: ${highPriorityFindings.size}, Medium: ${mediumPriorityFindings.size}, Low: ${lowPriorityFindings.size}`);
   
   // Create a consolidated review
   return `# Consolidated ${review.reviewType.charAt(0).toUpperCase() + review.reviewType.slice(1)} Review Report: ${projectName}
 
 ## Executive Summary
 
-This consolidated review was generated from ${passes.length} passes analyzing a total of ${review.files?.length || 0} files. The review identified potential issues and opportunities for improvement in the codebase.
+This consolidated review was generated from ${passes.length} passes analyzing a total of ${passes.reduce((sum, pass) => sum + pass.fileCount, 0)} files. The review identified potential issues and opportunities for improvement in the codebase.
 
 ### Key Findings
 

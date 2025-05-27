@@ -50,13 +50,37 @@ async function fetchWithRetry(
   options: RequestInit,
   retries = 3
 ): Promise<Response> {
+  logger.debug(`[FETCH DEBUG] fetchWithRetry called`);
   for (let i = 0; i < retries; i++) {
-    const res = await fetch(url, options);
-    if (res.ok) return res;
-    if (res.status === 429 || res.status >= 500) {
-      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
-    } else {
-      break;
+    try {
+      logger.debug(`[FETCH DEBUG] Attempt ${i + 1}/${retries}`);
+      const res = await fetch(url, options);
+      logger.debug(`[FETCH DEBUG] Response status: ${res.status}`);
+      if (res.ok) return res;
+      
+      // Log error details for non-ok responses
+      if (!res.ok) {
+        try {
+          const errorBody = await res.text();
+          const errorJson = JSON.parse(errorBody);
+          logger.error(`[FETCH DEBUG] API Error: ${JSON.stringify(errorJson, null, 2)}`);
+        } catch {
+          logger.error(`[FETCH DEBUG] Response status: ${res.status}, unable to parse error body`);
+        }
+      }
+      
+      if (res.status === 429 || res.status >= 500) {
+        await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+      } else {
+        break;
+      }
+    } catch (error) {
+      logger.error(`[FETCH DEBUG] Fetch error: ${error instanceof Error ? error.message : String(error)}`);
+      if (i < retries - 1) {
+        await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+      } else {
+        throw error;
+      }
     }
   }
   throw new Error('Failed after retries');
@@ -328,7 +352,9 @@ export async function generateOpenAIConsolidatedReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
+  logger.debug(`[O3 DEBUG] generateOpenAIConsolidatedReview function called`);
   const { isCorrect, adapter, modelName } = isOpenAIModel();
+  logger.debug(`[O3 DEBUG] Model check: isCorrect=${isCorrect}, adapter=${adapter}, modelName=${modelName}`);
 
   // With the improved client selection logic, this function should only be called
   // with OpenAI models. If not, something went wrong with the client selection.
@@ -352,6 +378,11 @@ export async function generateOpenAIConsolidatedReview(
 
     let content: string;
     let cost: ReviewCost | undefined;
+    
+    logger.debug(`[O3 DEBUG] API key status: ${apiKey ? 'present' : 'missing'}`);
+    if (!apiKey) {
+      throw new Error('OpenAI API key not found in environment variables');
+    }
 
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType, options);
@@ -370,22 +401,15 @@ export async function generateOpenAIConsolidatedReview(
 
     try {
       logger.info(`Generating consolidated review with OpenAI ${modelName}...`);
-
-      // Make the API request
-      const response = await fetchWithRetry(
-        'https://api.openai.com/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: modelName,
-            messages: [
-              {
-                role: 'system',
-                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+      logger.debug(`[O3 DEBUG] About to create OpenAI client instance`);
+      logger.debug(`[O3 DEBUG] modelName for request: ${modelName}`);
+      
+      const requestBody = {
+        model: modelName,
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
 
 IMPORTANT: Your response MUST be in the following JSON format:
 
@@ -415,15 +439,36 @@ IMPORTANT: Your response MUST be in the following JSON format:
 }
 
 Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
-              },
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            temperature: 0.2,
-            max_tokens: MAX_TOKENS_PER_REQUEST
-          })
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        // o3 models don't support temperature parameter
+        ...(modelName.startsWith('o3') ? {} : { temperature: 0.2 }),
+        // Use max_completion_tokens for o3 models, max_tokens for others
+        ...(modelName.startsWith('o3') 
+          ? { max_completion_tokens: MAX_TOKENS_PER_REQUEST }
+          : { max_tokens: MAX_TOKENS_PER_REQUEST })
+      };
+      
+      if (modelName.startsWith('o3')) {
+        logger.debug(`[O3 DEBUG] Using max_completion_tokens for o3 model`);
+        logger.debug(`[O3 DEBUG] Request body keys: ${Object.keys(requestBody).join(', ')}`);
+      }
+
+      // Make the API request (using prepared requestBody)
+      logger.debug(`[O3 DEBUG] About to call fetchWithRetry`);
+      const response = await fetchWithRetry(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`
+          },
+          body: JSON.stringify(requestBody)
         }
       );
 
@@ -445,6 +490,10 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         );
       }
     } catch (error) {
+      logger.error(`[O3 DEBUG] Error caught in generateOpenAIConsolidatedReview: ${error instanceof Error ? error.message : String(error)}`);
+      if (error instanceof Error) {
+        logger.error(`[O3 DEBUG] Error stack: ${error.stack}`);
+      }
       throw new ApiError(
         `Failed to generate consolidated review with OpenAI ${modelName}: ${
           error instanceof Error ? error.message : String(error)
