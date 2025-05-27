@@ -25,6 +25,87 @@ export interface FileInfo {
 }
 
 /**
+ * Validate target parameter and provide helpful error messages for common mistakes
+ * @param target The target parameter to validate
+ * @throws Error with helpful message if the target looks like a misformatted parameter
+ */
+function validateTargetParameter(target: string): void {
+  // Check for common parameter format mistakes
+  if (target.includes('=')) {
+    const [key, ...valueParts] = target.split('=');
+    const value = valueParts.join('='); // Rejoin in case value contains =
+    const commonOptions = ['type', 'output', 'model', 'language', 'debug', 'interactive', 'estimate'];
+    
+    // Only flag as parameter if the key part matches a known option
+    // This avoids false positives for file paths like "src/file=name.ts"
+    if (commonOptions.includes(key)) {
+      throw new Error(`Invalid parameter format: '${target}'
+    
+It looks like you're trying to set the '${key}' option.
+Did you mean: --${key} ${value}
+
+Example usage:
+  ai-code-review --${key} ${value}
+  ai-code-review src --${key} ${value}
+  ai-code-review . --${key} ${value}
+
+Run 'ai-code-review --help' for more options.`);
+    } else if (!key.includes('/') && !key.includes('\\') && !key.includes('.')) {
+      // If the key doesn't look like a path (no slashes or dots), it's probably a parameter mistake
+      throw new Error(`Invalid parameter format: '${target}'
+    
+Parameters should use '--' prefix, not '=' format.
+Example: --type performance
+
+Common usage patterns:
+  ai-code-review                    # Review current directory
+  ai-code-review src                 # Review src directory
+  ai-code-review src/index.ts        # Review specific file
+  ai-code-review --type security     # Security review of current directory
+  ai-code-review src --type performance  # Performance review of src
+
+Run 'ai-code-review --help' for all options.`);
+    }
+    // If key looks like a path (contains / or \ or .), don't flag it as an error
+  }
+  
+  // Check if the target looks like an option without proper prefix
+  const commonOptions = ['type', 'output', 'model', 'language', 'debug', 'interactive', 
+                        'estimate', 'help', 'version', 'listmodels', 'models'];
+  if (commonOptions.includes(target)) {
+    throw new Error(`'${target}' looks like an option but is missing '--' prefix.
+    
+Did you mean: --${target}
+
+Example usage:
+  ai-code-review --${target}
+  ai-code-review src --${target}
+
+For options that require values:
+  ai-code-review --type performance
+  ai-code-review --output json
+  ai-code-review --model openai:gpt-4
+
+Run 'ai-code-review --help' for more information.`);
+  }
+  
+  // Check for other common mistakes
+  if (target.startsWith('-') && !target.startsWith('--')) {
+    throw new Error(`Invalid option format: '${target}'
+    
+Options should use double dashes (--), not single dash (-).
+Did you mean: -${target}?
+
+Example usage:
+  ai-code-review --type security
+  ai-code-review --debug
+  ai-code-review --help
+
+Run 'ai-code-review --help' for all available options.`);
+  }
+}
+
+/**
  * Discover files for review based on the target path and options
  * @param target The target file or directory path
  * @param projectPath The project root path
@@ -37,6 +118,9 @@ export async function discoverFiles(
   includeTests: boolean = false
 ): Promise<string[]> {
   try {
+    // First validate the target parameter for common mistakes
+    validateTargetParameter(target);
+    
     // Validate the target path
     const resolvedTarget = path.resolve(projectPath, target);
 
