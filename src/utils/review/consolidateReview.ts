@@ -21,55 +21,68 @@ export async function consolidateReview(
   review: ReviewResult
 ): Promise<string> {
   try {
-    // Use the configured model from environment/command line - no special logic
+    // Use the writer model if configured, otherwise fall back to the main model
     const config = getConfig();
-    const configuredModel = config.selectedModel;
+    const consolidationModel = config.writerModel || config.selectedModel;
     
-    logger.info(`Creating client with configured model ${configuredModel} for consolidation`);
+    logger.info(`Creating client with model ${consolidationModel} for consolidation`);
     
-    // Create the client - it will use the model mapping internally
-    const client = ClientFactory.createClient();
-    await client.initialize();
+    // Temporarily override the model environment variable for client initialization
+    const originalModel = process.env.AI_CODE_REVIEW_MODEL;
+    process.env.AI_CODE_REVIEW_MODEL = consolidationModel;
     
-    // Extract provider from the configured model
-    // const [_provider] = configuredModel.split(':'); // Not used in this implementation
-    
-    // Create a consolidated prompt that includes the multi-pass results
-    const consolidationSystemPrompt = getConsolidationSystemPrompt();
-    const consolidationPrompt = getConsolidationPrompt(review);
-    
-    logger.info(`Consolidating multi-pass review with ${configuredModel}...`);
-    
-    // Use the client to send the consolidation request
-    const consolidationResult = await client.generateConsolidatedReview(
-      [], // Empty file list since we're just consolidating existing content
-      review.projectName || 'ai-code-review',
-      review.reviewType,
-      {
-        custom: {
-          'MULTI_PASS_REVIEW.md': review.content,
-          'CONSOLIDATION_SYSTEM_PROMPT.md': consolidationSystemPrompt,
-          'CONSOLIDATION_USER_PROMPT.md': consolidationPrompt
+    try {
+      // Create and initialize the client with the consolidation model
+      const client = ClientFactory.createClient(consolidationModel);
+      await client.initialize();
+      
+      // Extract provider from the configured model
+      // const [_provider] = consolidationModel.split(':'); // Not used in this implementation
+      
+      // Create a consolidated prompt that includes the multi-pass results
+      const consolidationSystemPrompt = getConsolidationSystemPrompt();
+      const consolidationPrompt = getConsolidationPrompt(review);
+      
+      logger.info(`Consolidating multi-pass review with ${consolidationModel}...`);
+      
+      // Use the client to send the consolidation request
+      const consolidationResult = await client.generateConsolidatedReview(
+        [], // Empty file list since we're just consolidating existing content
+        review.projectName || 'ai-code-review',
+        review.reviewType,
+        {
+          custom: {
+            'MULTI_PASS_REVIEW.md': review.content,
+            'CONSOLIDATION_SYSTEM_PROMPT.md': consolidationSystemPrompt,
+            'CONSOLIDATION_USER_PROMPT.md': consolidationPrompt
+          }
+        },
+        {
+          type: review.reviewType,
+          includeTests: false,
+          output: 'markdown',
+          isConsolidation: true,
+          consolidationMode: true,
+          skipFileContent: true,
+          interactive: false // Always use markdown output for consolidation, not JSON
         }
-      },
-      {
-        type: review.reviewType,
-        includeTests: false,
-        output: 'markdown',
-        isConsolidation: true,
-        consolidationMode: true,
-        skipFileContent: true,
-        interactive: false // Always use markdown output for consolidation, not JSON
+      );
+      
+      if (!consolidationResult || !consolidationResult.content) {
+        logger.warn('Received empty consolidation result from API, using fallback');
+        return createFallbackConsolidation(review);
       }
-    );
-    
-    if (!consolidationResult || !consolidationResult.content) {
-      logger.warn('Received empty consolidation result from API, using fallback');
-      return createFallbackConsolidation(review);
+      
+      logger.info('Successfully consolidated review with AI');
+      return consolidationResult.content;
+    } finally {
+      // Restore the original model environment variable
+      if (originalModel !== undefined) {
+        process.env.AI_CODE_REVIEW_MODEL = originalModel;
+      } else {
+        delete process.env.AI_CODE_REVIEW_MODEL;
+      }
     }
-    
-    logger.info('Successfully consolidated review with AI');
-    return consolidationResult.content;
   } catch (error) {
     logger.error(`Error consolidating review: ${error instanceof Error ? error.message : String(error)}`);
     return createFallbackConsolidation(review);

@@ -17,6 +17,7 @@ export type EnvSource =
   | 'AI_CODE_REVIEW_ANTHROPIC_API_KEY'
   | 'AI_CODE_REVIEW_OPENAI_API_KEY'
   | 'AI_CODE_REVIEW_MODEL'
+  | 'AI_CODE_REVIEW_WRITER_MODEL'
   | 'AI_CODE_REVIEW_LOG_LEVEL'
   | 'AI_CODE_REVIEW_OUTPUT_DIR'
   | 'AI_CODE_REVIEW_CONTEXT'
@@ -129,6 +130,7 @@ export interface ApplicationConfig {
   
   // Model configuration
   selectedModel: ConfigValue<string>;
+  writerModel?: ConfigValue<string>;
   modelProvider: ConfigValue<ApiProvider>;
   
   // Logging and debugging
@@ -171,6 +173,7 @@ export const applicationConfigSchema = z.object({
   }),
   
   selectedModel: z.object({ value: z.string(), source: z.string() }),
+  writerModel: z.object({ value: z.string(), source: z.string() }).optional(),
   modelProvider: z.object({ 
     value: z.enum(['gemini', 'openrouter', 'anthropic', 'openai']),
     source: z.string()
