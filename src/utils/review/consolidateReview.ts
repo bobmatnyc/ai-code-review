@@ -21,6 +21,15 @@ export async function consolidateReview(
   review: ReviewResult
 ): Promise<string> {
   try {
+    logger.debug('[CONSOLIDATION] Starting consolidation with:', {
+      hasContent: !!review.content,
+      contentLength: review.content?.length || 0,
+      projectName: review.projectName,
+      modelUsed: review.modelUsed,
+      reviewType: review.reviewType,
+      firstChars: review.content?.substring(0, 200) || 'N/A'
+    });
+    
     // Use the writer model if configured, otherwise fall back to the main model
     const config = getConfig();
     const consolidationModel = config.writerModel || config.selectedModel;
@@ -34,7 +43,12 @@ export async function consolidateReview(
     try {
       // Create and initialize the client with the consolidation model
       const client = ClientFactory.createClient(consolidationModel);
+      logger.debug('[CONSOLIDATION] Created client:', {
+        clientType: client.constructor.name,
+        model: consolidationModel
+      });
       await client.initialize();
+      logger.debug('[CONSOLIDATION] Client initialized successfully');
       
       // Extract provider from the configured model
       // const [_provider] = consolidationModel.split(':'); // Not used in this implementation
@@ -43,36 +57,126 @@ export async function consolidateReview(
       const consolidationSystemPrompt = getConsolidationSystemPrompt();
       const consolidationPrompt = getConsolidationPrompt(review);
       
+      logger.debug('[CONSOLIDATION] Prompts created:', {
+        systemPromptLength: consolidationSystemPrompt.length,
+        userPromptLength: consolidationPrompt.length
+      });
+      
       logger.info(`Consolidating multi-pass review with ${consolidationModel}...`);
       
-      // Use the client to send the consolidation request
-      const consolidationResult = await client.generateConsolidatedReview(
-        [{
-          path: 'MULTI_PASS_REVIEW.md',
-          relativePath: 'MULTI_PASS_REVIEW.md', 
-          content: review.content
-        }], // Pass the multi-pass content as a file
-        review.projectName || 'ai-code-review',
-        review.reviewType,
-        null, // No project docs needed for consolidation
-        {
+      logger.debug('[CONSOLIDATION] Sending to generateConsolidatedReview with:', {
+        filesCount: 1,
+        fileName: 'MULTI_PASS_REVIEW.md',
+        contentLength: review.content?.length || 0,
+        projectName: review.projectName || 'ai-code-review',
+        reviewType: review.reviewType,
+        options: {
           type: review.reviewType,
           includeTests: false,
           output: 'markdown',
           isConsolidation: true,
           consolidationMode: true,
           skipFileContent: false,
-          interactive: false // Always use markdown output for consolidation, not JSON
+          interactive: false
         }
-      );
+      });
       
-      if (!consolidationResult || !consolidationResult.content) {
-        logger.warn('Received empty consolidation result from API, using fallback');
-        return createFallbackConsolidation(review);
+      // Make a direct API call with our custom prompts for consolidation
+      // This is necessary because the standard generateConsolidatedReview doesn't support custom prompts
+      const [provider, modelName] = consolidationModel.split(':');
+      
+      if (provider === 'openai') {
+        // Use direct OpenAI API call with custom prompts
+        const apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
+        if (!apiKey) {
+          throw new Error('OpenAI API key not found');
+        }
+        
+        const { fetchWithRetry } = await import('../../clients/base/httpClient');
+        
+        const requestBody: any = {
+          model: modelName,
+          messages: [
+            {
+              role: 'system',
+              content: consolidationSystemPrompt
+            },
+            {
+              role: 'user',
+              content: consolidationPrompt
+            }
+          ]
+        };
+        
+        // Add appropriate max tokens parameter based on model
+        if (modelName.startsWith('o3')) {
+          requestBody.max_completion_tokens = 4096;
+        } else {
+          requestBody.max_tokens = 4096;
+          requestBody.temperature = 0.2;
+        }
+        
+        logger.debug('[CONSOLIDATION] Making direct OpenAI API call with custom prompts');
+        
+        const response = await fetchWithRetry(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(requestBody)
+          }
+        );
+        
+        const data = await response.json();
+        
+        if (!data.choices?.[0]?.message?.content) {
+          throw new Error('Invalid API response');
+        }
+        
+        const consolidatedContent = data.choices[0].message.content;
+        
+        logger.debug('[CONSOLIDATION] Received direct API response:', {
+          contentLength: consolidatedContent.length,
+          firstChars: consolidatedContent.substring(0, 200)
+        });
+        
+        if (!consolidatedContent || consolidatedContent.trim() === '') {
+          logger.warn('Received empty consolidation from direct API call');
+          return createFallbackConsolidation(review);
+        }
+        
+        logger.info('Successfully consolidated review with AI using direct API call');
+        return consolidatedContent;
+      } else {
+        // For non-OpenAI providers, fall back to the standard method
+        // Note: This may not work correctly for consolidation
+        logger.warn(`Consolidation for ${provider} provider may not work correctly - using standard method`);
+        
+        const consolidationResult = await client.generateConsolidatedReview(
+          [{
+            path: 'MULTI_PASS_REVIEW.md',
+            relativePath: 'MULTI_PASS_REVIEW.md', 
+            content: review.content
+          }],
+          review.projectName || 'ai-code-review',
+          review.reviewType,
+          null,
+          {
+            type: review.reviewType,
+            includeTests: false,
+            output: 'markdown',
+            isConsolidation: true,
+            consolidationMode: true,
+            skipFileContent: false,
+            interactive: false
+          }
+        );
+        
+        return consolidationResult?.content || '';
       }
-      
-      logger.info('Successfully consolidated review with AI');
-      return consolidationResult.content;
     } finally {
       // Restore the original model environment variable
       if (originalModel !== undefined) {
