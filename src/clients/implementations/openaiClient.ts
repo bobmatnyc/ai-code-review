@@ -125,6 +125,19 @@ export class OpenAIClient extends AbstractClient {
   }
   
   /**
+   * Add max tokens parameter based on model type
+   * @param requestBody The request body to modify
+   */
+  private addMaxTokensParameter(requestBody: Record<string, any>): void {
+    // Use max_completion_tokens for o3 models, max_tokens for others
+    if (this.modelName.startsWith('o3')) {
+      requestBody.max_completion_tokens = MAX_TOKENS_PER_REQUEST;
+    } else {
+      requestBody.max_tokens = MAX_TOKENS_PER_REQUEST;
+    }
+  }
+  
+  /**
    * Generate a review for a single file
    * @param fileContent Content of the file to review
    * @param filePath Path to the file
@@ -223,9 +236,11 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
               content: prompt
             }
           ],
-          temperature: 0.2,
-          max_tokens: MAX_TOKENS_PER_REQUEST
+          temperature: 0.2
         };
+        
+        // Add max tokens parameter based on model type
+        this.addMaxTokensParameter(requestBody);
         
         // Make the API request
         const response = await fetchWithRetry(
@@ -367,9 +382,11 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
               content: prompt
             }
           ],
-          temperature: 0.2,
-          max_tokens: MAX_TOKENS_PER_REQUEST
+          temperature: 0.2
         };
+        
+        // Add max tokens parameter based on model type
+        this.addMaxTokensParameter(requestBody);
         
         // Make the API request
         const response = await fetchWithRetry(
@@ -519,9 +536,11 @@ Always include a dedicated "Dependency Security Analysis" section in your review
             ],
             tools,
             tool_choice: 'auto',
-            temperature: 0.2,
-            max_tokens: MAX_TOKENS_PER_REQUEST
+            temperature: 0.2
           };
+          
+          // Add max tokens parameter based on model type
+          this.addMaxTokensParameter(initialRequestBody);
             
           // Make the initial request with tools
           response = await fetchWithRetry(
@@ -583,9 +602,11 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
             const finalRequestBody: Record<string, any> = {
               model: this.getApiModelName(),
               messages: conversationWithResults,
-              temperature: 0.2,
-              max_tokens: MAX_TOKENS_PER_REQUEST
+              temperature: 0.2
             };
+            
+            // Add max tokens parameter based on model type
+            this.addMaxTokensParameter(finalRequestBody);
             
             // Make the final request
             const finalResponse = await fetchWithRetry(
@@ -628,9 +649,11 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
                 content: prompt
               }
             ],
-            temperature: 0.2,
-            max_tokens: MAX_TOKENS_PER_REQUEST
+            temperature: 0.2
           };
+          
+          // Add max tokens parameter based on model type
+          this.addMaxTokensParameter(requestBody);
           
           response = await fetchWithRetry(
             'https://api.openai.com/v1/chat/completions',

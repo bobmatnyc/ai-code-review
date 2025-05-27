@@ -41,6 +41,7 @@ export async function fetchWithRetry(
         // For other errors, try to get more detailed information
         try {
           const errorBody = await res.json();
+          logger.error(`API error response: ${JSON.stringify(errorBody)}`);
           throw new ApiError(
             `API request failed with status ${res.status}: ${
               errorBody.error?.message || JSON.stringify(errorBody)
@@ -48,6 +49,7 @@ export async function fetchWithRetry(
           );
         } catch (parseError) {
           // If we can't parse the error response, just use the status
+          logger.error(`Failed to parse error response, status: ${res.status}`);
           throw new ApiError(
             `API request failed with status ${res.status}`
           );
