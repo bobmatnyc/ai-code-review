@@ -338,7 +338,9 @@ Model: ${providerInfo.model}
 Files: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)
 
 Token Information:
-  Estimated Total Tokens: ${tokenAnalysis.estimatedTotalTokens.toLocaleString()}
+  Input Tokens: ${costEstimation.inputTokens.toLocaleString()}
+  Estimated Output Tokens: ${costEstimation.outputTokens.toLocaleString()}
+  Total Tokens: ${costEstimation.totalTokens.toLocaleString()}
   Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}
   Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
 
@@ -596,7 +598,9 @@ Model: ${providerInfo.model}
 Files: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)
 
 Token Information:
-  Estimated Total Tokens: ${tokenAnalysis.estimatedTotalTokens.toLocaleString()}
+  Input Tokens: ${costEstimation.inputTokens.toLocaleString()}
+  Estimated Output Tokens: ${costEstimation.outputTokens.toLocaleString()}
+  Total Tokens: ${costEstimation.totalTokens.toLocaleString()}
   Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}
   Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
 
