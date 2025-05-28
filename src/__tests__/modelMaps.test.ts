@@ -98,14 +98,14 @@ describe('modelMaps', () => {
       expect(claude3Opus.apiKeyEnvVar).toBe('AI_CODE_REVIEW_ANTHROPIC_API_KEY');
 
       const claude4Sonnet = MODEL_MAP['anthropic:claude-4-sonnet'];
-      expect(claude4Sonnet.apiIdentifier).toBe('claude-4-sonnet-20250528');
+      expect(claude4Sonnet.apiIdentifier).toBe('claude-sonnet-4-20250514');
       expect(claude4Sonnet.displayName).toBe('Claude 4 Sonnet');
-      expect(claude4Sonnet.contextWindow).toBe(300000);
+      expect(claude4Sonnet.contextWindow).toBe(200000);
 
       const claude4Opus = MODEL_MAP['anthropic:claude-4-opus'];
-      expect(claude4Opus.apiIdentifier).toBe('claude-4-opus-20250528');
+      expect(claude4Opus.apiIdentifier).toBe('claude-opus-4-20250514');
       expect(claude4Opus.displayName).toBe('Claude 4 Opus');
-      expect(claude4Opus.contextWindow).toBe(500000);
+      expect(claude4Opus.contextWindow).toBe(200000);
     });
   });
 
