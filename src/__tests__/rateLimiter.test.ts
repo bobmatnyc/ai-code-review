@@ -127,7 +127,7 @@ describe('RateLimiter', () => {
   });
 
   describe('globalRateLimiter', () => {
-    it('should export a global rate limiter instance', () => {
+    it('should export a global rate limiter instance', async () => {
       // Import the global rate limiter
       const rateLimiterModule = await import('../utils/api/rateLimiter');
       const { globalRateLimiter } = rateLimiterModule as { globalRateLimiter: RateLimiter };
