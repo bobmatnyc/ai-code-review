@@ -129,7 +129,8 @@ describe('RateLimiter', () => {
   describe('globalRateLimiter', () => {
     it('should export a global rate limiter instance', () => {
       // Import the global rate limiter
-      const { globalRateLimiter } = require('../utils/api/rateLimiter') as { globalRateLimiter: RateLimiter };
+      const rateLimiterModule = await import('../utils/api/rateLimiter');
+      const { globalRateLimiter } = rateLimiterModule as { globalRateLimiter: RateLimiter };
 
       // Should be an instance of RateLimiter
       expect(globalRateLimiter).toBeInstanceOf(RateLimiter);
