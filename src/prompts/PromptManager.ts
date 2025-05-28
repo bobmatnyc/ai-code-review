@@ -19,7 +19,6 @@ import { PromptBuilder } from './PromptBuilder';
 import { PromptCache } from './cache/PromptCache';
 import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
 import { getBundledPrompt } from './bundledPrompts';
-import { detectFramework } from '../utils/detection';
 
 /**
  * Interface for prompt template metadata
@@ -333,14 +332,11 @@ export class PromptManager {
   ): Promise<string> {
     // Get the language from options or default to typescript
     let language = 'typescript';
-    let framework: string | undefined;
+    const framework = options?.framework || 'generic';
 
     if (options?.language) {
       language = options.language.toLowerCase();
     }
-    
-    // Use framework from options if provided
-    framework = options?.framework || framework;
 
     // Check if we should use a cached prompt
     if (options?.useCache !== false) {
@@ -461,8 +457,8 @@ export class PromptManager {
    * If you need to add or modify prompts, you must update the bundledPrompts.ts file.
    */
   private async loadPromptTemplateFromFileSystem(
-    reviewType: ReviewType,
-    options?: ReviewOptions
+    _reviewType: ReviewType,
+    _options?: ReviewOptions
   ): Promise<string> {
     throw new Error(
       `The loadPromptTemplateFromFileSystem method has been removed. We now use bundled prompts as the PRIMARY AND ONLY SOURCE for prompts. All prompts are defined in the bundledPrompts.ts file and accessed through the getBundledPrompt function.`
@@ -541,8 +537,8 @@ export class PromptManager {
     // If this is a Handlebars template and we have variables, render it
     if (isHandlebarsTemplate && Object.keys(templateVars).length > 0) {
       try {
-        const Handlebars = require('handlebars');
-        const template = Handlebars.compile(promptTemplate);
+        const Handlebars = await import('handlebars');
+        const template = Handlebars.default.compile(promptTemplate);
         promptTemplate = template(templateVars);
       } catch (error) {
         logger.error(`Error rendering Handlebars template: ${error}`);
@@ -637,9 +633,9 @@ export class PromptManager {
     reviewType: ReviewType,
     promptContent: string,
     rating: number,
-    comments?: string,
-    positiveAspects?: string[],
-    negativeAspects?: string[]
+    _comments?: string,
+    _positiveAspects?: string[],
+    _negativeAspects?: string[]
   ): Promise<void> {
     try {
       // Cache the prompt with the feedback

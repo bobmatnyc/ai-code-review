@@ -64,30 +64,30 @@ export class CodeTracingUnusedCodeReviewStrategy
     }
 
     // Determine the prompt template to use based on language
-    const languagePrefix = options.language ? `${options.language}/` : '';
-    const promptTemplate =
-      options.promptFile ||
-      `${languagePrefix}code-tracing-unused-code-review.md`;
+    // const languagePrefix = options.language ? `${options.language}/` : '';
+    // const promptTemplate =
+    //   options.promptFile ||
+    //   `${languagePrefix}code-tracing-unused-code-review.md`;
 
     // Build code context from files
-    const codeContext = files
-      .map(file => {
-        return `File: ${file.relativePath || file.path}\n\n\`\`\`${file.extension || 'typescript'}\n${file.content}\n\`\`\``;
-      })
-      .join('\n\n');
+    // const codeContext = files
+    //   .map(file => {
+    //     return `File: ${file.relativePath || file.path}\n\n\`\`\`${file.extension || 'typescript'}\n${file.content}\n\`\`\``;
+    //   })
+    //   .join('\n\n');
 
     // Include project docs if available
-    let docsContext = '';
+    // let docsContext = '';
     if (projectDocs && options.includeProjectDocs) {
       // Format the project docs
       const formattedDocs = formatProjectDocs(projectDocs);
       if (formattedDocs) {
-        docsContext = `${formattedDocs}\n\n`;
+        // docsContext = `${formattedDocs}\n\n`;
       }
     }
 
     // Build the prompt
-    const prompt = `${docsContext}# Code to Analyze\n\n${codeContext}`;
+    // const prompt = `${docsContext}# Code to Analyze\n\n${codeContext}`;
 
     // Get the model response with schema validation
     let response;

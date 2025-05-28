@@ -16,7 +16,7 @@ import logger from '../logger';
 // Import specialized modules
 import { generateDependencyVisualization } from './dependencyVisualization';
 import { findUnusedDependencies } from './unusedDependencies';
-import { runNpmAudit, SecurityIssues } from './securityAnalysis';
+import { runNpmAudit } from './securityAnalysis';
 import { getContextualRecommendations } from './recommendationGenerator';
 import { formatOverallReport, EnhancedDependencyAnalysis } from './reportFormatter';
 
@@ -94,12 +94,12 @@ export async function createEnhancedDependencyAnalysis(projectPath: string): Pro
         const npmList = JSON.parse(listOutput);
         
         // Count all dependencies in the tree
-        function countDeps(deps: object): number {
+        const countDeps = (deps: object): number => {
           if (!deps) return 0;
           return Object.keys(deps).length + Object.values(deps).reduce((sum, dep: any) => {
             return sum + countDeps(dep.dependencies || {});
           }, 0);
-        }
+        };
         
         const allDeps = countDeps(npmList.dependencies || {});
         result.dependencySummary.transitive = allDeps - result.dependencySummary.total;

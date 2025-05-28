@@ -7,17 +7,14 @@
  */
 
 import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
-import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import { PromptManager } from '../PromptManager';
 import { PromptStrategyFactory } from '../strategies/PromptStrategyFactory';
 import { PromptCache } from '../cache/PromptCache';
 import {
-  getUnusedCodeReviewFormatInstructions,
-  unusedCodeReviewParser
+  getUnusedCodeReviewFormatInstructions
 } from '../schemas/unused-code-schema';
 import {
-  getCodeTracingUnusedCodeReviewFormatInstructions,
-  codeTracingUnusedCodeReviewParser
+  getCodeTracingUnusedCodeReviewFormatInstructions
 } from '../schemas/code-tracing-unused-code-schema';
 import logger from '../../utils/logger';
 
@@ -32,7 +29,7 @@ async function unusedCodeLangChainExample() {
   const promptCache = PromptCache.getInstance();
 
   // Create a LangChain strategy
-  const strategy = PromptStrategyFactory.createStrategy(
+  PromptStrategyFactory.createStrategy(
     'langchain',
     promptManager,
     promptCache
@@ -226,14 +223,14 @@ async function codeTracingUnusedCodeExample() {
   const promptCache = PromptCache.getInstance();
 
   // Create a LangChain strategy
-  const strategy = PromptStrategyFactory.createStrategy(
+  PromptStrategyFactory.createStrategy(
     'langchain',
     promptManager,
     promptCache
   );
 
   // Get a raw prompt template for code tracing unused code review
-  const rawPrompt = await promptManager.getPromptTemplate(
+  await promptManager.getPromptTemplate(
     'code-tracing-unused-code',
     {
       language: 'typescript',

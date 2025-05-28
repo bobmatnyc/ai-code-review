@@ -12,7 +12,7 @@ import { promises as fs } from 'fs';
 import { spawnSync } from 'child_process';
 import logger from '../logger';
 import { detectTechStacks } from './dependencyRegistry';
-import { analyzePackagesWithStackAwareness, formatStackSummary } from './stackAwarePackageAnalyzer';
+import { formatStackSummary } from './stackAwarePackageAnalyzer';
 
 /**
  * Interface for OWASP Dependency-Check configuration

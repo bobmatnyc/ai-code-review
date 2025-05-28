@@ -11,10 +11,10 @@ import fs from 'fs/promises';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import logger from '../logger';
-import { getConfig } from '../../utils/config';
-import { AbstractClient } from '../../clients/base/abstractClient';
+// import { getConfig } from '../../utils/config';
+// import { AbstractClient } from '../../clients/base/abstractClient';
 import { ClientFactory } from '../../clients/factory/clientFactory';
-import { formatProjectDocs } from '../projectDocs';
+// import { formatProjectDocs } from '../projectDocs';
 
 const execAsync = promisify(exec);
 
@@ -129,7 +129,7 @@ async function analyzeWithAI(projectSample: ProjectFileSample): Promise<AIDepend
         type: 'architectural',
         includeTests: false,
         output: 'markdown',
-        // @ts-ignore - temporary
+        // @ts-expect-error - temporary property for AI dependency analysis
       isAIDependencyAnalysis: true
       }
     );

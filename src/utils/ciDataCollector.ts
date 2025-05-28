@@ -140,7 +140,7 @@ function parseLintErrors(output: string, ciData: CIData, projectPath: string): v
   
   for (const line of lines) {
     // ESLint file header format: /path/to/file.ts
-    if (line.match(/^[\/\\]/)) {
+    if (line.match(/^[/\\]/)) {
       currentFile = path.relative(projectPath, line.trim());
       if (!ciData.fileErrors![currentFile]) {
         ciData.fileErrors![currentFile] = {

@@ -43,7 +43,7 @@ async function listModels() {
     try {
       // @ts-expect-error - This might be available in newer versions
       if (typeof genAI.listModels === 'function') {
-        // @ts-expect-error
+        // @ts-expect-error - listModels method exists but not in type definitions
         const models = await genAI.listModels();
         console.log('Models from SDK:', models);
         return;

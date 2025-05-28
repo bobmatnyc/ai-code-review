@@ -20,7 +20,7 @@ import {
 } from '@google/generative-ai';
 // Using native fetch API (Node.js 18+)
 import dotenv from 'dotenv';
-import logger from '../utils/logger';
+// import logger from '../utils/logger';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });

@@ -11,6 +11,7 @@ import { PromptManager } from '../PromptManager';
 import { PromptCache } from '../cache/PromptCache';
 import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
 import logger from '../../utils/logger';
+import { formatCIDataForPrompt } from '../../utils/ciDataCollector';
 
 /**
  * LangChain-based prompt strategy implementation
@@ -72,7 +73,7 @@ export class LangChainPromptStrategy extends PromptStrategy {
     prefix: string,
     examples: Array<Record<string, string>>,
     suffix: string,
-    options: ReviewOptions
+    _options: ReviewOptions
   ): FewShotPromptTemplate {
     // Create the example template with variables from the first example
     const exampleVariables = Object.keys(examples[0] || {});
@@ -137,7 +138,6 @@ export class LangChainPromptStrategy extends PromptStrategy {
       if (optionKey && typeof optionKey === 'string' && optionKey in options) {
         // Special handling for CI data
         if (optionKey === 'ciData' && options.ciData) {
-          const { formatCIDataForPrompt } = require('../../utils/ciDataCollector');
           // Use the mapped FILE_PATH value if available, otherwise default to undefined
           // This ensures we don't try to access a property that doesn't exist on ReviewOptions
           const filePath = inputValues['FILE_PATH'] || undefined;
