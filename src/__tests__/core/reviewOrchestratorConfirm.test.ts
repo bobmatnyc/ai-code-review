@@ -243,7 +243,6 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    const originalOrchestrate = reviewOrchestratorModule.orchestrateReview;
     jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {
@@ -309,7 +308,6 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    const originalOrchestrate = reviewOrchestratorModule.orchestrateReview;
     jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {
@@ -380,7 +378,6 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    const originalOrchestrate = reviewOrchestratorModule.orchestrateReview;
     jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {

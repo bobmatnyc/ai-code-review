@@ -69,7 +69,7 @@ function isOpenRouterModel(): {
  * @returns Promise resolving to a boolean indicating if initialization was successful
  */
 export async function initializeAnyOpenRouterModel(): Promise<boolean> {
-  const { isCorrect, adapter: _adapter, modelName } = isOpenRouterModel(); // adapter not used
+  const { isCorrect, modelName } = isOpenRouterModel();
 
   // If this is not an OpenRouter model, just return true without initializing
   if (!isCorrect) {

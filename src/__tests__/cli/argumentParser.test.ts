@@ -6,7 +6,6 @@
  */
 
 import { validateArguments } from '../../cli/argumentParser';
-import { VALID_REVIEW_TYPES, VALID_OUTPUT_FORMATS } from '../../types/common';
 
 // Mock the logger to prevent console output during tests
 jest.mock('../../utils/logger', () => ({

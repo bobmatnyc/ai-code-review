@@ -30,7 +30,7 @@ async function getModels() {
   // Make an API call to list available models
   // While listModels is not officially documented, we can try using it
   try {
-    // @ts-ignore - This method exists but is not in the type definitions
+    // @ts-expect-error - This method exists but is not in the type definitions
     const modelList = await genAI.listModels();
     
     // If API call fails, fall back to our hardcoded knowledge
