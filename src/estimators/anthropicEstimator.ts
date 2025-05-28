@@ -110,7 +110,16 @@ export class AnthropicTokenEstimator extends AbstractTokenEstimator {
     inputTokenCost: number;
     outputTokenCost: number;
   } {
-    return this.MODEL_PRICING[modelName] || this.MODEL_PRICING['default'];
+    // Import getApiNameFromKey to get the correct API identifier
+    const { getApiNameFromKey } = require('../clients/utils/modelMaps');
+    
+    // If modelName includes provider prefix (e.g., "anthropic:claude-4-opus"), 
+    // use getApiNameFromKey to get the API identifier
+    const apiIdentifier = modelName.includes(':') 
+      ? getApiNameFromKey(modelName)
+      : modelName;
+    
+    return this.MODEL_PRICING[apiIdentifier] || this.MODEL_PRICING['default'];
   }
 
   /**
@@ -125,6 +134,7 @@ export class AnthropicTokenEstimator extends AbstractTokenEstimator {
     outputTokens: number,
     modelName: string = this.getDefaultModel()
   ): number {
+    // getModelPricing now handles the model name extraction
     const pricing = this.getModelPricing(modelName);
     const inputCost = (inputTokens / 1000) * pricing.inputTokenCost;
     const outputCost = (outputTokens / 1000) * pricing.outputTokenCost;
