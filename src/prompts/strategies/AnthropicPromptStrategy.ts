@@ -9,7 +9,6 @@ import { ReviewOptions } from '../../types/review';
 import { PromptStrategy } from './PromptStrategy';
 import { PromptManager } from '../PromptManager';
 import { PromptCache } from '../cache/PromptCache';
-import logger from '../../utils/logger';
 
 /**
  * Prompt strategy for Anthropic models
@@ -30,7 +29,7 @@ export class AnthropicPromptStrategy extends PromptStrategy {
    * @param options Review options
    * @returns Formatted prompt
    */
-  formatPrompt(prompt: string, options: ReviewOptions): string {
+  formatPrompt(prompt: string, _options: ReviewOptions): string {
     // Anthropic models work well with the default prompt format
     // but we can add some Anthropic-specific optimizations here
 

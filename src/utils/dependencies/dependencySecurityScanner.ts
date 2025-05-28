@@ -12,7 +12,7 @@ import { spawnSync } from 'child_process';
 import os from 'os'; // Added for platform detection
 import logger from '../logger';
 import { detectTechStacks } from './dependencyRegistry';
-import { analyzePackagesWithStackAwareness, formatStackSummary } from './stackAwarePackageAnalyzer';
+import { formatStackSummary } from './stackAwarePackageAnalyzer';
 
 /**
  * Interface for Dependency scanner configuration

@@ -26,15 +26,12 @@ import logger from '../utils/logger';
 import { PromptStrategyFactory } from '../prompts/strategies/PromptStrategyFactory';
 import { PromptManager } from '../prompts/PromptManager';
 import { PromptCache } from '../prompts/cache/PromptCache';
-import { getUnusedCodeReviewFormatInstructions } from '../prompts/schemas/unused-code-schema';
 import { getImprovedUnusedCodeReviewFormatInstructions } from '../prompts/schemas/improved-unused-code-schema';
 import {
   formatUnusedCodeReviewAsMarkdown,
   generateRemovalScript
 } from '../formatters/unusedCodeFormatter';
 import { exec } from 'child_process';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 /**
  * Strategy for detecting and suggesting removal of unused code.
@@ -254,7 +251,7 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
       // Get LangChain prompt strategy
       const promptManager = PromptManager.getInstance();
       const promptCache = PromptCache.getInstance();
-      const strategy = PromptStrategyFactory.createStrategy(
+      PromptStrategyFactory.createStrategy(
         'langchain',
         promptManager,
         promptCache

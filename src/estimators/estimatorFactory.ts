@@ -41,7 +41,7 @@ export class EstimatorFactory {
   getEstimatorForModel(modelName: string): TokenEstimator {
     // Check if the model name includes a provider prefix
     if (modelName.includes(':')) {
-      const [provider, model] = modelName.split(':');
+      const [provider] = modelName.split(':');
       return this.getEstimatorForProvider(provider);
     }
 

@@ -1,6 +1,4 @@
 import { jest } from '@jest/globals';
-import * as fs from 'fs/promises';
-import path from 'path';
 
 // Mock fs/promises at the top level
 jest.mock('fs/promises', () => ({
@@ -54,7 +52,7 @@ describe('Model Name Display', () => {
     });
 
     // Import the module
-    const geminiClient = require('../clients/geminiClient');
+    const geminiClient = await import('../clients/geminiClient');
 
     // The fs/promises mock is already set up at the top level
 
@@ -96,7 +94,7 @@ describe('Model Name Display', () => {
     });
 
     // Import the module
-    const geminiClient = require('../clients/geminiClient');
+    const geminiClient = await import('../clients/geminiClient');
 
     // The fs/promises mock is already set up at the top level
 
@@ -139,7 +137,7 @@ describe('Model Name Display', () => {
     });
 
     // Import the module
-    const geminiClient = require('../clients/geminiClient');
+    const geminiClient = await import('../clients/geminiClient');
 
     // The fs/promises mock is already set up at the top level
 

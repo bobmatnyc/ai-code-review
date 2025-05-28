@@ -44,7 +44,7 @@ export class IndividualReviewStrategy extends AbstractStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    _apiClientConfig: ApiClientConfig
   ): Promise<ReviewResult> {
     try {
       // Validate input

@@ -15,16 +15,6 @@ import {
 import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import logger from '../utils/logger';
-import path from 'path';
-import fs from 'fs/promises';
-import {
-  createDirectory,
-  generateVersionedOutputPath
-} from '../utils/fileSystem';
-import { formatReviewOutput } from '../formatters/outputFormatter';
-import { logError } from '../utils/errorLogger';
-import { displayReviewResults } from '../utils/reviewActionHandler';
-import { getPriorityFilterFromArgs } from '../utils/priorityFilter';
 import { collectCIData } from '../utils/ciDataCollector';
 
 // Import the OpenAI wrapper for individual reviews

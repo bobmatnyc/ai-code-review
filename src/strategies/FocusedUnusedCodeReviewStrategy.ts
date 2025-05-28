@@ -11,9 +11,6 @@ import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
 import logger from '../utils/logger';
-import { PromptStrategyFactory } from '../prompts/strategies/PromptStrategyFactory';
-import { PromptManager } from '../prompts/PromptManager';
-import { PromptCache } from '../prompts/cache/PromptCache';
 import { getFocusedUnusedCodeReviewFormatInstructions } from '../prompts/schemas/focused-unused-code-schema';
 import {
   formatFocusedUnusedCodeReviewAsMarkdown,
