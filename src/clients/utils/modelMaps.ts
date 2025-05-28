@@ -111,6 +111,24 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "apiKeyEnvVar": "AI_CODE_REVIEW_ANTHROPIC_API_KEY",
     "supportsToolCalling": true
   },
+  "anthropic:claude-4-sonnet": {
+    "apiIdentifier": "claude-4-sonnet-20250528",
+    "displayName": "Claude 4 Sonnet",
+    "provider": "anthropic",
+    "contextWindow": 300000,
+    "description": "Next-generation balanced model with enhanced reasoning",
+    "apiKeyEnvVar": "AI_CODE_REVIEW_ANTHROPIC_API_KEY",
+    "supportsToolCalling": true
+  },
+  "anthropic:claude-4-opus": {
+    "apiIdentifier": "claude-4-opus-20250528",
+    "displayName": "Claude 4 Opus",
+    "provider": "anthropic",
+    "contextWindow": 500000,
+    "description": "Most powerful Claude model with advanced capabilities",
+    "apiKeyEnvVar": "AI_CODE_REVIEW_ANTHROPIC_API_KEY",
+    "supportsToolCalling": true
+  },
   "openai:gpt-4.1": {
     "apiIdentifier": "gpt-4.1",
     "displayName": "GPT-4.1",
