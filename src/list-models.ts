@@ -41,9 +41,9 @@ async function listModels() {
 
     // Try to use the SDK's built-in method to list models if available
     try {
-      // @ts-ignore - This might be available in newer versions
+      // @ts-expect-error - This might be available in newer versions
       if (typeof genAI.listModels === 'function') {
-        // @ts-ignore
+        // @ts-expect-error - listModels method exists but not in type definitions
         const models = await genAI.listModels();
         console.log('Models from SDK:', models);
         return;

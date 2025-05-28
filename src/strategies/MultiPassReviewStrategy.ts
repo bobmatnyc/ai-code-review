@@ -6,7 +6,7 @@
  * a cohesive review. It's automatically used when token counts exceed model limits.
  */
 
-import { BaseReviewStrategy, IReviewStrategy } from './ReviewStrategy';
+import { BaseReviewStrategy } from './ReviewStrategy';
 import {
   FileInfo,
   ReviewOptions,
@@ -23,13 +23,13 @@ import {
   formatTokenAnalysis
 } from '../analysis/tokens';
 import { ReviewContext } from '../analysis/context';
-import { formatProjectDocs } from '../utils/projectDocs';
+// import { formatProjectDocs } from '../utils/projectDocs';
 import { MultiPassProgressTracker } from '../utils/review';
 
 // Helper function to accommodate the type mismatch with existing formatters
-const ensureString = (value: string | undefined): string => {
-  return value || 'unknown';
-};
+// const ensureString = (value: string | undefined): string => {
+//   return value || 'unknown';
+// };
 
 /**
  * Strategy for performing multi-pass reviews of large codebases
@@ -408,8 +408,8 @@ This review used a multi-pass approach with context maintenance between passes t
     apiClientConfig: ApiClientConfig,
     files: FileInfo[],
     projectName: string,
-    projectDocs: ProjectDocs | null,
-    options: ReviewOptions
+    _projectDocs: ProjectDocs | null,
+    _options: ReviewOptions
   ): Promise<ReviewResult | undefined> {
     try {
       // Validate API client configuration for consolidation
@@ -511,7 +511,7 @@ This review used a multi-pass approach with context maintenance between passes t
    */
   private createFallbackConsolidation(
     multiPassResult: ReviewResult,
-    modelName: string
+    _modelName: string
   ): string {
     logger.info('Creating fallback consolidation from multi-pass results...');
     
@@ -521,7 +521,7 @@ This review used a multi-pass approach with context maintenance between passes t
     
     let match;
     while ((match = passRegex.exec(multiPassResult.content)) !== null) {
-      const [_, passNumberStr, fileCountStr, summaryContent] = match;
+      const [, passNumberStr, fileCountStr, summaryContent] = match;
       passes.push({
         passNumber: parseInt(passNumberStr, 10),
         fileCount: parseInt(fileCountStr, 10),

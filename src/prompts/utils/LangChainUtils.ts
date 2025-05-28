@@ -8,7 +8,7 @@
 import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
 import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import { ReviewType, ReviewOptions } from '../../types/review';
-import logger from '../../utils/logger';
+// import logger from '../../utils/logger';
 import { z } from 'zod';
 
 /**
@@ -179,7 +179,7 @@ export class LangChainUtils {
         });
         break;
 
-      case 'unused-code':
+      case 'unused-code': {
         // Define the evidence schema for traced unused elements
         const traceEvidenceSchema = z.object({
           definition: z.object({
@@ -341,6 +341,7 @@ export class LangChainUtils {
           })
         });
         break;
+      }
 
       default:
         // Default schema for any type

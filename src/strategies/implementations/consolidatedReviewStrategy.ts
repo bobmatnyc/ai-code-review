@@ -15,8 +15,8 @@ import {
 } from '../../types/review';
 import { ProjectDocs } from '../../utils/projectDocs';
 import { ApiClientConfig } from '../../core/ApiClientSelector';
-import logger from '../../utils/logger';
-import { ClientFactory } from '../../clients/factory';
+// import logger from '../../utils/logger';
+// import { ClientFactory } from '../../clients/factory';
 import { generateReview } from '../../core/ReviewGenerator';
 
 /**

@@ -6,6 +6,7 @@
  */
 
 import * as path from 'path';
+import * as readline from 'readline';
 import { createDirectory } from '../utils/fileSystem';
 import { ReviewOptions } from '../types/review';
 import { FileInfo, discoverFiles, readFilesContent } from './fileDiscovery';
@@ -15,14 +16,12 @@ import { runApiConnectionTests } from '../__tests__/apiConnection.test';
 import { getConfig } from '../utils/config';
 import { ProgrammingLanguage } from '../types/common';
 import {
-  estimateFromFilePaths,
-  formatEstimation
+  estimateFromFilePaths
 } from '../utils/estimationUtils';
 import { parseModelString } from '../clients/utils/modelMaps';
 import configManager from '../utils/configManager';
 import {
   listModels,
-  printCurrentModel,
   listModelConfigs
 } from '../clients/utils/modelLister';
 
@@ -611,7 +610,6 @@ Estimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}
           // Ask for confirmation unless noConfirm flag is set
           if (!options.noConfirm) {
             try {
-              const readline = require('readline');
               const rl = readline.createInterface({
                 input: process.stdin,
                 output: process.stdout

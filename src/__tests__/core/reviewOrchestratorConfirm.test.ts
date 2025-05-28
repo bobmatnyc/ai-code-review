@@ -212,7 +212,8 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
   test('should automatically enable multi-pass when noConfirm is true', async () => {
     // Get access to the mocked readline module
     const readline = jest.requireMock('readline');
-    const mockQuestion = readline.createInterface().question;
+    const mockInterface = readline.createInterface();
+    const mockQuestion = mockInterface?.question || jest.fn();
     
     // Create test options with noConfirm set to true
     const options = {
@@ -243,7 +244,6 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    const originalOrchestrate = reviewOrchestratorModule.orchestrateReview;
     jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {
@@ -309,7 +309,6 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    const originalOrchestrate = reviewOrchestratorModule.orchestrateReview;
     jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {
@@ -380,7 +379,6 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    const originalOrchestrate = reviewOrchestratorModule.orchestrateReview;
     jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {

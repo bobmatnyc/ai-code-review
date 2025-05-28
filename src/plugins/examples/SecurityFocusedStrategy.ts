@@ -6,8 +6,7 @@
  */
 
 import {
-  BaseReviewStrategy,
-  IReviewStrategy
+  BaseReviewStrategy
 } from '../../strategies/ReviewStrategy';
 import {
   FileInfo,

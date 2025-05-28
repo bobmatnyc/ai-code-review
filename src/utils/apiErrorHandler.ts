@@ -123,7 +123,7 @@ export async function handleFetchResponse(
     let errorBody: string | object = 'Unknown error';
     try {
       // Clone the response so we can read it multiple times if needed
-      const clonedResponse = response.clone();
+      // const clonedResponse = response.clone();
 
       // Log all headers for debugging
       console.log(`[DEBUG] ${apiName} API response headers:`);

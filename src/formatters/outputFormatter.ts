@@ -466,7 +466,7 @@ Pass ${passCost.passNumber}:
     
     if (review.cssFrameworks && review.cssFrameworks.length > 0) {
       const cssFrameworksStr = review.cssFrameworks.map(cf => 
-        cf.version ? `${cf.name} v${cf.version.replace(/[^\d\.]/g, '')}` : cf.name
+        cf.version ? `${cf.name} v${cf.version.replace(/[^\d.]/g, '')}` : cf.name
       ).join(', ');
       
       metadataSection += `

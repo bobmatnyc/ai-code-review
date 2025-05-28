@@ -7,11 +7,10 @@
 
 import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
 import { PromptManager } from '../PromptManager';
-import { PromptStrategyFactory } from '../strategies/PromptStrategyFactory';
-import { PromptCache } from '../cache/PromptCache';
+// import { PromptStrategyFactory } from '../strategies/PromptStrategyFactory';
+// import { PromptCache } from '../cache/PromptCache';
 import {
-  getQuickFixesReviewFormatInstructions,
-  quickFixesReviewParser
+  getQuickFixesReviewFormatInstructions
 } from '../schemas/quick-fixes-schema';
 import logger from '../../utils/logger';
 
@@ -96,14 +95,14 @@ async function improvedQuickFixesExample() {
   const promptManager = PromptManager.getInstance();
 
   // Get the prompt cache instance
-  const promptCache = PromptCache.getInstance();
+  // const promptCache = PromptCache.getInstance();
 
   // Create a LangChain strategy
-  const strategy = PromptStrategyFactory.createStrategy(
-    'langchain',
-    promptManager,
-    promptCache
-  );
+  // const strategy = PromptStrategyFactory.createStrategy(
+  //   'langchain',
+  //   promptManager,
+  //   promptCache
+  // );
 
   // Try to get the improved prompt template, fallback to standard if not found
   let rawPrompt;

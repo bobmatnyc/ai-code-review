@@ -79,7 +79,7 @@ describe('modelMaps', () => {
       );
 
       // Verify we have the expected number of Anthropic models
-      expect(anthropicModels.length).toBe(5);
+      expect(anthropicModels.length).toBe(7);
 
       // Verify specific model keys exist
       expect(anthropicModels).toContain('anthropic:claude-3-opus');
@@ -87,13 +87,25 @@ describe('modelMaps', () => {
       expect(anthropicModels).toContain('anthropic:claude-3.5-sonnet');
       expect(anthropicModels).toContain('anthropic:claude-3-haiku');
       expect(anthropicModels).toContain('anthropic:claude-3.5-haiku');
+      expect(anthropicModels).toContain('anthropic:claude-4-sonnet');
+      expect(anthropicModels).toContain('anthropic:claude-4-opus');
 
-      // Verify properties of a specific model
+      // Verify properties of specific models
       const claude3Opus = MODEL_MAP['anthropic:claude-3-opus'];
       expect(claude3Opus.apiIdentifier).toBe('claude-3-opus-20240229');
       expect(claude3Opus.displayName).toBe('Claude 3 Opus');
       expect(claude3Opus.contextWindow).toBe(200000);
       expect(claude3Opus.apiKeyEnvVar).toBe('AI_CODE_REVIEW_ANTHROPIC_API_KEY');
+
+      const claude4Sonnet = MODEL_MAP['anthropic:claude-4-sonnet'];
+      expect(claude4Sonnet.apiIdentifier).toBe('claude-4-sonnet-20250528');
+      expect(claude4Sonnet.displayName).toBe('Claude 4 Sonnet');
+      expect(claude4Sonnet.contextWindow).toBe(300000);
+
+      const claude4Opus = MODEL_MAP['anthropic:claude-4-opus'];
+      expect(claude4Opus.apiIdentifier).toBe('claude-4-opus-20250528');
+      expect(claude4Opus.displayName).toBe('Claude 4 Opus');
+      expect(claude4Opus.contextWindow).toBe(500000);
     });
   });
 
@@ -181,7 +193,7 @@ describe('modelMaps', () => {
       expect(MODELS.gemini).toContain('gemini:gemini-2.0-flash-lite');
 
       // Check Anthropic models
-      expect(MODELS.anthropic.length).toBe(5);
+      expect(MODELS.anthropic.length).toBe(7);
       expect(MODELS.anthropic).toContain('anthropic:claude-3-opus');
       expect(MODELS.anthropic).toContain('anthropic:claude-3.7-sonnet');
 
@@ -235,7 +247,7 @@ describe('modelMaps', () => {
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModelsByProvider('anthropic');
-        expect(anthropicModels.length).toBe(5);
+        expect(anthropicModels.length).toBe(7);
         expect(anthropicModels).toContain('anthropic:claude-3-opus');
         expect(anthropicModels).toContain('anthropic:claude-3.7-sonnet');
       });
@@ -248,7 +260,7 @@ describe('modelMaps', () => {
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
 
         const anthropicModels = getModels('anthropic');
-        expect(anthropicModels.length).toBe(5);
+        expect(anthropicModels.length).toBe(7);
         expect(anthropicModels).toContain('anthropic:claude-3-opus');
         expect(anthropicModels).toContain('anthropic:claude-3.7-sonnet');
       });

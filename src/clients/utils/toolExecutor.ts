@@ -48,15 +48,17 @@ export async function executeToolCall(toolName: string, args: any): Promise<any>
     })}`);
     
     switch (toolName) {
-      case 'search_dependency_security':
+      case 'search_dependency_security': {
         const securityResult = await executeDependencySecuritySearch(args);
         logger.info(`Dependency security search completed for ${args.package_name}`);
         return securityResult;
+      }
         
-      case 'batch_search_dependency_security':
+      case 'batch_search_dependency_security': {
         const batchResult = await executeBatchDependencySecuritySearch(args);
         logger.info(`Batch dependency security search completed for ${args.packages?.length || 0} packages`);
         return batchResult;
+      }
         
       default:
         throw new Error(`Unknown tool: ${toolName}`);

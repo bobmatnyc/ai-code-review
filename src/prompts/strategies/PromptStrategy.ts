@@ -92,7 +92,7 @@ export abstract class PromptStrategy implements IPromptStrategy {
   async generatePrompt(
     reviewType: ReviewType,
     options: ReviewOptions,
-    projectDocs?: ProjectDocs | null
+    _projectDocs?: ProjectDocs | null
   ): Promise<string> {
     try {
       // Check if we should use a cached prompt
