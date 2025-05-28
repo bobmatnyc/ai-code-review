@@ -115,7 +115,7 @@ export async function selectApiClient(_cliOptions?: any): Promise<ApiClientConfi
     logger.info(`Using Gemini API with model: ${envModelName}`);
 
     config.clientType = 'Google';
-    config.modelName = envModelName;
+    config.modelName = `gemini:${envModelName}`;
     config.provider = 'gemini';
     config.apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || '';
     config.initialized = true;
@@ -142,7 +142,7 @@ export async function selectApiClient(_cliOptions?: any): Promise<ApiClientConfi
     // Set the client type and model name without initializing yet
     // The actual initialization will happen when the client is used
     config.clientType = 'Anthropic';
-    config.modelName = envModelName;
+    config.modelName = `anthropic:${envModelName}`;
     config.provider = 'anthropic';
     config.apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || '';
     config.initialized = true;
@@ -160,7 +160,7 @@ export async function selectApiClient(_cliOptions?: any): Promise<ApiClientConfi
     // Set the client type and model name without initializing yet
     // The actual initialization will happen when the client is used
     config.clientType = 'OpenAI';
-    config.modelName = envModelName;
+    config.modelName = `openai:${envModelName}`;
     config.provider = 'openai';
     config.apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY || '';
     config.initialized = true;
