@@ -29,7 +29,7 @@ jest.mock('fs', () => ({
   accessSync: jest.fn(),
   statSync: jest.fn()
 }));
-const mockedFsSync = jest.requireMock('fs') as jest.Mocked<typeof import('fs')>;
+// const mockedFsSync = jest.requireMock('fs') as jest.Mocked<typeof import('fs')>;
 
 describe('File System Utilities', () => {
   beforeEach(() => {

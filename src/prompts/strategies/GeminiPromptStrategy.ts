@@ -8,7 +8,6 @@ import { ReviewOptions } from '../../types/review';
 import { PromptStrategy } from './PromptStrategy';
 import { PromptManager } from '../PromptManager';
 import { PromptCache } from '../cache/PromptCache';
-import logger from '../../utils/logger';
 
 /**
  * Prompt strategy for Gemini models
@@ -29,7 +28,7 @@ export class GeminiPromptStrategy extends PromptStrategy {
    * @param options Review options
    * @returns Formatted prompt
    */
-  formatPrompt(prompt: string, options: ReviewOptions): string {
+  formatPrompt(prompt: string, _options: ReviewOptions): string {
     // Gemini models work well with structured prompts
     // We can add some Gemini-specific optimizations here
 

@@ -9,7 +9,6 @@ import { ReviewOptions } from '../../types/review';
 import { PromptStrategy } from './PromptStrategy';
 import { PromptManager } from '../PromptManager';
 import { PromptCache } from '../cache/PromptCache';
-import logger from '../../utils/logger';
 
 /**
  * Prompt strategy for OpenAI models
@@ -30,7 +29,7 @@ export class OpenAIPromptStrategy extends PromptStrategy {
    * @param options Review options
    * @returns Formatted prompt
    */
-  formatPrompt(prompt: string, options: ReviewOptions): string {
+  formatPrompt(prompt: string, _options: ReviewOptions): string {
     // OpenAI models work well with detailed instructions
     // We can add some OpenAI-specific optimizations here
 

@@ -9,6 +9,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { execSync } from 'child_process';
 import logger from '../logger';
+import { globSync } from 'glob';
 
 /**
  * Run dependency visualization using dependency-cruiser
@@ -126,7 +127,6 @@ export async function generateDependencyVisualization(projectPath: string): Prom
       
       // List all .js and .ts files in src
       try {
-        const { globSync } = require('glob');
         const files = globSync('src/**/*.{js,ts,jsx,tsx}', { cwd: projectPath });
         await fs.writeFile(fallbackPath, `Found ${files.length} JavaScript/TypeScript files in the project.\n\nFiles:\n${files.join('\n')}`);
         

@@ -198,7 +198,7 @@ export class PromptOptimizer {
    */
   private async generateOptimizedPrompt(
     metaPrompt: string,
-    apiClientConfig: ApiClientConfig
+    _apiClientConfig: ApiClientConfig
   ): Promise<string> {
     // For now, we'll use a simple placeholder implementation
     // In a real implementation, this would use the appropriate API client

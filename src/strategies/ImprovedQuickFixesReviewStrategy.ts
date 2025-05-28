@@ -9,14 +9,13 @@ import { ConsolidatedReviewStrategy } from './ConsolidatedReviewStrategy';
 import { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
-import { generateReview } from '../core/ReviewGenerator';
 import logger from '../utils/logger';
 import { PromptStrategyFactory } from '../prompts/strategies/PromptStrategyFactory';
 import { PromptManager } from '../prompts/PromptManager';
 import { PromptCache } from '../prompts/cache/PromptCache';
 import { getQuickFixesReviewFormatInstructions } from '../prompts/schemas/quick-fixes-schema';
 import path from 'path';
-import { collectCIData, formatCIDataForPrompt } from '../utils/ciDataCollector';
+import { collectCIData } from '../utils/ciDataCollector';
 
 /**
  * Strategy for improved quick fixes review using LangChain
@@ -101,7 +100,7 @@ export class ImprovedQuickFixesReviewStrategy extends ConsolidatedReviewStrategy
       // Get LangChain prompt strategy
       const promptManager = PromptManager.getInstance();
       const promptCache = PromptCache.getInstance();
-      const strategy = PromptStrategyFactory.createStrategy(
+      PromptStrategyFactory.createStrategy(
         'langchain',
         promptManager,
         promptCache
