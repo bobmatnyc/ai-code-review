@@ -109,6 +109,8 @@ export class TokenAnalyzer {
     'gemini-1.5-flash': 1000000,
     'claude-3-opus': 200000,
     'claude-3-sonnet': 200000,
+    'claude-4-opus': 200000,
+    'claude-4-sonnet': 200000,
     'gpt-4o': 128000,
     'gpt-4-turbo': 128000,
     // For testing purposes, add a model with very small context
@@ -127,13 +129,19 @@ export class TokenAnalyzer {
       ? modelName.split(':')[1] 
       : modelName;
     
+    logger.debug(`getContextWindowSize: modelName=${modelName}, baseName=${baseName}`);
+    
     // Use explicit existence check for default value
     if (baseName && TokenAnalyzer.MODEL_CONTEXT_SIZES[baseName]) {
-      return TokenAnalyzer.MODEL_CONTEXT_SIZES[baseName];
+      const size = TokenAnalyzer.MODEL_CONTEXT_SIZES[baseName];
+      logger.debug(`getContextWindowSize: found size=${size} for model=${baseName}`);
+      return size;
     }
     
     // We know default exists in our static map but TypeScript doesn't, so use a fallback
-    return TokenAnalyzer.MODEL_CONTEXT_SIZES.default || 100000;
+    const defaultSize = TokenAnalyzer.MODEL_CONTEXT_SIZES.default || 100000;
+    logger.debug(`getContextWindowSize: using default size=${defaultSize}`);
+    return defaultSize;
   }
 
   /**
@@ -147,6 +155,7 @@ export class TokenAnalyzer {
     options: TokenAnalysisOptions
   ): TokenAnalysisResult {
     logger.info('Analyzing token usage for files...');
+    logger.debug(`TokenAnalyzer: modelName=${options.modelName}`);
     
     const contextWindowSize = this.getContextWindowSize(options.modelName);
     const promptOverhead = options.additionalPromptOverhead || 

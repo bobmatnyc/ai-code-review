@@ -62,13 +62,13 @@ export class AnthropicTokenEstimator extends AbstractTokenEstimator {
     },
 
     // Claude 4 models
-    'claude-4-sonnet-20250528': {
-      inputTokenCost: 0.004, // $4.00 per 1M tokens (estimated)
-      outputTokenCost: 0.020 // $20.00 per 1M tokens (estimated)
+    'claude-sonnet-4-20250514': {
+      inputTokenCost: 0.003, // $3.00 per 1M tokens
+      outputTokenCost: 0.015 // $15.00 per 1M tokens
     },
-    'claude-4-opus-20250528': {
-      inputTokenCost: 0.020, // $20.00 per 1M tokens (estimated)
-      outputTokenCost: 0.100 // $100.00 per 1M tokens (estimated)
+    'claude-opus-4-20250514': {
+      inputTokenCost: 0.015, // $15.00 per 1M tokens
+      outputTokenCost: 0.075 // $75.00 per 1M tokens
     },
 
     // Claude 2 models

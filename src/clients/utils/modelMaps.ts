@@ -112,19 +112,19 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "supportsToolCalling": true
   },
   "anthropic:claude-4-sonnet": {
-    "apiIdentifier": "claude-4-sonnet-20250528",
+    "apiIdentifier": "claude-sonnet-4-20250514",
     "displayName": "Claude 4 Sonnet",
     "provider": "anthropic",
-    "contextWindow": 300000,
+    "contextWindow": 200000,
     "description": "Next-generation balanced model with enhanced reasoning",
     "apiKeyEnvVar": "AI_CODE_REVIEW_ANTHROPIC_API_KEY",
     "supportsToolCalling": true
   },
   "anthropic:claude-4-opus": {
-    "apiIdentifier": "claude-4-opus-20250528",
+    "apiIdentifier": "claude-opus-4-20250514",
     "displayName": "Claude 4 Opus",
     "provider": "anthropic",
-    "contextWindow": 500000,
+    "contextWindow": 200000,
     "description": "Most powerful Claude model with advanced capabilities",
     "apiKeyEnvVar": "AI_CODE_REVIEW_ANTHROPIC_API_KEY",
     "supportsToolCalling": true
