@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.9] - 2025-05-28
+
+### Added
+- Added support for Claude 4 Opus and Claude 4 Sonnet models
+  - Claude 4 Opus: Most capable model with 200K context window ($15/$75 per 1M tokens)
+  - Claude 4 Sonnet: Balanced model with 200K context window ($3/$15 per 1M tokens)
+- Added automatic model detection from environment variable AI_CODE_REVIEW_MODEL
+
+### Fixed
+- Fixed provider display showing "Gemini" instead of "Anthropic" when using Claude models
+- Fixed cost calculation to use correct API identifiers from modelMaps
+- Improved token and cost estimation display to show input/output token breakdown
+- Fixed mismatch between displayed tokens and calculated cost in estimation mode
+- Corrected Claude 4 model identifiers to match Anthropic API format
+- Updated ApiClientSelector to include provider prefix in modelName for all providers
+
+### Changed
+- Enhanced estimation display to show actual tokens contributing to cost calculation
+- Improved multi-pass review token information clarity
+
 ## [3.2.8] - 2025-05-21
 
 ### Fixed
