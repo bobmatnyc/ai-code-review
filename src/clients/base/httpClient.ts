@@ -45,10 +45,14 @@ export async function fetchWithRetry(
         // For other errors, try to get more detailed information
         try {
           const errorBody = await res.json();
+          const requestId = res.headers.get('x-request-id') || res.headers.get('request-id');
+          
           logger.error(`API error response: ${JSON.stringify(errorBody, null, 2)}`);
           logger.error(`Request URL: ${url}`);
           logger.error(`Request headers: ${JSON.stringify(options.headers, null, 2)}`);
+          
           // Log request body if it exists (but mask API keys)
+          let modelInfo = '';
           if (options.body) {
             try {
               const body = JSON.parse(options.body as string);
@@ -56,6 +60,7 @@ export async function fetchWithRetry(
                 // Only log message structure, not content
                 logger.error(`Request had ${body.messages.length} messages`);
               }
+              modelInfo = body.model || '';
               logger.error(`Request model: ${body.model}`);
               logger.error(`Request max_tokens: ${body.max_tokens}`);
               logger.error(`Request max_completion_tokens: ${body.max_completion_tokens}`);
@@ -64,16 +69,33 @@ export async function fetchWithRetry(
               logger.error('Request body was not JSON');
             }
           }
-          throw new ApiError(
-            `API request failed with status ${res.status}: ${
-              errorBody.error?.message || JSON.stringify(errorBody)
-            }`
-          );
+          
+          // Create detailed error message
+          const errorDetails: string[] = [
+            `API request failed`,
+            `Endpoint: ${url}`,
+            `Status: ${res.status}`,
+            `Error: ${errorBody.error?.message || JSON.stringify(errorBody)}`
+          ];
+          
+          if (requestId) {
+            errorDetails.push(`Request ID: ${requestId}`);
+          }
+          
+          if (modelInfo) {
+            errorDetails.push(`Model: ${modelInfo}`);
+          }
+          
+          throw new ApiError(errorDetails.join('\n  '));
         } catch (parseError) {
           // If we can't parse the error response, just use the status
+          if (parseError instanceof ApiError) {
+            throw parseError;
+          }
+          
           logger.error(`Failed to parse error response, status: ${res.status}`);
           throw new ApiError(
-            `API request failed with status ${res.status}`
+            `API request failed\n  Endpoint: ${url}\n  Status: ${res.status}\n  Error: Unable to parse error response`
           );
         }
       }

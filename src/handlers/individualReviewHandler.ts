@@ -249,7 +249,7 @@ export async function handleIndividualFileReviews(
 
           // Dynamically import the OpenAI client to avoid loading it unnecessarily
           const { generateOpenAIReview, initializeAnyOpenAIModel } =
-            await import('../clients/openaiClient.js');
+            await import('../clients/openaiClientWrapper.js');
 
           // Initialize OpenAI model if needed
           await initializeAnyOpenAIModel();
