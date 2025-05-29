@@ -1,6 +1,19 @@
-# AI Code Review v3.0.2
+# AI Code Review v3.2.9
 
-A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models, OpenAI models, and OpenRouter API (Claude, GPT-4, etc.) with LangChain integration for enhanced prompt management.
+A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
+
+## What's New in v3.2.9
+
+### Added in v3.2.9
+- **Claude 4 Model Support**: Added support for Anthropic's latest Claude 4 models
+  - **Claude 4 Opus** (`anthropic:claude-4-opus`): Most capable model with 200K context window ($15/$75 per 1M tokens)
+  - **Claude 4 Sonnet** (`anthropic:claude-4-sonnet`): Balanced model with 200K context window ($3/$15 per 1M tokens)
+- **Fixed Provider Display**: Corrected issue where Anthropic models incorrectly showed "Gemini" as the provider
+- **Improved Cost Calculations**: Fixed cost estimation to use correct API model identifiers
+- **Enhanced Token Display**: Shows detailed input/output token breakdown in cost estimates
+- **Better Multi-Pass Clarity**: Improved display of token usage in multi-pass reviews
+
+See the [full release notes](docs/v3.2.9_release.md) and [Claude 4 quick reference](docs/claude-4-quick-reference.md) for details.
 
 ## What's New in v3.0.2
 
@@ -792,8 +805,12 @@ You can see all available models and their mappings by running `ai-code-review -
 
 | Model Name | Description | API Key Required | API Model Name |
 |------------|-------------|------------------|----------------|
+| `anthropic:claude-4-opus` | **NEW** - Most capable model with advanced reasoning | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-opus-4-20250514` |
+| `anthropic:claude-4-sonnet` | **NEW** - Balanced model with enhanced capabilities | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-sonnet-4-20250514` |
 | `anthropic:claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-opus-20240229` |
+| `anthropic:claude-3.5-sonnet` | Improved version of Claude 3 Sonnet | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-5-sonnet-20241022` |
 | `anthropic:claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-sonnet-20240229` |
+| `anthropic:claude-3.5-haiku` | Fast and lightweight model | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-5-haiku-20241022` |
 | `anthropic:claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-haiku-20240307` |
 
 ### OpenAI Models (Direct API)
