@@ -179,7 +179,7 @@ export async function handleArchitecturalReview(
 
       // Dynamically import the OpenAI client to avoid loading it unnecessarily
       const { generateOpenAIArchitecturalReview, initializeAnyOpenAIModel } =
-        await import('../clients/openaiClient.js');
+        await import('../clients/openaiClientWrapper.js');
 
       // Initialize OpenAI model if needed
       await initializeAnyOpenAIModel();
