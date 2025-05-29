@@ -15,6 +15,41 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 
 See the [full release notes](docs/v3.2.9_release.md) and [Claude 4 quick reference](docs/claude-4-quick-reference.md) for details.
 
+## Version History
+
+### v3.2.9 (2025-05-28)
+- **Claude 4 Model Support**: Added Anthropic's latest Claude 4 Opus and Sonnet models with 200K context windows
+- **Fixed Provider Display**: Resolved issue where Anthropic models showed "Gemini" as provider
+- **Improved Cost Estimation**: Fixed token/cost calculation accuracy and display clarity
+
+### v3.2.8 (2025-05-21)
+- **Critical Version Fix**: Fixed CLI reporting incorrect version (3.0.3 instead of actual version)
+- **Version Management**: Added comprehensive version management documentation
+
+### v3.2.7 (2025-05-22)
+- **OpenAI Model Cleanup**: Removed non-working reasoning models (o3, o4-mini, o4-mini-high)
+- **API Stability**: Cleaned up OpenAI client to only include publicly available models
+
+### v3.2.6 (2025-05-22)
+- **New OpenAI Models**: Added o3, o4-mini, and o4-mini-high reasoning models (later removed in v3.2.7)
+
+### v3.2.5 - v3.2.3 (2025-05-22)
+- **Type Safety Improvements**: Comprehensive TypeScript strictness improvements
+- **Security Enhancements**: Replaced `any` types with proper interfaces
+- **CI/CD Improvements**: Fixed all lint errors and test failures
+- **Smart File Selection**: Added .eslintignore and tsconfig.json support
+
+### v3.2.2 - v3.2.0 (2025-05-21)
+- **JSON Configuration**: Added support for external config files
+- **Framework Templates**: Added specialized templates for Angular, Vue, Django, Laravel
+- **CI Integration**: Added `npm run ci:local` for pre-push validation
+- **Handlebars Templates**: Migrated prompt system to Handlebars for better maintainability
+
+### v3.1.0 (2025-05-20)
+- **Enhanced Prompts**: Improved prompt templates with YAML metadata
+- **Dependency Analysis**: Added dependency-cruiser and ts-prune integration
+- **Multi-Language Support**: Added specialized prompts for Ruby/Rails, Python, PHP
+
 ## What's New in v3.0.2
 
 ### Improvements in v3.0.2
