@@ -1,4 +1,4 @@
-# AI Code Review v3.2.9
+# AI Code Review v3.2.10
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
 
