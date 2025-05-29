@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.10] - 2025-05-29
+
+### Changed
+- Updated README.md with comprehensive version history from v3.0.2 to v3.2.9
+- Added README updates to the publishing checklist in PROJECT.md
+- Fixed import statement in anthropicEstimator.ts (replaced require with import)
+
+### Fixed
+- Documentation on npm registry now includes complete version history and Claude 4 model information
+
 ## [3.2.9] - 2025-05-28
 
 ### Added
