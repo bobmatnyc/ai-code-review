@@ -6,6 +6,7 @@
  */
 
 import { AbstractTokenEstimator } from './abstractEstimator';
+import { getApiNameFromKey } from '../clients/utils/modelMaps';
 
 /**
  * Anthropic-specific token and cost estimator
@@ -110,9 +111,6 @@ export class AnthropicTokenEstimator extends AbstractTokenEstimator {
     inputTokenCost: number;
     outputTokenCost: number;
   } {
-    // Import getApiNameFromKey to get the correct API identifier
-    const { getApiNameFromKey } = require('../clients/utils/modelMaps');
-    
     // If modelName includes provider prefix (e.g., "anthropic:claude-4-opus"), 
     // use getApiNameFromKey to get the API identifier
     const apiIdentifier = modelName.includes(':') 
