@@ -32,6 +32,7 @@ import { ALL_TOOLS } from '../utils/toolCalling';
 import { openAIToolCallingHandler } from '../utils/openAIToolCallingHandler';
 import { executeToolCall } from '../utils/toolExecutor';
 import { extractPackageInfo } from '../../utils/dependencies/packageAnalyzer';
+import { buildModelRequestParams } from '../utils/modelConfigRegistry';
 
 const MAX_TOKENS_PER_REQUEST = 4000;
 
@@ -49,6 +50,14 @@ export class OpenAIClient extends AbstractClient {
     this.modelName = '';
     this.isInitialized = false;
     this.apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
+  }
+  
+  /**
+   * Check if the client is initialized
+   * @returns True if initialized, false otherwise
+   */
+  public getIsInitialized(): boolean {
+    return this.isInitialized;
   }
   
   /**
@@ -126,20 +135,21 @@ export class OpenAIClient extends AbstractClient {
   }
   
   /**
-   * Add max tokens parameter based on model type
+   * Add model-specific parameters using the model configuration registry
    * @param requestBody The request body to modify
+   * @returns The modified request body
    */
-  private addMaxTokensParameter(requestBody: Record<string, any>): void {
-    // Use max_completion_tokens for o3 models, max_tokens for others
-    if (this.modelName.startsWith('o3')) {
-      requestBody.max_completion_tokens = MAX_TOKENS_PER_REQUEST;
-      // o3 models don't support temperature parameter
-      delete requestBody.temperature;
-      logger.debug(`[O3 DEBUG] Model: ${this.modelName}, Added max_completion_tokens: ${requestBody.max_completion_tokens}`);
-      logger.debug(`[O3 DEBUG] Full request body: ${JSON.stringify(requestBody, null, 2)}`);
-    } else {
-      requestBody.max_tokens = MAX_TOKENS_PER_REQUEST;
-    }
+  private applyModelConfiguration(requestBody: Record<string, any>): Record<string, any> {
+    // Use the model configuration registry to build proper parameters
+    const fullModelName = this.getFullModelName();
+    const configuredParams = buildModelRequestParams(
+      fullModelName,
+      requestBody,
+      MAX_TOKENS_PER_REQUEST
+    );
+    
+    logger.debug(`[Model Config] Applied configuration for ${fullModelName}: ${JSON.stringify(configuredParams, null, 2)}`);
+    return configuredParams;
   }
   
   /**
@@ -188,7 +198,7 @@ export class OpenAIClient extends AbstractClient {
         logger.info(`Generating review with OpenAI ${this.modelName}...`);
         
         // Prepare the API request body
-        const requestBody: Record<string, any> = {
+        const baseRequestBody: Record<string, any> = {
           model: this.getApiModelName(),
           messages: [
             {
@@ -244,8 +254,8 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           temperature: 0.2
         };
         
-        // Add max tokens parameter based on model type
-        this.addMaxTokensParameter(requestBody);
+        // Apply model configuration
+        const requestBody = this.applyModelConfiguration(baseRequestBody);
         
         // Make the API request
         const response = await fetchWithRetry(
@@ -336,7 +346,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
         logger.debug(`[O3 DEBUG] About to prepare API request body`);
         
         // Prepare the API request body
-        const requestBody: Record<string, any> = {
+        const baseRequestBody: Record<string, any> = {
           model: this.getApiModelName(),
           messages: [
             {
@@ -392,8 +402,8 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           temperature: 0.2
         };
         
-        // Add max tokens parameter based on model type
-        this.addMaxTokensParameter(requestBody);
+        // Apply model configuration
+        const requestBody = this.applyModelConfiguration(baseRequestBody);
         
         // Make the API request
         const response = await fetchWithRetry(
@@ -521,7 +531,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           const tools = openAIToolCallingHandler.prepareTools(ALL_TOOLS);
           
           // Prepare initial request body  
-          const initialRequestBody: Record<string, any> = {
+          const baseInitialRequestBody: Record<string, any> = {
             model: this.getApiModelName(),
             messages: [
               {
@@ -547,8 +557,8 @@ Always include a dedicated "Dependency Security Analysis" section in your review
             temperature: 0.2
           };
           
-          // Add max tokens parameter based on model type
-          this.addMaxTokensParameter(initialRequestBody);
+          // Apply model configuration
+          const initialRequestBody = this.applyModelConfiguration(baseInitialRequestBody);
             
           // Make the initial request with tools
           response = await fetchWithRetry(
@@ -607,14 +617,14 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
             );
             
             // Prepare final request body
-            const finalRequestBody: Record<string, any> = {
+            const baseFinalRequestBody: Record<string, any> = {
               model: this.getApiModelName(),
               messages: conversationWithResults,
               temperature: 0.2
             };
             
-            // Add max tokens parameter based on model type
-            this.addMaxTokensParameter(finalRequestBody);
+            // Apply model configuration
+            const finalRequestBody = this.applyModelConfiguration(baseFinalRequestBody);
             
             // Make the final request
             const finalResponse = await fetchWithRetry(
@@ -645,7 +655,7 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
         } else {
           // Regular non-tool calling flow
           // Prepare request body
-          const requestBody: Record<string, any> = {
+          const baseRequestBody: Record<string, any> = {
             model: this.getApiModelName(),
             messages: [
               {
@@ -660,8 +670,8 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
             temperature: 0.2
           };
           
-          // Add max tokens parameter based on model type
-          this.addMaxTokensParameter(requestBody);
+          // Apply model configuration
+          const requestBody = this.applyModelConfiguration(baseRequestBody);
           
           response = await fetchWithRetry(
             'https://api.openai.com/v1/chat/completions',
