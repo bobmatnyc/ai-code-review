@@ -349,9 +349,9 @@ export function buildModelRequestParams(
   }
   
   // Handle temperature
-  if (apiConfig.supportsTemperature && !params.hasOwnProperty('temperature')) {
+  if (apiConfig.supportsTemperature && !Object.prototype.hasOwnProperty.call(params, 'temperature')) {
     params.temperature = apiConfig.defaultTemperature || 0.2;
-  } else if (!apiConfig.supportsTemperature && params.hasOwnProperty('temperature')) {
+  } else if (!apiConfig.supportsTemperature && Object.prototype.hasOwnProperty.call(params, 'temperature')) {
     delete params.temperature;
   }
   
