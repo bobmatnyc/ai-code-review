@@ -1,7 +1,8 @@
 /**
  * @fileoverview Wrapper for the OpenAI client.
  *
- * This module provides a wrapper for the OpenAI client to handle dynamic imports.
+ * This module provides a wrapper for the OpenAI client using the class-based implementation.
+ * This wrapper maintains backward compatibility while using the modern client architecture.
  */
 
 import {
@@ -11,16 +12,35 @@ import {
   FileInfo
 } from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
+import { OpenAIClient } from './implementations/openaiClient';
+import logger from '../utils/logger';
 
-// Import the OpenAI client directly
-import * as openaiClient from './openaiClient';
+// Create a singleton instance of the OpenAI client
+let openaiClientInstance: OpenAIClient | null = null;
+
+/**
+ * Get or create the OpenAI client instance
+ * @returns The OpenAI client instance
+ */
+function getClientInstance(): OpenAIClient {
+  if (!openaiClientInstance) {
+    openaiClientInstance = new OpenAIClient();
+  }
+  return openaiClientInstance;
+}
 
 /**
  * Initialize the OpenAI client
  * @returns Promise resolving to a boolean indicating if initialization was successful
  */
 export async function initializeAnyOpenAIModel(): Promise<boolean> {
-  return openaiClient.initializeAnyOpenAIModel();
+  try {
+    const client = getClientInstance();
+    return await client.initialize();
+  } catch (error) {
+    logger.error('Failed to initialize OpenAI model:', error);
+    return false;
+  }
 }
 
 /**
@@ -39,7 +59,14 @@ export async function generateOpenAIConsolidatedReview(
   projectDocs: ProjectDocs | null,
   options: ReviewOptions
 ): Promise<ReviewResult> {
-  return openaiClient.generateOpenAIConsolidatedReview(
+  const client = getClientInstance();
+  
+  // Ensure client is initialized
+  if (!client.getIsInitialized()) {
+    await client.initialize();
+  }
+  
+  return client.generateConsolidatedReview(
     fileInfos,
     project,
     reviewType,
@@ -64,10 +91,46 @@ export async function generateOpenAIReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions
 ): Promise<ReviewResult> {
-  return openaiClient.generateOpenAIReview(
+  const client = getClientInstance();
+  
+  // Ensure client is initialized
+  if (!client.getIsInitialized()) {
+    await client.initialize();
+  }
+  
+  return client.generateReview(
     fileContent,
     filePath,
     reviewType,
+    projectDocs,
+    options
+  );
+}
+
+/**
+ * Generate an architectural review using the OpenAI API
+ * @param fileInfos Array of file information objects
+ * @param project Project name
+ * @param projectDocs Optional project documentation
+ * @param options Review options
+ * @returns Promise resolving to the review result
+ */
+export async function generateOpenAIArchitecturalReview(
+  fileInfos: FileInfo[],
+  project: string,
+  projectDocs: ProjectDocs | null,
+  options: ReviewOptions
+): Promise<ReviewResult> {
+  const client = getClientInstance();
+  
+  // Ensure client is initialized
+  if (!client.getIsInitialized()) {
+    await client.initialize();
+  }
+  
+  return client.generateArchitecturalReview(
+    fileInfos,
+    project,
     projectDocs,
     options
   );

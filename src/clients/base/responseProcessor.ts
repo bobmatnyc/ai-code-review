@@ -296,17 +296,64 @@ export function createStandardReviewResult(
  * @param error The original error
  * @param operation Description of the operation that failed
  * @param modelName The model being used
+ * @param context Additional context for debugging
  * @returns Wrapped ApiError
  */
 export function handleApiError(
   error: unknown,
   operation: string,
-  modelName: string
+  modelName: string,
+  context?: {
+    endpoint?: string;
+    statusCode?: number;
+    requestId?: string;
+    filePath?: string;
+    additionalInfo?: Record<string, any>;
+  }
 ): ApiError {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  const formattedError = `Failed to ${operation} with ${modelName}: ${errorMessage}`;
+  
+  // Build detailed error message with context
+  let formattedError = `Failed to ${operation} with ${modelName}`;
+  
+  if (context) {
+    const contextParts: string[] = [];
+    
+    if (context.endpoint) {
+      contextParts.push(`Endpoint: ${context.endpoint}`);
+    }
+    
+    if (context.statusCode) {
+      contextParts.push(`Status: ${context.statusCode}`);
+    }
+    
+    if (context.requestId) {
+      contextParts.push(`Request ID: ${context.requestId}`);
+    }
+    
+    if (context.filePath) {
+      contextParts.push(`File: ${context.filePath}`);
+    }
+    
+    if (context.additionalInfo) {
+      Object.entries(context.additionalInfo).forEach(([key, value]) => {
+        contextParts.push(`${key}: ${value}`);
+      });
+    }
+    
+    if (contextParts.length > 0) {
+      formattedError += `\n  Context: ${contextParts.join(', ')}`;
+    }
+  }
+  
+  formattedError += `\n  Error: ${errorMessage}`;
   
   logger.error(formattedError);
+  
+  // Log stack trace in debug mode
+  if (error instanceof Error && error.stack && configManager.getApplicationConfig().logLevel.value === 'debug') {
+    logger.debug(`Stack trace: ${error.stack}`);
+  }
   
   if (error instanceof ApiError) {
     return error;
