@@ -43,51 +43,65 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
   envFile?: string;
 }> {
   try {
-    // When running as a CLI tool, use the .env.local file in the AI Code Review directory 
-    // rather than in the target project directory
-    let envLocalPath: string = path.resolve(process.cwd(), '.env.local');
+    let envLocalPath: string;
     
     if (envFilePath) {
       // If explicitly provided, use the specified path
       envLocalPath = envFilePath;
     } else {
-      // Check multiple possible directories for the tool installation
-      const possibleToolDirectories = [
-        path.resolve(__dirname, '..', '..'), // Local development or npm link
-        path.resolve(__dirname, '..', '..', '..'), // Global npm installation
-        '/opt/homebrew/lib/node_modules/@bobmatnyc/ai-code-review' // Homebrew global installation
-      ];
+      // Priority order for environment files:
+      // 1. Project-level .env.local (highest priority)
+      // 2. Project-level .env
+      // 3. Tool installation directory .env.local
       
-      // Check for environment variable specifying the tool directory
-      if (process.env.AI_CODE_REVIEW_DIR) {
-        possibleToolDirectories.unshift(process.env.AI_CODE_REVIEW_DIR);
-        debugLog(`Using tool directory from AI_CODE_REVIEW_DIR: ${process.env.AI_CODE_REVIEW_DIR}`);
-      }
+      const projectEnvLocal = path.resolve(process.cwd(), '.env.local');
+      const projectEnv = path.resolve(process.cwd(), '.env');
       
-      // envLocalPath is already initialized
-      let found = false;
-      
-      // Try each possible tool directory
-      for (const dir of possibleToolDirectories) {
-        const potentialEnvPath = path.resolve(dir, '.env.local');
-        debugLog(`Checking for tool .env.local in: ${potentialEnvPath}`);
-        
+      // Check for project-level env files first
+      try {
+        await fs.access(projectEnvLocal);
+        envLocalPath = projectEnvLocal;
+        debugLog(`Found project-level .env.local: ${projectEnvLocal}`);
+      } catch {
+        // Try project-level .env
         try {
-          await fs.access(potentialEnvPath);
-          // If we can access the file in this directory, use it
-          envLocalPath = potentialEnvPath;
-          debugLog(`Found .env.local in tool directory: ${potentialEnvPath}`);
-          found = true;
-          break;
-        } catch (statError) {
-          // File doesn't exist in this directory, continue to next
-          debugLog(`No .env.local in ${potentialEnvPath}`)
+          await fs.access(projectEnv);
+          envLocalPath = projectEnv;
+          debugLog(`Found project-level .env: ${projectEnv}`);
+        } catch {
+          // Fall back to tool installation directories
+          const possibleToolDirectories = [
+            path.resolve(__dirname, '..', '..'), // Local development or npm link
+            path.resolve(__dirname, '..', '..', '..'), // Global npm installation
+            '/opt/homebrew/lib/node_modules/@bobmatnyc/ai-code-review' // Homebrew global installation
+          ];
+          
+          // Check for environment variable specifying the tool directory
+          if (process.env.AI_CODE_REVIEW_DIR) {
+            possibleToolDirectories.unshift(process.env.AI_CODE_REVIEW_DIR);
+            debugLog(`Using tool directory from AI_CODE_REVIEW_DIR: ${process.env.AI_CODE_REVIEW_DIR}`);
+          }
+          
+          // Default to project directory if nothing else is found
+          envLocalPath = projectEnvLocal;
+          
+          // Try each possible tool directory
+          for (const dir of possibleToolDirectories) {
+            const potentialEnvPath = path.resolve(dir, '.env.local');
+            debugLog(`Checking for tool .env.local in: ${potentialEnvPath}`);
+            
+            try {
+              await fs.access(potentialEnvPath);
+              // If we can access the file in this directory, use it
+              envLocalPath = potentialEnvPath;
+              debugLog(`Found .env.local in tool directory: ${potentialEnvPath}`);
+              break;
+            } catch (statError) {
+              // File doesn't exist in this directory, continue to next
+              debugLog(`No .env.local in ${potentialEnvPath}`)
+            }
+          }
         }
-      }
-      
-      // If not found in any tool directory, we've already set the default to cwd
-      if (!found) {
-        debugLog(`No .env.local found in any tool directory, falling back to current directory: ${envLocalPath}`);
       }
     }
     // envLocalPath is already defined and set above

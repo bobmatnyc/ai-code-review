@@ -281,9 +281,9 @@ export async function orchestrateReview(
     if (options.estimate) {
       logger.info('Calculating token usage and cost estimates...');
 
-      // Get the model name from environment variables
+      // Get the model name from options or environment variables
       const modelName =
-        process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+        options.model || process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
 
       try {
         // Read file contents for token analysis

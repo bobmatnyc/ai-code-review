@@ -36,18 +36,18 @@ export interface ApiClientConfig {
 
 /**
  * Select and initialize the appropriate API client based on available API keys
- * @param _cliOptions Optional CLI options (reserved for future use)
+ * @param cliOptions Optional CLI options (reserved for future use)
  * @returns Promise resolving to the API client configuration
  */
-export async function selectApiClient(_cliOptions?: any): Promise<ApiClientConfig> {
+export async function selectApiClient(cliOptions?: any): Promise<ApiClientConfig> {
   logger.debug('selectApiClient called');
 
   // Check which API key is available based on the model specified in environment variables
   const apiKeyType = getApiKeyType();
   logger.debug(`selectApiClient: apiKeyType=${apiKeyType}`);
 
-  // Parse the model string from env var (format: provider:model), default provider = gemini
-  const modelEnv = process.env.AI_CODE_REVIEW_MODEL || '';
+  // Parse the model string from options or env var (format: provider:model), default provider = gemini
+  const modelEnv = cliOptions?.model || process.env.AI_CODE_REVIEW_MODEL || '';
   logger.debug(`selectApiClient: modelEnv=${modelEnv}`);
   let envProvider: string;
   let envModelName: string;
