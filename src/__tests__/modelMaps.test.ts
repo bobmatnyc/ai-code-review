@@ -116,7 +116,7 @@ describe('modelMaps', () => {
       );
 
       // Verify we have the expected number of OpenAI models
-      expect(openaiModels.length).toBe(7);
+      expect(openaiModels.length).toBe(5);
 
       // Verify specific model keys exist
       expect(openaiModels).toContain('openai:gpt-4.1');
@@ -124,8 +124,6 @@ describe('modelMaps', () => {
       expect(openaiModels).toContain('openai:gpt-4-turbo');
       expect(openaiModels).toContain('openai:gpt-3.5-turbo');
       expect(openaiModels).toContain('openai:gpt-4.5');
-      expect(openaiModels).toContain('openai:o3');
-      expect(openaiModels).toContain('openai:o3-mini');
 
       // Verify properties of a specific model
       const gpt4o = MODEL_MAP['openai:gpt-4o'];
@@ -134,21 +132,6 @@ describe('modelMaps', () => {
       expect(gpt4o.contextWindow).toBe(128000);
       expect(gpt4o.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENAI_API_KEY');
 
-      // Verify o3 model properties
-      const o3 = MODEL_MAP['openai:o3'];
-      expect(o3.apiIdentifier).toBe('o3');
-      expect(o3.displayName).toBe('OpenAI o3');
-      expect(o3.contextWindow).toBe(200000);
-      expect(o3.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENAI_API_KEY');
-      expect(o3.supportsToolCalling).toBe(true);
-
-      // Verify o3-mini model properties
-      const o3Mini = MODEL_MAP['openai:o3-mini'];
-      expect(o3Mini.apiIdentifier).toBe('o3-mini');
-      expect(o3Mini.displayName).toBe('OpenAI o3-mini');
-      expect(o3Mini.contextWindow).toBe(200000);
-      expect(o3Mini.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENAI_API_KEY');
-      expect(o3Mini.supportsToolCalling).toBe(true);
     });
   });
 
@@ -198,10 +181,8 @@ describe('modelMaps', () => {
       expect(MODELS.anthropic).toContain('anthropic:claude-3.7-sonnet');
 
       // Check OpenAI models
-      expect(MODELS.openai.length).toBe(7);
+      expect(MODELS.openai.length).toBe(5);
       expect(MODELS.openai).toContain('openai:gpt-4o');
-      expect(MODELS.openai).toContain('openai:o3');
-      expect(MODELS.openai).toContain('openai:o3-mini');
 
       // Check OpenRouter models
       expect(MODELS.openrouter.length).toBe(5);

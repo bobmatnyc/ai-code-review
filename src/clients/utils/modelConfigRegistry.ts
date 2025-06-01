@@ -84,45 +84,6 @@ export interface ModelConfig {
  * Model configuration registry
  */
 export const MODEL_CONFIGS: Record<string, ModelConfig> = {
-  // OpenAI o3 models
-  'openai:o3': {
-    modelId: 'o3',
-    provider: 'openai',
-    apiConfig: {
-      maxTokensParam: 'max_completion_tokens',
-      supportsTemperature: false,
-      supportsTopP: false,
-      supportsFrequencyPenalty: false,
-      supportsPresencePenalty: false
-    },
-    pricing: {
-      inputPricePer1K: 0.015,
-      outputPricePer1K: 0.06
-    },
-    constraints: {
-      maxTokensPerRequest: 4000
-    }
-  },
-  
-  'openai:o3-mini': {
-    modelId: 'o3-mini',
-    provider: 'openai',
-    apiConfig: {
-      maxTokensParam: 'max_completion_tokens',
-      supportsTemperature: false,
-      supportsTopP: false,
-      supportsFrequencyPenalty: false,
-      supportsPresencePenalty: false
-    },
-    pricing: {
-      inputPricePer1K: 0.003,
-      outputPricePer1K: 0.012
-    },
-    constraints: {
-      maxTokensPerRequest: 4000
-    }
-  },
-  
   // OpenAI GPT models
   'openai:gpt-4o': {
     modelId: 'gpt-4o',
