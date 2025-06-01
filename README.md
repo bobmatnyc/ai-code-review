@@ -17,6 +17,14 @@ See the [full release notes](docs/v3.2.9_release.md) and [Claude 4 quick referen
 
 ## Version History
 
+### v3.2.11 (2025-06-01)
+- **OpenAI Model Removal**: Removed o3 and o3-mini models per issue #44 (generating generic advice instead of analyzing code)
+- **Test Updates**: Fixed model counts in tests after removal
+
+### v3.2.10 (2025-05-29)
+- **Documentation Updates**: Comprehensive README updates with full version history
+- **Build Process**: Enhanced publishing checklist
+
 ### v3.2.9 (2025-05-28)
 - **Claude 4 Model Support**: Added Anthropic's latest Claude 4 Opus and Sonnet models with 200K context windows
 - **Fixed Provider Display**: Resolved issue where Anthropic models showed "Gemini" as provider
@@ -778,9 +786,9 @@ Alternatively, you can manually place your `.env.local` file in one of these loc
 # The tool will automatically map this to the correct API model name
 AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
 # or
-# AI_CODE_REVIEW_MODEL=openai:o3
+# AI_CODE_REVIEW_MODEL=openai:gpt-4o
 # or
-# AI_CODE_REVIEW_MODEL=openai:o3-mini
+# AI_CODE_REVIEW_MODEL=anthropic:claude-4-opus
 
 # Optionally specify a different model for report consolidation/writing
 # This allows using a cheaper/faster model for the final report generation
@@ -855,8 +863,7 @@ You can see all available models and their mappings by running `ai-code-review -
 | `openai:gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4-turbo-preview` |
 | `openai:gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4o` |
 | `openai:gpt-4` | Original GPT-4 model | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4` |
-| `openai:o3` | OpenAI's latest advanced reasoning model | `AI_CODE_REVIEW_OPENAI_API_KEY` | `o3` |
-| `openai:o3-mini` | Smaller, more efficient version of o3 | `AI_CODE_REVIEW_OPENAI_API_KEY` | `o3-mini` |
+| `openai:gpt-3.5-turbo` | Fast and cost-effective model | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-3.5-turbo` |
 
 ### Extending the Model Mapping System
 
