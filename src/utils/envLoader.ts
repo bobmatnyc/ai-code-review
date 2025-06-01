@@ -124,7 +124,17 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
 
     // Load environment variables
     traceEnvVarLoading(`Attempting to load environment variables from: ${envLocalPath}`);
-    const result = dotenv.config({ path: envLocalPath });
+    
+    // Store current values to see what changes
+    const beforeModel = process.env.AI_CODE_REVIEW_MODEL;
+    
+    // Use override: true to force override existing values
+    const result = dotenv.config({ path: envLocalPath, override: true });
+    
+    // Log what changed
+    if (beforeModel !== process.env.AI_CODE_REVIEW_MODEL) {
+      traceEnvVarLoading(`AI_CODE_REVIEW_MODEL changed from '${beforeModel}' to '${process.env.AI_CODE_REVIEW_MODEL}'`);
+    }
 
     if (result.error) {
       traceEnvVarLoading(`Error loading environment variables: ${result.error.message}`);

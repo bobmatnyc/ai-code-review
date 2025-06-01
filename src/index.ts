@@ -41,6 +41,15 @@ if (debugEnvVar) {
   console.log('\x1b[35m[ENV-TRACE]\x1b[0m Debug mode enabled via AI_CODE_REVIEW_LOG_LEVEL environment variable');
 }
 
+// Log all AI_CODE_REVIEW environment variables at startup
+console.log('\x1b[35m[ENV-TRACE]\x1b[0m Current AI_CODE_REVIEW environment variables:');
+Object.keys(process.env).forEach(key => {
+  if (key.startsWith('AI_CODE_REVIEW_')) {
+    const value = key.includes('KEY') ? '[REDACTED]' : process.env[key];
+    console.log(`\x1b[35m[ENV-TRACE]\x1b[0m ${key}=${value}`);
+  }
+});
+
 // Import logger after initial environment check
 import logger, { LogLevel } from './utils/logger';
 
@@ -163,6 +172,14 @@ if (toolEnvPath) {
 
 // Re-initialize the logger with the environment variables now loaded
 // This ensures that AI_CODE_REVIEW_LOG_LEVEL from .env.local is applied
+console.log('\x1b[35m[ENV-TRACE]\x1b[0m After loading .env.local, AI_CODE_REVIEW environment variables:');
+Object.keys(process.env).forEach(key => {
+  if (key.startsWith('AI_CODE_REVIEW_')) {
+    const value = key.includes('KEY') ? '[REDACTED]' : process.env[key];
+    console.log(`\x1b[35m[ENV-TRACE]\x1b[0m ${key}=${value}`);
+  }
+});
+
 console.log('Current environment variables for logging:');
 console.log(`- AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL || 'not set'}`);
 console.log(`- Debug flag in arguments: ${process.argv.includes('--debug')}`);
@@ -210,7 +227,7 @@ import { handleSyncGitHubProjectsCommand } from './commands/syncGithubProjects';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '3.2.12';
+const VERSION = '3.2.13';
 
 // Main function to run the application
 async function main() {
@@ -270,6 +287,11 @@ async function main() {
       listModelConfigs();
       return;
     }
+
+    // First, load the project's .env.local file before getting config
+    // This ensures project-level environment variables take precedence
+    const { loadEnvVariables } = await import('./utils/envLoader');
+    await loadEnvVariables();
 
     // Load and validate configuration with CLI overrides
     const config = getConfig(args);

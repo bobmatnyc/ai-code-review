@@ -1,4 +1,4 @@
-# AI Code Review v3.2.10
+# AI Code Review v3.2.13
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
 
@@ -16,6 +16,11 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 See the [full release notes](docs/v3.2.9_release.md) and [Claude 4 quick reference](docs/claude-4-quick-reference.md) for details.
 
 ## Version History
+
+### v3.2.13 (2025-06-01)
+- **Environment Override Fix**: Fixed project .env.local not overriding tool's environment variables
+- **Project Priority**: Ensured project-level .env.local files properly override tool installation settings
+- **Debug Logging**: Added detailed environment variable tracing to diagnose loading issues
 
 ### v3.2.12 (2025-06-01)
 - **CLI Fix**: Fixed -m option not overriding environment variable
