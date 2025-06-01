@@ -174,6 +174,24 @@ export const MODEL_MAP: Record<string, ModelMapping> = {
     "apiKeyEnvVar": "AI_CODE_REVIEW_OPENAI_API_KEY",
     "supportsToolCalling": false
   },
+  "openai:o3": {
+    "apiIdentifier": "o3",
+    "displayName": "OpenAI O3",
+    "provider": "openai",
+    "contextWindow": 200000,
+    "description": "OpenAI's reasoning model optimized for complex problem solving",
+    "apiKeyEnvVar": "AI_CODE_REVIEW_OPENAI_API_KEY",
+    "supportsToolCalling": true
+  },
+  "openai:o3-mini": {
+    "apiIdentifier": "o3-mini",
+    "displayName": "OpenAI O3 Mini",
+    "provider": "openai",
+    "contextWindow": 200000,
+    "description": "Smaller, faster version of O3 reasoning model",
+    "apiKeyEnvVar": "AI_CODE_REVIEW_OPENAI_API_KEY",
+    "supportsToolCalling": true
+  },
   "openrouter:anthropic/claude-3-opus": {
     "apiIdentifier": "anthropic/claude-3-opus-20240229",
     "displayName": "Claude 3 Opus (via OpenRouter)",
