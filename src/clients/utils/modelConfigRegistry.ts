@@ -125,6 +125,44 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
     }
   },
   
+  'openai:o3': {
+    modelId: 'o3',
+    provider: 'openai',
+    apiConfig: {
+      maxTokensParam: 'max_completion_tokens',
+      supportsTemperature: false,
+      supportsTopP: false,
+      supportsFrequencyPenalty: false,
+      supportsPresencePenalty: false
+    },
+    pricing: {
+      inputPricePer1K: 0.015,
+      outputPricePer1K: 0.06
+    },
+    constraints: {
+      maxTokensPerRequest: 100000
+    }
+  },
+  
+  'openai:o3-mini': {
+    modelId: 'o3-mini',
+    provider: 'openai',
+    apiConfig: {
+      maxTokensParam: 'max_completion_tokens',
+      supportsTemperature: false,
+      supportsTopP: false,
+      supportsFrequencyPenalty: false,
+      supportsPresencePenalty: false
+    },
+    pricing: {
+      inputPricePer1K: 0.003,
+      outputPricePer1K: 0.012
+    },
+    constraints: {
+      maxTokensPerRequest: 65000
+    }
+  },
+  
   // Anthropic models
   'anthropic:claude-3-opus': {
     modelId: 'claude-3-opus-20240229',

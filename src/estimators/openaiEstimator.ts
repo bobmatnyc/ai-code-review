@@ -67,6 +67,16 @@ export class OpenAITokenEstimator extends AbstractTokenEstimator {
       outputTokenCost: 0.002 // $2.00 per 1M tokens
     },
 
+    // O3 reasoning models
+    'o3': {
+      inputTokenCost: 0.015, // $15.00 per 1M tokens
+      outputTokenCost: 0.06 // $60.00 per 1M tokens
+    },
+    'o3-mini': {
+      inputTokenCost: 0.003, // $3.00 per 1M tokens
+      outputTokenCost: 0.012 // $12.00 per 1M tokens
+    },
+
     // Default fallback pricing (using GPT-4o as default)
     default: {
       inputTokenCost: 0.005, // $5.00 per 1M tokens
@@ -125,6 +135,6 @@ export class OpenAITokenEstimator extends AbstractTokenEstimator {
    * @returns True if the model is supported, false otherwise
    */
   supportsModel(modelName: string): boolean {
-    return modelName in this.MODEL_PRICING || modelName.startsWith('gpt-');
+    return modelName in this.MODEL_PRICING || modelName.startsWith('gpt-') || modelName.startsWith('o3');
   }
 }

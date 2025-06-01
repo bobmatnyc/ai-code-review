@@ -1,4 +1,4 @@
-# AI Code Review v3.2.14
+# AI Code Review v3.2.15
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
 
@@ -16,6 +16,11 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 See the [full release notes](docs/v3.2.9_release.md) and [Claude 4 quick reference](docs/claude-4-quick-reference.md) for details.
 
 ## Version History
+
+### v3.2.15 (2025-06-01)
+- **Re-added O3 Models**: Re-added support for OpenAI o3 and o3-mini reasoning models
+- **Model Configuration**: Properly configured o3 models with max_completion_tokens parameter
+- **Better Understanding**: The issue may have been with multi-pass consolidation, not the models themselves
 
 ### v3.2.14 (2025-06-01)
 - **Multi-Pass Consolidation Fix**: Fixed issue where non-OpenAI providers were reviewing consolidation content as source code

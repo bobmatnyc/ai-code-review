@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.15] - 2025-06-01
+
+### Added
+- Re-added support for OpenAI o3 and o3-mini reasoning models
+  - These models may have been incorrectly removed in v3.2.11
+  - The issue may have been with the multi-pass consolidation rather than the models themselves
+  - Re-added to modelConfigRegistry, modelMaps, and openaiEstimator
+  - Updated tests to reflect 7 OpenAI models total
+
+### Changed
+- o3 models now use 'max_completion_tokens' parameter instead of 'max_tokens'
+- o3 models do not support temperature, top_p, frequency_penalty, or presence_penalty parameters
+
 ## [3.2.14] - 2025-06-01
 
 ### Fixed
