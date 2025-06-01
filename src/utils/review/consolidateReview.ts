@@ -151,31 +151,66 @@ export async function consolidateReview(
         logger.info('Successfully consolidated review with AI using direct API call');
         return consolidatedContent;
       } else {
-        // For non-OpenAI providers, fall back to the standard method
-        // Note: This may not work correctly for consolidation
-        logger.warn(`Consolidation for ${provider} provider may not work correctly - using standard method`);
+        // For non-OpenAI providers, we need to use a different approach
+        // We'll send the consolidation as a single review request with custom prompt
+        logger.info(`Using custom consolidation approach for ${provider} provider`);
         
-        const consolidationResult = await client.generateConsolidatedReview(
-          [{
-            path: 'MULTI_PASS_REVIEW.md',
-            relativePath: 'MULTI_PASS_REVIEW.md', 
-            content: review.content
-          }],
-          review.projectName || 'ai-code-review',
-          review.reviewType,
-          null,
-          {
-            type: review.reviewType,
-            includeTests: false,
-            output: 'markdown',
-            isConsolidation: true,
-            consolidationMode: true,
-            skipFileContent: false,
-            interactive: false
-          }
-        );
+        // Create a custom prompt that includes both system and user prompts
+        const fullConsolidationPrompt = `${consolidationSystemPrompt}
+
+---
+
+${consolidationPrompt}`;
         
-        return consolidationResult?.content || '';
+        // For Gemini and other providers, we'll use generateReview with a special prompt
+        // This avoids the issue of the content being treated as source code
+        if (client.generateReview) {
+          logger.debug('[CONSOLIDATION] Using generateReview method with custom consolidation prompt');
+          
+          const consolidationResult = await client.generateReview(
+            fullConsolidationPrompt,  // Use our custom consolidation prompt as the file content
+            'CONSOLIDATION_TASK',      // Special file path to indicate this is a consolidation
+            'architectural',           // Use architectural review type as it's most comprehensive
+            null,                      // No project docs needed
+            {
+              type: 'architectural',
+              skipFileContent: true,   // Don't try to include file content in the prompt
+              isConsolidation: true,
+              includeTests: false,
+              output: 'markdown',
+              interactive: false
+            }
+          );
+          
+          return consolidationResult?.content || createFallbackConsolidation(review);
+        } else {
+          // If generateReview is not available, try a direct API approach
+          logger.warn(`Provider ${provider} does not support generateReview method, attempting direct API call`);
+          
+          // For now, fall back to the problematic approach with a warning
+          // TODO: Implement direct API calls for other providers
+          const consolidationResult = await client.generateConsolidatedReview(
+            [{
+              path: 'CONSOLIDATION_REQUEST.md',
+              relativePath: 'CONSOLIDATION_REQUEST.md', 
+              content: fullConsolidationPrompt
+            }],
+            review.projectName || 'ai-code-review',
+            'architectural', // Use architectural type
+            null,
+            {
+              type: 'architectural',
+              includeTests: false,
+              output: 'markdown',
+              isConsolidation: true,
+              consolidationMode: true,
+              skipFileContent: true,
+              interactive: false
+            }
+          );
+          
+          return consolidationResult?.content || createFallbackConsolidation(review);
+        }
       }
     } finally {
       // Restore the original model environment variable
