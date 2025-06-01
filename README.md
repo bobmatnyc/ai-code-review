@@ -17,6 +17,10 @@ See the [full release notes](docs/v3.2.9_release.md) and [Claude 4 quick referen
 
 ## Version History
 
+### v3.2.12 (2025-06-01)
+- **CLI Fix**: Fixed -m option not overriding environment variable
+- **Environment Loading**: Improved priority order - CLI > project .env files > system env
+
 ### v3.2.11 (2025-06-01)
 - **OpenAI Model Removal**: Removed o3 and o3-mini models per issue #44 (generating generic advice instead of analyzing code)
 - **Test Updates**: Fixed model counts in tests after removal
