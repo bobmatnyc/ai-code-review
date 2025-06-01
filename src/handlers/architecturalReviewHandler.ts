@@ -85,7 +85,8 @@ export async function handleArchitecturalReview(
 
     // Check which API key is available based on the model specified in environment variables
     const apiKeyType = getApiKeyType();
-    const modelName = process.env.AI_CODE_REVIEW_MODEL?.split(':')[1] || '';
+    const modelFromOptions = options.model || process.env.AI_CODE_REVIEW_MODEL || '';
+    const modelName = modelFromOptions.split(':')[1] || '';
 
     // Use the appropriate API client based on the available API key
     if (apiKeyType === 'OpenRouter') {
