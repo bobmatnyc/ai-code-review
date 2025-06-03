@@ -21,7 +21,7 @@ import { displayReviewResults } from '../utils/reviewActionHandler';
 import logger from '../utils/logger';
 
 // Import the getApiKeyType function from a shared utilities file
-import { getApiKeyType } from '../utils/apiUtils';
+import { getApiKeyType } from '../utils/api/apiUtils';
 
 // Package security analyzer is dynamically imported
 

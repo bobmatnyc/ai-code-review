@@ -25,7 +25,7 @@ import { displayReviewResults } from '../utils/reviewActionHandler';
 import logger from '../utils/logger';
 
 // Import utility functions
-import { getApiKeyType } from '../utils/apiUtils';
+import { getApiKeyType } from '../utils/api/apiUtils';
 import { getPriorityFilterFromArgs } from '../utils/priorityFilter';
 // These clients will be dynamically imported when needed
 
