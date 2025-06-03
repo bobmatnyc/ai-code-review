@@ -218,7 +218,7 @@ import { reviewCode } from './commands/reviewCode';
 import { testModelCommand } from './commands/testModel';
 import { testBuildCommand } from './commands/testBuild';
 import { runApiConnectionTests } from './__tests__/apiConnection.test';
-import { getCommandLineArguments } from './cli/argumentParser';
+import { parseArguments, mapArgsToReviewOptions } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
 import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
@@ -235,17 +235,31 @@ async function main() {
     // Always display version at startup
     logger.info(`AI Code Review Tool v${VERSION}`);
 
+    // Initialize i18n early with default language
+    // This ensures translations are available for error messages
+    await initI18n('en');
+
     // Parse command-line arguments
-    const args = await getCommandLineArguments();
+    let argv;
+    try {
+      argv = parseArguments();
+    } catch (parseError) {
+      // Log the actual error for debugging
+      console.error('Error parsing command line arguments:', parseError);
+      throw parseError;
+    }
+    
+    // Map to review options
+    const args = mapArgsToReviewOptions(argv);
 
     // Check for version flag first, before any other processing
-    if (args.version || (args as any)['show-version']) {
+    if ((argv as any).version || (argv as any)['show-version']) {
       console.log(VERSION);
       return;
     }
 
     // Check for which-dir flag to show installation directory
-    if ((args as any)['which-dir']) {
+    if ((argv as any)['which-dir']) {
       console.log('\nAI Code Review Tool Installation Directory:');
       console.log('------------------------------------------');
       
@@ -283,7 +297,7 @@ async function main() {
     }
 
     // Check for models flag to list all supported models and their configuration names
-    if (args.models) {
+    if ((argv as any).models) {
       listModelConfigs();
       return;
     }
@@ -334,8 +348,10 @@ async function main() {
     const [provider, model] = config.selectedModel.split(':');
     console.log(`Using ${provider} API with model: ${model}`);
 
-    // Initialize i18n with the selected UI language
-    await initI18n(args.uiLanguage);
+    // Re-initialize i18n with the user's selected UI language if different
+    if (args.uiLanguage && args.uiLanguage !== 'en') {
+      await initI18n(args.uiLanguage);
+    }
 
     // Log the selected language
     if (args.uiLanguage && args.uiLanguage !== 'en') {
@@ -480,10 +496,21 @@ async function main() {
 
 // Run the main function
 main().catch(error => {
-  logger.error(
-    t('errors.unhandled', {
-      message: error instanceof Error ? error.message : String(error)
-    })
-  );
+  // Use a fallback message if translation isn't available
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  try {
+    const translatedMessage = t('errors.unhandled', { message: errorMessage });
+    // Check if translation returned undefined
+    if (translatedMessage && translatedMessage !== 'undefined') {
+      logger.error(translatedMessage);
+    } else {
+      logger.error(`Unhandled error: ${errorMessage}`);
+    }
+  } catch (translationError) {
+    // If translation fails, use plain English
+    logger.error(`Unhandled error: ${errorMessage}`);
+  }
+  
   process.exit(1);
 });

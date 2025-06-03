@@ -41,7 +41,7 @@ export function parseArguments() {
   // Parse command-line arguments using yargs
   const argv = yargs(hideBin(process.argv))
     .command(
-      'code-review [target]',
+      ['$0 [target]', 'code-review [target]'],
       'Run a code review on the specified target',
       yargs => {
         return yargs
@@ -219,11 +219,11 @@ export function parseArguments() {
     .alias('help', 'h')
     .alias('version', 'v')
     .strict()
-    .demandCommand(1, 'You must provide a command')
+    .demandCommand(0) // Don't require a command for version/help flags
     .parse();
 
   // Enable debug logging if requested
-  if (argv.debug) {
+  if ((argv as any).debug) {
     logger.level = 'debug';
     logger.debug('Debug logging enabled');
     logger.debug(`Command-line arguments: ${JSON.stringify(argv, null, 2)}`);
@@ -238,7 +238,7 @@ export function parseArguments() {
  * @returns Review options
  */
 export function mapArgsToReviewOptions(
-  argv: ReturnType<typeof parseArguments>
+  argv: any // TODO: properly type this
 ): ReviewOptions {
   return {
     type: argv.type as ReviewType,

@@ -89,7 +89,25 @@ function getLocalesPath(): string {
  * @returns Translated text
  */
 export function t(key: string, options?: Record<string, any>): string {
-  return i18next.t(key, options);
+  try {
+    // Check if i18n is initialized
+    if (!i18next.isInitialized) {
+      // Return a fallback message
+      return options?.message || key;
+    }
+    
+    const translated = i18next.t(key, options);
+    
+    // If translation returns the key itself or undefined, use fallback
+    if (!translated || translated === key || translated === 'undefined') {
+      return options?.message || key;
+    }
+    
+    return translated;
+  } catch (error) {
+    // In case of any error, return a fallback
+    return options?.message || key;
+  }
 }
 
 /**
