@@ -306,31 +306,17 @@ function formatAsMarkdown(review: ReviewResult): string {
   // Format cost information if available
   let costInfo = '';
   if (cost) {
-    costInfo = `
-
-## Token Usage and Cost
-- Input tokens: ${cost.inputTokens.toLocaleString()}
-- Output tokens: ${cost.outputTokens.toLocaleString()}
-- Total tokens: ${cost.totalTokens.toLocaleString()}
-- Estimated cost: ${cost.formattedCost}`;
+    costInfo = `\n\n## Token Usage and Cost\n- Input tokens: ${cost.inputTokens.toLocaleString()}\n- Output tokens: ${cost.outputTokens.toLocaleString()}\n- Total tokens: ${cost.totalTokens.toLocaleString()}\n- Estimated cost: ${cost.formattedCost}`;
     
     // Add multi-pass information if available
     if (cost.passCount && cost.passCount > 1) {
-      costInfo += `
-- Multi-pass review: ${cost.passCount} passes`;
+      costInfo += `\n- Multi-pass review: ${cost.passCount} passes`;
       
       // Add per-pass breakdown if available
       if (cost.perPassCosts && Array.isArray(cost.perPassCosts)) {
-        costInfo += `
-
-### Pass Breakdown`;
+        costInfo += `\n\n### Pass Breakdown`;
         cost.perPassCosts.forEach(passCost => {
-          costInfo += `
-Pass ${passCost.passNumber}:
-- Input tokens: ${passCost.inputTokens.toLocaleString()}
-- Output tokens: ${passCost.outputTokens.toLocaleString()}
-- Total tokens: ${passCost.totalTokens.toLocaleString()}
-- Cost: ${typeof passCost.estimatedCost === 'number' ? `$${passCost.estimatedCost.toFixed(4)} USD` : 'N/A'}`;
+          costInfo += `\nPass ${passCost.passNumber}:\n- Input tokens: ${passCost.inputTokens.toLocaleString()}\n- Output tokens: ${passCost.outputTokens.toLocaleString()}\n- Total tokens: ${passCost.totalTokens.toLocaleString()}\n- Cost: ${typeof passCost.estimatedCost === 'number' ? `$${passCost.estimatedCost.toFixed(4)} USD` : 'N/A'}`;
         });
       }
     }
@@ -339,12 +325,38 @@ Pass ${passCost.passNumber}:
   // Check if the content is JSON that should be formatted as structured data
   let actualStructuredData = structuredData;
   if (!actualStructuredData && content && typeof content === 'string') {
-    // Check if content starts with JSON
+    // Improved JSON detection - check for both raw JSON and code blocks
     const trimmedContent = content.trim();
-    if (trimmedContent.startsWith('{') && trimmedContent.endsWith('}')) {
+    
+    // First, try to extract JSON from code blocks with improved regex
+    // This regex matches code blocks with or without the json language specifier
+    const jsonBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
+    const jsonBlocks = [...trimmedContent.matchAll(jsonBlockRegex)];
+    
+    if (jsonBlocks.length > 0) {
+      // Try each code block until we find valid JSON
+      for (const match of jsonBlocks) {
+        try {
+          const jsonContent = match[1].trim();
+          if (jsonContent) {
+            actualStructuredData = JSON.parse(jsonContent);
+            logger.debug('Successfully parsed JSON from code block');
+            break;
+          }
+        } catch (e) {
+          logger.debug(`Failed to parse JSON from code block: ${e instanceof Error ? e.message : String(e)}`);
+          // Continue to next block
+        }
+      }
+    } 
+    
+    // If no valid JSON found in code blocks, try the entire content if it looks like JSON
+    if (!actualStructuredData && trimmedContent.startsWith('{') && trimmedContent.endsWith('}')) {
       try {
         actualStructuredData = JSON.parse(trimmedContent);
+        logger.debug('Successfully parsed JSON from full content');
       } catch (e) {
+        logger.debug(`Failed to parse content as JSON: ${e instanceof Error ? e.message : String(e)}`);
         // Not valid JSON, continue with regular formatting
       }
     }
@@ -358,8 +370,9 @@ Pass ${passCost.passNumber}:
       if (typeof actualStructuredData === 'string') {
         try {
           structuredReview = JSON.parse(actualStructuredData);
+          logger.debug('Successfully parsed structured data string as JSON');
         } catch (parseError) {
-          console.warn('Failed to parse structured data as JSON:', parseError);
+          logger.warn(`Failed to parse structured data as JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
           // If it's not valid JSON, treat it as plain text
           return formatSimpleMarkdown(
             content,
@@ -397,7 +410,7 @@ Pass ${passCost.passNumber}:
           modelInfo
         );
       } else {
-        console.warn('Structured data is not an object:', typeof structuredReview);
+        logger.warn('Structured data is not an object:', typeof structuredReview);
         // If the data doesn't have the right structure, fall back to plain text
         return formatSimpleMarkdown(
           content,
@@ -409,7 +422,7 @@ Pass ${passCost.passNumber}:
         );
       }
     } catch (error) {
-      console.error('Error processing structured review data:', error);
+      logger.error(`Error processing structured review data: ${error instanceof Error ? error.message : String(error)}`);
       // Fall back to unstructured format
       return formatSimpleMarkdown(
         content,
@@ -446,22 +459,14 @@ Pass ${passCost.passNumber}:
   });
 
   // Create comprehensive metadata section
-  let metadataSection = `## Metadata
-| Property | Value |
-|----------|-------|
-| Review Type | ${reviewType} |
-| Generated At | ${formattedDate} |
-| Model Provider | ${modelVendor} |
-| Model Name | ${modelName} |`;
+  let metadataSection = `## Metadata\n| Property | Value |\n|----------|-------|\n| Review Type | ${reviewType} |\n| Generated At | ${formattedDate} |\n| Model Provider | ${modelVendor} |\n| Model Name | ${modelName} |`;
   
   // Add framework detection information if available
   if (review.detectedLanguage) {
-    metadataSection += `
-| Detected Language | ${review.detectedLanguage} |`;
+    metadataSection += `\n| Detected Language | ${review.detectedLanguage} |`;
     
     if (review.detectedFramework && review.detectedFramework !== 'none') {
-      metadataSection += `
-| Detected Framework | ${review.detectedFramework}${review.frameworkVersion ? ` v${review.frameworkVersion}` : ''} |`;
+      metadataSection += `\n| Detected Framework | ${review.detectedFramework}${review.frameworkVersion ? ` v${review.frameworkVersion}` : ''} |`;
     }
     
     if (review.cssFrameworks && review.cssFrameworks.length > 0) {
@@ -469,36 +474,28 @@ Pass ${passCost.passNumber}:
         cf.version ? `${cf.name} v${cf.version.replace(/[^\d.]/g, '')}` : cf.name
       ).join(', ');
       
-      metadataSection += `
-| CSS Frameworks | ${cssFrameworksStr} |`;
+      metadataSection += `\n| CSS Frameworks | ${cssFrameworksStr} |`;
     }
   }
 
   // Add cost information if available
   if (cost) {
-    metadataSection += `
-| Input Tokens | ${cost.inputTokens.toLocaleString()} |
-| Output Tokens | ${cost.outputTokens.toLocaleString()} |
-| Total Tokens | ${cost.totalTokens.toLocaleString()} |
-| Estimated Cost | ${cost.formattedCost} |`;
+    metadataSection += `\n| Input Tokens | ${cost.inputTokens.toLocaleString()} |\n| Output Tokens | ${cost.outputTokens.toLocaleString()} |\n| Total Tokens | ${cost.totalTokens.toLocaleString()} |\n| Estimated Cost | ${cost.formattedCost} |`;
     
     // Add multi-pass information if available
     if (cost.passCount && cost.passCount > 1) {
-      metadataSection += `
-| Multi-pass Review | ${cost.passCount} passes |`;
+      metadataSection += `\n| Multi-pass Review | ${cost.passCount} passes |`;
     }
   }
 
   // Add tool version from the review result or fallback to package.json
   if (review.toolVersion) {
-    metadataSection += `
-| Tool Version | ${review.toolVersion} |`;
+    metadataSection += `\n| Tool Version | ${review.toolVersion} |`;
   }
 
   // Add command options if available
   if (review.commandOptions) {
-    metadataSection += `
-| Command Options | \`${review.commandOptions}\` |`;
+    metadataSection += `\n| Command Options | \`${review.commandOptions}\` |`;
   }
 
   // If we have additional metadata from the review, include it
@@ -508,13 +505,11 @@ Pass ${passCost.passNumber}:
       
       // Add any additional metadata fields that weren't already added
       if (metadata.commandLineOptions && !review.commandOptions) {
-        metadataSection += `
-| Command Options | \`${metadata.commandLineOptions}\` |`;
+        metadataSection += `\n| Command Options | \`${metadata.commandLineOptions}\` |`;
       }
       
       if (metadata.version && !review.toolVersion) {
-        metadataSection += `
-| Tool Version | ${metadata.version} |`;
+        metadataSection += `\n| Tool Version | ${metadata.version} |`;
       }
     } catch (error) {
       // Silently continue if metadata parsing fails
@@ -522,8 +517,7 @@ Pass ${passCost.passNumber}:
   }
 
   // Close the metadata table
-  metadataSection += `
-`;
+  metadataSection += `\n`;
 
   return `# Code Review: ${displayPath}
 
@@ -980,8 +974,7 @@ ${metadataSection}
   }
 
   // Add footer with tool information
-  output += `
-*Generated by [AI Code Review Tool](https://www.npmjs.com/package/@bobmatnyc/ai-code-review) using ${modelInfo}*`;
+  output += `\n*Generated by [AI Code Review Tool](https://www.npmjs.com/package/@bobmatnyc/ai-code-review) using ${modelInfo}*`;
 
   return output;
 }

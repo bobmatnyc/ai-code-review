@@ -14,7 +14,7 @@ import {
   saveRemovalScript,
   printRemovalScriptInstructions
 } from '../utils/removalScriptGenerator';
-import { generateVersionedOutputPath } from '../utils/fileSystem';
+import { generateVersionedOutputPath, generateUniqueOutputPath } from '../utils/fileSystem';
 import { logError } from '../utils/errorLogger';
 import logger from '../utils/logger';
 
@@ -57,14 +57,7 @@ export function addFileTreeToReview(
     }
   } else {
     // For markdown, find appropriate position to insert file tree section
-    const fileListSection = `
-## Files Analyzed
-
-The following ${files.length} files were included in this review:
-
-${fileTree}
-
-`;
+    const fileListSection = `\n## Files Analyzed\n\nThe following ${files.length} files were included in this review:\n\n${fileTree}\n\n`;
 
     // Find the position to insert (before cost information section if it exists)
     const costSectionMatch = formattedOutput.match(/^## Cost Information/m);
@@ -122,6 +115,8 @@ export async function saveReviewOutput(
     // Generate a versioned output path
     const extension = options.output === 'json' ? '.json' : '.md';
 
+    // Create unique filenames for different types of output
+    // For formatted review output
     const outputPath = await generateVersionedOutputPath(
       outputBaseDir,
       options.type + '-review',
@@ -130,12 +125,19 @@ export async function saveReviewOutput(
       targetName
     );
 
+    // For raw review data (if needed for debugging)
+    const rawDataPath = await generateUniqueOutputPath(
+      outputBaseDir,
+      `${options.type}-review-raw-data-${path.basename(outputPath, extension)}.json`
+    );
+
     // Ensure costInfo is set if only cost is available
     if (review.cost && !review.costInfo) {
       review.costInfo = review.cost;
     }
     
     // Format the review output
+    logger.debug(`Formatting review output as ${options.output}`);
     let formattedOutput = formatReviewOutput(review, options.output);
 
     // Add file tree to all review types if files are provided
@@ -187,9 +189,41 @@ export async function saveReviewOutput(
       }
     }
 
-    // Write the output to the file
+    // Check if the output file already exists (to avoid overwriting)
+    try {
+      await fs.access(outputPath);
+      logger.warn(`Output file already exists: ${outputPath}`);
+      
+      // Generate a new unique path to avoid overwriting
+      const uniqueOutputPath = await generateUniqueOutputPath(
+        outputBaseDir,
+        `${options.type}-review-${Date.now()}${extension}`
+      );
+      
+      logger.info(`Using alternative output path to avoid overwriting: ${uniqueOutputPath}`);
+      
+      // Update the output path
+      const originalPath = outputPath;
+      outputPath = uniqueOutputPath;
+      
+      // Log this change for debugging
+      logger.debug(`Changed output path from ${originalPath} to ${outputPath} to avoid collision`);
+    } catch (error) {
+      // File doesn't exist, which is good
+      logger.debug(`Output file doesn't exist yet, proceeding with: ${outputPath}`);
+    }
+
+    // Write the formatted output to the file
+    logger.debug(`Writing formatted review output to: ${outputPath}`);
     await fs.writeFile(outputPath, formattedOutput);
-    logger.info(`Review saved to: ${outputPath}`);
+    logger.info(`Review output saved to: ${outputPath}`);
+
+    // Optionally save raw review data for debugging (only if debug mode is enabled)
+    if (options.debug) {
+      logger.debug(`Saving raw review data for debugging to: ${rawDataPath}`);
+      await fs.writeFile(rawDataPath, JSON.stringify(review, null, 2));
+      logger.debug(`Raw review data saved to: ${rawDataPath}`);
+    }
 
     // If this is an unused code review, generate a removal script
     if (options.type === 'unused-code' && review.metadata?.removalScript) {
@@ -206,9 +240,20 @@ export async function saveReviewOutput(
         reviewType: options.type
       });
 
-      logger.error(`Error saving review output:`);
+      logger.error(`Error saving review output:`)
       logger.error(`  Message: ${error.message}`);
       logger.error(`  Error details logged to: ${errorLogPath}`);
+      
+      // Add more detailed error information
+      if (error.stack) {
+        logger.debug(`Error stack trace: ${error.stack}`);
+      }
+      
+      if (error.name === 'EACCES') {
+        logger.error(`  This appears to be a permission error. Please check that you have write access to the output directory.`);
+      } else if (error.name === 'ENOSPC') {
+        logger.error(`  This appears to be a disk space error. Please free up some disk space and try again.`);
+      }
     } else {
       logger.error(`Unknown error saving review output: ${String(error)}`);
     }

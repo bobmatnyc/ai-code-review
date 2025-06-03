@@ -309,7 +309,8 @@ export async function orchestrateReview(
         const tokenAnalysisOptions = {
           reviewType: options.type,
           modelName: modelName,
-          contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15
+          contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15,
+          forceSinglePass: options.forceSinglePass
         };
         
         const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
@@ -330,38 +331,19 @@ export async function orchestrateReview(
         const providerInfo = getProviderDisplayInfo(modelName);
         
         // Display a summary without file details
-        logger.info(`
-=== Token Usage and Cost Estimation ===
-
-Provider: ${providerInfo.provider}
-Model: ${providerInfo.model}
-Files: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)
-
-Token Information:
-  Input Tokens: ${costEstimation.inputTokens.toLocaleString()}
-  Estimated Output Tokens: ${costEstimation.outputTokens.toLocaleString()}
-  Total Tokens: ${costEstimation.totalTokens.toLocaleString()}
-  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}
-  Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
-
-${tokenAnalysis.chunkingRecommendation.chunkingRecommended ? 
-  `Multi-Pass Analysis:
-  Chunking Required: Yes
-  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content exceeds context window'}
-  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}` : 
-  `Multi-Pass Analysis:
-  Chunking Required: No
-  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content fits within context window'}`}
-
-Estimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}
-
-Note: This is an estimate based on approximate token counts and may vary
-      based on the actual content and model behavior.
-`);
+        logger.info(`\n=== Token Usage and Cost Estimation ===\n\nProvider: ${providerInfo.provider}\nModel: ${providerInfo.model}\nFiles: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)\n\nToken Information:\n  Input Tokens: ${costEstimation.inputTokens.toLocaleString()}\n  Estimated Output Tokens: ${costEstimation.outputTokens.toLocaleString()}\n  Total Tokens: ${costEstimation.totalTokens.toLocaleString()}\n  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}\n  Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%\n\n${tokenAnalysis.chunkingRecommendation.chunkingRecommended ? 
+          `Multi-Pass Analysis:\n  Chunking Required: Yes\n  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content exceeds context window'}\n  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}` : 
+          `Multi-Pass Analysis:\n  Chunking Required: No\n  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content fits within context window'}`}\n\nEstimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}\n\nNote: This is an estimate based on approximate token counts and may vary\n      based on the actual content and model behavior.\n`);
         
         // If chunking is recommended, inform the user that it will be automatic
         if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {
           logger.info('\nImportant: Multi-pass review will be automatically enabled when needed. No flag required.');
+          
+          // If forceSinglePass is enabled, inform the user
+          if (options.forceSinglePass) {
+            logger.info('\nNote: --force-single-pass is enabled, which will override the chunking recommendation.');
+            logger.info('      This may result in token limit errors if the content exceeds the model\'s context window.');
+          }
         }
       } catch (error) {
         // Fall back to the legacy estimator if TokenAnalyzer fails
@@ -378,24 +360,7 @@ Note: This is an estimate based on approximate token counts and may vary
         const providerInfo = getProviderDisplayInfo(modelName);
         
         // Display the estimation results without file details
-        logger.info(`
-=== Token Usage and Cost Estimation ===
-
-Review Type: ${options.type}
-Provider: ${providerInfo.provider}
-Model: ${providerInfo.model}
-Files: ${estimation.fileCount} (${(estimation.totalFileSize / 1024 / 1024).toFixed(2)} MB total)
-
-Token Usage:
-  Input Tokens: ${estimation.inputTokens.toLocaleString()}
-  Estimated Output Tokens: ${estimation.outputTokens.toLocaleString()}
-  Total Tokens: ${estimation.totalTokens.toLocaleString()}
-
-Estimated Cost: ${estimation.formattedCost}
-
-Note: This is an estimate based on approximate token counts and may vary
-      based on the actual content and model behavior.
-`);
+        logger.info(`\n=== Token Usage and Cost Estimation ===\n\nReview Type: ${options.type}\nProvider: ${providerInfo.provider}\nModel: ${providerInfo.model}\nFiles: ${estimation.fileCount} (${(estimation.totalFileSize / 1024 / 1024).toFixed(2)} MB total)\n\nToken Usage:\n  Input Tokens: ${estimation.inputTokens.toLocaleString()}\n  Estimated Output Tokens: ${estimation.outputTokens.toLocaleString()}\n  Total Tokens: ${estimation.totalTokens.toLocaleString()}\n\nEstimated Cost: ${estimation.formattedCost}\n\nNote: This is an estimate based on approximate token counts and may vary\n      based on the actual content and model behavior.\n`);
       }
 
       return; // Exit after displaying the estimation
@@ -564,8 +529,20 @@ Note: This is an estimate based on approximate token counts and may vary
         const tokenAnalysisOptions = {
           reviewType: options.type,
           modelName: apiClientConfig.modelName,
-          contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15
+          contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15,
+          forceSinglePass: options.forceSinglePass
         };
+        
+        // Log if forceSinglePass is enabled
+        if (options.forceSinglePass) {
+          logger.info('Force single-pass mode is enabled. This will override the chunking recommendation.');
+          logger.info('Note: This may result in token limit errors if the content exceeds the model\'s context window.');
+          
+          // Special note for Gemini models
+          if (apiClientConfig.modelName.includes('gemini-1.5')) {
+            logger.info('Using Gemini 1.5 model with 1M token context window in single-pass mode.');
+          }
+        }
         
         const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
         
@@ -588,31 +565,20 @@ Note: This is an estimate based on approximate token counts and may vary
           const providerInfo = getProviderDisplayInfo(apiClientConfig.modelName);
           
           // Display token analysis and cost estimation
-          logger.info(`
-=== Multi-Pass Review Required ===
-
-Content exceeds model context window. Multi-pass review is recommended.
-
-Provider: ${providerInfo.provider}
-Model: ${providerInfo.model}
-Files: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)
-
-Token Information:
-  Input Tokens: ${costEstimation.inputTokens.toLocaleString()}
-  Estimated Output Tokens: ${costEstimation.outputTokens.toLocaleString()}
-  Total Tokens: ${costEstimation.totalTokens.toLocaleString()}
-  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}
-  Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%
-
-Multi-Pass Analysis:
-  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content exceeds context window'}
-  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}
-
-Estimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}
-`);
+          logger.info(`\n=== Multi-Pass Review Required ===\n\nContent exceeds model context window. Multi-pass review is recommended.\n\nProvider: ${providerInfo.provider}\nModel: ${providerInfo.model}\nFiles: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)\n\nToken Information:\n  Input Tokens: ${costEstimation.inputTokens.toLocaleString()}\n  Estimated Output Tokens: ${costEstimation.outputTokens.toLocaleString()}\n  Total Tokens: ${costEstimation.totalTokens.toLocaleString()}\n  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}\n  Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%\n\nMulti-Pass Analysis:\n  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content exceeds context window'}\n  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}\n\nEstimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}\n`);
           
-          // Ask for confirmation unless noConfirm flag is set
-          if (!options.noConfirm) {
+          // If forceSinglePass is enabled, inform the user but proceed with single-pass
+          if (options.forceSinglePass) {
+            logger.info('\nForce single-pass mode is enabled. Proceeding with single-pass review despite chunking recommendation.');
+            logger.info('Note: This may result in token limit errors if the content exceeds the model\'s context window.');
+            
+            // Special note for Gemini models
+            if (apiClientConfig.modelName.includes('gemini-1.5')) {
+              logger.info('Using Gemini 1.5 model with 1M token context window in single-pass mode.');
+            }
+          }
+          // Ask for confirmation unless noConfirm flag is set or forceSinglePass is enabled
+          else if (!options.noConfirm) {
             try {
               const rl = readline.createInterface({
                 input: process.stdin,
@@ -797,7 +763,7 @@ Estimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}
       logger.info(`- Files reviewed: ${filesReviewed}`);
       logger.info(`- Total size of reviewed files: ${totalSizeKB} KB`);
       logger.info(`- Review content size: ${reviewSizeKB} KB`);
-      logger.info(`- Review type: ${options.type}${options.multiPass ? ' (multi-pass)' : ''}`);
+      logger.info(`- Review type: ${options.type}${options.multiPass ? ' (multi-pass)' : ''}${options.forceSinglePass ? ' (forced single-pass)' : ''}`);
       
       if (review.costInfo || review.cost) {
         const costInfo = review.costInfo || review.cost;
@@ -878,6 +844,19 @@ Estimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}
       logger.error('1. You have read permissions for all files in the target path');
       logger.error('2. None of the files are locked by other processes');
       logger.error('3. The files are valid and not corrupted');
+    }
+    // Check if this might be a token limit issue
+    else if (errorMessage.includes('token') || 
+             errorMessage.includes('context') || 
+             errorMessage.includes('limit') ||
+             errorMessage.includes('too large')) {
+      logger.error('This appears to be a token limit or context window issue.');
+      logger.error('Please check:');
+      logger.error('1. Try using the --multi-pass flag to enable multi-pass review');
+      logger.error('2. Consider using a model with a larger context window');
+      logger.error('3. For Gemini 1.5 models, you can try the --force-single-pass flag');
+      logger.error('');
+      logger.error('You can use --estimate to check token usage before running the review.');
     }
     
     // General advice for all errors
