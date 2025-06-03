@@ -11,7 +11,7 @@ import { createDirectory } from '../utils/fileSystem';
 import { ReviewOptions } from '../types/review';
 import { FileInfo, discoverFiles, readFilesContent } from './fileDiscovery';
 import logger from '../utils/logger';
-import { getApiKeyType } from '../utils/apiUtils';
+import { getApiKeyType } from '../utils/api/apiUtils';
 import { runApiConnectionTests } from '../__tests__/apiConnection.test';
 import { getConfig } from '../utils/config';
 import { ProgrammingLanguage } from '../types/common';

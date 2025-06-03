@@ -25,7 +25,7 @@ import { displayReviewResults } from '../utils/reviewActionHandler';
 import logger from '../utils/logger';
 
 // Import utility functions
-import { getApiKeyType } from '../utils/apiUtils';
+import { getApiKeyType } from '../utils/api/apiUtils';
 import { getPriorityFilterFromArgs } from '../utils/priorityFilter';
 // These clients will be dynamically imported when needed
 
@@ -304,12 +304,12 @@ export async function handleIndividualFileReviews(
         }];
 
         // Format and save the review with file tree
-        const formattedOutput = formatReviewOutput(review, options.output);
+        const formattedOutput = formatReviewOutput(review, options.output || 'markdown');
         
         // Use the enhanced saveReviewOutput function instead of direct fs.writeFile
         try {
           // Inline version for individual files to maintain compatibility
-          const enhancedOutput = addFileTreeToReview(formattedOutput, fileInfo, options.output);
+          const enhancedOutput = addFileTreeToReview(formattedOutput, fileInfo, options.output || 'markdown');
           await fs.writeFile(outputPath, enhancedOutput);
           logger.info(`Review saved to: ${outputPath}`);
 

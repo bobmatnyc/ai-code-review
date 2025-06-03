@@ -10,7 +10,7 @@
 import logger from '../../utils/logger';
 import { getModelMapping } from './modelMaps';
 import { ProjectDocs } from '../../utils/projectDocs';
-import { FileInfo, ReviewOptions, ReviewResult, ReviewCost /* , ReviewType */ } from '../../types/review'; // ReviewType not used
+import { FileInfo, ReviewOptions, ReviewResult, CostInfo /* , ReviewType */ } from '../../types/review'; // ReviewType not used
 import { loadPromptTemplate, formatConsolidatedReviewPrompt } from './index';
 import { extractPackageInfo } from '../../utils/dependencies/packageAnalyzer';
 import { getCostInfoFromText } from './tokenCounter';
@@ -147,7 +147,7 @@ export async function generateArchitecturalAnthropicReview(
     const apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
 
     let content: string;
-    let cost: ReviewCost | undefined;
+    let cost: CostInfo | undefined;
     let structuredData: any = null;
 
     // Check if the model supports tool calling

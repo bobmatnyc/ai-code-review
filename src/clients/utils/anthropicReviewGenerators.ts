@@ -14,7 +14,7 @@ import {
   ReviewType,
   ReviewOptions,
   ReviewResult,
-  ReviewCost,
+  CostInfo,
   FileInfo
 } from '../../types/review';
 import { loadPromptTemplate, formatSingleFileReviewPrompt, formatConsolidatedReviewPrompt } from '../utils';
@@ -89,7 +89,7 @@ export async function generateAnthropicReview(
     const apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
 
     let content: string;
-    let cost: ReviewCost | undefined;
+    let cost: CostInfo | undefined;
     let structuredData: any = null;
 
     // Load the appropriate prompt template
@@ -209,7 +209,7 @@ export async function generateAnthropicConsolidatedReview(
     const apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
 
     let content: string;
-    let cost: ReviewCost | undefined;
+    let cost: CostInfo | undefined;
     let structuredData: any = null;
 
     // Load the appropriate prompt template

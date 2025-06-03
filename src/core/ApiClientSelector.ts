@@ -7,7 +7,7 @@
  */
 
 import logger from '../utils/logger';
-import { getApiKeyType } from '../utils/apiUtils';
+import { getApiKeyType } from '../utils/api/apiUtils';
 // Import the client wrappers directly
 import { initializeAnyOpenRouterModel } from '../clients/openRouterClientWrapper';
 import { AbstractClient } from '../clients/base/abstractClient';

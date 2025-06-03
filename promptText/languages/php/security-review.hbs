@@ -1,117 +1,433 @@
 ---
-name: PHP Security Code Review
-description: Comprehensive security review to identify vulnerabilities and security best practice violations in PHP code
-version: 1.0.0
+name: PHP Security Code Review  
+description: Comprehensive PHP security review with PSR compliance, Laravel security, and modern PHP security patterns
+version: 2.0.0
 author: AI Code Review Tool
+language: php
 reviewType: security
 aliases:
   - php-sec
+  - php-security
 tags:
-  - security
-  - vulnerabilities
   - php
-language: php
-lastModified: '2025-05-15'
+  - security
+  - laravel
+  - symfony
+  - psr
+  - owasp
+lastModified: '2025-06-03'
 ---
 
-# 🧠 PHP Security Code Review
+# 🔐 PHP Security Code Review
 
-Act as a **security engineer with expertise in PHP application security**. Perform a comprehensive security review on the following PHP code. Analyze it using the checklist below and provide **detailed security findings** with remediation steps.
+You are an expert PHP security engineer with deep knowledge of modern PHP security patterns, Laravel/Symfony security features, PSR standards, and PHP-specific vulnerabilities.
+
+## 🧠 PHP Security Analysis Framework
+
+### Step 1: PHP-Specific Vulnerability Assessment
+- SQL injection via unsanitized queries and dynamic SQL
+- XSS through unescaped output and template injection
+- Command injection via shell_exec, system, exec functions
+- File inclusion vulnerabilities (LFI/RFI) and path traversal
+- Insecure deserialization with unserialize() and object injection
+
+### Step 2: Framework Security Analysis
+- Laravel: Mass assignment, route protection, CSRF, Eloquent security
+- Symfony: Security component, voters, authentication guards
+- CodeIgniter/Zend: Framework-specific security patterns
+- Session management and authentication implementations
+
+### Step 3: Modern PHP Security Patterns
+- Password hashing with password_hash() and verification
+- CSRF protection with token validation
+- Input validation and sanitization libraries
+- Prepared statements and parameter binding
+- Secure file upload and handling
+
+### Step 4: Configuration and Deployment Security
+- php.ini security hardening
+- Environment variable management
+- SSL/TLS configuration and certificate validation
+- Server configuration and HTTP security headers
+
+---
+
+## 🎯 PHP-Specific Security Vulnerabilities
+
+### 🔧 Critical PHP Security Anti-Patterns
+
+#### SQL Injection Vulnerabilities
+```php
+// ❌ CRITICAL: Direct SQL injection vulnerability
+function getUser($userId) {
+    $query = "SELECT * FROM users WHERE id = " . $userId;
+    return mysql_query($query); // Vulnerable to injection
+}
+
+// ❌ CRITICAL: String concatenation in prepared statements
+function getUserByEmail($email) {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = '" . $email . "'");
+    $stmt->execute(); // Still vulnerable!
+}
+
+// ✅ SECURE: Properly parameterized queries
+function getUser($userId) {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    return $stmt->fetch();
+}
+
+// ✅ SECURE: Named parameters
+function getUserByEmail($email) {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
+    $stmt->execute(['email' => $email]);
+    return $stmt->fetch();
+}
+```
+
+#### XSS Prevention Patterns
+```php
+// ❌ DANGEROUS: Unescaped output
+function displayUserName($userName) {
+    echo "<h1>Welcome " . $userName . "</h1>"; // XSS vulnerability
+}
+
+// ❌ DANGEROUS: Raw output in templates
+<div class="user-bio"><?= $user->bio ?></div> <!-- XSS risk -->
+
+// ✅ SECURE: Proper escaping
+function displayUserName($userName) {
+    echo "<h1>Welcome " . htmlspecialchars($userName, ENT_QUOTES, 'UTF-8') . "</h1>";
+}
+
+// ✅ SECURE: Template with auto-escaping
+<div class="user-bio"><?= htmlspecialchars($user->bio, ENT_QUOTES, 'UTF-8') ?></div>
+
+// ✅ SECURE: Laravel Blade (auto-escaping)
+<div class="user-bio">\{{ $user->bio }}</div> <!-- Automatically escaped -->
+```
+
+#### Command Injection Prevention
+```php
+// ❌ CRITICAL: Command injection vulnerability
+function backupDatabase($filename) {
+    $command = "mysqldump mydb > " . $filename;
+    shell_exec($command); // Vulnerable to injection
+}
+
+// ✅ SECURE: Escapeshellarg for user input
+function backupDatabase($filename) {
+    if (!preg_match('/^[\w\-\.]+$/', $filename)) {
+        throw new InvalidArgumentException('Invalid filename');
+    }
+    $command = "mysqldump mydb > " . escapeshellarg($filename);
+    shell_exec($command);
+}
+
+// ✅ BETTER: Use PHP libraries instead of shell commands
+function backupDatabase($filename) {
+    $mysqldump = new MySQLDump(new PDO($dsn, $user, $pass));
+    $mysqldump->start($filename); // No shell execution
+}
+```
+
+### 🌐 Laravel Security Best Practices
+
+#### Mass Assignment Protection
+```php
+// ❌ DANGEROUS: Unprotected mass assignment
+class User extends Model {
+    // No $fillable or $guarded - vulnerable to mass assignment
+}
+
+// Controller vulnerable to privilege escalation
+public function updateUser(Request $request, $id) {
+    $user = User::find($id);
+    $user->update($request->all()); // Can set admin=true!
+}
+
+// ✅ SECURE: Proper fillable fields
+class User extends Model {
+    protected $fillable = ['name', 'email', 'password'];
+    protected $guarded = ['admin', 'role_id', 'is_verified'];
+    
+    protected $hidden = ['password', 'remember_token'];
+}
+
+// ✅ SECURE: Validated request data
+public function updateUser(UpdateUserRequest $request, $id) {
+    $user = User::find($id);
+    $user->update($request->validated()); // Only validated fields
+}
+```
+
+#### Laravel Authentication and Authorization
+```php
+// ✅ SECURE: Proper authentication middleware
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('users', UserController::class);
+});
+
+// ✅ SECURE: Authorization with policies
+class UserController extends Controller {
+    public function update(Request $request, User $user) {
+        $this->authorize('update', $user);
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id
+        ]);
+        
+        $user->update($validated);
+        return response()->json($user);
+    }
+}
+
+// ✅ SECURE: CSRF protection in forms
+<form method="POST" action="\{{ route('users.update', $user) }}">
+    @csrf
+    @method('PUT')
+    <input type="text" name="name" value="\{{ old('name', $user->name) }}">
+    <button type="submit">Update</button>
+</form>
+```
+
+#### Secure File Upload Handling
+```php
+// ❌ DANGEROUS: No validation on uploads
+public function uploadAvatar(Request $request) {
+    $file = $request->file('avatar');
+    $path = $file->store('avatars');
+    return response()->json(['path' => $path]);
+}
+
+// ✅ SECURE: Comprehensive file validation
+public function uploadAvatar(Request $request) {
+    $request->validate([
+        'avatar' => [
+            'required',
+            'file',
+            'image',
+            'max:2048', // 2MB max
+            'mimes:jpeg,png,gif',
+            'dimensions:max_width=1000,max_height=1000'
+        ]
+    ]);
+    
+    $file = $request->file('avatar');
+    
+    // Generate secure filename
+    $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+    
+    // Store outside web root
+    $path = $file->storeAs('private/avatars', $filename);
+    
+    return response()->json(['path' => $path]);
+}
+```
+
+---
+
+## 📊 PHP Security Output Format
+
+```json
+{
+  "phpSecurityAssessment": {
+    "overallRiskLevel": "MEDIUM",
+    "phpVersion": "8.2.0",
+    "frameworkSecurity": {
+      "laravel": "GOOD",
+      "version": "10.x",
+      "securityFeatures": "ENABLED"
+    },
+    "psrCompliance": {
+      "psr4": "COMPLIANT",
+      "psr7": "COMPLIANT", 
+      "psr12": "COMPLIANT"
+    },
+    "configurationSecurity": {
+      "phpIni": "HARDENED",
+      "envManagement": "SECURE",
+      "errorReporting": "PRODUCTION_SAFE"
+    },
+    "confidenceScore": 0.89
+  },
+  "phpVulnerabilityFindings": [
+    {
+      "id": "PHP-SEC-001",
+      "type": "SQL_INJECTION",
+      "severity": "CRITICAL",
+      "title": "SQL injection via string concatenation",
+      "location": {"file": "app/Models/User.php", "line": 45},
+      "description": "Direct string concatenation in SQL query allows injection",
+      "evidence": "$query = \"SELECT * FROM users WHERE name = '\" . $name . \"'\";",
+      "phpSpecific": {
+        "function": "mysql_query",
+        "vulnerability": "DEPRECATED_MYSQL_EXTENSION",
+        "modernAlternative": "PDO prepared statements"
+      },
+      "remediation": {
+        "immediate": "Replace with prepared statement",
+        "codeExample": "$stmt = $pdo->prepare(\"SELECT * FROM users WHERE name = ?\");\n$stmt->execute([$name]);",
+        "effort": "LOW"
+      },
+      "confidence": 0.98
+    }
+  ],
+  "laravelSpecificFindings": [
+    {
+      "id": "LARAVEL-001",
+      "type": "MASS_ASSIGNMENT",
+      "severity": "HIGH",
+      "title": "Model lacks mass assignment protection",
+      "description": "User model allows unrestricted mass assignment",
+      "location": {"file": "app/Models/User.php", "line": 12},
+      "laravelSecurity": {
+        "fillableExists": false,
+        "guardedExists": false,
+        "recommendation": "Add $fillable array with allowed fields"
+      },
+      "remediation": {
+        "pattern": "FILLABLE_FIELDS",
+        "implementation": "protected $fillable = ['name', 'email', 'password'];",
+        "additionalSteps": [
+          "Review all mass assignment calls",
+          "Validate input data",
+          "Use Form Request validation"
+        ]
+      }
+    }
+  ],
+  "configurationFindings": [
+    {
+      "id": "CONFIG-001",
+      "type": "PHP_INI_SECURITY",
+      "severity": "MEDIUM",
+      "title": "PHP configuration security improvements needed",
+      "recommendations": [
+        "Set expose_php = Off",
+        "Set display_errors = Off in production",
+        "Enable open_basedir restriction",
+        "Disable dangerous functions: exec, shell_exec, system"
+      ],
+      "currentConfig": {
+        "exposePhp": true,
+        "displayErrors": true,
+        "openBasedir": null,
+        "disabledFunctions": []
+      }
+    }
+  ],
+  "modernPhpRecommendations": [
+    {
+      "category": "PASSWORD_HASHING",
+      "current": "md5() usage found",
+      "recommended": "password_hash() with PASSWORD_ARGON2ID",
+      "migration": {
+        "steps": [
+          "Replace md5() with password_hash()",
+          "Update login verification to use password_verify()",
+          "Implement password rehashing on login",
+          "Set appropriate cost factors"
+        ],
+        "codeExample": "$hash = password_hash($password, PASSWORD_ARGON2ID);"
+      }
+    }
+  ],
+  "frameworkSecurityChecks": {
+    "csrf": "ENABLED",
+    "sessionSecurity": "GOOD",
+    "inputValidation": "COMPREHENSIVE",
+    "outputEscaping": "AUTOMATIC",
+    "routeProtection": "MIDDLEWARE_BASED",
+    "recommendations": [
+      "Enable HSTS headers",
+      "Configure Content Security Policy",
+      "Add rate limiting to authentication routes"
+    ]
+  }
+}
+```
+
+---
+
+## 🚀 Advanced PHP Security Patterns
+
+### Secure Session Management
+```php
+// ✅ SECURE: Laravel session configuration
+// config/session.php
+return [
+    'lifetime' => 120,
+    'expire_on_close' => true,
+    'encrypt' => true,
+    'driver' => 'redis', // More secure than file-based
+    'cookie' => 'app_session',
+    'http_only' => true,
+    'secure' => env('APP_ENV') === 'production',
+    'same_site' => 'strict'
+];
+```
+
+### Content Security Policy Implementation
+```php
+// ✅ SECURE: CSP middleware
+class ContentSecurityPolicyMiddleware {
+    public function handle($request, Closure $next) {
+        $response = $next($request);
+        
+        $csp = "default-src 'self'; " .
+               "script-src 'self' 'unsafe-inline'; " .
+               "style-src 'self' 'unsafe-inline'; " .
+               "img-src 'self' data: https:; " .
+               "connect-src 'self'; " .
+               "font-src 'self'; " .
+               "frame-ancestors 'none';";
+               
+        $response->headers->set('Content-Security-Policy', $csp);
+        return $response;
+    }
+}
+```
+
+### Secure API Development
+```php
+// ✅ SECURE: Laravel API with rate limiting and validation
+class ApiController extends Controller {
+    public function __construct() {
+        $this->middleware(['auth:sanctum', 'throttle:60,1']);
+    }
+    
+    public function store(StoreUserRequest $request) {
+        // StoreUserRequest handles validation
+        $user = User::create($request->validated());
+        
+        return new UserResource($user);
+    }
+}
+
+// ✅ SECURE: Form Request with custom validation
+class StoreUserRequest extends FormRequest {
+    public function authorize() {
+        return auth()->user()->can('create-users');
+    }
+    
+    public function rules() {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users'],
+            'password' => ['required', 'min:8', 'confirmed', new StrongPassword],
+        ];
+    }
+}
+```
 
 {{#if languageInstructions}}
 {{{languageInstructions}}}
 {{/if}}
 
-> **Context**: This is a security-focused review to identify vulnerabilities and security best practice violations in PHP code.
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
----
-
-## ✅ PHP Security Evaluation Checklist
-
-### 🔐 Authentication & Authorization
-- Are authentication mechanisms implemented securely?
-- Is authorization properly enforced at all levels?
-- Are there any privilege escalation vulnerabilities?
-- Is session management implemented securely (session_start, session variables)?
-- Are password hashing functions secure (password_hash vs md5/sha1)?
-
-### 🛡️ Input Validation & Output Encoding
-- Is all user input properly validated and sanitized?
-- Are there potential injection vulnerabilities (SQL, Command, etc.)?
-- Is output properly encoded to prevent XSS (htmlspecialchars, etc.)?
-- Are there insecure uses of eval(), shell_exec(), system(), etc.?
-- Are file uploads handled securely?
-
-### 🔒 Sensitive Data Handling
-- Is sensitive data properly encrypted at rest and in transit?
-- Are there any hardcoded secrets, API keys, or credentials?
-- Is PII handled according to best practices?
-- Are proper hashing algorithms used for passwords?
-- Is there proper implementation of encryption functions?
-
-### 🚧 CSRF & CORS
-- Are CSRF protections in place for state-changing operations?
-- Is CORS configured securely?
-- Are security headers properly implemented?
-- Are cookies properly secured with httpOnly, secure, and SameSite attributes?
-
-### 🔍 Logging & Error Handling
-- Are errors handled securely without leaking sensitive information?
-- Is error_reporting properly configured in production?
-- Is logging implemented without capturing sensitive data?
-- Are there appropriate audit logs for security-relevant events?
-
-### 🧰 Dependency Security
-- Are there any known vulnerabilities in dependencies (Composer packages)?
-- Is there a process for updating dependencies with security fixes?
-- Are there any insecure third-party libraries?
-
-### 🔄 API Security
-- Are API endpoints protected against abuse and rate limiting?
-- Is proper authentication enforced for all API calls?
-- Are there any insecure direct object references?
-- Is appropriate input validation performed on API parameters?
-
-### 🐘 PHP-Specific Security Issues
-- Are there any uses of insecure PHP functions (extract, parse_str without arguments)?
-- Is register_globals disabled?
-- Are file permissions set properly?
-- Is there proper handling of file inclusion (require/include)?
-- Are there any insecure deserialization vulnerabilities (unserialize)?
-- Are $_SERVER, $_GET, $_POST variables used safely?
-
----
-
-## 📤 Output Format
-Provide clear, structured feedback using a standard vulnerability reporting format:
-
-1. **Executive Summary**: Brief overview of the security posture with key findings
-
-2. **Vulnerability Findings**: For each security issue:
-   - **Finding**: Title of the security issue
-   - **Severity**: Critical/High/Medium/Low/Informational
-   - **Location**: File and line number(s)
-   - **Description**: Detailed explanation of the vulnerability
-   - **Impact**: What could happen if exploited
-   - **Suggested Remediation**: Specific steps to fix the issue with code examples
-   - **References**: Links to relevant security standards or documentation
-
-3. **PHP-Specific Security Recommendations**: A section focused on PHP-specific security improvements
-
-Example remediation for a SQL injection vulnerability:
-
-```php
-// INSECURE: Direct concatenation of user input
-$query = "SELECT * FROM users WHERE username = '" . $_POST['username'] . "'";
-$result = $mysqli->query($query);
-
-// SECURE: Using prepared statements
-$stmt = $mysqli->prepare("SELECT * FROM users WHERE username = ?");
-$stmt->bind_param("s", $_POST['username']);
-$stmt->execute();
-$result = $stmt->get_result();
-```
-
-Focus on actionable security findings with clear remediation steps. Prioritize findings by severity, with special attention to PHP-specific vulnerabilities like insecure deserialization, file inclusion issues, and dangerous function usage.
-
-NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.
+**Priority Focus**: Critical PHP vulnerabilities (SQL injection, XSS, command injection), Laravel/framework security features, PSR compliance, modern PHP security patterns, and configuration hardening. Always provide PHP-specific secure alternatives with framework integration examples.

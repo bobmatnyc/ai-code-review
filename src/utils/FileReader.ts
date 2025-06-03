@@ -40,8 +40,7 @@ export async function readFileWithInfo(filePath: string): Promise<FileInfo> {
     return {
       path: filePath,
       content,
-      extension,
-      filename: path.basename(filePath)
+      extension
     };
   } catch (error) {
     logger.error(

@@ -6,7 +6,7 @@
  * across different AI providers.
  */
 
-import { ReviewResult, ReviewCost, ReviewType } from '../../types/review';
+import { ReviewResult, CostInfo, ReviewType } from '../../types/review';
 import { StructuredReview } from '../../types/structuredReview';
 import { AIJsonResponse } from '../../types/apiResponses';
 import { ApiError } from '../../utils/apiErrorHandler';
@@ -268,7 +268,7 @@ export function createStandardReviewResult(
   const structuredData = extractStructuredData(content);
   
   // Calculate cost information
-  let cost: ReviewCost | undefined;
+  let cost: CostInfo | undefined;
   try {
     cost = getCostInfoFromText(prompt, content, modelName);
   } catch (error) {

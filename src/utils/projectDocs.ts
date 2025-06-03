@@ -4,6 +4,9 @@
  * This module re-exports project documentation utilities from the files module
  * to maintain backward compatibility. It also provides a compatibility layer
  * for the old readProjectDocs function signature.
+ * 
+ * @deprecated This re-export exists for backward compatibility.
+ * TODO: Migrate all imports to use './files/projectDocs' directly and remove this file.
  */
 
 export * from './files/projectDocs';

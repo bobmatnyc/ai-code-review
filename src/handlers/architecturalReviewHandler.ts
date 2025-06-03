@@ -21,7 +21,7 @@ import { displayReviewResults } from '../utils/reviewActionHandler';
 import logger from '../utils/logger';
 
 // Import the getApiKeyType function from a shared utilities file
-import { getApiKeyType } from '../utils/apiUtils';
+import { getApiKeyType } from '../utils/api/apiUtils';
 
 // Package security analyzer is dynamically imported
 
@@ -217,7 +217,7 @@ export async function handleArchitecturalReview(
     );
 
     // Format with the standard formatter
-    let formattedOutput = formatReviewOutput(review, options.output);
+    let formattedOutput = formatReviewOutput(review, options.output || 'markdown');
     
     // For architectural reviews, dependency analysis is now handled by the OutputManager
     // This ensures consistent behavior across different review types
@@ -264,7 +264,7 @@ export async function handleArchitecturalReview(
       // Instead of using a specific formatter, use our generic implementation
       // that works for all review types
       const { addFileTreeToReview } = await import('../core/OutputManager.js');
-      formattedOutput = addFileTreeToReview(formattedOutput, fileInfos, options.output);
+      formattedOutput = addFileTreeToReview(formattedOutput, fileInfos, options.output || 'markdown');
       logger.info('Added file tree to architectural review');
     } catch (error) {
       // Fall back to standard formatter if file tree addition fails
