@@ -564,8 +564,13 @@ export async function orchestrateReview(
           // Get provider and model information
           const providerInfo = getProviderDisplayInfo(apiClientConfig.modelName);
           
+          // Calculate effective context window for display
+          const safetyMarginFactor = 0.1; // 10% safety margin
+          const effectiveContextWindow = Math.floor(tokenAnalysis.contextWindowSize * (1 - safetyMarginFactor));
+          const contextUtilization = (tokenAnalysis.estimatedTotalTokens / effectiveContextWindow * 100).toFixed(2);
+          
           // Display token analysis and cost estimation
-          logger.info(`\n=== Multi-Pass Review Required ===\n\nContent exceeds model context window. Multi-pass review is recommended.\n\nProvider: ${providerInfo.provider}\nModel: ${providerInfo.model}\nFiles: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)\n\nToken Information:\n  Input Tokens: ${costEstimation.inputTokens.toLocaleString()}\n  Estimated Output Tokens: ${costEstimation.outputTokens.toLocaleString()}\n  Total Tokens: ${costEstimation.totalTokens.toLocaleString()}\n  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}\n  Context Utilization: ${(tokenAnalysis.estimatedTotalTokens / tokenAnalysis.contextWindowSize * 100).toFixed(2)}%\n\nMulti-Pass Analysis:\n  Reason: ${tokenAnalysis.chunkingRecommendation.reason || 'Content exceeds context window'}\n  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}\n\nEstimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}\n`);
+          logger.info(`\n=== Multi-Pass Review Required ===\n\nContent exceeds model context window. Multi-pass review is recommended.\n\nProvider: ${providerInfo.provider}\nModel: ${providerInfo.model}\nFiles: ${tokenAnalysis.fileCount} (${(tokenAnalysis.totalSizeInBytes / 1024 / 1024).toFixed(2)} MB total)\n\nToken Information:\n  Input Tokens: ${costEstimation.inputTokens.toLocaleString()}\n  Estimated Output Tokens: ${costEstimation.outputTokens.toLocaleString()}\n  Total Tokens: ${costEstimation.totalTokens.toLocaleString()}\n  Context Window Size: ${tokenAnalysis.contextWindowSize.toLocaleString()}\n  Context Utilization: ${contextUtilization}%\n\nMulti-Pass Analysis:\n  Reason: ${tokenAnalysis.chunkingRecommendation.reason}\n  Estimated Passes: ${tokenAnalysis.estimatedPassesNeeded}\n\nEstimated Cost: ${costEstimation.formattedCost || 'Unable to estimate cost'}\n`);
           
           // If forceSinglePass is enabled, inform the user but proceed with single-pass
           if (options.forceSinglePass) {
