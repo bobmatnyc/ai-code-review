@@ -5,7 +5,10 @@
  * review options, and review results.
  */
 
-import { CostInfo } from './tokenAnalysis';
+import { CostInfo } from '../clients/utils/tokenCounter';
+
+// Re-export CostInfo for convenience
+export type { CostInfo } from '../clients/utils/tokenCounter';
 
 /**
  * Types of code reviews that can be performed
@@ -19,7 +22,8 @@ export type ReviewType =
   | 'focused-unused-code'
   | 'code-tracing-unused-code'
   | 'improved-quick-fixes'
-  | 'consolidated';
+  | 'consolidated'
+  | 'best-practices';
 
 /**
  * Options for code reviews
@@ -67,6 +71,50 @@ export interface ReviewOptions {
   models?: boolean;
   /** CI/CD data (TypeScript errors, lint errors) - internal use only */
   ciData?: any;
+  /** Path to a custom prompt file */
+  promptFile?: string;
+  /** Prompt fragments to inject into the review */
+  promptFragments?: Array<{
+    content: string;
+    position: 'start' | 'middle' | 'end';
+    priority?: number;
+  }>;
+  /** Prompt strategy to use */
+  promptStrategy?: string;
+  /** Whether to use cache for prompts */
+  useCache?: boolean;
+  /** Whether to automatically fix issues */
+  autoFix?: boolean;
+  /** Whether to use ts-prune for unused code detection */
+  useTsPrune?: boolean;
+  /** Whether to use ESLint for code analysis */
+  useEslint?: boolean;
+  /** Whether to trace code execution */
+  traceCode?: boolean;
+  /** UI language for output messages */
+  uiLanguage?: string;
+  /** Target file or directory (used internally) */
+  target?: string;
+  /** Schema instructions for structured output */
+  schemaInstructions?: string;
+  /** Examples for prompts */
+  examples?: any[];
+  /** Whether to prompt for all issues */
+  promptAll?: boolean;
+  /** Whether to skip specific file content */
+  skipFileContent?: boolean;
+  /** Whether this is a consolidation pass */
+  isConsolidation?: boolean;
+  /** Project name */
+  projectName?: string;
+  /** Strategy override */
+  strategy?: string;
+  /** Whether to suppress output */
+  quiet?: boolean;
+  /** Whether to focus on specific aspects */
+  focused?: boolean;
+  /** Whether to use consolidated review */
+  consolidated?: boolean;
 }
 
 /**
@@ -79,6 +127,8 @@ export interface FileInfo {
   relativePath?: string;
   /** Content of the file */
   content: string;
+  /** File extension */
+  extension?: string;
 }
 
 /**
@@ -115,6 +165,16 @@ export interface ReviewResult {
   frameworkVersion?: string;
   /** Detected CSS frameworks */
   cssFrameworks?: Array<{ name: string; version?: string }>;
+  /** Raw API response (for debugging) */
+  response?: string;
+  /** Output format of the review */
+  outputFormat?: string;
+  /** Project name for the review */
+  projectName?: string;
+  /** Total number of passes in multi-pass review */
+  totalPasses?: number;
+  /** Files included in the review */
+  files?: FileInfo[];
 }
 
 /**

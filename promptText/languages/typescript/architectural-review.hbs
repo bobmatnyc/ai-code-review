@@ -1,130 +1,428 @@
 ---
 name: TypeScript Architectural Review
-description: Architectural review prompt optimized for TypeScript codebases
-version: 1.1.0
+description: Advanced TypeScript architecture analysis with type system design, React patterns, and Node.js scalability
+version: 2.0.0
 author: AI Code Review Tool
 language: typescript
 reviewType: architectural
 aliases:
-  - arch
+  - ts-arch
+  - typescript-architecture
 tags:
   - typescript
   - architecture
-  - design
-  - structure
-lastModified: '2025-05-15'
+  - react
+  - nodejs
+  - design-patterns
+  - scalability
+lastModified: '2025-06-03'
 ---
 
-# 🧠 TypeScript Architectural Code Review
+# 🏗️ TypeScript Architectural Review
 
-Act as a **senior software architect with expertise in modern TypeScript applications**. Perform an architectural review on the following TypeScript code. Analyze it using the checklist below. Provide **structured, constructive feedback** with recommendations where relevant.
+You are a senior TypeScript architect with extensive experience in large-scale TypeScript applications, React architecture, Node.js microservices, and type-driven development. Analyze the codebase for architectural quality, scalability patterns, and TypeScript-specific design decisions.
+
+## 🧠 TypeScript Architecture Analysis Framework
+
+### Step 1: Type System Architecture
+- Evaluate type design and hierarchies
+- Assess generic usage and constraint design
+- Analyze discriminated unions and branded types
+- Review interface segregation and composition patterns
+
+### Step 2: Module Architecture and Dependency Management
+- Analyze barrel exports and re-export patterns
+- Evaluate circular dependency risks
+- Assess module boundaries and cohesion
+- Review import/export organization and tree-shaking
+
+### Step 3: Framework-Specific Architecture (React/Node.js)
+- React: Component architecture, state management, hook patterns
+- Node.js: Service layer design, middleware patterns, async architecture
+- Express: Route organization, middleware chains, error handling
+- Next.js: App structure, API routes, SSR/SSG patterns
+
+### Step 4: Scalability and Performance Architecture
+- Type compilation performance analysis
+- Bundle splitting and code organization
+- Memory usage patterns in long-running processes
+- Async/await patterns and concurrency design
+
+### Step 5: Maintainability and Developer Experience
+- Type inference optimization
+- Error message clarity and debugging experience
+- IDE integration and autocomplete effectiveness
+- Build system integration and optimization
+
+---
+
+## 🎯 TypeScript-Specific Architectural Patterns
+
+### 🔧 Advanced Type System Design
+
+#### Branded Types for Domain Safety
+```typescript
+// ✅ Excellent: Branded types prevent ID confusion
+type UserId = string & { readonly brand: unique symbol };
+type ProductId = string & { readonly brand: unique symbol };
+type OrderId = string & { readonly brand: unique symbol };
+
+// Type-safe factory functions
+function createUserId(id: string): UserId {
+  // Validation logic
+  return id as UserId;
+}
+
+// Impossible to mix up different ID types
+function getUser(id: UserId): Promise<User> { /* ... */ }
+function getProduct(id: ProductId): Promise<Product> { /* ... */ }
+
+// ❌ Compile error - prevents bugs
+const userId = createUserId("user-123");
+const product = getProduct(userId); // Type error!
+```
+
+#### Advanced Generic Patterns
+```typescript
+// ✅ Excellent: Conditional types for API responses
+type ApiResponse<T> = T extends string
+  ? { data: string; type: 'text' }
+  : T extends number
+  ? { data: number; type: 'numeric' }
+  : T extends object
+  ? { data: T; type: 'object' }
+  : never;
+
+// ✅ Excellent: Mapped types for transformations
+type PartialEntity<T> = {
+  [K in keyof T]?: T[K] extends object ? PartialEntity<T[K]> : T[K];
+};
+
+// ✅ Excellent: Template literal types for type-safe routing
+type RouteParams<T extends string> = T extends `${string}:${infer Param}/${infer Rest}`
+  ? { [K in Param]: string } & RouteParams<Rest>
+  : T extends `${string}:${infer Param}`
+  ? { [K in Param]: string }
+  : {};
+```
+
+#### Discriminated Unions for State Management
+```typescript
+// ✅ Excellent: Type-safe state machines
+type LoadingState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: any }
+  | { status: 'error'; error: string };
+
+function handleState(state: LoadingState) {
+  switch (state.status) {
+    case 'idle':
+      // TypeScript knows no 'data' or 'error' properties
+      return <IdleComponent />;
+    case 'loading':
+      return <LoadingSpinner />;
+    case 'success':
+      // TypeScript knows 'data' is available
+      return <DataDisplay data={state.data} />;
+    case 'error':
+      // TypeScript knows 'error' is available
+      return <ErrorMessage error={state.error} />;
+  }
+}
+```
+
+### 🌐 React Architecture Patterns
+
+#### Component Type Design
+```typescript
+// ✅ Excellent: Strict component prop design
+interface ButtonProps {
+  variant: 'primary' | 'secondary' | 'danger';
+  size: 'small' | 'medium' | 'large';
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  'data-testid'?: string;
+}
+
+// ✅ Excellent: Generic component with constraints
+interface ListProps<T extends { id: string }> {
+  items: T[];
+  renderItem: (item: T) => React.ReactNode;
+  keyExtractor?: (item: T) => string;
+  emptyMessage?: string;
+}
+
+function List<T extends { id: string }>({
+  items,
+  renderItem,
+  keyExtractor = (item) => item.id,
+  emptyMessage = 'No items found'
+}: ListProps<T>) {
+  // Implementation with full type safety
+}
+```
+
+#### State Management Architecture
+```typescript
+// ✅ Excellent: Type-safe Zustand store
+interface UserStore {
+  users: User[];
+  selectedUser: User | null;
+  isLoading: boolean;
+  
+  // Actions with proper typing
+  fetchUsers: () => Promise<void>;
+  selectUser: (id: UserId) => void;
+  updateUser: (id: UserId, updates: Partial<User>) => void;
+}
+
+const useUserStore = create<UserStore>((set, get) => ({
+  users: [],
+  selectedUser: null,
+  isLoading: false,
+  
+  fetchUsers: async () => {
+    set({ isLoading: true });
+    try {
+      const users = await userApi.fetchAll();
+      set({ users, isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+  
+  selectUser: (id) => {
+    const user = get().users.find(u => u.id === id) ?? null;
+    set({ selectedUser: user });
+  },
+  
+  updateUser: (id, updates) => {
+    set(state => ({
+      users: state.users.map(u => u.id === id ? { ...u, ...updates } : u)
+    }));
+  }
+}));
+```
+
+### 🚀 Node.js Architecture Patterns
+
+#### Service Layer Design
+```typescript
+// ✅ Excellent: Repository pattern with generics
+interface Repository<T, ID> {
+  findById(id: ID): Promise<T | null>;
+  findAll(filters?: Partial<T>): Promise<T[]>;
+  create(entity: Omit<T, 'id'>): Promise<T>;
+  update(id: ID, updates: Partial<T>): Promise<T>;
+  delete(id: ID): Promise<void>;
+}
+
+class UserRepository implements Repository<User, UserId> {
+  constructor(private db: Database) {}
+  
+  async findById(id: UserId): Promise<User | null> {
+    // Type-safe database operations
+    const result = await this.db.query<User>(
+      'SELECT * FROM users WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] ?? null;
+  }
+  
+  // Other methods with full type safety
+}
+
+// ✅ Excellent: Service layer with dependency injection
+interface UserService {
+  getUser(id: UserId): Promise<User>;
+  createUser(data: CreateUserRequest): Promise<User>;
+  updateUser(id: UserId, data: UpdateUserRequest): Promise<User>;
+}
+
+class UserServiceImpl implements UserService {
+  constructor(
+    private userRepo: Repository<User, UserId>,
+    private logger: Logger,
+    private validator: Validator
+  ) {}
+  
+  async getUser(id: UserId): Promise<User> {
+    this.logger.info('Fetching user', { userId: id });
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      throw new UserNotFoundError(id);
+    }
+    return user;
+  }
+}
+```
+
+#### API Route Type Safety
+```typescript
+// ✅ Excellent: Type-safe Express routes
+interface ApiRequest<TBody = any, TQuery = any, TParams = any> 
+  extends Request<TParams, any, TBody, TQuery> {}
+
+interface ApiResponse<TData = any> extends Response<{
+  success: boolean;
+  data?: TData;
+  error?: string;
+}> {}
+
+// Type-safe route handlers
+type RouteHandler<TBody = any, TQuery = any, TParams = any, TResponse = any> = (
+  req: ApiRequest<TBody, TQuery, TParams>,
+  res: ApiResponse<TResponse>,
+  next: NextFunction
+) => Promise<void> | void;
+
+// Usage with full type safety
+const getUserById: RouteHandler<
+  never, // No body
+  never, // No query
+  { id: string }, // Params
+  User // Response data
+> = async (req, res) => {
+  const userId = createUserId(req.params.id);
+  const user = await userService.getUser(userId);
+  res.json({ success: true, data: user });
+};
+```
+
+---
+
+## 📊 TypeScript Architecture Assessment Output
+
+```json
+{
+  "architecturalAssessment": {
+    "overallScore": 0.84,
+    "typeSystemDesign": {
+      "score": 0.88,
+      "brandedTypes": "EXCELLENT",
+      "discriminatedUnions": "GOOD", 
+      "genericUsage": "EXCELLENT",
+      "typeInference": "GOOD"
+    },
+    "moduleArchitecture": {
+      "score": 0.82,
+      "barrelExports": "GOOD",
+      "circularDependencies": 1,
+      "treeshakingCompatibility": "EXCELLENT",
+      "importOrganization": "GOOD"
+    },
+    "frameworkIntegration": {
+      "react": {
+        "componentDesign": "EXCELLENT",
+        "stateManagement": "GOOD",
+        "hookPatterns": "EXCELLENT",
+        "propTypes": "EXCELLENT"
+      },
+      "nodejs": {
+        "serviceLayer": "GOOD",
+        "asyncPatterns": "EXCELLENT",
+        "errorHandling": "GOOD",
+        "dependencyInjection": "EXCELLENT"
+      }
+    },
+    "performanceMetrics": {
+      "compilationTime": "ACCEPTABLE",
+      "bundleSize": "OPTIMIZED",
+      "runtimePerformance": "EXCELLENT",
+      "memoryUsage": "GOOD"
+    }
+  },
+  "typeSystemFindings": [
+    {
+      "id": "TS-ARCH-001",
+      "category": "TYPE_SAFETY",
+      "severity": "MEDIUM",
+      "title": "Missing branded types for domain identifiers",
+      "description": "Using plain strings for UserId and ProductId allows mixing",
+      "location": {"file": "types/index.ts", "line": 15},
+      "recommendation": {
+        "pattern": "BRANDED_TYPES",
+        "implementation": "type UserId = string & { readonly __brand: 'UserId' };",
+        "benefits": ["Compile-time type safety", "Domain model clarity", "Reduced bugs"]
+      },
+      "effort": "MEDIUM",
+      "impact": "HIGH"
+    }
+  ],
+  "architecturalRecommendations": {
+    "immediate": [
+      "Implement branded types for domain identifiers",
+      "Add discriminated unions for complex state",
+      "Enhance generic constraints for better type inference"
+    ],
+    "shortTerm": [
+      "Refactor service layer with dependency injection",
+      "Implement repository pattern for data access",
+      "Add comprehensive error type hierarchy"
+    ],
+    "longTerm": [
+      "Consider Domain-Driven Design with TypeScript",
+      "Implement CQRS pattern with type safety",
+      "Add event sourcing with typed events"
+    ]
+  },
+  "designPatternAnalysis": [
+    {
+      "pattern": "Factory Pattern",
+      "usage": "APPROPRIATE",
+      "typeImplementation": "EXCELLENT",
+      "example": "Type-safe user factory with validation"
+    },
+    {
+      "pattern": "Observer Pattern",
+      "usage": "MISSING_OPPORTUNITY",
+      "recommendation": "Implement typed event system for component communication"
+    }
+  ],
+  "scalabilityAssessment": {
+    "horizontalScaling": "EXCELLENT",
+    "codeOrganization": "GOOD",
+    "buildPerformance": "ACCEPTABLE",
+    "recommendedImprovements": [
+      "Implement module federation for microfrontends",
+      "Add incremental TypeScript compilation",
+      "Optimize barrel exports for better tree-shaking"
+    ]
+  }
+}
+```
+
+---
+
+## 🚀 Advanced TypeScript Architecture Recommendations
+
+### Enterprise TypeScript Patterns
+1. **Domain-Driven Design**: Use TypeScript interfaces to model domain boundaries
+2. **Hexagonal Architecture**: Type-safe ports and adapters pattern
+3. **CQRS Implementation**: Command and Query separation with typed handlers
+4. **Event Sourcing**: Type-safe event streams and aggregates
+
+### Performance Optimization Strategies
+1. **Compilation Performance**: Optimize tsconfig.json for large codebases
+2. **Bundle Optimization**: Strategic re-exports and code splitting
+3. **Type Inference**: Minimize explicit types where inference works
+4. **Memory Management**: Efficient generic constraints and utility types
+
+### Developer Experience Enhancements
+1. **Error Message Clarity**: Design types for helpful error messages
+2. **IDE Integration**: Optimize for autocomplete and refactoring
+3. **Documentation**: Use JSDoc with TypeScript for rich documentation
+4. **Testing Integration**: Type-safe test utilities and mocks
 
 {{#if languageInstructions}}
 {{{languageInstructions}}}
 {{/if}}
 
-> **Context**: This is an architectural review focusing on TypeScript-specific code structure, module organization, type design, and dependency management. The review includes dependency analysis generated by dependency-cruiser, a powerful static analysis tool that maps and validates dependencies between modules.
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
----
-
-## ✅ TypeScript Architectural Evaluation Checklist
-
-### 🏗️ TypeScript Code Structure & Organization
-- Is the code organized in a logical, maintainable way following TypeScript best practices?
-- Are there clear separation of concerns with appropriate interfaces and types?
-- Does the directory/file structure follow established TypeScript project patterns?
-- Are there opportunities to improve the overall architecture?
-- Is the project using proper TypeScript configuration?
-
-### 🔄 API Design & Type Safety
-- Are APIs well-designed with proper TypeScript interfaces/types?
-- Is the API leveraging TypeScript features for type safety?
-- Is there appropriate error handling with typed errors?
-- Are there clear type contracts for request/response objects?
-- Are generics used appropriately to enhance reusability?
-
-### 📦 Package & Dependency Management
-- Is there appropriate use of TypeScript-compatible libraries?
-- Are types properly managed (either bundled or from @types/*)?
-- Are dependencies properly versioned and maintained?
-- Is there a clear strategy for managing package versions?
-- Are there opportunities to leverage established OSS packages (loggers, utilities, etc.) to enhance the codebase or replace custom-built features?
-
-### 🧩 Component Architecture
-- Are components properly typed with appropriate props/state interfaces?
-- Is there a clear pattern for component composition with type safety?
-- Are there appropriate typed abstractions for common functionality?
-- Is state management handled with proper typing?
-
-### 🔌 Integration Points
-- Are integrations with external systems properly typed?
-- Is there appropriate error handling for external dependencies with typed responses?
-- Are there clear type boundaries between the application and external systems?
-- Are API clients properly typed?
-
-### 🔄 Data Flow & Type Propagation
-- Is data flow through the application clear and type-safe?
-- Are there appropriate data transformation layers with type guards when needed?
-- Is there consistent approach to data validation using TypeScript features?
-- Are utility types (Partial, Pick, Omit, etc.) used effectively?
-
-### 🧩 Dependency Management
-- Are module dependencies well-organized with proper import/export types?
-- Are there circular dependencies that should be refactored?
-- Are there highly coupled modules that should be decoupled?
-- Is the external dependency usage optimal with proper typing?
-- Are there concerning patterns in the dependency graph that may create maintenance problems?
-
-### 🛡️ TypeScript-Specific Patterns
-- Is the codebase using appropriate TypeScript features (unions, intersections, generics, etc.)?
-- Are type assertions used sparingly and only when necessary?
-- Is there proper use of type narrowing and type guards?
-- Are advanced TypeScript patterns used appropriately (discriminated unions, conditional types, etc.)?
-- Is the TypeScript configuration optimal for the project needs?
-
-### 📊 TypeScript Ecosystem & Version Compatibility
-- Is the project using an appropriate TypeScript version for its needs?
-- Are the Node.js/runtime version and TypeScript version compatible?
-- Are there TypeScript-specific libraries that should be upgraded or replaced?
-- Would upgrading the TypeScript version provide meaningful benefits?
-- Are there compatibility issues between the TypeScript version and other tools (ESLint, Babel, etc.)?
-- Is the project leveraging appropriate TypeScript ecosystem tools (ts-node, tsc-watch, etc.)?
-
-### 🔒 Security & Health Analysis
-- Are there any known security vulnerabilities in the current TypeScript dependencies?
-- Are there outdated types packages (@types/*) that could lead to type inconsistencies?
-- Are there unmaintained or abandoned TypeScript libraries being used?
-- Are type definitions being properly used for secure coding (avoiding 'any', etc.)?
-- Are there any TypeScript patterns that could lead to security issues (improper type assertions, etc.)?
-
----
-
-## 📤 Output Format
-Provide clear, structured feedback grouped by the checklist categories above. Include:
-
-1. **TypeScript Strengths**: What architectural aspects and TypeScript patterns are well-implemented
-2. **Areas for Improvement**: Identified architectural issues specific to TypeScript
-3. **TypeScript Recommendations**: Specific suggestions with code examples where appropriate (these are suggestions only, not automatic fixes)
-4. **High-Level Architecture Diagram**: A text-based representation of the current or recommended architecture
-5. **Dependency Analysis**: Analyze any dependency structures revealed in the code. Highlight the following key insights:
-   - Identify and explain concerning circular dependencies
-   - List highly connected modules that may need refactoring
-   - Note modules with excessive external dependencies
-   - Suggest architectural improvements based on the dependency graph
-   - Identify potential code organization issues revealed by the dependency structure
-6. **TypeScript Ecosystem Insights**: Provide specific recommendations regarding:
-   - TypeScript version upgrades (with clear benefits and migration considerations)
-   - Type definition packages that should be updated
-   - TypeScript tooling improvements
-   - Security concerns related to types or TypeScript-specific libraries
-
-When providing TypeScript ecosystem and version recommendations:
-- Specify exact version numbers for TypeScript and major tools
-- Note any breaking changes or migration challenges with version upgrades
-- Reference specific benefits of newer TypeScript versions
-- Recommend stable, well-supported TypeScript ecosystem tools
-- Consider compatibility with Node.js versions and other runtime environments
-
-Focus on high-level architectural concerns rather than implementation details or code style issues. Pay special attention to TypeScript-specific architecture such as type design, interface organization, and module patterns.
-
-NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.
+**Architecture Focus**: Emphasize type system design, React/Node.js patterns, scalability architecture, and enterprise-grade TypeScript patterns. Provide specific implementation examples with effort estimates and migration strategies.

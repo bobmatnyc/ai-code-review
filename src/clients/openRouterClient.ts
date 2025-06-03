@@ -18,7 +18,7 @@ import {
   ReviewType,
   ReviewResult,
   FileInfo,
-  ReviewCost,
+  CostInfo,
   ReviewOptions
 } from '../types/review';
 import { getConfig } from '../utils/config';
@@ -133,7 +133,7 @@ export async function generateOpenRouterReview(
     const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
 
     let content: string;
-    let cost: ReviewCost | undefined;
+    let cost: CostInfo | undefined;
 
     // Get the language from the file extension
     // const language = getLanguageFromExtension(filePath); // Currently unused
@@ -317,7 +317,7 @@ export async function generateOpenRouterConsolidatedReview(
     const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
 
     let content: string;
-    let cost: ReviewCost | undefined;
+    let cost: CostInfo | undefined;
 
     // Load the appropriate prompt template
     const promptTemplate = await loadPromptTemplate(reviewType, options);
