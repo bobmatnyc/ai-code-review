@@ -1,122 +1,569 @@
 ---
 name: TypeScript Quick Fixes Review
-description: Quick fixes review prompt optimized for TypeScript codebases
-version: 1.0.0
+description: Immediate TypeScript improvements with modern ES6+ features, React patterns, and Node.js optimizations
+version: 2.0.0
 author: AI Code Review Tool
 language: typescript
 reviewType: quick-fixes
 aliases:
-  - ts-quick
+  - ts-fixes
+  - typescript-quick-fixes
 tags:
   - typescript
+  - javascript
   - quick-fixes
-  - easy-wins
-  - improvements
-lastModified: '2025-05-15'
+  - refactoring
+  - modern-js
+  - react
+  - nodejs
+lastModified: '2025-06-03'
 ---
 
-# 🧠 TypeScript Quick Fixes Code Review
+# 🔧 TypeScript Quick Fixes Review
 
-Act as a **pragmatic senior developer with expertise in TypeScript**. Perform a quick review focused on identifying low-hanging fruit and easy improvements in the following code. This review is especially useful for POCs and early-stage projects. Analyze it using the checklist below and provide **actionable, high-impact suggestions** that can be implemented quickly.
+You are an experienced TypeScript developer specializing in modern JavaScript/TypeScript patterns, React best practices, and Node.js optimization. Identify immediate, low-effort improvements for better code quality, type safety, and maintainability.
+
+## 🧠 TypeScript Quick Fix Analysis Framework
+
+### Step 1: Type Safety Quick Wins
+- Replace `any` types with proper type definitions
+- Add missing type annotations for better inference
+- Fix unsafe type assertions and improve type guards
+- Enhance null safety with optional chaining and nullish coalescing
+
+### Step 2: Modern JavaScript/TypeScript Features
+- Upgrade to ES6+ syntax (arrow functions, destructuring, template literals)
+- Use modern array methods and optional chaining
+- Replace var with const/let and improve scoping
+- Implement proper async/await patterns
+
+### Step 3: React-Specific Quick Fixes
+- Add proper component typing and prop interfaces
+- Implement React.memo and useCallback optimizations
+- Fix dependency arrays in useEffect hooks
+- Improve event handler typing and implementation
+
+### Step 4: Node.js Optimization Opportunities
+- Replace callback patterns with async/await
+- Improve error handling and type safety
+- Optimize import statements and tree-shaking
+- Add proper environment variable typing
+
+### Step 5: Code Quality and Maintainability
+- Extract magic numbers and strings to constants
+- Improve variable and function naming
+- Reduce code duplication with utility functions
+- Add comprehensive error handling
+
+---
+
+## 🎯 TypeScript Quick Fix Categories
+
+### 🔴 Critical Type Safety Fixes (5-15 minutes)
+
+#### Replace any with Proper Types
+```typescript
+// ❌ Type safety issues
+function processUserData(data: any): any {
+  return {
+    id: data.id,
+    name: data.name,
+    email: data.email
+  };
+}
+
+// ✅ Proper type definitions
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  age?: number;
+}
+
+interface ProcessedUser {
+  id: string;
+  displayName: string;
+  contactEmail: string;
+}
+
+function processUserData(data: UserData): ProcessedUser {
+  return {
+    id: data.id,
+    displayName: data.name,
+    contactEmail: data.email
+  };
+}
+```
+
+#### Fix Unsafe Type Assertions
+```typescript
+// ❌ Unsafe type assertion
+function getUserName(response: unknown): string {
+  return (response as any).user.name; // Dangerous!
+}
+
+// ✅ Type guard with validation
+interface ApiResponse {
+  user: {
+    name: string;
+    email: string;
+  };
+}
+
+function isApiResponse(value: unknown): value is ApiResponse {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'user' in value &&
+    typeof (value as any).user?.name === 'string'
+  );
+}
+
+function getUserName(response: unknown): string {
+  if (!isApiResponse(response)) {
+    throw new Error('Invalid API response format');
+  }
+  return response.user.name;
+}
+```
+
+#### Modern Null Safety
+```typescript
+// ❌ Unsafe property access
+function getUserDisplayName(user: User | null): string {
+  if (user && user.profile && user.profile.displayName) {
+    return user.profile.displayName;
+  }
+  return user.name || 'Anonymous';
+}
+
+// ✅ Optional chaining and nullish coalescing
+function getUserDisplayName(user: User | null): string {
+  return user?.profile?.displayName ?? user?.name ?? 'Anonymous';
+}
+```
+
+### 🟡 Modern JavaScript Upgrades (15-30 minutes)
+
+#### ES6+ Syntax Modernization
+```typescript
+// ❌ Old JavaScript patterns
+function createUser(name, email, role) {
+  var user = {
+    id: Math.random().toString(),
+    name: name,
+    email: email,
+    role: role || 'user',
+    createdAt: new Date()
+  };
+  return user;
+}
+
+// ✅ Modern TypeScript with proper types
+interface CreateUserParams {
+  name: string;
+  email: string;
+  role?: 'admin' | 'user' | 'guest';
+}
+
+const createUser = ({ name, email, role = 'user' }: CreateUserParams): User => {
+  const id = crypto.randomUUID(); // Modern UUID generation
+  
+  return {
+    id,
+    name,
+    email,
+    role,
+    createdAt: new Date()
+  };
+};
+```
+
+#### Array Methods and Functional Patterns
+```typescript
+// ❌ Imperative loops
+function processUsers(users: User[]): ProcessedUser[] {
+  const result: ProcessedUser[] = [];
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].active) {
+      const processed = {
+        id: users[i].id,
+        displayName: users[i].firstName + ' ' + users[i].lastName,
+        isVerified: users[i].emailVerified
+      };
+      result.push(processed);
+    }
+  }
+  return result;
+}
+
+// ✅ Functional approach with modern methods
+const processUsers = (users: User[]): ProcessedUser[] =>
+  users
+    .filter(user => user.active)
+    .map(user => ({
+      id: user.id,
+      displayName: `${user.firstName} ${user.lastName}`,
+      isVerified: user.emailVerified
+    }));
+```
+
+### 🟢 React Component Quick Fixes (30-60 minutes)
+
+#### Component Type Safety and Optimization
+```typescript
+// ❌ Untyped React component with performance issues
+function UserCard(props) {
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    fetchUserData(props.userId);
+  }); // Missing dependency array!
+  
+  return (
+    <div onClick={() => props.onUserClick(props.user)}>
+      <h3>{props.user.name}</h3>
+      <p>{props.user.email}</p>
+    </div>
+  );
+}
+
+// ✅ Properly typed and optimized React component
+interface UserCardProps {
+  user: User;
+  onUserClick: (user: User) => void;
+}
+
+const UserCard: React.FC<UserCardProps> = React.memo(({ user, onUserClick }) => {
+  const [loading, setLoading] = useState(false);
+  
+  const handleClick = useCallback(() => {
+    onUserClick(user);
+  }, [user, onUserClick]);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        await fetchUserData(user.id);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [user.id]); // Proper dependency array
+  
+  return (
+    <div onClick={handleClick}>
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+      {loading && <span>Loading...</span>}
+    </div>
+  );
+});
+
+UserCard.displayName = 'UserCard';
+```
+
+#### Custom Hook Improvements
+```typescript
+// ❌ Poorly typed custom hook
+function useUserData(userId) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    fetchUser(userId).then(setUser);
+  }, [userId]);
+  
+  return { user, loading };
+}
+
+// ✅ Properly typed custom hook with error handling
+interface UseUserDataReturn {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+const useUserData = (userId: string): UseUserDataReturn => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const fetchUser = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const userData = await apiClient.getUser(userId);
+      setUser(userData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch user');
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+  
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+  
+  return { user, loading, error, refetch: fetchUser };
+};
+```
+
+### 🔵 Node.js and API Quick Fixes (30-45 minutes)
+
+#### Express Route Type Safety
+```typescript
+// ❌ Untyped Express routes
+app.get('/api/users/:id', (req, res) => {
+  const userId = req.params.id;
+  // No validation or typing
+  getUserById(userId).then(user => {
+    res.json(user);
+  }).catch(err => {
+    res.status(500).json({ error: 'Something went wrong' });
+  });
+});
+
+// ✅ Type-safe Express routes with validation
+interface GetUserParams {
+  id: string;
+}
+
+interface GetUserResponse {
+  user: User;
+}
+
+app.get('/api/users/:id', async (req: Request<GetUserParams>, res: Response<GetUserResponse>) => {
+  try {
+    const { id } = req.params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return res.status(400).json({ 
+        error: 'Invalid user ID format' 
+      } as any);
+    }
+    
+    const user = await getUserById(id);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        error: 'User not found' 
+      } as any);
+    }
+    
+    res.json({ user });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ 
+      error: 'Internal server error' 
+    } as any);
+  }
+});
+```
+
+#### Async/Await Error Handling
+```typescript
+// ❌ Poor error handling in async functions
+async function processUserOrder(userId: string, orderData: any) {
+  const user = await getUser(userId);
+  const validatedOrder = await validateOrder(orderData);
+  const result = await createOrder(user, validatedOrder);
+  return result;
+}
+
+// ✅ Proper error handling with types
+interface OrderProcessingResult {
+  success: boolean;
+  orderId?: string;
+  error?: string;
+}
+
+async function processUserOrder(
+  userId: string, 
+  orderData: unknown
+): Promise<OrderProcessingResult> {
+  try {
+    const user = await getUser(userId);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+    
+    const validatedOrder = await validateOrder(orderData);
+    const order = await createOrder(user, validatedOrder);
+    
+    return { success: true, orderId: order.id };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Order processing failed:', errorMessage);
+    
+    return { success: false, error: errorMessage };
+  }
+}
+```
+
+---
+
+## 📊 TypeScript Quick Fixes Output Format
+
+```json
+{
+  "quickFixSummary": {
+    "totalIssues": 18,
+    "typeSafetyFixes": 8,
+    "modernizationOpportunities": 6,
+    "reactOptimizations": 3,
+    "nodejsImprovements": 1,
+    "estimatedEffort": "3-5 hours",
+    "confidenceScore": 0.93
+  },
+  "typeSafetyFixes": [
+    {
+      "id": "TS-QF-001",
+      "category": "REPLACE_ANY_TYPE",
+      "severity": "HIGH",
+      "title": "Replace 'any' type with proper interface",
+      "location": {"file": "utils/dataProcessor.ts", "line": 15},
+      "description": "Function parameter uses 'any' type, reducing type safety",
+      "currentCode": "function processData(data: any): any",
+      "suggestedFix": {
+        "approach": "Define proper interfaces",
+        "implementation": "interface InputData { id: string; value: number; }\nfunction processData(data: InputData): ProcessedData",
+        "effort": "LOW",
+        "benefits": ["Type safety", "Better IntelliSense", "Compile-time error detection"]
+      },
+      "typeScriptSpecific": {
+        "typeInferenceImprovement": true,
+        "strictModeCompliance": true,
+        "intellisenseEnhancement": true
+      },
+      "confidence": 0.97
+    }
+  ],
+  "modernizationSuggestions": [
+    {
+      "id": "MOD-001",
+      "category": "ES6_DESTRUCTURING",
+      "title": "Use destructuring assignment",
+      "description": "Replace manual property access with destructuring",
+      "before": "const name = user.name;\nconst email = user.email;\nconst role = user.role;",
+      "after": "const { name, email, role } = user;",
+      "benefits": ["Cleaner code", "Reduced repetition", "Modern syntax"],
+      "effort": "IMMEDIATE"
+    },
+    {
+      "id": "MOD-002", 
+      "category": "OPTIONAL_CHAINING",
+      "title": "Use optional chaining for safe property access",
+      "before": "user && user.profile && user.profile.avatar",
+      "after": "user?.profile?.avatar",
+      "benefits": ["Null safety", "Reduced boilerplate", "Better readability"]
+    }
+  ],
+  "reactOptimizations": [
+    {
+      "id": "REACT-QF-001",
+      "type": "MISSING_DEPENDENCY_ARRAY",
+      "severity": "MEDIUM",
+      "title": "Add missing dependency array to useEffect",
+      "location": {"file": "components/UserProfile.tsx", "line": 23},
+      "issue": "useEffect missing dependency array causes infinite re-renders",
+      "fix": {
+        "pattern": "Add dependency array",
+        "implementation": "useEffect(() => { ... }, [userId]);",
+        "explanation": "Include all variables from component scope used inside useEffect"
+      },
+      "reactSpecific": {
+        "hookType": "useEffect",
+        "performanceImpact": "HIGH",
+        "eslintRule": "react-hooks/exhaustive-deps"
+      }
+    }
+  ],
+  "nodejsImprovements": [
+    {
+      "id": "NODE-QF-001",
+      "type": "ASYNC_ERROR_HANDLING",
+      "title": "Improve async/await error handling",
+      "description": "Async function lacks proper error handling",
+      "enhancement": {
+        "pattern": "Try-catch with typed errors",
+        "benefits": ["Better error reporting", "Type safety", "Graceful failure handling"]
+      }
+    }
+  ],
+  "performanceQuickWins": [
+    {
+      "id": "PERF-QF-001",
+      "type": "REACT_MEMO_OPPORTUNITY",
+      "title": "Wrap component with React.memo to prevent unnecessary re-renders",
+      "expectedGain": "50-80% reduction in re-renders",
+      "implementation": "export default React.memo(ComponentName);"
+    }
+  ]
+}
+```
+
+---
+
+## 🚀 Implementation Priority Matrix
+
+### Immediate Wins (< 5 minutes each)
+1. **Replace `var` with `const/let`**: Improve scoping and prevent accidental reassignment
+2. **Add missing type annotations**: Enhance type inference and IDE support
+3. **Use template literals**: Replace string concatenation with template strings
+4. **Optional chaining**: Replace manual null checks with `?.` operator
+5. **Nullish coalescing**: Use `??` instead of `||` for default values
+
+### High-Impact Fixes (15-30 minutes)
+1. **Replace `any` types**: Define proper interfaces and type guards
+2. **Fix useEffect dependencies**: Add proper dependency arrays to prevent bugs
+3. **Destructuring assignment**: Modernize object/array access patterns
+4. **Arrow function conversion**: Update function expressions to arrow functions
+5. **Async/await upgrade**: Replace Promise chains with async/await
+
+### React-Specific Improvements (30-60 minutes)
+1. **Component memoization**: Add React.memo and useCallback optimizations
+2. **Custom hook extraction**: Extract reusable logic into custom hooks
+3. **Props interface definition**: Add comprehensive prop typing
+4. **Event handler optimization**: Implement proper callback memoization
+5. **Error boundary implementation**: Add error handling for component trees
+
+---
+
+## 🎯 TypeScript-Specific Quality Gates
+
+### Type Safety Standards
+- **Zero `any` types**: Use proper interfaces or union types
+- **Strict null checks**: Enable and handle null/undefined properly
+- **Generic constraints**: Use proper generic constraints for reusability
+- **Type guards**: Implement runtime type validation where needed
+
+### Modern JavaScript Compliance
+- **ES2020+ features**: Use optional chaining, nullish coalescing, etc.
+- **Module imports**: Use proper ES6 import/export syntax
+- **Async patterns**: Prefer async/await over Promise chains
+- **Functional programming**: Use immutable patterns and array methods
+
+### React Best Practices
+- **Component typing**: All components have proper prop interfaces
+- **Hook optimization**: Proper use of useMemo, useCallback, React.memo
+- **Effect cleanup**: All effects with cleanup return cleanup functions
+- **Event handling**: Type-safe event handlers with proper this binding
 
 {{#if languageInstructions}}
 {{{languageInstructions}}}
 {{/if}}
 
-> **Context**: This is a quick fixes review focusing on easy wins and immediate improvements for TypeScript code. Focus on issues that can be fixed with minimal effort but provide significant benefits.
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
----
-
-## ✅ TypeScript Quick Fixes Evaluation Checklist
-
-### 🔧 TypeScript Type Safety Improvements
-- Identify missing or improper type annotations
-- Find instances of `any` that could be replaced with proper types
-- Spot unnecessary type assertions (`as` casts)
-- Identify opportunities to use utility types (`Partial<T>`, `Pick<T>`, `Omit<T>`, etc.)
-- Check for proper nullable types (using `| null` or `| undefined`)
-- Look for opportunities to improve TypeScript configuration (`tsconfig.json`)
-
-### 🐛 Common Bugs & Issues
-- Identify any obvious bugs or logic errors in the code
-- Find potential null/undefined issues or type coercion problems
-- Spot any off-by-one errors or boundary condition issues
-- Highlight missing error handling for common failure scenarios
-- Detect improper Promise handling or async/await issues
-
-### 🧹 Simple Code Improvements
-- Simplify unnecessarily complex code blocks
-- Consolidate redundant or duplicate code
-- Optimize obvious performance bottlenecks with simple solutions
-- Extract hardcoded values into constants or configuration
-- Implement ES6+ features that enhance readability
-- Identify opportunities for destructuring and optional chaining
-
-### 🔒 Basic Security Concerns
-- Identify any plaintext secrets or credentials
-- Find simple input validation issues
-- Detect basic XSS vulnerabilities in frontend code
-- Spot obvious SQL injection or similar issues
-- Check for type coercion issues that might lead to security problems
-
-### 📝 Documentation Quick Wins
-- Add basic JSDoc comments to functions/components that lack them
-- Document complex algorithms with explanatory comments
-- Correct any misleading comments or documentation
-- Add type information to existing documentation
-
-### 🧪 Simple Testing Opportunities
-- Implement basic error handling for critical paths
-- Address obvious edge cases that aren't being handled
-- Add simple assertions or validations to improve code robustness
-- Suggest simple unit tests for critical functions
-
-### ⚙️ TypeScript Configuration Quick Wins
-- Implement simple improvements to `tsconfig.json` to enhance type safety
-- Adjust compiler options for better error detection
-- Configure path aliases correctly to simplify imports
-- Enable strict mode options when appropriate
-
----
-
-## 📤 Output Format
-Provide clear, structured feedback grouped by priority (High/Medium/Low). For each issue:
-
-1. **Executive Summary**: Brief overview of key findings and patterns
-
-2. **High Priority Quick Fixes**: Issues that should be addressed immediately
-   - **Issue**: Brief description of the problem
-   - **Location**: File and line number(s)
-   - **Suggested Fix**: Simple code snippet showing a potential solution
-   - **Impact**: Brief explanation of the benefit of fixing this issue
-
-3. **Medium Priority Quick Fixes**: Issues that are important but not urgent
-
-4. **Low Priority Quick Fixes**: Issues that would be nice to fix but aren't critical
-
-5. **TypeScript-Specific Improvements**: Focused section on TypeScript-specific enhancements:
-   - Type annotation improvements
-   - TypeScript configuration adjustments
-   - Type safety enhancements
-
-For TypeScript-specific improvements, use examples like this:
-
-```ts
-// BEFORE: Using 'any' type
-function processData(data: any) {
-  return data.value * 2;
-}
-
-// AFTER: Using proper types
-interface DataItem {
-  value: number;
-}
-
-function processData(data: DataItem) {
-  return data.value * 2;
-}
-```
-
-Focus on changes that can be implemented quickly with high impact. Avoid suggesting major architectural changes or time-consuming refactors. Prioritize type safety and TypeScript-specific improvements where they provide immediate benefits.
-
-NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.
+**Focus on Impact**: Prioritize type safety improvements > modern syntax adoption > React optimizations > Node.js patterns. Each suggestion should include effort estimation, TypeScript-specific benefits, and clear before/after examples.
