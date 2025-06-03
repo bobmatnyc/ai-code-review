@@ -117,7 +117,7 @@ export async function saveReviewOutput(
 
     // Create unique filenames for different types of output
     // For formatted review output
-    const outputPath = await generateVersionedOutputPath(
+    let outputPath = await generateVersionedOutputPath(
       outputBaseDir,
       options.type + '-review',
       extension,
@@ -138,12 +138,12 @@ export async function saveReviewOutput(
     
     // Format the review output
     logger.debug(`Formatting review output as ${options.output}`);
-    let formattedOutput = formatReviewOutput(review, options.output);
+    let formattedOutput = formatReviewOutput(review, options.output || 'markdown');
 
     // Add file tree to all review types if files are provided
     if (files && files.length > 0) {
       logger.info(`Adding file tree visualization for ${files.length} files`);
-      formattedOutput = addFileTreeToReview(formattedOutput, files, options.output);
+      formattedOutput = addFileTreeToReview(formattedOutput, files, options.output || 'markdown');
     }
 
     // For architectural and security reviews, dependency analysis is ON by default unless explicitly disabled

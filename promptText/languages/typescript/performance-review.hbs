@@ -1,139 +1,542 @@
 ---
 name: TypeScript Performance Review
-description: Performance review prompt optimized for TypeScript codebases
-version: 1.0.0
+description: Advanced TypeScript performance analysis with React optimization, Node.js performance, and modern JS patterns
+version: 2.0.0
 author: AI Code Review Tool
 language: typescript
 reviewType: performance
 aliases:
   - ts-perf
+  - typescript-performance
 tags:
   - typescript
+  - javascript
   - performance
+  - react
+  - nodejs
   - optimization
-  - efficiency
-lastModified: '2025-05-15'
+lastModified: '2025-06-03'
 ---
 
-# 🧠 TypeScript Performance Code Review
+# ⚡ TypeScript Performance Review
 
-Act as a **performance optimization expert with deep knowledge of TypeScript and runtime optimization**. Perform a detailed performance review on the following code. Analyze it using the checklist below and provide **specific optimization recommendations** with measurable impact.
+You are an expert TypeScript performance engineer with deep knowledge of V8 optimization, React performance patterns, Node.js scalability, and modern JavaScript performance techniques.
+
+## 🧠 TypeScript Performance Analysis Framework
+
+### Step 1: Algorithmic and Data Structure Analysis
+- Analyze time/space complexity of TypeScript algorithms
+- Evaluate data structure choices and access patterns
+- Identify unnecessary iterations and nested loops
+- Assess array/object manipulation efficiency
+
+### Step 2: Type System Performance Impact
+- Evaluate TypeScript compilation performance
+- Analyze type inference complexity and compilation time
+- Assess generic constraint performance
+- Review template literal type usage
+
+### Step 3: JavaScript Engine Optimization
+- V8 optimization patterns and de-optimization triggers
+- Memory allocation patterns and garbage collection impact
+- Hot path identification and optimization opportunities
+- Async/await vs Promise performance characteristics
+
+### Step 4: Framework-Specific Performance
+- React: Component rendering, state updates, reconciliation
+- Node.js: Event loop blocking, I/O optimization, clustering
+- Express: Middleware performance, route optimization
+- Next.js: SSR/SSG performance, bundle optimization
+
+### Step 5: Modern JavaScript Performance Patterns
+- ES6+ feature performance implications
+- Module loading and tree-shaking effectiveness
+- Web API usage and browser optimization
+- Bundle size and runtime performance trade-offs
+
+---
+
+## 🎯 TypeScript-Specific Performance Patterns
+
+### 🔧 Algorithmic Performance Optimization
+
+#### Array and Object Operations
+```typescript
+// ❌ O(n²) performance - inefficient nested loops
+function findDuplicateUsers(users: User[]): User[] {
+  const duplicates: User[] = [];
+  for (let i = 0; i < users.length; i++) {
+    for (let j = i + 1; j < users.length; j++) {
+      if (users[i].email === users[j].email) {
+        duplicates.push(users[i]);
+        break;
+      }
+    }
+  }
+  return duplicates;
+}
+
+// ✅ O(n) performance - optimized with Map
+function findDuplicateUsers(users: User[]): User[] {
+  const emailMap = new Map<string, User>();
+  const duplicates = new Set<User>();
+  
+  for (const user of users) {
+    if (emailMap.has(user.email)) {
+      duplicates.add(emailMap.get(user.email)!);
+      duplicates.add(user);
+    } else {
+      emailMap.set(user.email, user);
+    }
+  }
+  
+  return Array.from(duplicates);
+}
+
+// ❌ Inefficient object property access
+function calculateUserScores(users: User[]): UserScore[] {
+  return users.map(user => ({
+    id: user.id,
+    name: user.profile.personalInfo.name, // Multiple property traversals
+    score: user.metrics.performance.score + user.metrics.engagement.score
+  }));
+}
+
+// ✅ Optimized with destructuring and reduced property access
+function calculateUserScores(users: User[]): UserScore[] {
+  return users.map(user => {
+    const { id } = user;
+    const { name } = user.profile.personalInfo;
+    const { performance, engagement } = user.metrics;
+    
+    return {
+      id,
+      name,
+      score: performance.score + engagement.score
+    };
+  });
+}
+```
+
+### ⚛️ React Performance Optimization
+
+#### Component Optimization Patterns
+```typescript
+// ❌ Performance issues - unnecessary re-renders
+interface UserListProps {
+  users: User[];
+  onUserClick: (user: User) => void;
+}
+
+function UserList({ users, onUserClick }: UserListProps) {
+  return (
+    <div>
+      {users.map(user => (
+        <div key={user.id} onClick={() => onUserClick(user)}>
+          {user.name}
+          <ExpensiveComponent data={user.metrics} /> {/* Re-renders on every parent update */}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ✅ Optimized with React.memo and useCallback
+interface UserListProps {
+  users: User[];
+  onUserClick: (user: User) => void;
+}
+
+const UserItem = React.memo<{ user: User; onClick: (user: User) => void }>(
+  ({ user, onClick }) => {
+    const handleClick = useCallback(() => onClick(user), [user, onClick]);
+    
+    return (
+      <div onClick={handleClick}>
+        {user.name}
+        <ExpensiveComponent data={user.metrics} />
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison for shallow equality
+    return prevProps.user.id === nextProps.user.id &&
+           prevProps.user.updatedAt === nextProps.user.updatedAt;
+  }
+);
+
+function UserList({ users, onUserClick }: UserListProps) {
+  const memoizedCallback = useCallback(onUserClick, []);
+  
+  return (
+    <div>
+      {users.map(user => (
+        <UserItem key={user.id} user={user} onClick={memoizedCallback} />
+      ))}
+    </div>
+  );
+}
+```
+
+#### State Management Performance
+```typescript
+// ❌ Inefficient state updates causing cascading re-renders
+function useUserManagement() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [filters, setFilters] = useState({ role: '', department: '' });
+  
+  // Expensive filtering on every render
+  const filteredUsers = users.filter(user => 
+    (!filters.role || user.role === filters.role) &&
+    (!filters.department || user.department === filters.department)
+  );
+  
+  return { users, selectedUser, filteredUsers, setUsers, setSelectedUser, setFilters };
+}
+
+// ✅ Optimized with useMemo and efficient state structure
+function useUserManagement() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [filters, setFilters] = useState({ role: '', department: '' });
+  
+  // Memoized filtering only when dependencies change
+  const filteredUsers = useMemo(() => {
+    if (!filters.role && !filters.department) return users;
+    
+    return users.filter(user => 
+      (!filters.role || user.role === filters.role) &&
+      (!filters.department || user.department === filters.department)
+    );
+  }, [users, filters.role, filters.department]);
+  
+  // Memoized selected user lookup
+  const selectedUser = useMemo(() => 
+    users.find(user => user.id === selectedUserId) ?? null,
+    [users, selectedUserId]
+  );
+  
+  return { 
+    users, 
+    selectedUser, 
+    filteredUsers, 
+    setUsers, 
+    setSelectedUserId, 
+    setFilters 
+  };
+}
+```
+
+### 🚀 Node.js Performance Optimization
+
+#### Async/Await Performance Patterns
+```typescript
+// ❌ Sequential async operations - poor performance
+async function processUserData(userIds: string[]): Promise<ProcessedUser[]> {
+  const results: ProcessedUser[] = [];
+  
+  for (const id of userIds) {
+    const user = await fetchUser(id); // Waits for each request
+    const profile = await fetchUserProfile(id);
+    const metrics = await fetchUserMetrics(id);
+    
+    results.push(processUserInfo(user, profile, metrics));
+  }
+  
+  return results;
+}
+
+// ✅ Parallel async operations with proper error handling
+async function processUserData(userIds: string[]): Promise<ProcessedUser[]> {
+  const BATCH_SIZE = 10; // Prevent overwhelming the system
+  const results: ProcessedUser[] = [];
+  
+  for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
+    const batch = userIds.slice(i, i + BATCH_SIZE);
+    
+    const batchResults = await Promise.allSettled(
+      batch.map(async (id) => {
+        try {
+          // Parallel requests for each user
+          const [user, profile, metrics] = await Promise.all([
+            fetchUser(id),
+            fetchUserProfile(id),
+            fetchUserMetrics(id)
+          ]);
+          
+          return processUserInfo(user, profile, metrics);
+        } catch (error) {
+          console.error(`Failed to process user ${id}:`, error);
+          return null;
+        }
+      })
+    );
+    
+    // Filter out failed requests
+    const successfulResults = batchResults
+      .filter((result): result is PromiseFulfilledResult<ProcessedUser> => 
+        result.status === 'fulfilled' && result.value !== null
+      )
+      .map(result => result.value);
+    
+    results.push(...successfulResults);
+  }
+  
+  return results;
+}
+```
+
+#### Memory-Efficient Stream Processing
+```typescript
+// ❌ Memory inefficient - loads entire file
+async function processLargeFile(filePath: string): Promise<ProcessedData[]> {
+  const fileContent = await fs.readFile(filePath, 'utf8');
+  const lines = fileContent.split('\n');
+  
+  return lines.map(line => processLine(line));
+}
+
+// ✅ Memory efficient - streaming approach
+import { createReadStream } from 'fs';
+import { createInterface } from 'readline';
+
+async function processLargeFile(filePath: string): Promise<ProcessedData[]> {
+  const results: ProcessedData[] = [];
+  const fileStream = createReadStream(filePath);
+  const rl = createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+  
+  for await (const line of rl) {
+    try {
+      const processed = processLine(line);
+      results.push(processed);
+    } catch (error) {
+      console.warn(`Failed to process line: ${line}`, error);
+    }
+  }
+  
+  return results;
+}
+
+// ✅ Even better - generator for memory efficiency
+async function* processLargeFileStream(filePath: string): AsyncGenerator<ProcessedData> {
+  const fileStream = createReadStream(filePath);
+  const rl = createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+  
+  for await (const line of rl) {
+    try {
+      yield processLine(line);
+    } catch (error) {
+      console.warn(`Failed to process line: ${line}`, error);
+    }
+  }
+}
+```
+
+---
+
+## 📊 TypeScript Performance Output Format
+
+```json
+{
+  "performanceAssessment": {
+    "overallScore": 0.78,
+    "performanceLevel": "GOOD",
+    "typeScriptSpecific": {
+      "compilationTime": "ACCEPTABLE",
+      "typeInferenceComplexity": "MODERATE",
+      "genericUsage": "OPTIMIZED"
+    },
+    "runtimePerformance": {
+      "algorithmicComplexity": "GOOD",
+      "memoryUsage": "EFFICIENT",
+      "asyncPatterns": "OPTIMIZED"
+    },
+    "frameworkMetrics": {
+      "react": {
+        "renderPerformance": "EXCELLENT",
+        "stateManagement": "GOOD",
+        "componentOptimization": "GOOD"
+      },
+      "nodejs": {
+        "eventLoopBlocking": "MINIMAL",
+        "memoryLeaks": "NONE_DETECTED",
+        "ioPerformance": "OPTIMIZED"
+      }
+    },
+    "confidenceScore": 0.91
+  },
+  "algorithmicFindings": [
+    {
+      "id": "TS-PERF-001",
+      "type": "ALGORITHMIC_COMPLEXITY",
+      "severity": "HIGH",
+      "title": "O(n²) nested loop in user matching function",
+      "location": {"file": "services/userMatcher.ts", "line": 45},
+      "currentComplexity": "O(n²)",
+      "optimizedComplexity": "O(n)",
+      "description": "Nested loop for finding duplicate users scales poorly",
+      "impact": {
+        "currentPerformance": "850ms for 1000 users",
+        "optimizedPerformance": "12ms for 1000 users",
+        "scalabilityImprovement": "99% faster for large datasets"
+      },
+      "optimization": {
+        "technique": "Hash table lookup",
+        "codeExample": "const emailMap = new Map<string, User>();",
+        "effort": "MEDIUM",
+        "riskLevel": "LOW"
+      },
+      "confidence": 0.96
+    }
+  ],
+  "reactPerformanceFindings": [
+    {
+      "id": "REACT-PERF-001",
+      "type": "UNNECESSARY_RERENDERS",
+      "severity": "MEDIUM",
+      "title": "Component re-renders on every parent update",
+      "location": {"file": "components/UserList.tsx", "line": 23},
+      "issue": "ExpensiveComponent lacks memoization",
+      "impact": {
+        "renderTime": "45ms per update",
+        "frequency": "High - parent state changes often",
+        "userExperience": "Visible lag during interactions"
+      },
+      "optimization": {
+        "techniques": ["React.memo", "useMemo", "useCallback"],
+        "expectedImprovement": "80% reduction in render time",
+        "implementation": "Wrap component with React.memo and custom comparison"
+      }
+    }
+  ],
+  "nodejsPerformanceFindings": [
+    {
+      "id": "NODE-PERF-001",
+      "type": "BLOCKING_OPERATIONS",
+      "severity": "HIGH",
+      "title": "Synchronous file operations blocking event loop",
+      "location": {"file": "utils/fileProcessor.ts", "line": 67},
+      "issue": "fs.readFileSync used in request handler",
+      "impact": {
+        "eventLoopDelay": "2.3 seconds per request",
+        "concurrentRequestCapacity": "Severely limited",
+        "serverResponsiveness": "Poor under load"
+      },
+      "optimization": {
+        "solution": "Replace with streaming async operations",
+        "pattern": "Use fs.createReadStream with readline interface",
+        "benefits": ["Non-blocking I/O", "Memory efficiency", "Better concurrency"]
+      }
+    }
+  ],
+  "typeSystemOptimizations": [
+    {
+      "id": "TYPE-OPT-001",
+      "category": "COMPILATION_PERFORMANCE",
+      "title": "Complex generic constraints slowing compilation",
+      "description": "Deeply nested conditional types increase compilation time",
+      "optimization": {
+        "technique": "Simplify type constraints",
+        "before": "type Complex<T> = T extends A ? B : T extends C ? D : E;",
+        "after": "Use discriminated unions or overloads",
+        "compilationTimeReduction": "40%"
+      }
+    }
+  ],
+  "memoryOptimizations": [
+    {
+      "id": "MEM-OPT-001",
+      "type": "MEMORY_LEAK",
+      "severity": "MEDIUM",
+      "title": "Event listeners not cleaned up in React component",
+      "location": {"file": "hooks/useWebSocket.ts", "line": 34},
+      "issue": "WebSocket event listeners accumulate without cleanup",
+      "solution": {
+        "pattern": "useEffect cleanup function",
+        "implementation": "return () => { ws.removeEventListener(...) }",
+        "memoryImpact": "Prevents 10MB growth per minute"
+      }
+    }
+  ]
+}
+```
+
+---
+
+## 🚀 Advanced TypeScript Performance Techniques
+
+### Bundle Size Optimization
+```typescript
+// ✅ Tree-shaking friendly exports
+export const utilityA = () => { /* ... */ };
+export const utilityB = () => { /* ... */ };
+
+// ✅ Dynamic imports for code splitting
+const LazyComponent = React.lazy(() => 
+  import('./ExpensiveComponent').then(module => ({
+    default: module.ExpensiveComponent
+  }))
+);
+
+// ✅ Conditional polyfill loading
+async function loadPolyfillsIfNeeded() {
+  if (!('IntersectionObserver' in window)) {
+    await import('intersection-observer');
+  }
+}
+```
+
+### Type-Level Performance
+```typescript
+// ❌ Complex recursive type - slow compilation
+type DeepReadonly<T> = {
+  readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
+};
+
+// ✅ Optimized with depth limit
+type DeepReadonly<T, Depth extends number = 5> = 
+  Depth extends 0 
+    ? T
+    : {
+        readonly [P in keyof T]: T[P] extends object 
+          ? DeepReadonly<T[P], Prev<Depth>>
+          : T[P];
+      };
+```
+
+### Database Query Optimization
+```typescript
+// ❌ N+1 query problem
+async function getUsersWithPosts(): Promise<UserWithPosts[]> {
+  const users = await User.findAll();
+  
+  return Promise.all(users.map(async user => ({
+    ...user,
+    posts: await Post.findAll({ where: { userId: user.id } }) // N queries
+  })));
+}
+
+// ✅ Optimized with eager loading
+async function getUsersWithPosts(): Promise<UserWithPosts[]> {
+  return User.findAll({
+    include: [{ model: Post, as: 'posts' }] // Single query with JOIN
+  });
+}
+```
 
 {{#if languageInstructions}}
 {{{languageInstructions}}}
 {{/if}}
 
-> **Context**: This is a performance-focused review to identify bottlenecks and optimization opportunities, with special attention to TypeScript-specific performance considerations.
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
 
----
-
-## ✅ TypeScript Performance Evaluation Checklist
-
-### 🔧 TypeScript-Specific Optimizations
-- Are TypeScript compilation settings optimized for performance (`noUnusedLocals`, `removeComments`, etc.)?
-- Are there complex type operations that might impact build performance?
-- Is there proper use of TypeScript's `readonly` arrays and tuples for immutability without runtime overhead?
-- Are interfaces used instead of types where appropriate for better performance?
-- Are there unnecessary type assertions or complex type calculations?
-- Are generics and decorators used efficiently?
-- Is there appropriate use of TypeScript's type system for performance critical code?
-
-### 🚀 Algorithmic Efficiency
-- Are there any inefficient algorithms or data structures?
-- Are there O(n²) or worse operations that could be optimized?
-- Are there opportunities for memoization or caching?
-- Could any recursive functions be rewritten iteratively?
-- Are array operations optimized (e.g., using typed arrays where appropriate)?
-- Are there inefficient loops or iterations that could be improved?
-
-### 🔄 Rendering Performance (Frontend)
-- Are there unnecessary re-renders in UI components?
-- Is there appropriate use of memoization (useMemo, useCallback, memo)?
-- Are there any render-blocking operations that could be deferred?
-- Is there efficient handling of large lists (virtualization)?
-- Is TypeScript's typing being leveraged for component optimization?
-
-### 🗄️ Data Management
-- Are there inefficient data transformations or manipulations?
-- Is data being fetched efficiently (pagination, filtering at API level)?
-- Are there N+1 query problems or other database access inefficiencies?
-- Is state management optimized to prevent unnecessary updates?
-- Are immutable data structures used appropriately?
-
-### 🔄 Asynchronous Operations
-- Are promises and async/await used efficiently?
-- Are there opportunities for parallel processing?
-- Is there proper error handling for async operations?
-- Are there any race conditions or memory leaks?
-- Is there appropriate typing for asynchronous operations?
-
-### 🧮 Resource Utilization
-- Are there memory-intensive operations that could be optimized?
-- Is there excessive DOM manipulation?
-- Are assets (images, fonts, etc.) properly optimized?
-- Are there opportunities for code splitting or lazy loading?
-- Are memory-efficient data structures being used?
-
-### 🔌 Network Optimization
-- Are API calls batched appropriately?
-- Is there proper caching of network requests?
-- Are payloads minimized and optimized?
-- Is there unnecessary polling or websocket traffic?
-- Are network requests properly typed and validated?
-
-### 📦 Build and Bundle Optimization
-- Is the TypeScript build configuration optimized?
-- Are there opportunities for tree-shaking and dead code elimination?
-- Is code splitting implemented effectively?
-- Are there unnecessary dependencies that could be removed?
-- Is the bundling process optimized for performance?
-
----
-
-## 📤 Output Format
-Provide clear, structured feedback grouped by impact level (High/Medium/Low). For each issue:
-
-1. **Executive Summary**: Overall performance assessment with key findings and improvement opportunities
-
-2. **Performance Issues by Impact Level**:
-   - **High Impact Issues**: Performance problems with significant effects on user experience or system resources
-   - **Medium Impact Issues**: Issues that affect performance but have moderate impact
-   - **Low Impact Issues**: Minor performance concerns that could be addressed over time
-
-For each performance issue:
-   - **Performance Issue**: Description of the performance problem
-   - **Location**: File and line number(s)
-   - **Current Impact**: Estimated performance cost (with reasoning)
-   - **Suggested Optimization**: Code example showing a potential optimized solution
-   - **Expected Improvement**: Estimated performance gain
-   - **Measurement Strategy**: How to verify the improvement
-
-3. **TypeScript-Specific Optimizations**: Special section for TypeScript-related performance improvements:
-   - Compilation settings recommendations
-   - Type system optimizations
-   - TypeScript-specific patterns for better performance
-
-4. **Quick Wins**: List of simple, high-impact optimizations that can be implemented quickly
-
-For TypeScript-specific optimization examples, show the impact of TypeScript features on performance:
-
-```ts
-// LESS EFFICIENT: Complex types with unnecessary runtime overhead
-type DeepReadonly<T> = {
-  readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
-};
-
-function processData(data: DeepReadonly<ComplexData>) {
-  // Complex operations with deeply nested readonly objects
-}
-
-// MORE EFFICIENT: Simplified types with equivalent runtime behavior
-function processData(data: Readonly<ComplexData>) {
-  // Same operations but with simpler type constraints
-  // Use runtime checks only where necessary
-}
-```
-
-Focus on practical optimizations with significant impact. Include both quick wins and more substantial optimizations. Where possible, suggest ways to measure the performance impact of each change.
-
-NOTE: Your suggestions are for manual implementation by the developer. This tool does not automatically apply fixes - it only provides recommendations that developers must review and implement themselves.
+**Performance Focus**: Prioritize algorithmic complexity > React rendering performance > Node.js event loop blocking > memory leaks > TypeScript compilation performance. Provide specific optimization techniques with measurable performance improvements and implementation guidance.

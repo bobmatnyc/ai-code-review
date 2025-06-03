@@ -12,7 +12,7 @@ import {
   ReviewResult,
   FileInfo,
   ReviewOptions,
-  ReviewCost
+  CostInfo
 } from '../../types/review';
 import { StructuredReview } from '../../types/structuredReview';
 import { ProjectDocs } from '../../utils/projectDocs';
@@ -136,7 +136,7 @@ export abstract class AbstractClient {
     content: string,
     filePath: string,
     reviewType: ReviewType,
-    cost?: ReviewCost
+    cost?: CostInfo
   ): ReviewResult {
     const structuredData = this.processResponseForStructuredData(content);
     

@@ -203,7 +203,6 @@ ${consolidationPrompt}`;
               includeTests: false,
               output: 'markdown',
               isConsolidation: true,
-              consolidationMode: true,
               skipFileContent: true,
               interactive: false
             }

@@ -13,6 +13,7 @@ import {
   ReviewResult,
   ReviewType
 } from '../types/review';
+import { PassCostInfo } from '../clients/utils/tokenCounter';
 import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
@@ -124,7 +125,8 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
     // Create a consolidated result to aggregate findings
     let consolidatedResult: ReviewResult = {
       content: '',
-      files: files.map(f => f.path),
+      filePath: 'multi-pass-review',
+      files: files,
       reviewType: this.reviewType,
       timestamp: new Date().toISOString(),
       costInfo: {
@@ -133,11 +135,11 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
         totalTokens: 0,
         estimatedCost: 0,
         formattedCost: '$0.00 USD',
+        cost: 0,
         passCount: totalPasses,
         perPassCosts: [],
         contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15
       },
-      isMultiPass: true,
       totalPasses: totalPasses
     };
     
@@ -329,7 +331,7 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
     // Get cost info for detailed reporting
     const costInfo = result.costInfo;
     const costBreakdown = costInfo && costInfo.perPassCosts 
-      ? costInfo.perPassCosts.map(passCost => 
+      ? costInfo.perPassCosts.map((passCost: PassCostInfo) => 
           `- Pass ${passCost.passNumber}: ${passCost.inputTokens.toLocaleString()} input + ${passCost.outputTokens.toLocaleString()} output = ${passCost.totalTokens.toLocaleString()} tokens ($${passCost.estimatedCost.toFixed(4)} USD)`
         ).join('\n')
       : 'N/A';
