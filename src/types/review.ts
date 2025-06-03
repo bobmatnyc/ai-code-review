@@ -65,6 +65,8 @@ export interface ReviewOptions {
   listmodels?: boolean;
   /** Whether to list all supported models and their configuration names */
   models?: boolean;
+  /** CI/CD data (TypeScript errors, lint errors) - internal use only */
+  ciData?: any;
 }
 
 /**

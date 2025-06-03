@@ -128,6 +128,9 @@ export async function generateReview(
       // Filter out internal options and undefined values
       if (key.startsWith('_') || value === undefined) return false;
       
+      // Filter out ciData which can be very large
+      if (key === 'ciData') return false;
+      
       // Filter out empty arrays and objects
       if (Array.isArray(value) && value.length === 0) return false;
       if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return false;
