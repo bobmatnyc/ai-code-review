@@ -7,6 +7,7 @@
 
 import { FileInfo } from '../../types/review';
 import { countTokens } from '../../tokenizers';
+import { getEnhancedModelMapping, getModelMapping } from '../../clients/utils/modelMaps';
 import logger from '../../utils/logger';
 
 /**
@@ -104,42 +105,7 @@ export class TokenAnalyzer {
   private static DEFAULT_PROMPT_OVERHEAD = 1500;
   private static DEFAULT_CONTEXT_MAINTENANCE_FACTOR = 0.15;
   private static DEFAULT_SAFETY_MARGIN_FACTOR = 0.1; // Use 90% of context window by default
-
-  /**
-   * Model context window sizes (maximum tokens)
-   * This is a simplified version - in production we'd get this from modelMaps.ts
-   */
-  private static MODEL_CONTEXT_SIZES: Record<string, number> = {
-    // Gemini models
-    'gemini-1.5-pro': 1000000,
-    'gemini-1.5-flash': 1000000,
-    'gemini-1.5-pro-preview': 1000000,
-    'gemini-1.5-flash-preview': 1000000,
-    'gemini-1.5-pro-latest': 1000000,
-    'gemini-1.5-flash-latest': 1000000,
-    'gemini-pro': 32768,
-    'gemini-pro-latest': 32768,
-    'gemini-ultra': 32768,
-    // Claude models
-    'claude-3-opus': 200000,
-    'claude-3-sonnet': 200000,
-    'claude-3-haiku': 200000,
-    'claude-4-opus': 200000,
-    'claude-4-sonnet': 200000,
-    'claude-4-haiku': 200000,
-    'claude-2': 100000,
-    'claude-2.1': 200000,
-    'claude-instant': 100000,
-    // OpenAI models
-    'gpt-4o': 128000,
-    'gpt-4-turbo': 128000,
-    'gpt-4': 8192,
-    'gpt-3.5-turbo': 16384,
-    // For testing purposes
-    'test-small-context': 5000,
-    // Default fallback
-    'default': 100000
-  };
+  private static DEFAULT_CONTEXT_WINDOW = 100000; // Default fallback
 
   /**
    * Get the context window size for a model
@@ -147,50 +113,73 @@ export class TokenAnalyzer {
    * @returns Context window size in tokens
    */
   private static getContextWindowSize(modelName: string): number {
+    logger.debug(`getContextWindowSize: modelName=${modelName}`);
+    
+    // First try to get from enhanced model mapping
+    const enhancedMapping = getEnhancedModelMapping(modelName);
+    if (enhancedMapping?.contextWindow) {
+      logger.info(`Found context window size from enhanced mapping for ${modelName}: ${enhancedMapping.contextWindow.toLocaleString()} tokens`);
+      return enhancedMapping.contextWindow;
+    }
+    
+    // Fall back to regular model mapping
+    const mapping = getModelMapping(modelName);
+    if (mapping?.contextWindow) {
+      logger.info(`Found context window size from model mapping for ${modelName}: ${mapping.contextWindow.toLocaleString()} tokens`);
+      return mapping.contextWindow;
+    }
+    
     // Handle model names with provider prefix
     const baseName = modelName.includes(':') 
       ? modelName.split(':')[1] 
       : modelName;
     
-    logger.debug(`getContextWindowSize: modelName=${modelName}, baseName=${baseName}`);
-    
-    // First check for exact match
-    if (baseName && this.MODEL_CONTEXT_SIZES[baseName]) {
-      const size = this.MODEL_CONTEXT_SIZES[baseName];
-      logger.info(`Found exact match for model ${baseName} with context window size: ${size.toLocaleString()} tokens`);
-      return size;
-    }
-    
-    // If no exact match, try pattern matching for Gemini 1.5 models
-    if (baseName && /gemini-1\.5-(pro|flash)/i.test(baseName)) {
-      const size = this.MODEL_CONTEXT_SIZES['gemini-1.5-pro']; // All Gemini 1.5 variants have same context size
-      logger.info(`Detected Gemini 1.5 model variant: ${baseName}`);
-      logger.info(`Using context window size: ${size.toLocaleString()} tokens for Gemini 1.5 model`);
-      return size;
-    }
-    
-    // Check for other model families
+    // Try pattern matching for known model families
     if (baseName) {
+      // Gemini 2.x models
+      if (/gemini-2\.[05]-(pro|flash)/i.test(baseName)) {
+        const size = 1000000; // All Gemini 2.x models have 1M context
+        logger.info(`Detected Gemini 2.x model variant: ${baseName}`);
+        logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
+        return size;
+      }
+      
+      // Gemini 1.5 models
+      if (/gemini-1\.5-(pro|flash)/i.test(baseName)) {
+        const size = 1000000; // All Gemini 1.5 models have 1M context
+        logger.info(`Detected Gemini 1.5 model variant: ${baseName}`);
+        logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
+        return size;
+      }
+      
+      // Claude models
       if (baseName.includes('claude-3') || baseName.includes('claude-4')) {
-        const size = this.MODEL_CONTEXT_SIZES['claude-3-opus']; // Claude 3/4 default
+        const size = 200000; // Claude 3/4 default
         logger.info(`Detected Claude 3/4 model variant: ${baseName}`);
         logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
         return size;
       }
       
+      // GPT-4 models
+      if (baseName.includes('gpt-4o')) {
+        const size = 128000; // GPT-4o has 128k context
+        logger.info(`Detected GPT-4o model: ${baseName}`);
+        logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
+        return size;
+      }
+      
       if (baseName.includes('gpt-4')) {
-        const size = this.MODEL_CONTEXT_SIZES['gpt-4-turbo']; // GPT-4 default
+        const size = 128000; // GPT-4 Turbo default
         logger.info(`Detected GPT-4 model variant: ${baseName}`);
         logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
         return size;
       }
     }
     
-    // We know default exists in our static map but TypeScript doesn't, so use a fallback
-    const defaultSize = this.MODEL_CONTEXT_SIZES.default || 100000;
-    logger.warn(`No matching context window size found for model: ${baseName}`);
-    logger.warn(`Using default context window size: ${defaultSize.toLocaleString()} tokens`);
-    return defaultSize;
+    // Default fallback
+    logger.warn(`No matching context window size found for model: ${modelName}`);
+    logger.warn(`Using default context window size: ${this.DEFAULT_CONTEXT_WINDOW.toLocaleString()} tokens`);
+    return this.DEFAULT_CONTEXT_WINDOW;
   }
 
   /**
@@ -273,13 +262,14 @@ export class TokenAnalyzer {
       logger.info(`Single-pass review recommended: ${chunkingRecommendation.reason}`);
     }
     
-    // Special handling for Gemini 1.5 models - add extra logging
-    if (options.modelName.includes('gemini-1.5')) {
-      logger.info(`Using Gemini 1.5 model with 1M token context window`);
+    // Special handling for Gemini 1.5/2.x models - add extra logging
+    if (options.modelName.includes('gemini-1.5') || options.modelName.includes('gemini-2.')) {
+      const modelVersion = options.modelName.includes('gemini-2.') ? '2.x' : '1.5';
+      logger.info(`Using Gemini ${modelVersion} model with 1M token context window`);
       if (chunkingRecommendation.chunkingRecommended) {
-        logger.info(`Note: Even with Gemini 1.5's large context window, chunking is recommended because the content exceeds ${(effectiveContextWindowSize / 1000000 * 100).toFixed(0)}% of the context window`);
+        logger.info(`Note: Even with Gemini ${modelVersion}'s large context window, chunking is recommended because the content exceeds ${(effectiveContextWindowSize / 1000000 * 100).toFixed(0)}% of the context window`);
       } else {
-        logger.info(`Note: Using Gemini 1.5's large context window (1M tokens) for single-pass review`);
+        logger.info(`Note: Using Gemini ${modelVersion}'s large context window (1M tokens) for single-pass review`);
       }
     }
     
