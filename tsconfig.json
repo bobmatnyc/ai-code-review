@@ -16,7 +16,14 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@src/*": ["src/*"],
+      "@utils/*": ["src/utils/*"],
+      "@clients/*": ["src/clients/*"],
+      "@types/*": ["src/types/*"],
+      "@strategies/*": ["src/strategies/*"],
+      "@core/*": ["src/core/*"],
+      "@prompts/*": ["src/prompts/*"]
     },
     "noUnusedLocals": false,
     "noUnusedParameters": false,
