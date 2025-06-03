@@ -224,12 +224,28 @@ export function parseArguments() {
 
   // Enable debug logging if requested
   if ((argv as any).debug) {
-    logger.level = 'debug';
+    logger.setLogLevel('debug');
     logger.debug('Debug logging enabled');
     logger.debug(`Command-line arguments: ${JSON.stringify(argv, null, 2)}`);
   }
 
   return argv;
+}
+
+/**
+ * CLI options interface that extends ReviewOptions with CLI-specific properties
+ */
+export interface CliOptions extends ReviewOptions {
+  /** Target file or directory path */
+  target: string;
+  /** Output directory for generated files */
+  outputDir?: string;
+  /** Writer model for consolidation */
+  writerModel?: string;
+  /** API keys for different providers */
+  apiKey?: Record<string, string>;
+  /** Log level for logging */
+  logLevel?: string;
 }
 
 /**
@@ -239,7 +255,7 @@ export function parseArguments() {
  */
 export function mapArgsToReviewOptions(
   argv: any // TODO: properly type this
-): ReviewOptions {
+): ReviewOptions & { target: string } {
   return {
     type: argv.type as ReviewType,
     individual: argv.individual,
@@ -260,6 +276,7 @@ export function mapArgsToReviewOptions(
     language: argv.language,
     framework: argv.framework,
     listmodels: argv.listmodels,
-    models: argv.models
+    models: argv.models,
+    target: argv.target || '.'
   };
 }

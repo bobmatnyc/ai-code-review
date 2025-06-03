@@ -322,6 +322,20 @@ export interface CostInfo {
   estimatedCost: number;
   formattedCost: string;
   cost: number; // Alias for estimatedCost for backward compatibility
+  passCount?: number; // Number of passes in multi-pass review
+  perPassCosts?: PassCostInfo[]; // Cost breakdown per pass
+  contextMaintenanceFactor?: number; // Factor for context maintenance
+}
+
+/**
+ * Cost information for a single pass in a multi-pass review
+ */
+export interface PassCostInfo {
+  passNumber: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  estimatedCost: number;
 }
 
 /**

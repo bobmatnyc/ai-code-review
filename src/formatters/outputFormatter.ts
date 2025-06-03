@@ -315,7 +315,7 @@ function formatAsMarkdown(review: ReviewResult): string {
       // Add per-pass breakdown if available
       if (cost.perPassCosts && Array.isArray(cost.perPassCosts)) {
         costInfo += `\n\n### Pass Breakdown`;
-        cost.perPassCosts.forEach(passCost => {
+        cost.perPassCosts.forEach((passCost: PassCost) => {
           costInfo += `\nPass ${passCost.passNumber}:\n- Input tokens: ${passCost.inputTokens.toLocaleString()}\n- Output tokens: ${passCost.outputTokens.toLocaleString()}\n- Total tokens: ${passCost.totalTokens.toLocaleString()}\n- Cost: ${typeof passCost.estimatedCost === 'number' ? `$${passCost.estimatedCost.toFixed(4)} USD` : 'N/A'}`;
         });
       }

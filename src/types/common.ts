@@ -84,14 +84,15 @@ export const PRIORITY_FILTER_DESCRIPTIONS: Record<PriorityFilter, string> = {
  */
 export const VALID_REVIEW_TYPES: ReviewType[] = [
   'architectural',
-  'arch',         // Alias for architectural
   'quick-fixes',
   'security',
   'performance',
   'consolidated',
   'unused-code',
   'code-tracing-unused-code',
-  'best-practices'
+  'best-practices',
+  'focused-unused-code',
+  'improved-quick-fixes'
 ];
 
 /**
@@ -103,8 +104,6 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<
 > = {
   architectural:
     'Architectural review focusing on design patterns and structure',
-  arch:
-    'Alias for architectural review (design patterns and structure)',
   'quick-fixes':
     'Quick fixes review focusing on common issues and best practices',
   security:
@@ -115,5 +114,9 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<
   'code-tracing-unused-code':
     'Deep code tracing for high-confidence unused code detection',
   'best-practices':
-    'Best practices review focusing on language-specific idioms and patterns'
+    'Best practices review focusing on language-specific idioms and patterns',
+  'focused-unused-code':
+    'Focused unused code review with targeted analysis',
+  'improved-quick-fixes':
+    'Enhanced quick fixes review with more comprehensive suggestions'
 };
