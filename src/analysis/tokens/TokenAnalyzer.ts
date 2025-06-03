@@ -91,6 +91,10 @@ export interface TokenAnalysisOptions {
   additionalPromptOverhead?: number;
   /** Context maintenance factor for multi-pass reviews (0-1) */
   contextMaintenanceFactor?: number;
+  /** Safety margin factor for context window (0-1) */
+  safetyMarginFactor?: number;
+  /** Force single pass mode regardless of token count */
+  forceSinglePass?: boolean;
 }
 
 /**
@@ -99,23 +103,42 @@ export interface TokenAnalysisOptions {
 export class TokenAnalyzer {
   private static DEFAULT_PROMPT_OVERHEAD = 1500;
   private static DEFAULT_CONTEXT_MAINTENANCE_FACTOR = 0.15;
+  private static DEFAULT_SAFETY_MARGIN_FACTOR = 0.1; // Use 90% of context window by default
 
   /**
    * Model context window sizes (maximum tokens)
    * This is a simplified version - in production we'd get this from modelMaps.ts
    */
   private static MODEL_CONTEXT_SIZES: Record<string, number> = {
+    // Gemini models
     'gemini-1.5-pro': 1000000,
     'gemini-1.5-flash': 1000000,
+    'gemini-1.5-pro-preview': 1000000,
+    'gemini-1.5-flash-preview': 1000000,
+    'gemini-1.5-pro-latest': 1000000,
+    'gemini-1.5-flash-latest': 1000000,
+    'gemini-pro': 32768,
+    'gemini-pro-latest': 32768,
+    'gemini-ultra': 32768,
+    // Claude models
     'claude-3-opus': 200000,
     'claude-3-sonnet': 200000,
+    'claude-3-haiku': 200000,
     'claude-4-opus': 200000,
     'claude-4-sonnet': 200000,
+    'claude-4-haiku': 200000,
+    'claude-2': 100000,
+    'claude-2.1': 200000,
+    'claude-instant': 100000,
+    // OpenAI models
     'gpt-4o': 128000,
     'gpt-4-turbo': 128000,
-    // For testing purposes, add a model with very small context
+    'gpt-4': 8192,
+    'gpt-3.5-turbo': 16384,
+    // For testing purposes
     'test-small-context': 5000,
-    default: 100000
+    // Default fallback
+    'default': 100000
   };
 
   /**
@@ -131,16 +154,42 @@ export class TokenAnalyzer {
     
     logger.debug(`getContextWindowSize: modelName=${modelName}, baseName=${baseName}`);
     
-    // Use explicit existence check for default value
-    if (baseName && TokenAnalyzer.MODEL_CONTEXT_SIZES[baseName]) {
-      const size = TokenAnalyzer.MODEL_CONTEXT_SIZES[baseName];
-      logger.debug(`getContextWindowSize: found size=${size} for model=${baseName}`);
+    // First check for exact match
+    if (baseName && this.MODEL_CONTEXT_SIZES[baseName]) {
+      const size = this.MODEL_CONTEXT_SIZES[baseName];
+      logger.info(`Found exact match for model ${baseName} with context window size: ${size.toLocaleString()} tokens`);
       return size;
     }
     
+    // If no exact match, try pattern matching for Gemini 1.5 models
+    if (baseName && /gemini-1\.5-(pro|flash)/i.test(baseName)) {
+      const size = this.MODEL_CONTEXT_SIZES['gemini-1.5-pro']; // All Gemini 1.5 variants have same context size
+      logger.info(`Detected Gemini 1.5 model variant: ${baseName}`);
+      logger.info(`Using context window size: ${size.toLocaleString()} tokens for Gemini 1.5 model`);
+      return size;
+    }
+    
+    // Check for other model families
+    if (baseName) {
+      if (baseName.includes('claude-3') || baseName.includes('claude-4')) {
+        const size = this.MODEL_CONTEXT_SIZES['claude-3-opus']; // Claude 3/4 default
+        logger.info(`Detected Claude 3/4 model variant: ${baseName}`);
+        logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
+        return size;
+      }
+      
+      if (baseName.includes('gpt-4')) {
+        const size = this.MODEL_CONTEXT_SIZES['gpt-4-turbo']; // GPT-4 default
+        logger.info(`Detected GPT-4 model variant: ${baseName}`);
+        logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
+        return size;
+      }
+    }
+    
     // We know default exists in our static map but TypeScript doesn't, so use a fallback
-    const defaultSize = TokenAnalyzer.MODEL_CONTEXT_SIZES.default || 100000;
-    logger.debug(`getContextWindowSize: using default size=${defaultSize}`);
+    const defaultSize = this.MODEL_CONTEXT_SIZES.default || 100000;
+    logger.warn(`No matching context window size found for model: ${baseName}`);
+    logger.warn(`Using default context window size: ${defaultSize.toLocaleString()} tokens`);
     return defaultSize;
   }
 
@@ -162,6 +211,12 @@ export class TokenAnalyzer {
       TokenAnalyzer.DEFAULT_PROMPT_OVERHEAD;
     const contextMaintenanceFactor = options.contextMaintenanceFactor || 
       TokenAnalyzer.DEFAULT_CONTEXT_MAINTENANCE_FACTOR;
+    const safetyMarginFactor = options.safetyMarginFactor || 
+      TokenAnalyzer.DEFAULT_SAFETY_MARGIN_FACTOR;
+    
+    // Calculate effective context window size with safety margin
+    const effectiveContextWindowSize = Math.floor(contextWindowSize * (1 - safetyMarginFactor));
+    logger.info(`Using effective context window size: ${effectiveContextWindowSize.toLocaleString()} tokens (${Math.round((1 - safetyMarginFactor) * 100)}% of ${contextWindowSize.toLocaleString()} tokens)`);
     
     // Analyze each file
     const fileAnalyses: FileTokenAnalysis[] = files.map(file => {
@@ -190,15 +245,43 @@ export class TokenAnalyzer {
     const estimatedTotalTokens = totalTokens + promptOverhead;
     
     // Determine if chunking is needed
-    const exceedsContextWindow = estimatedTotalTokens > contextWindowSize;
+    const exceedsContextWindow = estimatedTotalTokens > effectiveContextWindowSize;
+    
+    logger.info(`Token analysis summary:`);
+    logger.info(`- Total files: ${files.length}`);
+    logger.info(`- Total tokens: ${totalTokens.toLocaleString()}`);
+    logger.info(`- Prompt overhead: ${promptOverhead.toLocaleString()}`);
+    logger.info(`- Estimated total tokens: ${estimatedTotalTokens.toLocaleString()}`);
+    logger.info(`- Context window size: ${contextWindowSize.toLocaleString()}`);
+    logger.info(`- Effective context size (with safety margin): ${effectiveContextWindowSize.toLocaleString()}`);
+    logger.info(`- Context utilization: ${(estimatedTotalTokens / effectiveContextWindowSize * 100).toFixed(2)}%`);
     
     // Calculate recommended chunks if needed
     const chunkingRecommendation = this.generateChunkingRecommendation(
       fileAnalyses,
       estimatedTotalTokens,
-      contextWindowSize,
-      contextMaintenanceFactor
+      effectiveContextWindowSize,
+      contextMaintenanceFactor,
+      options.forceSinglePass
     );
+    
+    // Log chunking decision
+    if (chunkingRecommendation.chunkingRecommended) {
+      logger.info(`Multi-pass review recommended: ${chunkingRecommendation.reason}`);
+      logger.info(`Estimated passes needed: ${chunkingRecommendation.recommendedChunks.length}`);
+    } else {
+      logger.info(`Single-pass review recommended: ${chunkingRecommendation.reason}`);
+    }
+    
+    // Special handling for Gemini 1.5 models - add extra logging
+    if (options.modelName.includes('gemini-1.5')) {
+      logger.info(`Using Gemini 1.5 model with 1M token context window`);
+      if (chunkingRecommendation.chunkingRecommended) {
+        logger.info(`Note: Even with Gemini 1.5's large context window, chunking is recommended because the content exceeds ${(effectiveContextWindowSize / 1000000 * 100).toFixed(0)}% of the context window`);
+      } else {
+        logger.info(`Note: Using Gemini 1.5's large context window (1M tokens) for single-pass review`);
+      }
+    }
     
     return {
       files: fileAnalyses,
@@ -221,16 +304,35 @@ export class TokenAnalyzer {
    * @param estimatedTotalTokens Total tokens including overhead
    * @param contextWindowSize Maximum context window size
    * @param contextMaintenanceFactor Context maintenance overhead factor
+   * @param forceSinglePass Force single pass mode regardless of token count
    * @returns Chunking recommendation
    */
   private static generateChunkingRecommendation(
     fileAnalyses: FileTokenAnalysis[],
     estimatedTotalTokens: number,
     contextWindowSize: number,
-    contextMaintenanceFactor: number
+    contextMaintenanceFactor: number,
+    forceSinglePass?: boolean
   ): ChunkingRecommendation {
+    // If forceSinglePass is true, skip chunking regardless of token count
+    if (forceSinglePass) {
+      logger.debug(`Forcing single-pass review mode as requested (forceSinglePass=true)`);
+      return {
+        chunkingRecommended: false,
+        recommendedChunks: [
+          {
+            files: fileAnalyses.map(f => f.path),
+            estimatedTokenCount: estimatedTotalTokens,
+            priority: 1
+          }
+        ],
+        reason: 'Single-pass mode forced by configuration'
+      };
+    }
+    
     // If content fits within context window, no chunking needed
     if (estimatedTotalTokens <= contextWindowSize) {
+      logger.debug(`Content fits within context window (${estimatedTotalTokens.toLocaleString()} <= ${contextWindowSize.toLocaleString()} tokens)`);
       return {
         chunkingRecommended: false,
         recommendedChunks: [
@@ -244,6 +346,9 @@ export class TokenAnalyzer {
       };
     }
     
+    logger.debug(`Content exceeds context window (${estimatedTotalTokens.toLocaleString()} > ${contextWindowSize.toLocaleString()} tokens)`);
+    logger.debug(`Generating chunking recommendation with context maintenance factor: ${contextMaintenanceFactor}`);
+    
     // Sort files by token count (largest first)
     const sortedFiles = [...fileAnalyses].sort((a, b) => b.tokenCount - a.tokenCount);
     
@@ -251,6 +356,8 @@ export class TokenAnalyzer {
     const effectiveContextSize = Math.floor(
       contextWindowSize * (1 - contextMaintenanceFactor)
     );
+    
+    logger.debug(`Effective context size for chunking: ${effectiveContextSize.toLocaleString()} tokens (${Math.round((1 - contextMaintenanceFactor) * 100)}% of ${contextWindowSize.toLocaleString()} tokens)`);
     
     // Create chunks of files that fit within the effective context size
     const chunks: FileChunk[] = [];
@@ -261,9 +368,16 @@ export class TokenAnalyzer {
     };
     
     for (const file of sortedFiles) {
+      // Check if this individual file is too large for the context window
+      if (file.tokenCount > effectiveContextSize) {
+        logger.warn(`File "${file.path}" is too large for the context window (${file.tokenCount.toLocaleString()} > ${effectiveContextSize.toLocaleString()} tokens)`);
+        logger.warn(`This file will be processed alone but may exceed the model's capacity`);
+      }
+      
       // If this file would exceed the chunk size, start a new chunk
       if (currentChunk.estimatedTokenCount + file.tokenCount > effectiveContextSize && 
           currentChunk.files.length > 0) {
+        logger.debug(`Chunk ${chunks.length + 1} complete with ${currentChunk.files.length} files and ${currentChunk.estimatedTokenCount.toLocaleString()} tokens`);
         chunks.push(currentChunk);
         currentChunk = {
           files: [],
@@ -275,17 +389,21 @@ export class TokenAnalyzer {
       // Add the file to the current chunk
       currentChunk.files.push(file.path);
       currentChunk.estimatedTokenCount += file.tokenCount;
+      logger.debug(`Added file "${file.path}" (${file.tokenCount.toLocaleString()} tokens) to chunk ${chunks.length + 1}`);
     }
     
     // Add the last chunk if it's not empty
     if (currentChunk.files.length > 0) {
+      logger.debug(`Final chunk ${chunks.length + 1} complete with ${currentChunk.files.length} files and ${currentChunk.estimatedTokenCount.toLocaleString()} tokens`);
       chunks.push(currentChunk);
     }
+    
+    logger.info(`Created ${chunks.length} chunks for multi-pass review`);
     
     return {
       chunkingRecommended: true,
       recommendedChunks: chunks,
-      reason: `Content exceeds model context window (${estimatedTotalTokens} > ${contextWindowSize})`
+      reason: `Content exceeds model context window (${estimatedTotalTokens.toLocaleString()} > ${contextWindowSize.toLocaleString()} tokens)`
     };
   }
   
