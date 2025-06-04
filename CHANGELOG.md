@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.3.0] - 2025-06-03
 
 ### Added
+- **Enhanced model registry system** with comprehensive metadata and pricing information
+  - Tiered pricing support for usage-based models (Gemini 1.5/2.5, Claude models)
+  - Deprecation tracking with automated migration guidance
+  - Model categorization (REASONING, CODING, GENERAL) for smart recommendations
+  - Provider feature detection (prompt caching, tool calling, etc.)
+  - Modular file structure with 100% backwards compatibility
 - Enhanced prompt templates with comprehensive OWASP-aligned security reviews
 - Added structured architectural review templates with SOLID principles evaluation
 - Improved Python and TypeScript performance and quick-fixes prompts with industry best practices
