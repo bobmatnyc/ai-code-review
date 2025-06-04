@@ -33,7 +33,7 @@ describe('bundledPrompts', () => {
       // Test TypeScript-specific architectural prompt
       const tsPrompt = getBundledPrompt('architectural', 'typescript');
       expect(tsPrompt).toBeDefined();
-      expect(tsPrompt).toContain('TypeScript Architectural Code Review');
+      expect(tsPrompt).toContain('TypeScript Architectural Review');
 
       // Test generic architectural prompt
       const genericPrompt = getBundledPrompt('architectural');
@@ -65,7 +65,7 @@ describe('bundledPrompts', () => {
       
       // Verify it's the bundled prompt
       expect(prompt).toBeDefined();
-      expect(prompt).toContain('Quick Fixes Code Review');
+      expect(prompt).toContain('TypeScript Quick Fixes Review');
     });
 
     it('should include language-specific information in prompts', async () => {

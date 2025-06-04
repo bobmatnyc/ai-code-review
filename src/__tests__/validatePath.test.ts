@@ -6,17 +6,20 @@
  * the specified base directory.
  */
 
-import { validateTargetPath } from '../utils/pathValidator';
-// import path from 'path'; // Not used in this file
-import fs from 'fs';
 import { vi } from 'vitest';
 
 // Mock fs module
 vi.mock('fs', () => ({
-  accessSync: vi.fn(),
-  statSync: vi.fn()
+  default: {
+    accessSync: vi.fn(),
+    statSync: vi.fn()
+  }
 }));
-const mockedFs = fs as any;
+
+import { validateTargetPath } from '../utils/pathValidator';
+import fs from 'fs';
+
+const mockedFs = vi.mocked(fs);
 
 // Save original process.cwd
 // const originalCwd = process.cwd; // Not used
@@ -28,10 +31,10 @@ describe('validateTargetPath', () => {
     // Mock process.cwd to return a fixed path
     vi.spyOn(process, 'cwd').mockImplementation(() => '/test/base/path');
 
-    // Mock pathExists to return true for all paths
+    // Mock fs.accessSync to not throw (pathExists returns true)
     mockedFs.accessSync.mockImplementation(() => undefined);
 
-    // Mock isDirectory to return false by default
+    // Mock fs.statSync to return file stats
     mockedFs.statSync.mockReturnValue({
       isDirectory: () => false,
       isFile: () => true
@@ -79,9 +82,9 @@ describe('validateTargetPath', () => {
   });
 
   test('rejects paths that do not exist', () => {
-    // Mock pathExists to return false
+    // Mock fs.accessSync to throw error (pathExists returns false)
     mockedFs.accessSync.mockImplementation(() => {
-      throw new Error('Path does not exist');
+      throw new Error('ENOENT: no such file or directory');
     });
 
     const result = validateTargetPath('/test/base/path/nonexistent.txt');
@@ -90,8 +93,7 @@ describe('validateTargetPath', () => {
   });
 
   test('correctly identifies directories', () => {
-    // Mock isDirectory to return true
-    mockedFs.accessSync.mockImplementation(() => undefined as any);
+    // Mock fs.statSync to return directory stats
     mockedFs.statSync.mockReturnValue({
       isDirectory: () => true,
       isFile: () => false
@@ -103,7 +105,7 @@ describe('validateTargetPath', () => {
   });
 
   test('correctly identifies files', () => {
-    // Mock isDirectory to return false
+    // Mock fs.statSync to return file stats (already set in beforeEach)
     mockedFs.statSync.mockReturnValue({
       isDirectory: () => false,
       isFile: () => true
