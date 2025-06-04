@@ -23,10 +23,10 @@ const mockedFs = fs as any;
 
 describe('validateTargetPath', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock process.cwd to return a fixed path
-    jest.spyOn(process, 'cwd').mockImplementation(() => '/test/base/path');
+    vi.spyOn(process, 'cwd').mockImplementation(() => '/test/base/path');
 
     // Mock pathExists to return true for all paths
     mockedFs.accessSync.mockImplementation(() => undefined);
@@ -40,7 +40,7 @@ describe('validateTargetPath', () => {
 
   afterEach(() => {
     // Restore original process.cwd
-    jest.spyOn(process, 'cwd').mockRestore();
+    vi.spyOn(process, 'cwd').mockRestore();
   });
 
   test('accepts valid paths within the base directory', () => {

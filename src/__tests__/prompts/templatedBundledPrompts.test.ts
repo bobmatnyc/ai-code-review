@@ -42,24 +42,24 @@ describe('bundledPrompts with template integration', () => {
   
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock checkTemplatesAvailability by default to return true
-    (checkTemplatesAvailability as jest.Mock).mockReturnValue(true);
+    (checkTemplatesAvailability as any).mockReturnValue(true);
     
     // Mock getPromptTemplate to return sample template content
-    (getPromptTemplate as jest.Mock).mockImplementation((reviewType: ReviewType, language?: string, _framework?: string) => {
+    (getPromptTemplate as any).mockImplementation((reviewType: ReviewType, language?: string, _framework?: string) => {
       if (reviewType === 'best-practices' && language === 'typescript') {
         return sampleTemplatePrompt;
       }
-      return undefined;
+      return undefined; // No template found for other combinations
     });
   });
   
   describe('Updated bundledPrompts.ts', () => {
     it('should use the bundled prompt when template system is not available', () => {
       // Create a new implementation that favors templates but falls back to bundled prompts
-      (checkTemplatesAvailability as jest.Mock).mockReturnValue(false);
+      (checkTemplatesAvailability as any).mockReturnValue(false);
       
       // Example of the updated implementation (testing the concept, not actual implementation)
       function getNewBundledPrompt(
@@ -116,7 +116,7 @@ describe('bundledPrompts with template integration', () => {
     
     it('should fall back to bundled prompt when template is not found', () => {
       // Make getPromptTemplate return undefined for this test
-      (getPromptTemplate as jest.Mock).mockReturnValue(undefined);
+      (getPromptTemplate as any).mockReturnValue(undefined);
       
       // Create a new implementation that favors templates but falls back to bundled prompts
       function getNewBundledPrompt(
@@ -150,10 +150,10 @@ describe('bundledPrompts with template integration', () => {
       // This test demonstrates how you could implement a gradual migration strategy
       
       // Mock checkTemplatesAvailability to simulate partial migration
-      (checkTemplatesAvailability as jest.Mock).mockReturnValue(true);
+      (checkTemplatesAvailability as any).mockReturnValue(true);
       
       // Mock getPromptTemplate to return templates for some review types but not others
-      (getPromptTemplate as jest.Mock).mockImplementation((reviewType: ReviewType, _language?: string, _framework?: string) => {
+      (getPromptTemplate as any).mockImplementation((reviewType: ReviewType, _language?: string, _framework?: string) => {
         // Only return templates for certain review types to simulate partial migration
         if (reviewType === 'best-practices') {
           return sampleTemplatePrompt;

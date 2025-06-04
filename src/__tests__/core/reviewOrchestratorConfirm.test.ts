@@ -380,7 +380,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
+    vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {
       // Call the function under test
@@ -391,10 +391,10 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       expect(readline.createInterface().question).toHaveBeenCalled();
     } finally {
       // Restore the original implementation
-      jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
+      vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
       
       // Clear mocks
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     }
   });
 });
