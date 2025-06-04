@@ -6,24 +6,25 @@ import { IndividualReviewStrategy } from '../../strategies/IndividualReviewStrat
 import { FileInfo, ReviewOptions } from '../../types/review';
 import { ApiClientConfig } from '../../core/ApiClientSelector';
 import { ProjectDocs } from '../../utils/projectDocs';
+import { vi } from 'vitest';
 
 // Mock dependencies
-jest.mock('../../utils/logger');
-jest.mock('../../utils/ciDataCollector', () => ({
-  collectCIData: jest.fn().mockResolvedValue({
+vi.mock('../../utils/logger');
+vi.mock('../../utils/ciDataCollector', () => ({
+  collectCIData: vi.fn().mockResolvedValue({
     typeCheckErrors: 0,
     lintErrors: 0
   })
 }));
 
 // Create mock for dynamically imported module
-const mockGenerateReview = jest.fn();
-jest.mock('../../clients/geminiClient.js', () => ({
+const mockGenerateReview = vi.fn();
+vi.mock('../../clients/geminiClient.js', () => ({
   generateReview: mockGenerateReview
 }), { virtual: true });
 
-// Mock dynamic import
-jest.mock('../clients/geminiClient.js', () => ({
+
+vi.mock('../clients/geminiClient.js', () => ({
   __esModule: true,
   generateReview: mockGenerateReview
 }), { virtual: true });
@@ -67,7 +68,7 @@ describe('IndividualReviewStrategy', () => {
     };
     
     // Reset mocks
-    jest.resetAllMocks();
+    vi.resetAllMocks();
     mockGenerateReview.mockReset();
     
     // Mock implementation of generateReview

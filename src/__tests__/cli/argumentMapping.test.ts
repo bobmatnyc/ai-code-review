@@ -347,11 +347,11 @@ describe('CLI Argument Mapping Integration Tests', () => {
    * Test error handling
    */
   describe('Error Handling', () => {
-    let consoleSpy: jest.SpyInstance;
+    let consoleSpy: any;
     
     beforeEach(() => {
       // Spy on console.error to silence it in tests
-      consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     });
     
     afterEach(() => {
@@ -366,7 +366,7 @@ describe('CLI Argument Mapping Integration Tests', () => {
       };
 
       // Mock orchestrateReview to throw an error
-      (orchestrateReview as jest.Mock).mockRejectedValueOnce(new Error('Test error'));
+      (orchestrateReview as any).mockRejectedValueOnce(new Error('Test error'));
 
       await reviewCode('src/file.ts', options);
 

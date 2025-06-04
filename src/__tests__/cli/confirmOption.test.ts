@@ -26,21 +26,21 @@ vi.mock('../../utils/logger', () => ({
 }));
 
 // Mock the readline module
-jest.mock('readline', () => ({
-  createInterface: jest.fn().mockReturnValue({
-    question: jest.fn((question, callback) => callback('y')),
-    close: jest.fn()
+vi.mock('readline', () => ({
+  createInterface: vi.fn().mockReturnValue({
+    question: vi.fn((question, callback) => callback('y')),
+    close: vi.fn()
   })
 }));
 
 // Mock the exit function to prevent tests from exiting
-jest.spyOn(process, 'exit').mockImplementation(() => {
+vi.spyOn(process, 'exit').mockImplementation(() => {
   return undefined as never;
 });
 
 describe('Confirm Option Tests', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Option Parsing', () => {

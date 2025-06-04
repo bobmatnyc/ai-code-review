@@ -11,19 +11,20 @@ import { ReviewType } from '../../types/review';
 import { getBundledPrompt } from '../../prompts/bundledPrompts';
 import { getPromptTemplate, checkTemplatesAvailability } from '../../utils/templates/promptTemplateManager';
 
+import { vi } from 'vitest';
+
 // Mock dependencies
-jest.mock('fs');
-jest.mock('path');
-jest.mock('../../utils/templates/promptTemplateManager');
-jest.mock('../../utils/logger', () => {
+vi.mock('fs');
+vi.mock('path');
+vi.mock('../../utils/templates/promptTemplateManager');
+vi.mock('../../utils/logger', () => {
   const mockLogger = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
   return {
-    __esModule: true,
     default: mockLogger,
     debug: mockLogger.debug,
     info: mockLogger.info,

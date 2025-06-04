@@ -50,7 +50,7 @@ describe('Review Formatting Integration Tests', () => {
   });
 
   test('Gemini model review formatting', async () => {
-    jest.setTimeout(60000); // Increase timeout to 60 seconds
+    // Increase timeout to 60 seconds - handled by vitest config
 
     // Skip test if Gemini API key is not available
     if (!process.env.AI_CODE_REVIEW_GOOGLE_API_KEY) {
@@ -102,7 +102,7 @@ describe('Review Formatting Integration Tests', () => {
   });
 
   test('Anthropic model review formatting', async () => {
-    jest.setTimeout(60000); // Increase timeout to 60 seconds
+    // Increase timeout to 60 seconds - handled by vitest config
 
     // Skip test if Anthropic API key is not available
     if (!process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY) {

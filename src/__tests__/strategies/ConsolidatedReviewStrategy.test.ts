@@ -2,11 +2,13 @@
  * @fileoverview Tests for the ConsolidatedReviewStrategy class.
  */
 
+import { vi } from 'vitest';
+
 // Mock dependencies before importing
-jest.mock('../../core/ReviewGenerator');
-jest.mock('../../utils/logger');
-jest.mock('../../utils/ciDataCollector', () => ({
-  collectCIData: jest.fn().mockResolvedValue({
+vi.mock('../../core/ReviewGenerator');
+vi.mock('../../utils/logger');
+vi.mock('../../utils/ciDataCollector', () => ({
+  collectCIData: vi.fn().mockResolvedValue({
     typeCheckErrors: 0,
     lintErrors: 0
   })
@@ -57,10 +59,10 @@ describe('ConsolidatedReviewStrategy', () => {
     };
 
     // Reset mocks
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     // Mock implementation of generateReview
-    (generateReview as jest.Mock).mockResolvedValue({
+    (generateReview as any).mockResolvedValue({
       filePath: 'test.ts',
       reviewType: 'quick-fixes',
       content: 'Review content',
@@ -144,7 +146,7 @@ describe('ConsolidatedReviewStrategy', () => {
 
   test('execute should handle errors from generateReview', async () => {
     // Mock generateReview to throw an error
-    (generateReview as jest.Mock).mockRejectedValue(new Error('Test error'));
+    (generateReview as any).mockRejectedValue(new Error('Test error'));
 
     // Execute the strategy and expect it to throw
     await expect(

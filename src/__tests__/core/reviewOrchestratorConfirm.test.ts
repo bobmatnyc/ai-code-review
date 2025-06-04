@@ -12,18 +12,20 @@ import * as reviewOrchestratorModule from '../../core/reviewOrchestrator';
 import type { TokenAnalyzer as TokenAnalyzerType } from '../../analysis/tokens';
 import type { estimateMultiPassReviewCost as EstimateType } from '../../utils/estimationUtils';
 
+import { vi } from 'vitest';
+
 // Mock the readline module directly
-jest.mock('readline', () => ({
-  createInterface: jest.fn().mockReturnValue({
-    question: jest.fn((question, callback) => callback('y')),
-    close: jest.fn()
+vi.mock('readline', () => ({
+  createInterface: vi.fn().mockReturnValue({
+    question: vi.fn((question, callback) => callback('y')),
+    close: vi.fn()
   })
 }));
 
 // Mock all required modules before usage
-jest.mock('../../analysis/tokens', () => ({
+vi.mock('../../analysis/tokens', () => ({
   TokenAnalyzer: {
-    analyzeFiles: jest.fn().mockReturnValue({
+    analyzeFiles: vi.fn().mockReturnValue({
       files: [],
       totalTokens: 1000000,
       totalSizeInBytes: 1000000,
@@ -48,13 +50,13 @@ jest.mock('../../analysis/tokens', () => ({
 }));
 
 // Get the mocked TokenAnalyzer for use in tests
-const TokenAnalyzer = jest.mocked(
-  (jest.requireMock('../../analysis/tokens') as { TokenAnalyzer: typeof TokenAnalyzerType }).TokenAnalyzer
+const TokenAnalyzer = vi.mocked(
+  (vi.importMock('../../analysis/tokens') as { TokenAnalyzer: typeof TokenAnalyzerType }).TokenAnalyzer
 );
 
 // Mock the estimationUtils
-jest.mock('../../utils/estimationUtils', () => ({
-  estimateMultiPassReviewCost: jest.fn().mockResolvedValue({
+vi.mock('../../utils/estimationUtils', () => ({
+  estimateMultiPassReviewCost: vi.fn().mockResolvedValue({
     inputTokens: 1000000,
     outputTokens: 100000,
     totalTokens: 1100000,
@@ -69,18 +71,18 @@ jest.mock('../../utils/estimationUtils', () => ({
       { passNumber: 3, inputTokens: 300000, outputTokens: 30000, totalTokens: 330000, estimatedCost: 0.015 }
     ]
   }),
-  formatMultiPassEstimation: jest.fn().mockReturnValue('Mock formatted estimation')
+  formatMultiPassEstimation: vi.fn().mockReturnValue('Mock formatted estimation')
 }));
 
 // Get the mocked estimateMultiPassReviewCost for use in tests
-const estimateMultiPassReviewCost = jest.mocked(
-  (jest.requireMock('../../utils/estimationUtils') as { estimateMultiPassReviewCost: typeof EstimateType }).estimateMultiPassReviewCost
+const estimateMultiPassReviewCost = vi.mocked(
+  (vi.importMock('../../utils/estimationUtils') as { estimateMultiPassReviewCost: typeof EstimateType }).estimateMultiPassReviewCost
 );
 
 // Mock the fileDiscovery module
-jest.mock('../../core/fileDiscovery', () => ({
-  discoverFiles: jest.fn().mockResolvedValue(['file1.ts', 'file2.ts', 'file3.ts']),
-  readFilesContent: jest.fn().mockResolvedValue({
+vi.mock('../../core/fileDiscovery', () => ({
+  discoverFiles: vi.fn().mockResolvedValue(['file1.ts', 'file2.ts', 'file3.ts']),
+  readFilesContent: vi.fn().mockResolvedValue({
     fileInfos: [
       { path: 'file1.ts', content: 'content1', relativePath: 'file1.ts' },
       { path: 'file2.ts', content: 'content2', relativePath: 'file2.ts' },
@@ -91,18 +93,18 @@ jest.mock('../../core/fileDiscovery', () => ({
 }));
 
 // Mock the file system
-jest.mock('../../utils/fileSystem', () => ({
-  createDirectory: jest.fn().mockResolvedValue(true)
+vi.mock('../../utils/fileSystem', () => ({
+  createDirectory: vi.fn().mockResolvedValue(true)
 }));
 
 // Mock the configuration loading
-jest.mock('../../utils/config', () => ({
-  getConfig: jest.fn()
+vi.mock('../../utils/config', () => ({
+  getConfig: vi.fn()
 }));
 
 // Mock API client selection
-jest.mock('../../core/ApiClientSelector', () => ({
-  selectApiClient: jest.fn().mockResolvedValue({
+vi.mock('../../core/ApiClientSelector', () => ({
+  selectApiClient: vi.fn().mockResolvedValue({
     modelName: 'gemini:gemini-1.5-pro',
     apiKey: 'test-api-key',
     apiIdentifier: 'gemini-1.5-pro'
@@ -110,10 +112,10 @@ jest.mock('../../core/ApiClientSelector', () => ({
 }));
 
 // Mock the strategy factory
-jest.mock('../../strategies/StrategyFactory', () => ({
+vi.mock('../../strategies/StrategyFactory', () => ({
   StrategyFactory: {
-    createStrategy: jest.fn().mockReturnValue({
-      execute: jest.fn().mockResolvedValue({
+    createStrategy: vi.fn().mockReturnValue({
+      execute: vi.fn().mockResolvedValue({
         content: 'Mock review content',
         reviewType: 'quick-fixes',
         timestamp: new Date().toISOString()
@@ -123,36 +125,35 @@ jest.mock('../../strategies/StrategyFactory', () => ({
 }));
 
 // Mock the output manager
-jest.mock('../../core/OutputManager', () => ({
-  saveReviewOutput: jest.fn().mockResolvedValue('/path/to/output.md')
+vi.mock('../../core/OutputManager', () => ({
+  saveReviewOutput: vi.fn().mockResolvedValue('/path/to/output.md')
 }));
 
 // Mock the interactive display manager
-jest.mock('../../core/InteractiveDisplayManager', () => ({
-  displayReviewInteractively: jest.fn().mockResolvedValue(true)
+vi.mock('../../core/InteractiveDisplayManager', () => ({
+  displayReviewInteractively: vi.fn().mockResolvedValue(true)
 }));
 
 // Mock the project docs loader
-jest.mock('../../utils/projectDocs', () => ({
-  readProjectDocs: jest.fn().mockResolvedValue({
+vi.mock('../../utils/projectDocs', () => ({
+  readProjectDocs: vi.fn().mockResolvedValue({
     readme: 'Mock README',
     project: 'Mock PROJECT.md'
   })
 }));
 
 // Mock logger
-jest.mock('../../utils/logger', () => ({
-  __esModule: true,
+vi.mock('../../utils/logger', () => ({
   default: {
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
   }
 }));
 
 // Set up mockExit spy
-let mockExit: jest.SpyInstance;
+let mockExit: any;
 
 // Test suite for the confirm functionality in the orchestrator
 describe('ReviewOrchestrator Confirm Option Tests', () => {
@@ -162,13 +163,13 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
   // Set up required hooks
   beforeEach(() => {
     // Reset mocks between tests
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Reset environment
     process.env = { ...originalProcessEnv };
     
     // Mock process.exit to prevent actual exit
-    mockExit = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+    mockExit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     
     // Set environment variables needed for tests
     process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-2.5-pro';
@@ -211,9 +212,9 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
   // Test for automatic enabling of multi-pass with noConfirm
   test('should automatically enable multi-pass when noConfirm is true', async () => {
     // Get access to the mocked readline module
-    const readline = jest.requireMock('readline');
+    const readline = vi.importMock('readline');
     const mockInterface = readline.createInterface();
-    const mockQuestion = mockInterface?.question || jest.fn();
+    const mockQuestion = mockInterface?.question || vi.fn();
     
     // Create test options with noConfirm set to true
     const options = {
@@ -244,7 +245,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
+    vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {
       // Call the function under test
@@ -257,22 +258,22 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       expect(mockQuestion).not.toHaveBeenCalled(); // Readline should not be called with noConfirm=true
     } finally {
       // Restore the original implementation
-      jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
+      vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
       
       // Clear mock call counts
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     }
   });
   
   // Test for prompting when noConfirm is false
   test('should prompt for confirmation when noConfirm is false or undefined', async () => {
     // Get access to the mocked readline module
-    const readline = jest.requireMock('readline');
+    const readline = vi.importMock('readline');
     
     // Configure mock for this test to return 'y'
     readline.createInterface.mockReturnValue({
-      question: jest.fn((question, callback) => callback('y')),
-      close: jest.fn()
+      question: vi.fn((question, callback) => callback('y')),
+      close: vi.fn()
     });
     
     // Create options without noConfirm
@@ -309,7 +310,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     };
     
     // Mock the orchestrateReview function with our test implementation
-    jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
+    vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
     
     try {
       // Call the function under test
@@ -324,22 +325,22 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       expect(readline.createInterface().question).toHaveBeenCalled();
     } finally {
       // Restore the original implementation
-      jest.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
+      vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
       
       // Clear mock call history
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     }
   });
   
   // Test for exiting when user declines confirmation
   test('should exit when user declines confirmation', async () => {
     // Get access to the mocked readline module
-    const readline = jest.requireMock('readline');
+    const readline = vi.importMock('readline');
     
     // Configure mock for this test to return 'n'
     readline.createInterface.mockReturnValue({
-      question: jest.fn((question, callback) => callback('n')),
-      close: jest.fn()
+      question: vi.fn((question, callback) => callback('n')),
+      close: vi.fn()
     });
     
     // Create options without noConfirm
