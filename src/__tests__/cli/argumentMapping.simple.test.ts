@@ -2,28 +2,29 @@
  * Simplified test for debugging CLI argument mapping
  */
 
+import { vi } from 'vitest';
+
 // Mock the exit function before any imports
-global.process.exit = jest.fn(() => {
+global.process.exit = vi.fn(() => {
   throw new Error('process.exit called');
 }) as any;
 
 // Mock all dependencies
-jest.mock('../../core/reviewOrchestrator', () => ({
-  orchestrateReview: jest.fn().mockResolvedValue(undefined)
+vi.mock('../../core/reviewOrchestrator', () => ({
+  orchestrateReview: vi.fn().mockResolvedValue(undefined)
 }));
 
-jest.mock('../../utils/logger', () => ({
-  __esModule: true,
+vi.mock('../../utils/logger', () => ({
   default: {
-    error: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn()
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn()
   }
 }));
 
-jest.mock('../../utils/ciDataCollector', () => ({
-  collectCIData: jest.fn().mockResolvedValue({
+vi.mock('../../utils/ciDataCollector', () => ({
+  collectCIData: vi.fn().mockResolvedValue({
     typeCheckErrors: 0,
     lintErrors: 0
   })

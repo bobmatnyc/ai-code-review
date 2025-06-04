@@ -5,31 +5,32 @@
  * properties in the ReviewOptions object and passed to the command handlers.
  */
 
+import { vi } from 'vitest';
+
 // Mock process.exit globally before any imports
 // And create a global mock that can be tracked
-const mockExit = jest.fn();
+const mockExit = vi.fn();
 Object.defineProperty(process, 'exit', {
   value: mockExit,
   configurable: true
 });
 
 // Mock all dependencies before imports
-jest.mock('../../core/reviewOrchestrator', () => ({
-  orchestrateReview: jest.fn()
+vi.mock('../../core/reviewOrchestrator', () => ({
+  orchestrateReview: vi.fn()
 }));
 
-jest.mock('../../utils/logger', () => ({
-  __esModule: true,
+vi.mock('../../utils/logger', () => ({
   default: {
-    error: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn()
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn()
   }
 }));
 
-jest.mock('../../utils/ciDataCollector', () => ({
-  collectCIData: jest.fn().mockResolvedValue({
+vi.mock('../../utils/ciDataCollector', () => ({
+  collectCIData: vi.fn().mockResolvedValue({
     typeCheckErrors: 0,
     lintErrors: 0
   })
@@ -42,15 +43,15 @@ import { orchestrateReview } from '../../core/reviewOrchestrator';
 
 describe('CLI Argument Mapping Integration Tests', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Reset the mockExit function
     mockExit.mockReset();
     // Ensure the orchestrateReview mock returns a resolved promise
-    (orchestrateReview as jest.Mock).mockResolvedValue(undefined);
+    (orchestrateReview as any).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockExit.mockClear();
   });
 

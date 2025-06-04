@@ -1096,7 +1096,7 @@ export function getModelsByCategory(
   excludeDeprecated: boolean = false
 ): string[] {
   return Object.entries(ENHANCED_MODEL_MAP)
-    .filter(([key, mapping]) => {
+    .filter(([_key, mapping]) => {
       if (excludeDeprecated && mapping.deprecation?.isDeprecated) {
         return false;
       }
@@ -1123,7 +1123,7 @@ export function getCostEffectiveModel(
   excludeDeprecated: boolean = true
 ): string | null {
   const providerModels = Object.entries(ENHANCED_MODEL_MAP)
-    .filter(([key, mapping]) => {
+    .filter(([_key, mapping]) => {
       if (mapping.provider !== provider) return false;
       if (excludeDeprecated && mapping.deprecation?.isDeprecated) return false;
       return mapping.inputPricePerMillion !== undefined;
