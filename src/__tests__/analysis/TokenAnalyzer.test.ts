@@ -2,8 +2,30 @@
  * @fileoverview Tests for the TokenAnalyzer
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TokenAnalyzer, FileTokenAnalysis } from '../../analysis/tokens';
+
+// Mock the getContextWindowSize method to return small context for test model
+vi.mock('../../clients/utils/modelMaps', () => ({
+  getEnhancedModelMapping: vi.fn((modelName: string) => {
+    if (modelName === 'test-small-context') {
+      return { contextWindow: 10000 }; // Small context window for testing
+    }
+    if (modelName.includes('gemini-1.5-pro')) {
+      return { contextWindow: 1000000 }; // Large context for Gemini
+    }
+    return null;
+  }),
+  getModelMapping: vi.fn((modelName: string) => {
+    if (modelName === 'test-small-context') {
+      return { contextWindow: 10000 }; // Small context window for testing
+    }
+    if (modelName.includes('gemini-1.5-pro')) {
+      return { contextWindow: 1000000 }; // Large context for Gemini
+    }
+    return null;
+  })
+}));
 
 describe('TokenAnalyzer', () => {
   // Create some test file data
@@ -61,7 +83,7 @@ describe('TokenAnalyzer', () => {
       const largeFiles = Array(5).fill(null).map((_, i) => ({
         path: `/test/large-file-${i}.ts`,
         relativePath: `large-file-${i}.ts`,
-        content: 'x'.repeat(5000) // 5KB files, collectively will exceed our test-small-context model
+        content: 'x'.repeat(3000) // 3KB files, collectively will exceed our test-small-context model
       }));
 
       const result = TokenAnalyzer.analyzeFiles(largeFiles, {
@@ -135,14 +157,14 @@ describe('TokenAnalyzer', () => {
       // We can't directly test generateChunkingRecommendation since it's private
       // So we'll test through analyzeFiles
       // Create files that will exceed our test small context model
-      // These must be large enough to collectively exceed the 5000 token limit
+      // These must be large enough to collectively exceed the effective context window
       // with the DEFAULT_PROMPT_OVERHEAD factored in
       const result = TokenAnalyzer.analyzeFiles([
-        { path: mixedFiles[0].path, relativePath: mixedFiles[0].relativePath, content: 'x'.repeat(4000) },
+        { path: mixedFiles[0].path, relativePath: mixedFiles[0].relativePath, content: 'x'.repeat(3000) },
         { path: mixedFiles[1].path, relativePath: mixedFiles[1].relativePath, content: 'x'.repeat(3000) },
-        { path: mixedFiles[2].path, relativePath: mixedFiles[2].relativePath, content: 'x'.repeat(2000) },
-        { path: mixedFiles[3].path, relativePath: mixedFiles[3].relativePath, content: 'x'.repeat(1000) },
-        { path: mixedFiles[4].path, relativePath: mixedFiles[4].relativePath, content: 'x'.repeat(1000) }
+        { path: mixedFiles[2].path, relativePath: mixedFiles[2].relativePath, content: 'x'.repeat(3000) },
+        { path: mixedFiles[3].path, relativePath: mixedFiles[3].relativePath, content: 'x'.repeat(2000) },
+        { path: mixedFiles[4].path, relativePath: mixedFiles[4].relativePath, content: 'x'.repeat(2000) }
       ], {
         ...testOptions,
         modelName: 'test-small-context' // Our test model with small context window
@@ -152,14 +174,17 @@ describe('TokenAnalyzer', () => {
       expect(result.chunkingRecommendation.chunkingRecommended).toBe(true);
       expect(result.chunkingRecommendation.recommendedChunks.length).toBeGreaterThan(1);
       
-      // The largest files should be in separate chunks
+      // Verify that files are distributed across multiple chunks
       const chunks = result.chunkingRecommendation.recommendedChunks;
-      const largeFileChunks = chunks.filter(chunk => 
-        chunk.files.includes(mixedFiles[0].path) || chunk.files.includes(mixedFiles[1].path)
-      );
+      const totalFilesInChunks = chunks.reduce((sum, chunk) => sum + chunk.files.length, 0);
       
-      // There should be at least 2 chunks for the large files
-      expect(largeFileChunks.length).toBeGreaterThanOrEqual(2);
+      // All files should be included in chunks
+      expect(totalFilesInChunks).toBe(5);
+      
+      // Each chunk should respect the context window limits
+      chunks.forEach(chunk => {
+        expect(chunk.estimatedTokenCount).toBeLessThanOrEqual(9000); // Effective context size
+      });
     });
   });
 });

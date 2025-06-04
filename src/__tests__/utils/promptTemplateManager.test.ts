@@ -167,6 +167,13 @@ describe('promptTemplateManager', () => {
   
   describe('getSupportedTemplates', () => {
     it('should return lists of supported templates', () => {
+      // Mock listAvailableTemplates to return expected data
+      (listAvailableTemplates as any).mockReturnValue({
+        frameworks: ['react', 'angular', 'vue'],
+        languages: ['typescript', 'python', 'ruby'],
+        reviewTypes: ['best-practices', 'security-review', 'performance-review']
+      });
+      
       const result = getSupportedTemplates();
       
       expect(result).toHaveProperty('frameworks');

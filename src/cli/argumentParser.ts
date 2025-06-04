@@ -280,3 +280,31 @@ export function mapArgsToReviewOptions(
     target: argv.target || '.'
   };
 }
+
+/**
+ * Validate and transform command-line arguments
+ * @param options Raw command-line options
+ * @returns Validated and transformed options
+ */
+export function validateArguments(options: any): any {
+  const validated = { ...options };
+
+  // Handle review type aliases
+  if (validated.type === 'arch') {
+    validated.type = 'architectural';
+  }
+
+  // Map ui-language to uiLanguage and remove the original property
+  if (validated['ui-language']) {
+    validated.uiLanguage = validated['ui-language'];
+    delete validated['ui-language'];
+  }
+
+  // Map confirm option to noConfirm with inverse logic
+  if (validated.confirm !== undefined) {
+    validated.noConfirm = !validated.confirm;
+    delete validated.confirm;
+  }
+
+  return validated;
+}

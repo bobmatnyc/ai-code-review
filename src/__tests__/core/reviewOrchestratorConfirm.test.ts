@@ -5,14 +5,10 @@
  * the noConfirm flag when making decisions about multi-pass reviews.
  */
 
+import { vi } from 'vitest';
+
 // Import the module with the function to mock
 import * as reviewOrchestratorModule from '../../core/reviewOrchestrator';
-
-// Import types for better typing support
-import type { TokenAnalyzer as TokenAnalyzerType } from '../../analysis/tokens';
-import type { estimateMultiPassReviewCost as EstimateType } from '../../utils/estimationUtils';
-
-import { vi } from 'vitest';
 
 // Mock the readline module directly
 vi.mock('readline', () => ({
@@ -49,11 +45,6 @@ vi.mock('../../analysis/tokens', () => ({
   }
 }));
 
-// Get the mocked TokenAnalyzer for use in tests
-const TokenAnalyzer = vi.mocked(
-  (vi.importMock('../../analysis/tokens') as { TokenAnalyzer: typeof TokenAnalyzerType }).TokenAnalyzer
-);
-
 // Mock the estimationUtils
 vi.mock('../../utils/estimationUtils', () => ({
   estimateMultiPassReviewCost: vi.fn().mockResolvedValue({
@@ -74,10 +65,10 @@ vi.mock('../../utils/estimationUtils', () => ({
   formatMultiPassEstimation: vi.fn().mockReturnValue('Mock formatted estimation')
 }));
 
-// Get the mocked estimateMultiPassReviewCost for use in tests
-const estimateMultiPassReviewCost = vi.mocked(
-  (vi.importMock('../../utils/estimationUtils') as { estimateMultiPassReviewCost: typeof EstimateType }).estimateMultiPassReviewCost
-);
+// Import the actual modules after setting up mocks
+import { TokenAnalyzer } from '../../analysis/tokens';
+import { estimateMultiPassReviewCost } from '../../utils/estimationUtils';
+import * as readline from 'readline';
 
 // Mock the fileDiscovery module
 vi.mock('../../core/fileDiscovery', () => ({
@@ -176,7 +167,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = 'test-api-key';
     
     // Reset TokenAnalyzer to default behavior
-    TokenAnalyzer.analyzeFiles.mockReturnValue({
+    vi.mocked(TokenAnalyzer.analyzeFiles).mockReturnValue({
       files: [],
       totalTokens: 1000000,
       totalSizeInBytes: 1000000,
@@ -212,8 +203,8 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
   // Test for automatic enabling of multi-pass with noConfirm
   test('should automatically enable multi-pass when noConfirm is true', async () => {
     // Get access to the mocked readline module
-    const readline = vi.importMock('readline');
-    const mockInterface = readline.createInterface();
+    const mockedReadline = vi.mocked(readline);
+    const mockInterface = mockedReadline.createInterface();
     const mockQuestion = mockInterface?.question || vi.fn();
     
     // Create test options with noConfirm set to true
@@ -231,7 +222,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       // Focus only on the code path that handles noConfirm and multiPass
       
       // Call TokenAnalyzer to simulate the analysis that finds chunking necessary
-      TokenAnalyzer.analyzeFiles([], {});
+      vi.mocked(TokenAnalyzer.analyzeFiles)([], {});
       
       // Simulate estimating multi-pass cost
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
@@ -268,10 +259,10 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
   // Test for prompting when noConfirm is false
   test('should prompt for confirmation when noConfirm is false or undefined', async () => {
     // Get access to the mocked readline module
-    const readline = vi.importMock('readline');
+    const mockedReadline = vi.mocked(readline);
     
     // Configure mock for this test to return 'y'
-    readline.createInterface.mockReturnValue({
+    mockedReadline.createInterface.mockReturnValue({
       question: vi.fn((question, callback) => callback('y')),
       close: vi.fn()
     });
@@ -288,12 +279,12 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     // Create our test implementation of orchestrateReview
     const orchestrateReviewImpl = async (target: string, opts: any) => {
       // Simplified implementation that just handles confirmation
-      TokenAnalyzer.analyzeFiles([], {});
+      vi.mocked(TokenAnalyzer.analyzeFiles)([], {});
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
       
       // Simulate the confirmation process
       if (!opts.noConfirm) {
-        const rl = readline.createInterface();
+        const rl = mockedReadline.createInterface();
         
         await new Promise<void>((resolve) => {
           rl.question('Proceed with multi-pass review? (y/N): ', (answer: string) => {
@@ -318,11 +309,11 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       
       // Since our mock readline answers 'y', multiPass should be true
       expect(options.multiPass).toBe(true);
-      expect(TokenAnalyzer.analyzeFiles).toHaveBeenCalled();
+      expect(vi.mocked(TokenAnalyzer.analyzeFiles)).toHaveBeenCalled();
       expect(estimateMultiPassReviewCost).toHaveBeenCalled();
       
       // Readline.question should be called because noConfirm is not set
-      expect(readline.createInterface().question).toHaveBeenCalled();
+      expect(mockedReadline.createInterface().question).toHaveBeenCalled();
     } finally {
       // Restore the original implementation
       vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
@@ -335,10 +326,10 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
   // Test for exiting when user declines confirmation
   test('should exit when user declines confirmation', async () => {
     // Get access to the mocked readline module
-    const readline = vi.importMock('readline');
+    const mockedReadline = vi.mocked(readline);
     
     // Configure mock for this test to return 'n'
-    readline.createInterface.mockReturnValue({
+    mockedReadline.createInterface.mockReturnValue({
       question: vi.fn((question, callback) => callback('n')),
       close: vi.fn()
     });
@@ -355,12 +346,12 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     // Create our test implementation of orchestrateReview
     const orchestrateReviewImpl = async (target: string, opts: any) => {
       // Simplified implementation that handles confirmation and exit
-      TokenAnalyzer.analyzeFiles([], {});
+      vi.mocked(TokenAnalyzer.analyzeFiles)([], {});
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
       
       // Simulate the confirmation process
       if (!opts.noConfirm) {
-        const rl = readline.createInterface();
+        const rl = mockedReadline.createInterface();
         
         await new Promise<void>((resolve) => {
           rl.question('Proceed with multi-pass review? (y/N): ', (answer: string) => {
@@ -388,7 +379,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       
       // Verify that process.exit was called when user said 'n'
       expect(mockExit).toHaveBeenCalledWith(0);
-      expect(readline.createInterface().question).toHaveBeenCalled();
+      expect(mockedReadline.createInterface().question).toHaveBeenCalled();
     } finally {
       // Restore the original implementation
       vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();

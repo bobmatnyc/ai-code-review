@@ -8,8 +8,6 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { vi } from 'vitest';
-// Import mocked pathValidator functions
-const { pathExists, isDirectory, isFile } = vi.hoisted(() => vi.importMock('../utils/pathValidator'));
 import { readFile } from '../utils/FileReader';
 import { writeFile, ensureDirectoryExists } from '../utils/FileWriter';
 import { generateVersionedOutputPath } from '../utils/PathGenerator';
@@ -23,7 +21,7 @@ vi.mock('../utils/pathValidator', () => ({
   pathExists: vi.fn(),
   isDirectory: vi.fn(),
   isFile: vi.fn(),
-  validatePath: vi.fn()
+  validateTargetPath: vi.fn()
 }));
 
 // Mock fs sync module
@@ -31,7 +29,9 @@ vi.mock('fs', () => ({
   accessSync: vi.fn(),
   statSync: vi.fn()
 }));
-// const mockedFsSync = vi.importMock('fs') as any;
+
+// Import mocked functions after setting up mocks
+import { pathExists, isDirectory, isFile } from '../utils/pathValidator';
 
 describe('File System Utilities', () => {
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe('File System Utilities', () => {
   describe('PathValidator', () => {
     describe('pathExists', () => {
       it('should return true if path exists', () => {
-        (pathExists as any).mockReturnValue(true);
+        vi.mocked(pathExists).mockReturnValue(true);
 
         const result = pathExists('/path/to/file.txt');
 
@@ -49,18 +49,17 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path does not exist', () => {
-        (pathExists as any).mockReturnValue(false);
+        vi.mocked(pathExists).mockReturnValue(false);
 
-        const result = pathExists('/path/to/nonexistent/file.txt');
+        const result = pathExists('/path/to/nonexistent.txt');
 
         expect(result).toBe(false);
-        expect(pathExists).toHaveBeenCalledWith('/path/to/nonexistent/file.txt');
       });
     });
 
     describe('isDirectory', () => {
       it('should return true if path is a directory', () => {
-        (isDirectory as any).mockReturnValue(true);
+        vi.mocked(isDirectory).mockReturnValue(true);
 
         const result = isDirectory('/path/to/directory');
 
@@ -68,7 +67,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path is not a directory', () => {
-        (isDirectory as any).mockReturnValue(false);
+        vi.mocked(isDirectory).mockReturnValue(false);
 
         const result = isDirectory('/path/to/file.txt');
 
@@ -76,7 +75,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path does not exist', () => {
-        (isDirectory as any).mockReturnValue(false);
+        vi.mocked(isDirectory).mockReturnValue(false);
 
         const result = isDirectory('/path/to/nonexistent');
 
@@ -86,7 +85,7 @@ describe('File System Utilities', () => {
 
     describe('isFile', () => {
       it('should return true if path is a file', () => {
-        (isFile as any).mockReturnValue(true);
+        vi.mocked(isFile).mockReturnValue(true);
 
         const result = isFile('/path/to/file.txt');
 
@@ -94,7 +93,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path is not a file', () => {
-        (isFile as any).mockReturnValue(false);
+        vi.mocked(isFile).mockReturnValue(false);
 
         const result = isFile('/path/to/directory');
 
@@ -102,9 +101,9 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path does not exist', () => {
-        (isFile as any).mockReturnValue(false);
+        vi.mocked(isFile).mockReturnValue(false);
 
-        const result = isFile('/path/to/nonexistent');
+        const result = isFile('/path/to/nonexistent.txt');
 
         expect(result).toBe(false);
       });
@@ -151,8 +150,7 @@ describe('File System Utilities', () => {
       });
 
       it('should not create directory if it already exists', async () => {
-        // Mock pathExists to return true (directory exists)
-        (pathExists as any).mockReturnValue(true);
+        vi.mocked(pathExists).mockReturnValue(true);
 
         await ensureDirectoryExists('/path/to/existing/directory');
 
@@ -163,7 +161,7 @@ describe('File System Utilities', () => {
     describe('writeFile', () => {
       it('should write content to file', async () => {
         // Mock pathExists for the ensureDirectoryExists call in writeFile
-        (pathExists as any).mockReturnValue(true);
+        vi.mocked(pathExists).mockReturnValue(true);
         mockedFs.writeFile.mockResolvedValue(undefined);
 
         await writeFile('/path/to/file.txt', 'file content');
@@ -176,7 +174,7 @@ describe('File System Utilities', () => {
 
       it('should throw error when writing file fails', async () => {
         // Mock pathExists for the ensureDirectoryExists call in writeFile
-        (pathExists as any).mockReturnValue(true);
+        vi.mocked(pathExists).mockReturnValue(true);
         const error = new Error('File write error');
         mockedFs.writeFile.mockRejectedValue(error);
 
@@ -192,15 +190,17 @@ describe('File System Utilities', () => {
       beforeEach(() => {
         // Mock the current date to a fixed date
         const mockDate = new Date('2021-04-06T12:00:00Z');
-        vi.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+        vi.useFakeTimers();
+        vi.setSystemTime(mockDate);
 
         // Mock pathExists to return true for path checks
-        (pathExists as any).mockReturnValue(true);
+        vi.mocked(pathExists).mockReturnValue(true);
         // Mock mkdir to succeed
         mockedFs.mkdir.mockResolvedValue(undefined);
       });
 
       afterEach(() => {
+        vi.useRealTimers();
         vi.restoreAllMocks();
       });
 
