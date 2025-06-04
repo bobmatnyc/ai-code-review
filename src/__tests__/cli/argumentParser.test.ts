@@ -6,15 +6,15 @@
  */
 
 import { validateArguments } from '../../cli/argumentParser';
+import { vi } from 'vitest';
 
 // Mock the logger to prevent console output during tests
-jest.mock('../../utils/logger', () => ({
-  __esModule: true,
+vi.mock('../../utils/logger', () => ({
   default: {
-    error: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn()
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn()
   }
 }));
 
