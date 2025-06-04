@@ -20,7 +20,7 @@ afterEach(() => {
 const originalEnv = process.env;
 
 beforeEach(() => {
-  jest.resetModules();
+  vi.resetModules();
   process.env = { ...originalEnv };
   process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = 'test-api-key';
 });
@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 // Mock the fetch function
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 describe('Model Name Display', () => {
   it('should display the correct model name for gemini-2.5-pro', async () => {
@@ -38,7 +38,7 @@ describe('Model Name Display', () => {
     process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-2.5-pro';
 
     // Mock fetch response
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         candidates: [
@@ -80,7 +80,7 @@ describe('Model Name Display', () => {
     process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-1.5-pro';
 
     // Mock fetch response
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         candidates: [
@@ -123,7 +123,7 @@ describe('Model Name Display', () => {
     process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-2.5-pro';
 
     // Mock fetch response
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         candidates: [

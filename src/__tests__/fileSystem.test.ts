@@ -60,7 +60,7 @@ describe('File System Utilities', () => {
 
     describe('isDirectory', () => {
       it('should return true if path is a directory', () => {
-        (isDirectory as jest.Mock).mockReturnValue(true);
+        (isDirectory as any).mockReturnValue(true);
 
         const result = isDirectory('/path/to/directory');
 
@@ -68,7 +68,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path is not a directory', () => {
-        (isDirectory as jest.Mock).mockReturnValue(false);
+        (isDirectory as any).mockReturnValue(false);
 
         const result = isDirectory('/path/to/file.txt');
 
@@ -76,7 +76,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path does not exist', () => {
-        (isDirectory as jest.Mock).mockReturnValue(false);
+        (isDirectory as any).mockReturnValue(false);
 
         const result = isDirectory('/path/to/nonexistent');
 
@@ -86,7 +86,7 @@ describe('File System Utilities', () => {
 
     describe('isFile', () => {
       it('should return true if path is a file', () => {
-        (isFile as jest.Mock).mockReturnValue(true);
+        (isFile as any).mockReturnValue(true);
 
         const result = isFile('/path/to/file.txt');
 
@@ -94,7 +94,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path is not a file', () => {
-        (isFile as jest.Mock).mockReturnValue(false);
+        (isFile as any).mockReturnValue(false);
 
         const result = isFile('/path/to/directory');
 
@@ -102,7 +102,7 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path does not exist', () => {
-        (isFile as jest.Mock).mockReturnValue(false);
+        (isFile as any).mockReturnValue(false);
 
         const result = isFile('/path/to/nonexistent');
 
@@ -163,7 +163,7 @@ describe('File System Utilities', () => {
     describe('writeFile', () => {
       it('should write content to file', async () => {
         // Mock pathExists for the ensureDirectoryExists call in writeFile
-        (pathExists as jest.Mock).mockReturnValue(true);
+        (pathExists as any).mockReturnValue(true);
         mockedFs.writeFile.mockResolvedValue(undefined);
 
         await writeFile('/path/to/file.txt', 'file content');
@@ -176,7 +176,7 @@ describe('File System Utilities', () => {
 
       it('should throw error when writing file fails', async () => {
         // Mock pathExists for the ensureDirectoryExists call in writeFile
-        (pathExists as jest.Mock).mockReturnValue(true);
+        (pathExists as any).mockReturnValue(true);
         const error = new Error('File write error');
         mockedFs.writeFile.mockRejectedValue(error);
 
@@ -192,16 +192,16 @@ describe('File System Utilities', () => {
       beforeEach(() => {
         // Mock the current date to a fixed date
         const mockDate = new Date('2021-04-06T12:00:00Z');
-        jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+        vi.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
 
         // Mock pathExists to return true for path checks
-        (pathExists as jest.Mock).mockReturnValue(true);
+        (pathExists as any).mockReturnValue(true);
         // Mock mkdir to succeed
         mockedFs.mkdir.mockResolvedValue(undefined);
       });
 
       afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
       });
 
       it('should generate a versioned output path with timestamp', async () => {

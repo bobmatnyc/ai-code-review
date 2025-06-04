@@ -1,28 +1,28 @@
 /**
  * @fileoverview Tests for the template loading utility.
  *
- * This module provides Jest tests for the Handlebars template loading
+ * This module provides Vitest tests for the Handlebars template loading
  * and rendering functionality used by the prompt system.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { renderTemplate, loadPromptTemplate, listAvailableTemplates } from '../../utils/templates/templateLoader';
+import { vi } from 'vitest';
 
 // Mock fs and path modules
-jest.mock('fs');
-jest.mock('path');
+vi.mock('fs');
+vi.mock('path');
 
 // Mock logger
-jest.mock('../../utils/logger', () => {
+vi.mock('../../utils/logger', () => {
   const mockLogger = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
   return {
-    __esModule: true,
     default: mockLogger,
     debug: mockLogger.debug,
     info: mockLogger.info,
@@ -41,15 +41,15 @@ describe('templateLoader', () => {
   // Set up mocks before each test
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock path.resolve
-    (path.resolve as jest.Mock).mockImplementation((_dir: string, ..._segments: string[]) => {
+    (path.resolve as any).mockImplementation((_dir: string, ..._segments: string[]) => {
       return mockTemplatesDir;
     });
     
     // Mock path.join
-    (path.join as jest.Mock).mockImplementation((...segments: string[]) => {
+    (path.join as any).mockImplementation((...segments: string[]) => {
       // Join path segments
       const joined = segments.join('/');
       
@@ -103,7 +103,7 @@ describe('templateLoader', () => {
     });
     
     // Mock fs.existsSync
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+    (fs.existsSync as any).mockImplementation((filePath: string) => {
       // Return true for expected paths
       return [
         `${mockTemplatesDir}`,
@@ -120,7 +120,7 @@ describe('templateLoader', () => {
     });
     
     // Mock fs.readFileSync
-    (fs.readFileSync as jest.Mock).mockImplementation((filePath: string, _encoding: string) => {
+    (fs.readFileSync as any).mockImplementation((filePath: string, _encoding: string) => {
       if (filePath.includes('framework-versions.json')) {
         return JSON.stringify({
           frameworks: {
@@ -151,7 +151,7 @@ describe('templateLoader', () => {
     });
     
     // Mock fs.readdirSync
-    (fs.readdirSync as jest.Mock).mockImplementation((dirPath: string, options?: any) => {
+    (fs.readdirSync as any).mockImplementation((dirPath: string, options?: any) => {
       // Check for withFileTypes option which is used in listAvailableTemplates
       const withFileTypes = options && options.withFileTypes;
       
@@ -183,7 +183,7 @@ describe('templateLoader', () => {
     });
     
     // Mock fs.statSync
-    (fs.statSync as jest.Mock).mockImplementation((filePath: string) => {
+    (fs.statSync as any).mockImplementation((filePath: string) => {
       return {
         isDirectory: () => ['react', 'angular', 'vue', 'typescript', 'python', 'ruby', 'generic'].some(dir => filePath.includes(dir))
       };
@@ -197,7 +197,7 @@ describe('templateLoader', () => {
     });
     
     it('should return null if template does not exist', () => {
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
+      (fs.existsSync as any).mockReturnValue(false);
       const result = renderTemplate('nonexistent-template.hbs');
       expect(result).toBe(null);
     });
@@ -217,7 +217,7 @@ describe('templateLoader', () => {
     
     it('should fall back to language-specific template if framework template is not available', () => {
       // Make framework template not exist
-      (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      (fs.existsSync as any).mockImplementation((filePath: string) => {
         return !filePath.includes('frameworks/react') && [
           `${mockTemplatesDir}`,
           `${mockTemplatesDir}/common/variables/framework-versions.json`,
@@ -235,7 +235,7 @@ describe('templateLoader', () => {
     
     it('should fall back to generic template if language template is not available', () => {
       // Make framework and language templates not exist
-      (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      (fs.existsSync as any).mockImplementation((filePath: string) => {
         return !filePath.includes('frameworks/react') && 
                !filePath.includes('languages/typescript') && 
                [
@@ -254,7 +254,7 @@ describe('templateLoader', () => {
     
     it('should return null if no template is found', () => {
       // Make all templates not exist
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
+      (fs.existsSync as any).mockReturnValue(false);
       
       const result = loadPromptTemplate('nonexistent-review-type', 'typescript', 'react');
       expect(result).toBe(null);
@@ -277,7 +277,7 @@ describe('templateLoader', () => {
     
     it('should handle missing directories', () => {
       // Make frameworks directory not exist
-      (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      (fs.existsSync as any).mockImplementation((filePath: string) => {
         return !filePath.includes('frameworks') && [
           `${mockTemplatesDir}`,
           `${mockTemplatesDir}/common/variables/framework-versions.json`,
@@ -298,7 +298,7 @@ describe('templateLoader', () => {
     
     it('should get review types from generic directory when frameworks are not available', () => {
       // Make frameworks directory not exist but ensure generic directory exists
-      (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      (fs.existsSync as any).mockImplementation((filePath: string) => {
         return !filePath.includes('frameworks') && [
           `${mockTemplatesDir}`,
           `${mockTemplatesDir}/common/variables/framework-versions.json`,
