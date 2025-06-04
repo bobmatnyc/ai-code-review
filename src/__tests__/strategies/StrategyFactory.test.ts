@@ -81,11 +81,11 @@ describe('StrategyFactory', () => {
     };
     
     // Set up mock custom strategy
-    const mockCustomStrategy = { execute: jest.fn() };
+    const mockCustomStrategy = { execute: vi.fn() };
     const mockPluginManager = {
-      getPlugin: jest.fn().mockReturnValue(mockCustomStrategy)
+      getPlugin: vi.fn().mockReturnValue(mockCustomStrategy)
     };
-    (PluginManager.getInstance as jest.Mock).mockReturnValue(mockPluginManager);
+    (PluginManager.getInstance as any).mockReturnValue(mockPluginManager);
     
     // Create strategy
     const strategy = StrategyFactory.createStrategy(options);
@@ -108,9 +108,9 @@ describe('StrategyFactory', () => {
     
     // Set up mock plugin manager to return undefined
     const mockPluginManager = {
-      getPlugin: jest.fn().mockReturnValue(undefined)
+      getPlugin: vi.fn().mockReturnValue(undefined)
     };
-    (PluginManager.getInstance as jest.Mock).mockReturnValue(mockPluginManager);
+    (PluginManager.getInstance as any).mockReturnValue(mockPluginManager);
     
     // Create strategy
     const strategy = StrategyFactory.createStrategy(options);

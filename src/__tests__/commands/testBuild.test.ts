@@ -44,8 +44,8 @@ vi.mock('../../clients/utils/modelTester', () => ({
 }));
 
 // Mock the model maps
-jest.mock('../../clients/utils/modelMaps', () => ({
-  getModelsByProvider: jest
+vi.mock('../../clients/utils/modelMaps', () => ({
+  getModelsByProvider: vi
     .fn()
     .mockReturnValue(['test:model1', 'test:model2']),
   MODEL_MAP: {
@@ -74,14 +74,13 @@ jest.mock('../../clients/utils/modelMaps', () => ({
 }));
 
 // Mock chalk
-jest.mock('chalk', () => ({
-  __esModule: true,
+vi.mock('chalk', () => ({
   default: {
-    cyan: jest.fn(text => text),
-    gray: jest.fn(text => text),
-    green: jest.fn(text => text),
-    red: jest.fn(text => text),
-    bold: jest.fn(text => text)
+    cyan: vi.fn(text => text),
+    gray: vi.fn(text => text),
+    green: vi.fn(text => text),
+    red: vi.fn(text => text),
+    bold: vi.fn(text => text)
   }
 }));
 
@@ -91,9 +90,9 @@ describe('testBuildCommand', () => {
   let consoleOutput: string[] = [];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     consoleOutput = [];
-    console.log = jest.fn(text => {
+    console.log = vi.fn(text => {
       consoleOutput.push(
         typeof text === 'string' ? text : JSON.stringify(text)
       );

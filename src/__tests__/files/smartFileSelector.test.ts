@@ -42,8 +42,8 @@ describe('Smart File Selector', () => {
   describe('loadEslintIgnorePatterns', () => {
     it('should load .eslintignore patterns', async () => {
       const mockContent = 'node_modules\n# Comment\ndist\n';
-      (fs.promises.access as jest.Mock).mockResolvedValue(undefined);
-      (fs.promises.readFile as jest.Mock).mockResolvedValue(mockContent);
+      (fs.promises.access as any).mockResolvedValue(undefined);
+      (fs.promises.readFile as any).mockResolvedValue(mockContent);
       
       const patterns = await loadEslintIgnorePatterns(PROJECT_DIR);
       
@@ -53,7 +53,7 @@ describe('Smart File Selector', () => {
     });
     
     it('should return empty array if .eslintignore does not exist', async () => {
-      (fs.promises.access as jest.Mock).mockRejectedValue(new Error('File not found'));
+      (fs.promises.access as any).mockRejectedValue(new Error('File not found'));
       
       const patterns = await loadEslintIgnorePatterns(PROJECT_DIR);
       
@@ -69,8 +69,8 @@ describe('Smart File Selector', () => {
         exclude: ['**/*.test.ts']
       };
       
-      (fs.promises.access as jest.Mock).mockResolvedValue(undefined);
-      (fs.promises.readFile as jest.Mock).mockResolvedValue(JSON.stringify(mockConfig));
+      (fs.promises.access as any).mockResolvedValue(undefined);
+      (fs.promises.readFile as any).mockResolvedValue(JSON.stringify(mockConfig));
       
       const config = await loadTsConfig(PROJECT_DIR);
       
@@ -80,7 +80,7 @@ describe('Smart File Selector', () => {
     });
     
     it('should return null if tsconfig.json does not exist', async () => {
-      (fs.promises.access as jest.Mock).mockRejectedValue(new Error('File not found'));
+      (fs.promises.access as any).mockRejectedValue(new Error('File not found'));
       
       const config = await loadTsConfig(PROJECT_DIR);
       
@@ -88,8 +88,8 @@ describe('Smart File Selector', () => {
     });
     
     it('should return null if tsconfig.json cannot be parsed', async () => {
-      (fs.promises.access as jest.Mock).mockResolvedValue(undefined);
-      (fs.promises.readFile as jest.Mock).mockResolvedValue('invalid json');
+      (fs.promises.access as any).mockResolvedValue(undefined);
+      (fs.promises.readFile as any).mockResolvedValue('invalid json');
       
       const config = await loadTsConfig(PROJECT_DIR);
       
@@ -152,22 +152,22 @@ describe('Smart File Selector', () => {
       const smartFileSelectorModule = await import('../../utils/files/smartFileSelector');
       
       // Mock loadGitignorePatterns
-      const loadGitignorePatterns = fileFiltersModule.loadGitignorePatterns as jest.MockedFunction<typeof fileFiltersModule.loadGitignorePatterns>;
+      const loadGitignorePatterns = fileFiltersModule.loadGitignorePatterns as any;
       loadGitignorePatterns.mockResolvedValue(['node_modules', 'dist']);
       
       // Mock loadEslintIgnorePatterns
-      jest.spyOn(smartFileSelectorModule, 'loadEslintIgnorePatterns')
+      vi.spyOn(smartFileSelectorModule, 'loadEslintIgnorePatterns')
         .mockResolvedValue(['ignored-by-eslint']);
       
       // Mock loadTsConfig
-      jest.spyOn(smartFileSelectorModule, 'loadTsConfig')
+      vi.spyOn(smartFileSelectorModule, 'loadTsConfig')
         .mockResolvedValue({
           include: ['src/**/*'],
           exclude: ['**/*.test.ts']
         });
       
       // Mock shouldExcludeFile to properly handle the test patterns
-      const shouldExcludeFile = fileFiltersModule.shouldExcludeFile as jest.MockedFunction<typeof fileFiltersModule.shouldExcludeFile>;
+      const shouldExcludeFile = fileFiltersModule.shouldExcludeFile as any;
       shouldExcludeFile.mockImplementation((filePath, patterns) => {
         if (patterns.includes('node_modules') && filePath.includes('node_modules')) {
           return true;
@@ -182,7 +182,7 @@ describe('Smart File Selector', () => {
       });
       
       // Mock matchesTsConfig to handle specific test cases
-      jest.spyOn(smartFileSelectorModule, 'matchesTsConfig')
+      vi.spyOn(smartFileSelectorModule, 'matchesTsConfig')
         .mockImplementation((filePath, _tsConfig, _projectDir) => {
           if (filePath.includes('.test.ts')) {
             return false; // Exclude test files
@@ -194,7 +194,7 @@ describe('Smart File Selector', () => {
         });
       
       // Directly mock the entire applySmartFiltering function for this test
-      jest.spyOn(smartFileSelectorModule, 'applySmartFiltering')
+      vi.spyOn(smartFileSelectorModule, 'applySmartFiltering')
         .mockResolvedValue([
           '/test/project/src/app.ts',
           '/test/project/src/utils/helpers.ts'
