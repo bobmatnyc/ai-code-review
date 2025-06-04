@@ -174,6 +174,7 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
 // Updated: 2023-07-25
 // Updated: 2024-04-05
 // Updated: 2024-04-06
+// Updated: 2025-06-04
 - `.env.local` for local development is required.
 - Required variables (use the `AI_CODE_REVIEW_` prefix):
   - `AI_CODE_REVIEW_GOOGLE_API_KEY`: API key for Google Gemini models.
@@ -181,6 +182,8 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
   - `AI_CODE_REVIEW_ANTHROPIC_API_KEY`: API key for Anthropic models.
 - Model Selection:
   - `AI_CODE_REVIEW_MODEL`: Specifies the model adapter and name (e.g., `gemini:gemini-1.5-pro`).
+- Semantic Chunking:
+  - `AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING`: Enable semantic chunking for intelligent code analysis (default: `true`). Set to `false` to disable semantic chunking and use traditional token-based chunking.
 
 > Note: Older variable names like `GOOGLE_GENERATIVE_AI_KEY` or `CODE_REVIEW_*` might still be supported for backward compatibility but are deprecated. Please update to the `AI_CODE_REVIEW_` prefix.
 

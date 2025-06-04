@@ -93,6 +93,11 @@ export function parseArguments() {
             type: 'boolean',
             default: undefined
           })
+          .option('enable-semantic-chunking', {
+            describe: 'Enable semantic chunking for intelligent code analysis',
+            type: 'boolean',
+            default: process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'false' ? false : true
+          })
           .option('interactive', {
             describe: 'Run in interactive mode, processing review results in real-time',
             type: 'boolean',
@@ -226,6 +231,8 @@ export function parseArguments() {
   if ((argv as any).debug) {
     logger.setLogLevel('debug');
     logger.debug('Debug logging enabled');
+    logger.debug(`Environment variable AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING: ${process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING || 'not set (defaults to true)'}`);
+    logger.debug(`Semantic chunking enabled: ${(argv as any).enableSemanticChunking}`);
     logger.debug(`Command-line arguments: ${JSON.stringify(argv, null, 2)}`);
   }
 
@@ -265,6 +272,7 @@ export function mapArgsToReviewOptions(
     includeTests: argv.includeTests,
     includeProjectDocs: argv.includeProjectDocs,
     includeDependencyAnalysis: argv.includeDependencyAnalysis,
+    enableSemanticChunking: argv.enableSemanticChunking,
     interactive: argv.interactive,
     testApi: argv.testApi,
     estimate: argv.estimate,

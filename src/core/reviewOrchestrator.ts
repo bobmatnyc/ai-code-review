@@ -304,6 +304,7 @@ export async function orchestrateReview(
         
         // Use the new TokenAnalyzer for more comprehensive analysis
         const { TokenAnalyzer } = await import('../analysis/tokens');
+        const { SemanticChunkingIntegration } = await import('../analysis/semantic');
         const { estimateMultiPassReviewCost } = await import('../utils/estimationUtils');
         
         const tokenAnalysisOptions = {
@@ -314,6 +315,84 @@ export async function orchestrateReview(
         };
         
         const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
+        
+        // Try semantic chunking for intelligent code analysis
+        let semanticChunks: any = null;
+        try {
+          const { SemanticChunkingIntegration } = await import('../analysis/semantic');
+          const semanticIntegration = new SemanticChunkingIntegration({
+            enableSemanticChunking: options.enableSemanticChunking ?? true,
+            enableFallback: true,
+            forceSemantic: [],
+            forceTraditional: [],
+            preferSemantic: true,
+            maxFileSizeForSemantic: 1024 * 1024,
+            enableCaching: true
+          });
+          
+          if (semanticIntegration.canUseSemanticChunking(fileInfos)) {
+            logger.info('🧠 Using semantic code analysis with TreeSitter...');
+            
+            const semanticResult = await semanticIntegration.analyzeAndChunk(fileInfos, {
+              reviewType: options.type
+            });
+            
+            if (!semanticResult.fallbackUsed && semanticResult.chunks.length > 0) {
+              semanticChunks = semanticResult;
+              logger.info(`✅ Semantic analysis complete:`);
+              logger.info(`   • Method: ${semanticResult.method}`);
+              logger.info(`   • Chunks discovered: ${semanticResult.chunks.length}`);
+              
+              if (semanticResult.method === 'semantic') {
+                // Check if consolidation occurred
+                const hasConsolidation = semanticResult.chunks.some((chunk: any) => 
+                  chunk.metadata?.consolidation?.originalThreads > 1
+                );
+                
+                if (hasConsolidation) {
+                  const totalOriginalThreads = semanticResult.chunks.reduce((sum: number, chunk: any) => 
+                    sum + (chunk.metadata?.consolidation?.originalThreads || 1), 0
+                  );
+                  logger.info(`   • Semantic threads: ${totalOriginalThreads} → ${semanticResult.chunks.length} batches`);
+                  logger.info(`   • Note: Threads consolidated into efficient batches for optimal AI processing`);
+                } else {
+                  logger.info(`   • Semantic threads: ${semanticResult.chunks.length}`);
+                  logger.info(`   • Note: Threads preserve code structure boundaries (functions, classes, etc.)`);
+                }
+                
+                // Show batch/thread details
+                semanticResult.chunks.forEach((chunk: any, index: number) => {
+                  const consolidation = chunk.metadata?.consolidation;
+                  const structureInfo = chunk.metadata?.semanticInfo ? 
+                    ` (${chunk.metadata.semanticInfo.declarations?.length || 0} declarations)` : '';
+                  
+                  if (consolidation) {
+                    logger.info(`   • Batch ${index + 1}: ${consolidation.originalThreads} threads, ~${chunk.estimatedTokens} tokens${structureInfo}`);
+                  } else {
+                    logger.info(`   • Thread ${index + 1}: ~${chunk.estimatedTokens} tokens${structureInfo}`);
+                  }
+                });
+              } else {
+                logger.info(`   • Files analyzed: ${semanticResult.chunks.reduce((sum: number, chunk: any) => sum + (chunk.files?.length || 0), 0)}`);
+                // Show traditional chunk details
+                semanticResult.chunks.forEach((chunk: any, index: number) => {
+                  logger.info(`   • Chunk ${index + 1}: ${chunk.files?.length || 0} files, ~${chunk.estimatedTokens} tokens`);
+                });
+              }
+              
+              if (semanticResult.metrics) {
+                logger.info(`   • Analysis time: ${semanticResult.metrics.analysisTimeMs}ms`);
+              }
+            } else {
+              logger.info('ℹ️  Semantic analysis not optimal, using traditional chunking');
+            }
+          } else {
+            logger.info('ℹ️  Files not suitable for semantic analysis, using traditional chunking');
+          }
+        } catch (error) {
+          logger.warn(`Semantic chunking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          logger.info('ℹ️  Falling back to traditional token-based analysis');
+        }
         
         // Get cost estimate based on token analysis
         const costEstimation = await estimateMultiPassReviewCost(
@@ -545,6 +624,87 @@ export async function orchestrateReview(
         }
         
         const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
+        
+        // Try semantic chunking for intelligent code analysis
+        let semanticChunks: any = null;
+        try {
+          const { SemanticChunkingIntegration } = await import('../analysis/semantic');
+          const semanticIntegration = new SemanticChunkingIntegration({
+            enableSemanticChunking: options.enableSemanticChunking ?? true,
+            enableFallback: true,
+            forceSemantic: [],
+            forceTraditional: [],
+            preferSemantic: true,
+            maxFileSizeForSemantic: 1024 * 1024,
+            enableCaching: true
+          });
+          
+          if (semanticIntegration.canUseSemanticChunking(fileInfos)) {
+            logger.info('🧠 Analyzing code structure with semantic chunking...');
+            
+            const semanticResult = await semanticIntegration.analyzeAndChunk(fileInfos, {
+              reviewType: options.type,
+              modelName: apiClientConfig.modelName
+            });
+            
+            if (!semanticResult.fallbackUsed && semanticResult.chunks.length > 0) {
+              semanticChunks = semanticResult;
+              logger.info(`✅ Semantic chunking complete:`);
+              logger.info(`   • Method: ${semanticResult.method} (intelligent code-aware)`);
+              logger.info(`   • Semantic chunks: ${semanticResult.chunks.length}`);
+              
+              if (semanticResult.method === 'semantic') {
+                // Check if consolidation occurred
+                const hasConsolidation = semanticResult.chunks.some((chunk: any) => 
+                  chunk.metadata?.consolidation?.originalThreads > 1
+                );
+                
+                if (hasConsolidation) {
+                  const totalOriginalThreads = semanticResult.chunks.reduce((sum: number, chunk: any) => 
+                    sum + (chunk.metadata?.consolidation?.originalThreads || 1), 0
+                  );
+                  logger.info(`   • Semantic threads: ${totalOriginalThreads} → ${semanticResult.chunks.length} efficient batches`);
+                  logger.info(`   • Note: Related code structures consolidated for optimal review processing`);
+                } else {
+                  logger.info(`   • Semantic threads: ${semanticResult.chunks.length}`);
+                  logger.info(`   • Note: Threads intelligently group related code structures`);
+                }
+                
+                // Show batch/thread details with consolidation info
+                semanticResult.chunks.forEach((chunk: any, index: number) => {
+                  const consolidation = chunk.metadata?.consolidation;
+                  const structureInfo = chunk.metadata?.semanticInfo ? 
+                    ` (${chunk.metadata.semanticInfo.declarations?.length || 0} declarations)` : '';
+                  
+                  if (consolidation) {
+                    const groupType = chunk.metadata?.semanticInfo?.groupType || 'mixed';
+                    logger.info(`   • Batch ${index + 1} [${groupType}]: ${consolidation.originalThreads} threads, ~${chunk.estimatedTokens} tokens${structureInfo}`);
+                  } else {
+                    logger.info(`   • Thread ${index + 1}: ~${chunk.estimatedTokens} tokens${structureInfo}`);
+                  }
+                });
+              } else {
+                logger.info(`   • Files analyzed: ${semanticResult.chunks.reduce((sum: number, chunk: any) => sum + (chunk.files?.length || 0), 0)} files`);
+                // Show traditional chunk details
+                semanticResult.chunks.forEach((chunk: any, index: number) => {
+                  logger.info(`   • Chunk ${index + 1}: ${chunk.files?.length || 0} files, ~${chunk.estimatedTokens} tokens`);
+                });
+              }
+              
+              if (semanticResult.metrics) {
+                logger.info(`   • Analysis time: ${semanticResult.metrics.analysisTimeMs}ms`);
+              }
+              logger.info('   • Benefit: Code relationships and structure preserved for better AI analysis');
+            } else {
+              logger.info('ℹ️  Semantic analysis not optimal for this content, using traditional chunking');
+            }
+          } else {
+            logger.info('ℹ️  Using traditional token-based chunking (files not suitable for semantic analysis)');
+          }
+        } catch (error) {
+          logger.warn(`Semantic chunking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          logger.info('ℹ️  Falling back to traditional token-based chunking');
+        }
         
         // If chunking is recommended, provide analysis and ask for confirmation unless noConfirm is true
         if (tokenAnalysis.chunkingRecommendation.chunkingRecommended) {

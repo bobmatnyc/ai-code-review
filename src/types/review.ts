@@ -45,6 +45,8 @@ export interface ReviewOptions {
   includeProjectDocs?: boolean;
   /** Whether to include dependency analysis in the review */
   includeDependencyAnalysis?: boolean;
+  /** Whether to enable semantic chunking for intelligent code analysis */
+  enableSemanticChunking?: boolean;
   /** Whether to run in interactive mode */
   interactive?: boolean;
   /** Whether to test API connections before running the review */
