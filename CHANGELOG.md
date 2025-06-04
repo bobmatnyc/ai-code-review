@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.16] - 2025-06-03
+
+### Added
+- Enhanced prompt templates with comprehensive OWASP-aligned security reviews
+- Added structured architectural review templates with SOLID principles evaluation
+- Improved Python and TypeScript performance and quick-fixes prompts with industry best practices
+- Added OSS integration opportunity analysis in architectural reviews
+- New documentation organization with logical subdirectories (api/, development/, guides/)
+
+### Fixed
+- Resolved all TypeScript compilation errors for improved type safety
+- Fixed missing CliOptions interface that extends ReviewOptions
+- Enhanced CostInfo interface with multi-pass review properties
+- Converted tokenAnalysis.d.ts from ambient module to proper TypeScript module
+- Updated Jest configuration for reorganized test file structure
+- Fixed Handlebars template syntax conflicts with Laravel Blade syntax
+
+### Changed
+- Reorganized documentation structure with README and subdirectories
+- Added TypeScript path aliases for cleaner import statements
+- Enhanced prompt validation with frontmatter metadata
+- Improved build process with version and model map synchronization
+- Updated package.json scripts for better automation
+
 ## [3.2.15] - 2025-06-01
 
 ### Added
