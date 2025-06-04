@@ -8,20 +8,20 @@
 import { reviewCode } from '../../commands/reviewCode';
 import { orchestrateReview } from '../../core/reviewOrchestrator';
 import { validateArguments } from '../../cli/argumentParser';
+import { vi } from 'vitest';
 
 // Mock the review orchestrator
-jest.mock('../../core/reviewOrchestrator', () => ({
-  orchestrateReview: jest.fn()
+vi.mock('../../core/reviewOrchestrator', () => ({
+  orchestrateReview: vi.fn()
 }));
 
 // Mock the logger
-jest.mock('../../utils/logger', () => ({
-  __esModule: true,
+vi.mock('../../utils/logger', () => ({
   default: {
-    error: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn()
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn()
   }
 }));
 
