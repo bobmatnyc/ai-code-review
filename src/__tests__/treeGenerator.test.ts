@@ -3,6 +3,7 @@
  */
 
 import { generateFileTree } from '../utils/treeGenerator';
+import { vi } from 'vitest';
 
 describe('File Tree Generator', () => {
   it('should generate a simple tree structure', () => {
@@ -56,7 +57,7 @@ describe('File Tree Generator', () => {
   
   it('should gracefully handle errors by falling back to list format', () => {
     // Mock generateFileTree to throw an error
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     
     // Pass null to simulate an error
     const files = ['file1.txt', 'file2.txt'];

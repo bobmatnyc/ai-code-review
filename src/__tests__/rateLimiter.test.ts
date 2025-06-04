@@ -1,11 +1,12 @@
 /**
  * @fileoverview Tests for rate limiting utilities.
  *
- * This module provides Jest tests for the rate limiting utilities used
+ * This module provides Vitest tests for the rate limiting utilities used
  * to manage API request rates and prevent exceeding rate limits.
  */
 
 import { RateLimiter } from '../utils/api/rateLimiter';
+import { vi } from 'vitest';
 
 // Mock Date.now() to control time in tests
 const originalDateNow = Date.now;
@@ -19,7 +20,7 @@ describe('RateLimiter', () => {
     mockTime = 1000000000000;
 
     // Mock Date.now to return controlled time
-    global.Date.now = jest.fn(() => mockTime);
+    global.Date.now = vi.fn(() => mockTime);
 
     // Create a new rate limiter with test options
     rateLimiter = new RateLimiter({
@@ -34,7 +35,7 @@ describe('RateLimiter', () => {
     global.Date.now = originalDateNow;
 
     // Clear all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('acquire', () => {
