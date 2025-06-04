@@ -16,9 +16,7 @@ import {
   getApiNameFromKey,
   getModelMapping,
   getModelsByProvider,
-  getModels,
   parseModelString,
-  getFullModelKey,
   supportsToolCalling,
   getEnhancedModelMapping,
   validateModelKey,
@@ -28,12 +26,7 @@ import {
   getProviderFeatures,
   formatCost,
   ModelCategory,
-  type Provider,
-  type ModelMapping,
-  type EnhancedModelMapping,
-  type DeprecationInfo,
-  type TieredPricing,
-  type ProviderFeatures
+  type Provider
 } from '../../../clients/utils/modelMaps';
 
 describe('Model Maps - Backwards Compatibility', () => {
@@ -46,7 +39,7 @@ describe('Model Maps - Backwards Compatibility', () => {
     });
 
     it('should maintain legacy ModelMapping structure', () => {
-      Object.entries(MODEL_MAP).forEach(([key, mapping]) => {
+      Object.entries(MODEL_MAP).forEach(([_key, mapping]) => {
         expect(mapping).toHaveProperty('apiIdentifier');
         expect(mapping).toHaveProperty('displayName');
         expect(mapping).toHaveProperty('provider');
@@ -350,7 +343,7 @@ describe('Model Maps - Enhanced Features', () => {
 
 describe('Model Maps - Data Integrity', () => {
   it('should have valid provider for all models', () => {
-    Object.entries(ENHANCED_MODEL_MAP).forEach(([key, mapping]) => {
+    Object.entries(ENHANCED_MODEL_MAP).forEach(([_key, mapping]) => {
       expect(['gemini', 'anthropic', 'openai', 'openrouter']).toContain(mapping.provider);
     });
   });
@@ -363,7 +356,7 @@ describe('Model Maps - Data Integrity', () => {
       'AI_CODE_REVIEW_OPENROUTER_API_KEY'
     ];
     
-    Object.entries(ENHANCED_MODEL_MAP).forEach(([key, mapping]) => {
+    Object.entries(ENHANCED_MODEL_MAP).forEach(([_key, mapping]) => {
       expect(validEnvVars).toContain(mapping.apiKeyEnvVar);
     });
   });
@@ -388,7 +381,7 @@ describe('Model Maps - Data Integrity', () => {
   });
 
   it('should have valid deprecation dates', () => {
-    Object.entries(ENHANCED_MODEL_MAP).forEach(([key, mapping]) => {
+    Object.entries(ENHANCED_MODEL_MAP).forEach(([_key, mapping]) => {
       if (mapping.deprecation?.deprecationDate) {
         const date = new Date(mapping.deprecation.deprecationDate);
         expect(date.toString()).not.toBe('Invalid Date');
@@ -407,7 +400,7 @@ describe('Model Maps - Data Integrity', () => {
   });
 
   it('should have valid alternative models for deprecated models', () => {
-    Object.entries(ENHANCED_MODEL_MAP).forEach(([key, mapping]) => {
+    Object.entries(ENHANCED_MODEL_MAP).forEach(([_key, mapping]) => {
       if (mapping.deprecation?.alternativeModel) {
         const alternative = ENHANCED_MODEL_MAP[mapping.deprecation.alternativeModel];
         expect(alternative).toBeDefined();

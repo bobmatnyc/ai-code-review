@@ -23,8 +23,8 @@ describe('CLI Argument Validation Tests', () => {
   let mockExit;
   
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockExit = jest.spyOn(process, 'exit')
+    vi.clearAllMocks();
+    mockExit = vi.spyOn(process, 'exit')
       .mockImplementation(() => undefined as never);
   });
   

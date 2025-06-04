@@ -24,7 +24,7 @@ describe('modelMaps', () => {
       expect(typeof MODEL_MAP).toBe('object');
 
       // Check that all models have required fields
-      Object.entries(MODEL_MAP).forEach(([key, model]) => {
+      Object.entries(MODEL_MAP).forEach(([_key, model]) => {
         expect(model.apiIdentifier).toBeDefined();
         expect(typeof model.apiIdentifier).toBe('string');
         expect(model.displayName).toBeDefined();
@@ -66,7 +66,7 @@ describe('modelMaps', () => {
       describe(`${provider} models`, () => {
         it(`should have ${provider} models with correct structure`, () => {
           const providerModels = Object.entries(MODEL_MAP)
-            .filter(([key, model]) => model.provider === provider);
+            .filter(([_key, model]) => model.provider === provider);
           
           // Each provider should have at least one model
           expect(providerModels.length).toBeGreaterThan(0);
@@ -130,7 +130,7 @@ describe('modelMaps', () => {
     it('should exclude deprecated models from MODELS by default', () => {
       // Check if any models in MODEL_MAP have DEPRECATED in their display name
       const deprecatedModels = Object.entries(MODEL_MAP)
-        .filter(([key, model]) => model.displayName.includes('DEPRECATED'))
+        .filter(([_key, model]) => model.displayName.includes('DEPRECATED'))
         .map(([key]) => key);
       
       // MODELS should not include deprecated models

@@ -6,17 +6,18 @@ import { discoverFiles } from '../../core/fileDiscovery';
 import * as fileSystem from '../../utils/fileSystem';
 import * as fileFilters from '../../utils/fileFilters';
 import * as smartFileSelector from '../../utils/files/smartFileSelector';
+import { vi } from 'vitest';
 
 // Mock the dependencies
-jest.mock('../../utils/fileSystem');
-jest.mock('../../utils/fileFilters');
-jest.mock('../../utils/files/smartFileSelector');
-jest.mock('../../utils/logger', () => {
+vi.mock('../../utils/fileSystem');
+vi.mock('../../utils/fileFilters');
+vi.mock('../../utils/files/smartFileSelector');
+vi.mock('../../utils/logger', () => {
   const mockLogger = {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn()
   };
   return {
     __esModule: true,
@@ -28,15 +29,15 @@ describe('fileDiscovery parameter validation', () => {
   const mockProjectPath = '/test/project';
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Set up default mocks
-    (fileSystem.pathExists as jest.Mock).mockResolvedValue(true);
-    (fileSystem.isDirectory as jest.Mock).mockResolvedValue(false);
-    (fileSystem.isPathWithinCwd as jest.Mock).mockReturnValue(true);
-    (fileFilters.loadGitignorePatterns as jest.Mock).mockResolvedValue([]);
-    (fileFilters.getFilesToReview as jest.Mock).mockResolvedValue(['test.ts']);
-    (smartFileSelector.applySmartFiltering as jest.Mock).mockResolvedValue(['test.ts']);
+    (fileSystem.pathExists as any).mockResolvedValue(true);
+    (fileSystem.isDirectory as any).mockResolvedValue(false);
+    (fileSystem.isPathWithinCwd as any).mockReturnValue(true);
+    (fileFilters.loadGitignorePatterns as any).mockResolvedValue([]);
+    (fileFilters.getFilesToReview as any).mockResolvedValue(['test.ts']);
+    (smartFileSelector.applySmartFiltering as any).mockResolvedValue(['test.ts']);
   });
   
   describe('validateTargetParameter', () => {

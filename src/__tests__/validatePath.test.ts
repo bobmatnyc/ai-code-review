@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests for the validateTargetPath function.
  *
- * This module provides Jest tests to verify that the validateTargetPath function
+ * This module provides Vitest tests to verify that the validateTargetPath function
  * properly prevents path traversal attacks and ensures paths are within
  * the specified base directory.
  */
@@ -9,13 +9,14 @@
 import { validateTargetPath } from '../utils/pathValidator';
 // import path from 'path'; // Not used in this file
 import fs from 'fs';
+import { vi } from 'vitest';
 
 // Mock fs module
-jest.mock('fs', () => ({
-  accessSync: jest.fn(),
-  statSync: jest.fn()
+vi.mock('fs', () => ({
+  accessSync: vi.fn(),
+  statSync: vi.fn()
 }));
-const mockedFs = fs as jest.Mocked<typeof fs>;
+const mockedFs = fs as any;
 
 // Save original process.cwd
 // const originalCwd = process.cwd; // Not used
@@ -90,6 +91,7 @@ describe('validateTargetPath', () => {
 
   test('correctly identifies directories', () => {
     // Mock isDirectory to return true
+    mockedFs.accessSync.mockImplementation(() => undefined as any);
     mockedFs.statSync.mockReturnValue({
       isDirectory: () => true,
       isFile: () => false

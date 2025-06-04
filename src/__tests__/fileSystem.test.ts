@@ -27,11 +27,11 @@ vi.mock('../utils/pathValidator', () => ({
 }));
 
 // Mock fs sync module
-jest.mock('fs', () => ({
-  accessSync: jest.fn(),
-  statSync: jest.fn()
+vi.mock('fs', () => ({
+  accessSync: vi.fn(),
+  statSync: vi.fn()
 }));
-// const mockedFsSync = jest.requireMock('fs') as jest.Mocked<typeof import('fs')>;
+// const mockedFsSync = vi.importMock('fs') as any;
 
 describe('File System Utilities', () => {
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe('File System Utilities', () => {
   describe('PathValidator', () => {
     describe('pathExists', () => {
       it('should return true if path exists', () => {
-        (pathExists as any).mockResolvedValue(false);
+        (pathExists as any).mockReturnValue(true);
 
         const result = pathExists('/path/to/file.txt');
 
@@ -49,11 +49,12 @@ describe('File System Utilities', () => {
       });
 
       it('should return false if path does not exist', () => {
-        (pathExists as jest.Mock).mockReturnValue(false);
+        (pathExists as any).mockReturnValue(false);
 
-        const result = pathExists('/path/to/nonexistent');
+        const result = pathExists('/path/to/nonexistent/file.txt');
 
         expect(result).toBe(false);
+        expect(pathExists).toHaveBeenCalledWith('/path/to/nonexistent/file.txt');
       });
     });
 
@@ -139,7 +140,7 @@ describe('File System Utilities', () => {
     describe('ensureDirectoryExists', () => {
       it('should create directory if it does not exist', async () => {
         // Mock pathExists to return false (directory doesn't exist)
-        (pathExists as any).mockResolvedValue(false);
+        (pathExists as any).mockReturnValue(false);
         mockedFs.mkdir.mockResolvedValue(undefined);
 
         await ensureDirectoryExists('/path/to/new/directory');
@@ -151,7 +152,7 @@ describe('File System Utilities', () => {
 
       it('should not create directory if it already exists', async () => {
         // Mock pathExists to return true (directory exists)
-        (pathExists as jest.Mock).mockReturnValue(true);
+        (pathExists as any).mockReturnValue(true);
 
         await ensureDirectoryExists('/path/to/existing/directory');
 
