@@ -5,41 +5,41 @@
  */
 
 import { testModelCommand } from '../../commands/testModel';
+import { vi } from 'vitest';
 
 // Mock the logger
-jest.mock('../../utils/logger', () => ({
-  __esModule: true,
+vi.mock('../../utils/logger', () => ({
   default: {
-    error: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn()
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn()
   }
 }));
 
 // Mock the test functions
-jest.mock('../../clients/utils/modelTester', () => ({
-  testGeminiModel: jest.fn().mockResolvedValue({
+vi.mock('../../clients/utils/modelTester', () => ({
+  testGeminiModel: vi.fn().mockResolvedValue({
     success: true,
     message: 'Success',
     response: 'Hello!'
   }),
-  testAnthropicModel: jest.fn().mockResolvedValue({
+  testAnthropicModel: vi.fn().mockResolvedValue({
     success: true,
     message: 'Success',
     response: 'Hello!'
   }),
-  testOpenAIModel: jest.fn().mockResolvedValue({
+  testOpenAIModel: vi.fn().mockResolvedValue({
     success: true,
     message: 'Success',
     response: 'Hello!'
   }),
-  testOpenRouterModel: jest.fn().mockResolvedValue({
+  testOpenRouterModel: vi.fn().mockResolvedValue({
     success: true,
     message: 'Success',
     response: 'Hello!'
   }),
-  findAvailableModelForProvider: jest.fn().mockResolvedValue('test-model')
+  findAvailableModelForProvider: vi.fn().mockResolvedValue('test-model')
 }));
 
 // Mock the model maps

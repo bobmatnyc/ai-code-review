@@ -8,19 +8,20 @@ import { IndividualReviewStrategy } from '../../strategies/IndividualReviewStrat
 import { ArchitecturalReviewStrategy } from '../../strategies/ArchitecturalReviewStrategy';
 import { ReviewOptions } from '../../types/review';
 import { PluginManager } from '../../plugins/PluginManager';
+import { vi } from 'vitest';
 
 // Mock dependencies
-jest.mock('../../plugins/PluginManager');
-jest.mock('../../utils/logger');
+vi.mock('../../plugins/PluginManager');
+vi.mock('../../utils/logger');
 
 describe('StrategyFactory', () => {
   beforeEach(() => {
     // Reset mocks
-    jest.resetAllMocks();
+    vi.resetAllMocks();
     
     // Mock PluginManager.getInstance
-    (PluginManager.getInstance as jest.Mock).mockReturnValue({
-      getPlugin: jest.fn()
+    (PluginManager.getInstance as any).mockReturnValue({
+      getPlugin: vi.fn()
     });
   });
   

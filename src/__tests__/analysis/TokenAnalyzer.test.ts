@@ -2,7 +2,7 @@
  * @fileoverview Tests for the TokenAnalyzer
  */
 
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { TokenAnalyzer, FileTokenAnalysis } from '../../analysis/tokens';
 
 describe('TokenAnalyzer', () => {

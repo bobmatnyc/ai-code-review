@@ -2,7 +2,7 @@
  * @fileoverview Tests for the ReviewContext
  */
 
-import { describe, expect, it, beforeEach } from '@jest/globals';
+import { describe, expect, it, beforeEach } from 'vitest';
 import { ReviewContext, CodeElementType } from '../../analysis/context';
 
 describe('ReviewContext', () => {

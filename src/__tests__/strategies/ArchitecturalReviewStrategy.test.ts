@@ -7,10 +7,11 @@ import { FileInfo, ReviewOptions } from '../../types/review';
 import { ApiClientConfig } from '../../core/ApiClientSelector';
 import { ProjectDocs } from '../../utils/projectDocs';
 import { generateReview } from '../../core/ReviewGenerator';
+import { vi } from 'vitest';
 
 // Mock dependencies
-jest.mock('../../core/ReviewGenerator');
-jest.mock('../../utils/logger');
+vi.mock('../../core/ReviewGenerator');
+vi.mock('../../utils/logger');
 
 describe('ArchitecturalReviewStrategy', () => {
   let strategy: ArchitecturalReviewStrategy;
