@@ -90,6 +90,11 @@
     "jsdom": "^26.0.0",
     "langchain": "^0.3.21",
     "markdown-it": "^13.0.2",
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-php": "^0.22.8",
+    "tree-sitter-python": "^0.21.0",
+    "tree-sitter-ruby": "^0.21.0",
+    "tree-sitter-typescript": "^0.21.2",
     "yargs": "^17.7.2",
     "zod": "^3.24.2"
   },
