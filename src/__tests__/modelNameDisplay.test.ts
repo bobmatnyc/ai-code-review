@@ -1,19 +1,19 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 // Mock fs/promises at the top level
-jest.mock('fs/promises', () => ({
-  readFile: jest.fn().mockResolvedValue('Test prompt template')
+vi.mock('fs/promises', () => ({
+  readFile: vi.fn().mockResolvedValue('Test prompt template')
 }));
 
 // Mock the console.log and console.error
 beforeEach(() => {
-  jest.spyOn(console, 'log').mockImplementation(() => {});
-  jest.spyOn(console, 'error').mockImplementation(() => {});
-  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 // Mock environment variables

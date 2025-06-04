@@ -8,7 +8,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
-import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 
 // Test file path
 const TEST_FILE_PATH = 'src/clients/utils/apiKeyValidator.ts';

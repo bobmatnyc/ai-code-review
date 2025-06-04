@@ -11,20 +11,22 @@ import {
   applySmartFiltering
 } from '../../utils/files/smartFileSelector';
 
+import { vi } from 'vitest';
+
 // Mock fs module
-jest.mock('fs', () => ({
+vi.mock('fs', () => ({
   promises: {
-    access: jest.fn(),
-    readFile: jest.fn()
+    access: vi.fn(),
+    readFile: vi.fn()
   },
-  existsSync: jest.fn(),
-  readFileSync: jest.fn()
+  existsSync: vi.fn(),
+  readFileSync: vi.fn()
 }));
 
 // Mock fileFilters module
-jest.mock('../../utils/fileFilters', () => ({
-  loadGitignorePatterns: jest.fn().mockResolvedValue([]),
-  shouldExcludeFile: jest.fn().mockImplementation((filePath, patterns) => {
+vi.mock('../../utils/fileFilters', () => ({
+  loadGitignorePatterns: vi.fn().mockResolvedValue([]),
+  shouldExcludeFile: vi.fn().mockImplementation((filePath, patterns) => {
     // Only exclude paths that contain 'ignored'
     return patterns.some(pattern => filePath.includes(pattern));
   })
@@ -34,7 +36,7 @@ describe('Smart File Selector', () => {
   const PROJECT_DIR = '/test/project';
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   
   describe('loadEslintIgnorePatterns', () => {

@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests for the prompt template manager.
  *
- * This module provides Jest tests for the prompt template manager,
+ * This module provides Vitest tests for the prompt template manager,
  * which serves as an interface between the bundled prompts system
  * and the new Handlebars template system.
  */
@@ -15,20 +15,20 @@ import {
   getSupportedTemplates 
 } from '../../utils/templates/promptTemplateManager';
 import { loadPromptTemplate, listAvailableTemplates } from '../../utils/templates/templateLoader';
+import { vi } from 'vitest';
 
 // Mock dependencies
-jest.mock('fs');
-jest.mock('path');
-jest.mock('../../utils/templates/templateLoader');
-jest.mock('../../utils/logger', () => {
+vi.mock('fs');
+vi.mock('path');
+vi.mock('../../utils/templates/templateLoader');
+vi.mock('../../utils/logger', () => {
   const mockLogger = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
   return {
-    __esModule: true,
     default: mockLogger,
     debug: mockLogger.debug,
     info: mockLogger.info,
@@ -87,7 +87,7 @@ describe('promptTemplateManager', () => {
     });
     
     // Mock listAvailableTemplates
-    (listAvailableTemplates as jest.Mock).mockReturnValue({
+    (listAvailableTemplates as any).mockResolvedValue([]);
       frameworks: ['react', 'angular', 'vue'],
       languages: ['typescript', 'python', 'ruby'],
       reviewTypes: ['best-practices', 'security-review', 'performance-review']
