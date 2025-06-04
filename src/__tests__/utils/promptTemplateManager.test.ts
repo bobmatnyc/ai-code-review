@@ -87,7 +87,7 @@ describe('promptTemplateManager', () => {
     });
     
     // Mock listAvailableTemplates
-    (listAvailableTemplates as any).mockResolvedValue([]);
+    (listAvailableTemplates as any).mockResolvedValue({
       frameworks: ['react', 'angular', 'vue'],
       languages: ['typescript', 'python', 'ruby'],
       reviewTypes: ['best-practices', 'security-review', 'performance-review']

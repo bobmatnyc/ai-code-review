@@ -13,7 +13,7 @@
     "start": "node dist/index.js",
     "dev": "ts-node --transpile-only src/index.ts",
     "local": "ts-node --transpile-only -r tsconfig-paths/register src/index.ts",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint . --ext .ts --max-warnings 1000",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "npm run validate:prompts && vitest run",
     "test:e2e": "node scripts/e2e-test.js",
