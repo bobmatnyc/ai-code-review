@@ -174,30 +174,6 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should extract top-level declarations', async () => {
-      // Mock the AST traversal to return declarations
-      const mockRootNode = {
-        hasError: vi.fn().mockReturnValue(false),
-        type: 'program',
-        startPosition: { row: 0, column: 0 },
-        endPosition: { row: 20, column: 0 },
-        children: [
-          {
-            type: 'interface_declaration',
-            startPosition: { row: 2, column: 0 },
-            endPosition: { row: 5, column: 1 },
-            children: [{ type: 'identifier', text: 'User' }],
-            text: 'interface User'
-          },
-          {
-            type: 'class_declaration',
-            startPosition: { row: 7, column: 0 },
-            endPosition: { row: 17, column: 1 },
-            children: [{ type: 'identifier', text: 'UserService' }],
-            text: 'export class UserService'
-          }
-        ],
-        text: typescriptCode
-      };
       // Skip this test - mocking needs refactoring
       // TODO: Fix TreeSitter mocking approach
 
@@ -258,15 +234,6 @@ describe('SemanticAnalyzer', () => {
 
   describe('Error Handling', () => {
     it('should handle parse errors gracefully', async () => {
-      const mockRootNode = {
-        hasError: vi.fn().mockReturnValue(true),
-        type: 'program',
-        startPosition: { row: 0, column: 0 },
-        endPosition: { row: 1, column: 0 },
-        children: [],
-        text: 'invalid code'
-      };
-
       // Skip this test - mocking needs refactoring
       // TODO: Fix TreeSitter mocking approach
 
