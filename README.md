@@ -1,10 +1,10 @@
-# AI Code Review v4.0.1
+# AI Code Review v4.0.2
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
 
-## What's New in v4.0.1
+## What's New in v4.0.2
 
-### Fixed in v4.0.1
+### Fixed in v4.0.2
 - **🔧 Complete TypeScript Error Resolution**: Fixed all 15 TypeScript compilation errors that were preventing clean builds
   - Resolved parameter mismatches in TokenAnalysisOptions requiring reviewType and modelName
   - Fixed ReviewType casting issues with proper type assertions
@@ -22,7 +22,7 @@ This release focuses on build stability and code quality, ensuring a solid found
 
 ## Version History
 
-### v4.0.1 (2025-01-21)
+### v4.0.2 (2025-01-21)
 - **🔧 TypeScript Compilation**: Fixed all 15 TypeScript compilation errors in test files
 - **🧹 Code Quality**: Eliminated all ESLint errors, cleaned up unused imports and variables
 - **✅ Build Pipeline**: Achieved stable, error-free build process ready for production
