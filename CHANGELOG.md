@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.1] - 2025-01-21
+
+### Fixed
+- **🔧 TypeScript Compilation Errors**
+  - Fixed all 15 TypeScript compilation errors in test files
+  - Resolved TokenAnalysisOptions parameter mismatches with required reviewType and modelName
+  - Fixed ReviewType casting issues with proper 'as const' assertions
+  - Added missing multiPass property to test options objects
+  - Fixed estimateMultiPassReviewCost function calls with correct parameter structure
+  - Fixed readline.createInterface() calls with proper input/output arguments
+  - Fixed Interface mocking with proper type assertions
+
+- **🧹 Code Quality Improvements**
+  - Eliminated all ESLint errors (0 errors, 373 warnings under limit)
+  - Removed unused imports and variables across semantic analysis modules
+  - Fixed type mismatches in ChunkGenerator and SemanticChunkingIntegration
+  - Cleaned up unused interfaces and code structure
+  - Added proper SystemStats interface for getStats return type
+
+- **✅ Build Pipeline**
+  - All TypeScript compilation now passes cleanly
+  - ESLint shows 0 errors with warnings under configured limit
+  - Core build infrastructure fully operational
+  - Ready for stable v4.0.1 publication
+
 ## [4.0.0] - 2025-06-04
 
 ### Added
