@@ -13,38 +13,12 @@ import {
   Declaration,
   ChunkingStrategy,
   ChunkingRecommendation,
-  CodeChunk,
-  ReviewPriority,
-  ComplexityMetrics,
-  ImportRelationship
+  ReviewPriority
 } from './types';
 
-/**
- * AI-generated chunking plan for a specific chunk
- */
-interface AiChunkPlan {
-  chunkId: string;
-  type: string;
-  declarations: string[];
-  reasoning: string;
-  estimatedTokens: number;
-  priority: ReviewPriority;
-}
 
-/**
- * AI response for chunking recommendations
- */
-interface AiChunkingResponse {
-  recommendedStrategy: ChunkingStrategy;
-  reasoning: string;
-  estimatedChunks: number;
-  chunkingPlan: AiChunkPlan[];
-  alternativeStrategy?: {
-    strategy: ChunkingStrategy;
-    reasoning: string;
-  };
-  optimizations?: string[];
-}
+
+
 
 /**
  * Configuration for AI-guided chunking
@@ -185,7 +159,7 @@ export class AiGuidedChunking {
   /**
    * Map AI type string to ReviewUnit
    */
-  private mapTypeToReviewUnit(type: string): any {
+  private mapTypeToReviewUnit(type: string): string {
     const typeMap: Record<string, string> = {
       'function': 'function',
       'class': 'class',
@@ -201,7 +175,7 @@ export class AiGuidedChunking {
   /**
    * Determine review focus based on declarations
    */
-  private determineReviewFocus(declarations: Declaration[], analysis: SemanticAnalysis): any[] {
+  private determineReviewFocus(declarations: Declaration[], _analysis: SemanticAnalysis): string[] {
     const focuses = [];
     
     if (declarations.some(d => d.type === 'class')) {

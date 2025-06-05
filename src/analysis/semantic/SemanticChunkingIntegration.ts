@@ -9,12 +9,10 @@
 import logger from '../../utils/logger';
 import { SemanticAnalysisConfig } from './types';
 import { SemanticAnalyzer } from './SemanticAnalyzer';
-import { ChunkGenerator } from './ChunkGenerator';
+import { ChunkGenerator, ChunkGeneratorConfig } from './ChunkGenerator';
 import { 
   SemanticAnalysis, 
-  SemanticAnalysisResult, 
   CodeChunk, 
-  ChunkingRecommendation,
   ReviewFocus
 } from './types';
 import { FileInfo } from '../../types/review';
@@ -60,7 +58,7 @@ export interface ChunkingIntegrationConfig {
   /** Semantic analysis system configuration */
   semanticConfig?: {
     analyzer?: Partial<SemanticAnalysisConfig>;
-    chunkGenerator?: any;
+    chunkGenerator?: Partial<ChunkGeneratorConfig>;
   };
 }
 
@@ -205,7 +203,6 @@ export class SemanticChunkingIntegration {
       // Use chunk content if available, otherwise classify by declarations
       const chunkText = chunk.content || '';
       const declarations = chunk.declarations || [];
-      const chunkType = chunk.type || 'other';
       
       // Classify chunks based on content patterns or declaration types
       const hasInterface = chunkText.includes('interface ') || declarations.some(d => d.type === 'interface');
@@ -285,7 +282,7 @@ export class SemanticChunkingIntegration {
 
     return {
       id: `semantic_batch_${groupType}_${batchNumber}`,
-      type: 'module' as any,
+      type: 'module',
       lines: [
         Math.min(...chunks.map(c => c.lines?.[0] || 1)),
         Math.max(...chunks.map(c => c.lines?.[1] || 1))
@@ -465,7 +462,7 @@ export class SemanticChunkingIntegration {
       reviewType?: string;
     }
   ): 'semantic' | 'traditional' {
-    const { forceSemantic, forceTraditional, reviewType } = options;
+    const { forceSemantic, forceTraditional } = options;
 
     // Forced strategies
     if (forceSemantic) return 'semantic';
@@ -562,7 +559,7 @@ export class SemanticChunkingIntegration {
           chunkingResult.chunks = consolidatedChunks;
           // Add file-specific prefix to chunk IDs to avoid conflicts
           const filePrefix = this.sanitizeFileName(file.path);
-          const fileChunks = chunkingResult.chunks.map((chunk: any) => ({
+          const fileChunks = chunkingResult.chunks.map((chunk: CodeChunk) => ({
             ...chunk,
             id: `${filePrefix}_${chunk.id}`
           }));
@@ -573,7 +570,7 @@ export class SemanticChunkingIntegration {
             primaryAnalysis = analysisResult.analysis!;
           }
         } else {
-          errors.push(`Semantic analysis failed for ${file.path}: ${analysisResult.errors.map((e: any) => e.message || e).join(', ')}`);
+          errors.push(`Semantic analysis failed for ${file.path}: ${analysisResult.errors.map((e) => (typeof e === 'object' && e.message ? e.message : e.toString())).join(', ')}`);
         }
       }
 
@@ -753,7 +750,7 @@ export class SemanticChunkingIntegration {
   /**
    * Get system statistics
    */
-  public getStats() {
+  public getStats(): object {
     return {
       config: this.config,
       supportedLanguages: this.semanticAnalyzer.getSupportedLanguages(),

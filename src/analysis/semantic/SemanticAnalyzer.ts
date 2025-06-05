@@ -682,7 +682,7 @@ export class SemanticAnalyzer {
    */
   private createImportRelationship(
     node: Parser.SyntaxNode, 
-    lines: string[]
+    _lines: string[]
   ): ImportRelationship | null {
     try {
       return {
