@@ -12,8 +12,7 @@ import {
   SemanticAnalysis,
   Declaration,
   ChunkingStrategy,
-  ChunkingRecommendation,
-  ReviewPriority
+  ChunkingRecommendation
 } from './types';
 
 
