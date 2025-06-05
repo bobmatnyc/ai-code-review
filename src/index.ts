@@ -227,7 +227,7 @@ import { handleSyncGitHubProjectsCommand } from './commands/syncGithubProjects';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '4.0.0';
+const VERSION = '4.0.1';
 
 // Main function to run the application
 async function main() {
