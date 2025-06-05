@@ -204,16 +204,20 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
   test('should automatically enable multi-pass when noConfirm is true', async () => {
     // Get access to the mocked readline module
     const mockedReadline = vi.mocked(readline);
-    const mockInterface = mockedReadline.createInterface();
+    const mockInterface = mockedReadline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
     const mockQuestion = mockInterface?.question || vi.fn();
     
     // Create test options with noConfirm set to true
     const options = {
-      type: 'quick-fixes',
+      type: 'quick-fixes' as const,
       output: 'markdown',
       includeTests: false,
       includeProjectDocs: true,
-      noConfirm: true
+      noConfirm: true,
+      multiPass: false
     };
     
     // Create our test implementation of orchestrateReview
@@ -222,7 +226,10 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       // Focus only on the code path that handles noConfirm and multiPass
       
       // Call TokenAnalyzer to simulate the analysis that finds chunking necessary
-      vi.mocked(TokenAnalyzer.analyzeFiles)([], {});
+      vi.mocked(TokenAnalyzer.analyzeFiles)([], {
+        reviewType: 'quick-fixes',
+        modelName: 'gemini:gemini-1.5-pro'
+      });
       
       // Simulate estimating multi-pass cost
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
@@ -265,26 +272,32 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     mockedReadline.createInterface.mockReturnValue({
       question: vi.fn((question, callback) => callback('y')),
       close: vi.fn()
-    });
+    } as any);
     
     // Create options without noConfirm
     const options = {
-      type: 'quick-fixes',
+      type: 'quick-fixes' as const,
       output: 'markdown',
       includeTests: false,
-      includeProjectDocs: true
-      // noConfirm is not set
+      includeProjectDocs: true,
+      multiPass: false
     };
     
     // Create our test implementation of orchestrateReview
     const orchestrateReviewImpl = async (target: string, opts: any) => {
       // Simplified implementation that just handles confirmation
-      vi.mocked(TokenAnalyzer.analyzeFiles)([], {});
+      vi.mocked(TokenAnalyzer.analyzeFiles)([], {
+        reviewType: 'quick-fixes',
+        modelName: 'gemini:gemini-1.5-pro'
+      });
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
       
       // Simulate the confirmation process
       if (!opts.noConfirm) {
-        const rl = mockedReadline.createInterface();
+        const rl = mockedReadline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
         
         await new Promise<void>((resolve) => {
           rl.question('Proceed with multi-pass review? (y/N): ', (answer: string) => {
@@ -313,7 +326,10 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       expect(estimateMultiPassReviewCost).toHaveBeenCalled();
       
       // Readline.question should be called because noConfirm is not set
-      expect(mockedReadline.createInterface().question).toHaveBeenCalled();
+      expect(mockedReadline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      }).question).toHaveBeenCalled();
     } finally {
       // Restore the original implementation
       vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
@@ -332,26 +348,32 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     mockedReadline.createInterface.mockReturnValue({
       question: vi.fn((question, callback) => callback('n')),
       close: vi.fn()
-    });
+    } as any);
     
     // Create options without noConfirm
     const options = {
-      type: 'quick-fixes',
+      type: 'quick-fixes' as const,
       output: 'markdown',
       includeTests: false,
-      includeProjectDocs: true
-      // noConfirm is not set
+      includeProjectDocs: true,
+      multiPass: false
     };
     
     // Create our test implementation of orchestrateReview
     const orchestrateReviewImpl = async (target: string, opts: any) => {
       // Simplified implementation that handles confirmation and exit
-      vi.mocked(TokenAnalyzer.analyzeFiles)([], {});
+      vi.mocked(TokenAnalyzer.analyzeFiles)([], {
+        reviewType: 'quick-fixes',
+        modelName: 'gemini:gemini-1.5-pro'
+      });
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
       
       // Simulate the confirmation process
       if (!opts.noConfirm) {
-        const rl = mockedReadline.createInterface();
+        const rl = mockedReadline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
         
         await new Promise<void>((resolve) => {
           rl.question('Proceed with multi-pass review? (y/N): ', (answer: string) => {
@@ -379,7 +401,10 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       
       // Verify that process.exit was called when user said 'n'
       expect(mockExit).toHaveBeenCalledWith(0);
-      expect(mockedReadline.createInterface().question).toHaveBeenCalled();
+      expect(mockedReadline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      }).question).toHaveBeenCalled();
     } finally {
       // Restore the original implementation
       vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
