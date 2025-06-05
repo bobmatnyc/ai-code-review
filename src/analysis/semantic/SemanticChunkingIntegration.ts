@@ -63,6 +63,19 @@ export interface ChunkingIntegrationConfig {
 }
 
 /**
+ * System statistics interface
+ */
+interface SystemStats {
+  config: ChunkingIntegrationConfig;
+  supportedLanguages: string[];
+  cacheSize: number;
+  semanticSystemStats: {
+    size: number;
+    enabled: boolean;
+  };
+}
+
+/**
  * Default configuration
  */
 const DEFAULT_CONFIG: ChunkingIntegrationConfig = {
@@ -750,7 +763,7 @@ export class SemanticChunkingIntegration {
   /**
    * Get system statistics
    */
-  public getStats(): object {
+  public getStats(): SystemStats {
     return {
       config: this.config,
       supportedLanguages: this.semanticAnalyzer.getSupportedLanguages(),

@@ -25,7 +25,7 @@ describe('bundledPrompts', () => {
         const prompt = getBundledPrompt(reviewType);
         expect(prompt).toBeDefined();
         expect(typeof prompt).toBe('string');
-        expect(prompt.length).toBeGreaterThan(100); // Ensure it's a substantial prompt
+        expect(prompt!.length).toBeGreaterThan(100); // Ensure it's a substantial prompt
       }
     });
 
