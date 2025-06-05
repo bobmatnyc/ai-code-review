@@ -304,7 +304,6 @@ export async function orchestrateReview(
         
         // Use the new TokenAnalyzer for more comprehensive analysis
         const { TokenAnalyzer } = await import('../analysis/tokens');
-        const { SemanticChunkingIntegration } = await import('../analysis/semantic');
         const { estimateMultiPassReviewCost } = await import('../utils/estimationUtils');
         
         const tokenAnalysisOptions = {
@@ -317,7 +316,6 @@ export async function orchestrateReview(
         const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
         
         // Try semantic chunking for intelligent code analysis
-        let semanticChunks: any = null;
         try {
           const { SemanticChunkingIntegration } = await import('../analysis/semantic');
           const semanticIntegration = new SemanticChunkingIntegration({
@@ -338,7 +336,7 @@ export async function orchestrateReview(
             });
             
             if (!semanticResult.fallbackUsed && semanticResult.chunks.length > 0) {
-              semanticChunks = semanticResult;
+              // semanticChunks = semanticResult; // Commented out - unused variable
               logger.info(`✅ Semantic analysis complete:`);
               logger.info(`   • Method: ${semanticResult.method}`);
               logger.info(`   • Chunks discovered: ${semanticResult.chunks.length}`);
@@ -625,8 +623,7 @@ export async function orchestrateReview(
         
         const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
         
-        // Try semantic chunking for intelligent code analysis
-        let semanticChunks: any = null;
+        // Try semantic chunking for intelligent code analysis  
         try {
           const { SemanticChunkingIntegration } = await import('../analysis/semantic');
           const semanticIntegration = new SemanticChunkingIntegration({
@@ -648,7 +645,7 @@ export async function orchestrateReview(
             });
             
             if (!semanticResult.fallbackUsed && semanticResult.chunks.length > 0) {
-              semanticChunks = semanticResult;
+              // semanticChunks = semanticResult; // Commented out - unused variable
               logger.info(`✅ Semantic chunking complete:`);
               logger.info(`   • Method: ${semanticResult.method} (intelligent code-aware)`);
               logger.info(`   • Semantic chunks: ${semanticResult.chunks.length}`);
