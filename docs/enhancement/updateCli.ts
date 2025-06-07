@@ -16,7 +16,7 @@ import logger from '../src/utils/logger';
  * @param args Command-line arguments
  * @returns Updated arguments with auto-detected language if not specified
  */
-export async function updateCLIWithLanguageDetection(args: any): Promise<any> {
+export async function updateCLIWithLanguageDetection(args: Record<string, unknown>): Promise<Record<string, unknown>> {
   const target = args.target || '.';
   const targetPath = path.resolve(process.cwd(), target);
   

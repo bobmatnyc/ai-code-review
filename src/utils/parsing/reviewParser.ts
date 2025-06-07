@@ -171,7 +171,7 @@ export function extractReviewContent(content: string): string {
  * @returns Formatted issue string
  */
 export function formatIssueForDisplay(
-  issue: any,
+  issue: ReviewIssue,
   fileIndex: number,
   issueIndex: number
 ): string {

@@ -139,7 +139,7 @@ export class OpenAIClient extends AbstractClient {
    * @param requestBody The request body to modify
    * @returns The modified request body
    */
-  private applyModelConfiguration(requestBody: Record<string, any>): Record<string, any> {
+  private applyModelConfiguration(requestBody: Record<string, unknown>): Record<string, unknown> {
     // Use the model configuration registry to build proper parameters
     const fullModelName = this.getFullModelName();
     const configuredParams = buildModelRequestParams(
@@ -198,7 +198,7 @@ export class OpenAIClient extends AbstractClient {
         logger.info(`Generating review with OpenAI ${this.modelName}...`);
         
         // Prepare the API request body
-        const baseRequestBody: Record<string, any> = {
+        const baseRequestBody: Record<string, unknown> = {
           model: this.getApiModelName(),
           messages: [
             {
@@ -346,7 +346,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
         logger.debug(`[O3 DEBUG] About to prepare API request body`);
         
         // Prepare the API request body
-        const baseRequestBody: Record<string, any> = {
+        const baseRequestBody: Record<string, unknown> = {
           model: this.getApiModelName(),
           messages: [
             {
@@ -655,7 +655,7 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
         } else {
           // Regular non-tool calling flow
           // Prepare request body
-          const baseRequestBody: Record<string, any> = {
+          const baseRequestBody: Record<string, unknown> = {
             model: this.getApiModelName(),
             messages: [
               {

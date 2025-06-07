@@ -336,7 +336,7 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
    * @param json JSON object
    * @returns New ReviewContext instance
    */
-  public static fromJSON(json: any): ReviewContext {
+  public static fromJSON(json: Record<string, unknown>): ReviewContext {
     const context = new ReviewContext(
       json.projectName,
       json.reviewType,

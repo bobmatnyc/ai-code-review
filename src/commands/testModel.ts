@@ -57,7 +57,7 @@ export const testModelCommand = new Command('model-test')
 /**
  * Test a specific model identified by provider:model string
  */
-async function testSpecificModel(modelStr: string) {
+async function testSpecificModel(modelStr: string): Promise<void> {
   // Extract provider and model name
   const [provider, modelName] = modelStr.split(':');
 
@@ -112,7 +112,7 @@ async function testSpecificModel(modelStr: string) {
 /**
  * Test all models from all providers
  */
-async function testAllModels() {
+async function testAllModels(): Promise<void> {
   const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
   const results = [];
 

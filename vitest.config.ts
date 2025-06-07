@@ -18,6 +18,9 @@ export default defineConfig({
       }
     }
   },
+  esbuild: {
+    target: 'node14'
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src')

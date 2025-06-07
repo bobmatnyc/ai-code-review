@@ -30,7 +30,7 @@ if (!API_KEY) {
 // Define the model to use
 const MODEL_NAME = 'gemini-1.5-pro';
 
-async function main() {
+async function main(): Promise<void> {
   // Get the review file path from command line arguments
   const reviewFilePath = process.argv[2];
   if (!reviewFilePath) {
