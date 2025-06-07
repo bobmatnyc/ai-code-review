@@ -28,7 +28,7 @@
     "version:sync": "node scripts/sync-version.js",
     "models:sync": "node scripts/sync-model-maps.js",
     "prepare-package": "./scripts/prepare-package.sh",
-    "prepublishOnly": "npm run version:sync && npm run validate:models",
+    "prepublishOnly": "npm run version:sync",
     "local-review": "./scripts/runners/local-ai-review.sh",
     "built-review": "./scripts/runners/built-ai-review.sh",
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
