@@ -199,7 +199,7 @@ export async function testOpenRouterConnection(): Promise<{
       };
     }
 
-    const data = (await response.json()) as { content?: Array<unknown> };
+    const data = (await response.json()) as { choices?: Array<unknown> };
 
     if (data && data.choices && data.choices.length > 0) {
       return {
@@ -274,7 +274,7 @@ export async function testOpenAIConnection(): Promise<{
       };
     }
 
-    const data = (await response.json()) as { content?: Array<unknown> };
+    const data = (await response.json()) as { choices?: Array<unknown> };
 
     if (data && data.choices && data.choices.length > 0) {
       return {
