@@ -307,7 +307,7 @@ export async function initializeAnthropicClient(): Promise<boolean> {
  * @param content Response content to parse
  * @returns Parsed data or null if parsing fails
  */
-export function parseJsonResponse(content: string): any | null {
+export function parseJsonResponse(content: string): unknown | null {
   try {
     // First, check if the response is wrapped in any code block (regardless of language marker)
     const codeBlockMatch = content.match(/```(?:\w+)?\s*([\s\S]*?)\s*```/);

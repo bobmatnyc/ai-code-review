@@ -9,6 +9,7 @@
 // import { z } from 'zod'; // Not currently used
 import {
   ReviewSchema,
+  ReviewIssue,
   IssuePriority,
   reviewSchema
 } from '../../types/reviewSchema';
@@ -171,7 +172,7 @@ export function extractReviewContent(content: string): string {
  * @returns Formatted issue string
  */
 export function formatIssueForDisplay(
-  issue: any,
+  issue: ReviewIssue,
   fileIndex: number,
   issueIndex: number
 ): string {

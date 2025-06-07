@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Function to load environment variables
-function loadEnvVars() {
+function loadEnvVars(): void {
   // Try to load from .env.local first
   const envLocalPath = path.resolve(process.cwd(), '.env.local');
   const result = dotenv.config({ path: envLocalPath });
@@ -74,16 +74,16 @@ export async function runApiConnectionTests(): Promise<void> {
   console.log('API connection tests complete');
 }
 
-// This function is a stub for Jest tests
+// This function is a stub for Vitest tests
 // Used only when this file is imported in test cases
-export function testApiConnections() {
-  // This function contains Jest test cases
-  // It's only used in the test environment via Jest imports
+export function testApiConnections(): void {
+  // This function contains Vitest test cases
+  // It's only used in the test environment via Vitest imports
   // Not used in the main application
 }
 
-// Add test cases when this file is loaded directly by Jest
-// These will run only in Jest environment
+// Add test cases when this file is loaded directly by Vitest
+// These will run only in Vitest environment
 if (typeof describe === 'function') {
   describe('API Connection Tests', () => {
     describe('Google Gemini API', () => {

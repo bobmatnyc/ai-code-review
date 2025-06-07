@@ -5,7 +5,7 @@ import path from 'node:path';
 import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
-async function confirm(prompt: string) {
+async function confirm(prompt: string): Promise<boolean> {
   const rl = readline.createInterface({ input, output });
   const answer = await rl.question(`${prompt} (y/n): `);
   rl.close();
@@ -41,7 +41,7 @@ function runDepcheck(): { unused: string[]; missing: string[] } {
   }
 }
 
-function deleteExport(file: string) {
+function deleteExport(file: string): void {
   try {
     const filePath = path.resolve(file);
     fs.unlinkSync(filePath);
@@ -51,14 +51,14 @@ function deleteExport(file: string) {
   }
 }
 
-function uninstallDeps(deps: string[]) {
+function uninstallDeps(deps: string[]): void {
   if (deps.length === 0) return;
   const cmd = `npm uninstall ${deps.join(' ')}`;
   console.log(`📦 Uninstalling: ${cmd}`);
   execSync(cmd, { stdio: 'inherit' });
 }
 
-async function main() {
+async function main(): Promise<void> {
   console.log('🔍 Running ts-prune...');
   const deadExports = runTsPrune();
   if (deadExports.length === 0) console.log('✅ No unused exports detected.');

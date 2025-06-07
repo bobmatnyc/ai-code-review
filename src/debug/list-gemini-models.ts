@@ -14,7 +14,7 @@ dotenv.config({ path: '.env.local' });
 /**
  * Helper function to get models from the API or fallback to hardcoded list
  */
-async function getModels() {
+async function getModels(): Promise<{ models: any[] }> {
   // Get API key from environment variable
   const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY;
   
@@ -50,7 +50,7 @@ async function getModels() {
 /**
  * Return hardcoded model information
  */
-function getHardcodedModels() {
+function getHardcodedModels(): { models: any[] } {
   return {
     models: [
       { 

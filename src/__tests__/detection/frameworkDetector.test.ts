@@ -6,7 +6,7 @@ import path from 'path';
 import { detectFramework } from '../../utils/detection';
 
 // Get the absolute path to test-projects directory
-const testProjectsPath = path.resolve(__dirname, '../../../test-projects');
+const testProjectsPath = path.resolve(__dirname, '../../../tests/integration-tests/test-projects');
 
 describe('Framework Detection', () => {
   

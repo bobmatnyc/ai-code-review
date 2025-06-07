@@ -77,6 +77,7 @@ describe('ChunkGenerator', () => {
       maxNestingDepth: 3,
       functionCount: 5,
       classCount: 1,
+      totalDeclarations: 6,
       linesOfCode: 80,
       ...complexity
     },
@@ -85,7 +86,8 @@ describe('ChunkGenerator', () => {
       chunks: [],
       crossReferences: [],
       reasoning: 'Test strategy',
-      estimatedTokens: 400
+      estimatedTokens: 400,
+      estimatedChunks: 2
     },
     filePath: 'test.ts',
     analyzedAt: new Date()
@@ -225,9 +227,9 @@ describe('ChunkGenerator', () => {
   describe('Hierarchical Chunking Strategy', () => {
     it('should handle classes hierarchically', () => {
       const methodDeclarations = [
-        createMockDeclaration('constructor', 'method', 5, 8, 2, 'internal', [], 'public'),
-        createMockDeclaration('publicMethod', 'method', 10, 20, 5, 'internal', [], 'public'),
-        createMockDeclaration('privateMethod', 'method', 25, 35, 3, 'internal', [], 'private')
+        createMockDeclaration('constructor', 'method', 5, 8, 2, 'internal', []),
+        createMockDeclaration('publicMethod', 'method', 10, 20, 5, 'internal', []),
+        createMockDeclaration('privateMethod', 'method', 25, 35, 3, 'internal', [])
       ];
 
       const classDeclaration = createMockDeclaration('UserClass', 'class', 1, 40, 10, 'exported');
