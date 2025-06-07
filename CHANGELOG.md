@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2025-06-07
+
+### Changed
+- Repurposed `-i` as alias for `--interactive` instead of `--individual`
+  - The `-i` shorthand now maps to `--interactive` for better user experience
+  - Interactive mode can now be invoked with both `-i` and `--interactive` flags
+
+### Deprecated
+- **DEPRECATED**: `--individual` flag is now deprecated and will be removed in a future version
+  - Single-file behavior is automatically determined by the target
+  - The flag currently has no effect as the functionality is automatic
+  - IndividualReviewStrategy and related code have been removed internally
+
+### Improved
+- Simplified codebase by removing redundant individual file review mode logic
+- Better user experience with `-i` now intuitively mapping to interactive mode
+- Cleaner architecture without unnecessary strategy implementations
+
 ## [4.0.2] - 2025-01-21
 
 ### Fixed

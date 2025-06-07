@@ -432,9 +432,9 @@ Options:
   -d, --include-project-docs  Include README.md and other project docs in the AI context for better understanding (default: true)
   --include-dependency-analysis Include dependency analysis in architectural reviews (default: true)
   -c, --consolidated      Generate a single consolidated review (default: true)
-  --individual            Generate separate reviews for each file instead of one consolidated review (default: false)
   
   # Interactive Mode Options
+  -i, --interactive       Run in interactive mode, processing review results in real-time (default: false)
   --auto-fix              Automatically implement high-priority fixes without confirmation in interactive mode (default: true)
   --prompt-all            Ask for confirmation on all fixes, including high priority ones (overrides --auto-fix) (default: false)
   
@@ -502,7 +502,7 @@ ai-code-review-docs/openai-gpt-4o-quick-fixes-review-src-2024-04-06.md
 ai-code-review-docs/gemini-1.5-pro-architectural-review-src-utils-2024-04-06.md
 ```
 
-If you use the `--individual` flag, each file will have its own review file with a path structure matching the source:
+When reviewing a single file, the output filename will include the specific file name:
 
 ```
 ai-code-review-docs/[ai-model]-[review-type]-[file-name]-[date].md

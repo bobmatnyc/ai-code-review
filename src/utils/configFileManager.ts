@@ -26,7 +26,6 @@ export interface JsonConfig {
     include_project_docs?: boolean;
     include_dependency_analysis?: boolean;
     consolidated?: boolean;
-    individual?: boolean;
     trace_code?: boolean;
     use_ts_prune?: boolean;
     use_eslint?: boolean;
@@ -145,9 +144,6 @@ export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions)
     if (config.review.consolidated !== undefined && newOptions.consolidated === undefined) {
       newOptions.consolidated = config.review.consolidated;
     }
-    if (config.review.individual !== undefined && newOptions.individual === undefined) {
-      newOptions.individual = config.review.individual;
-    }
     if (config.review.trace_code !== undefined && newOptions.traceCode === undefined) {
       newOptions.traceCode = config.review.trace_code;
     }
@@ -255,7 +251,6 @@ export function generateSampleConfig(): string {
       include_tests: false,
       include_project_docs: true,
       include_dependency_analysis: true,
-      individual: false,
       trace_code: false,
       use_ts_prune: false,
       use_eslint: false,

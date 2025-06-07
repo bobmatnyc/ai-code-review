@@ -6,28 +6,17 @@
  * context-aware code review processing.
  */
 
-// Export all types
+// Export all types first
 export * from './types';
+
+// Import the types we need
+import { SemanticAnalysisResult, SemanticAnalysisError, ChunkingRecommendation, ReviewFocus } from './types';
 
 // Export main classes
 export { SemanticAnalyzer, semanticAnalyzer, analyzeCodeSemantics } from './SemanticAnalyzer';
 export { ChunkGenerator, chunkGenerator, generateSemanticChunks } from './ChunkGenerator';
 export { SemanticChunkingIntegration } from './SemanticChunkingIntegration';
 export { AiGuidedChunking, aiGuidedChunking } from './AiGuidedChunking';
-
-// Re-export key types for convenience
-export type {
-  SemanticAnalysis,
-  SemanticAnalysisResult,
-  SemanticAnalysisConfig,
-  Declaration,
-  CodeChunk,
-  ChunkingRecommendation,
-  ChunkingStrategy,
-  ReviewUnit,
-  ReviewPriority,
-  ReviewFocus
-} from './types';
 
 import { SemanticAnalyzer } from './SemanticAnalyzer';
 import { ChunkGenerator } from './ChunkGenerator';
@@ -57,13 +46,27 @@ export interface SemanticAnalysisSystemConfig {
 }
 
 /**
+ * Extended result that includes chunking information
+ */
+export interface SemanticAnalysisSystemResult extends SemanticAnalysisResult {
+  chunking?: ChunkingRecommendation;
+  metadata?: {
+    filePath: string;
+    language: string;
+    reviewType: string;
+    analyzedAt: Date;
+    fallbackReason?: string;
+  };
+}
+
+/**
  * Integrated semantic analysis system
  */
 export class SemanticAnalysisSystem {
   private analyzer: SemanticAnalyzer;
   private chunkGenerator: ChunkGenerator;
   private config: SemanticAnalysisSystemConfig;
-  private cache: Map<string, SemanticAnalysisResult> = new Map();
+  private cache: Map<string, SemanticAnalysisSystemResult> = new Map();
 
   constructor(config: SemanticAnalysisSystemConfig = {}) {
     this.config = {
@@ -87,7 +90,7 @@ export class SemanticAnalysisSystem {
       reviewType?: string;
       useCache?: boolean;
     } = {}
-  ): Promise<SemanticAnalysisResult> {
+  ): Promise<SemanticAnalysisSystemResult> {
     const {
       language,
       reviewType = 'quick-fixes',
@@ -98,7 +101,7 @@ export class SemanticAnalysisSystem {
     const cacheKey = this.generateCacheKey(content, filePath, language, reviewType);
     if (useCache && this.cache.has(cacheKey)) {
       logger.debug(`Using cached analysis for ${filePath}`);
-      return this.cache.get(cacheKey);
+      return this.cache.get(cacheKey)!;
     }
 
     try {
@@ -173,8 +176,8 @@ export class SemanticAnalysisSystem {
     content: string,
     filePath: string,
     reviewType: string,
-    errors: Array<{ type: string; message: string }>
-  ): SemanticAnalysisResult {
+    errors: SemanticAnalysisError[]
+  ): SemanticAnalysisSystemResult {
     const lines = content.split('\n');
     const chunkSize = Math.min(500, Math.max(50, lines.length / 4));
     const chunks = [];
@@ -197,13 +200,14 @@ export class SemanticAnalysisSystem {
     }
 
     return {
-      analysis: null,
+      analysis: undefined,
       chunking: {
         strategy: 'individual' as const,
         chunks,
         crossReferences: [],
         reasoning: 'Used fallback line-based chunking due to semantic analysis failure',
-        estimatedTokens: lines.length * 4
+        estimatedTokens: lines.length * 4,
+        estimatedChunks: chunks.length
       },
       errors,
       success: false,
@@ -213,8 +217,7 @@ export class SemanticAnalysisSystem {
         language: 'unknown',
         reviewType,
         analyzedAt: new Date(),
-        totalChunks: chunks.length,
-        totalTokens: lines.length * 4
+        fallbackReason: 'Semantic analysis failed'
       }
     };
   }
@@ -222,8 +225,8 @@ export class SemanticAnalysisSystem {
   /**
    * Get default review focus for a review type
    */
-  private getDefaultReviewFocus(reviewType: string): string[] {
-    const focusMap: Record<string, string[]> = {
+  private getDefaultReviewFocus(reviewType: string): ReviewFocus[] {
+    const focusMap: Record<string, ReviewFocus[]> = {
       'quick-fixes': ['maintainability', 'performance'],
       'architectural': ['architecture', 'type_safety', 'maintainability'],
       'security': ['security', 'error_handling'],

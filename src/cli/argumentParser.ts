@@ -56,12 +56,6 @@ export function parseArguments(): any {
             choices: validReviewTypes,
             default: 'quick-fixes'
           })
-          .option('individual', {
-            alias: 'i',
-            describe: 'Generate individual reviews for each file instead of a consolidated review',
-            type: 'boolean',
-            default: false
-          })
           .option('output', {
             alias: 'o',
             describe: 'Output format (markdown or json)',
@@ -99,6 +93,7 @@ export function parseArguments(): any {
             default: process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'false' ? false : true
           })
           .option('interactive', {
+            alias: 'i',
             describe: 'Run in interactive mode, processing review results in real-time',
             type: 'boolean',
             default: false
@@ -331,7 +326,6 @@ export function mapArgsToReviewOptions(
 ): ReviewOptions & { target: string } & { apiKeys?: Record<string, string> } {
   const options: ReviewOptions & { target: string } & { apiKeys?: Record<string, string> } = {
     type: argv.type as ReviewType,
-    individual: argv.individual,
     output: argv.output,
     outputDir: argv.outputDir,
     model: argv.model,
