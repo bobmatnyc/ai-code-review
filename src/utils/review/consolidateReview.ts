@@ -94,7 +94,7 @@ export async function consolidateReview(
         
         const { fetchWithRetry } = await import('../../clients/base/httpClient');
         
-        const requestBody: any = {
+        const requestBody: { model: string; messages: Array<{ role: string; content: string }>; max_tokens?: number; temperature?: number } = {
           model: modelName,
           messages: [
             {

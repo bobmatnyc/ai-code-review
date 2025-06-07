@@ -218,7 +218,7 @@ import { reviewCode } from './commands/reviewCode';
 import { testModelCommand } from './commands/testModel';
 import { testBuildCommand } from './commands/testBuild';
 import { runApiConnectionTests } from './__tests__/apiConnection.test';
-import { parseArguments, mapArgsToReviewOptions } from './cli/argumentParser';
+import { parseArguments, mapArgsToReviewOptions, CliOptions } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
 import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
@@ -308,7 +308,7 @@ async function main() {
     await loadEnvVariables();
 
     // Load and validate configuration with CLI overrides
-    const config = getConfig(args);
+    const config = getConfig(args as CliOptions);
 
     // Check if we have any API keys
     if (!hasAnyApiKey()) {

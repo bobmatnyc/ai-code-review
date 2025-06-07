@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 // Mock the exit function before any imports
 global.process.exit = vi.fn(() => {
   throw new Error('process.exit called');
-}) as any;
+}) as unknown as typeof process.exit;
 
 // Mock all dependencies
 vi.mock('../../core/reviewOrchestrator', () => ({

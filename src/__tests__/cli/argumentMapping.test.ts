@@ -47,7 +47,7 @@ describe('CLI Argument Mapping Integration Tests', () => {
     // Reset the mockExit function
     mockExit.mockReset();
     // Ensure the orchestrateReview mock returns a resolved promise
-    (orchestrateReview as any).mockResolvedValue(undefined);
+    (orchestrateReview as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
