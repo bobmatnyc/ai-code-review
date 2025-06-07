@@ -31,8 +31,6 @@ export type ReviewType =
 export interface ReviewOptions {
   /** Type of review to perform */
   type: ReviewType;
-  /** Whether to generate individual reviews for each file */
-  individual?: boolean;
   /** Output format (markdown or json) */
   output?: string;
   /** Directory to save review output */

@@ -34,7 +34,7 @@ describe('reviewParser', () => {
         explanation: 'This is why the code should be fixed'
       };
 
-      const result = formatIssueForDisplay(issue, 0, 0);
+      const result = formatIssueForDisplay(issue, 'src/example.ts', 0, 0);
 
       expect(result).toContain('Issue 1.1');
       expect(result).toContain('[HIGH]');
@@ -60,7 +60,7 @@ describe('reviewParser', () => {
         explanation: 'This is why the code should be fixed'
       };
 
-      const result = formatIssueForDisplay(issue, 1, 0);
+      const result = formatIssueForDisplay(issue, 'src/example.ts', 1, 0);
 
       expect(result).toContain('Issue 2.1');
       expect(result).toContain('[MEDIUM]');
@@ -82,7 +82,7 @@ describe('reviewParser', () => {
         explanation: 'This is why the code should be fixed'
       };
 
-      const result = formatIssueForDisplay(issue, 2, 0);
+      const result = formatIssueForDisplay(issue, 'src/example.ts', 2, 0);
 
       expect(result).toContain('Issue 3.1');
       expect(result).toContain('[LOW]');

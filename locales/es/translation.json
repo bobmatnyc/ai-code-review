@@ -35,10 +35,6 @@
       "description": "Ejecutar en modo interactivo con retroalimentación en tiempo real",
       "default": "false"
     },
-    "individual": {
-      "description": "Procesar cada archivo individualmente en lugar de una revisión consolidada",
-      "default": "false"
-    },
     "include-tests": {
       "description": "Incluir archivos de prueba en la revisión",
       "default": "false"

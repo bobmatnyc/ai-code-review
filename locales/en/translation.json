@@ -35,10 +35,6 @@
       "description": "Run in interactive mode with real-time feedback",
       "default": "false"
     },
-    "individual": {
-      "description": "Process each file individually instead of a consolidated review",
-      "default": "false"
-    },
     "include-tests": {
       "description": "Include test files in the review",
       "default": "false"

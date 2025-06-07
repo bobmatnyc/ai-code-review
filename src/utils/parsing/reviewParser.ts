@@ -167,12 +167,14 @@ export function extractReviewContent(content: string): string {
 /**
  * Format an issue for display in the console
  * @param issue The issue to format
+ * @param filePath Path to the file containing the issue
  * @param fileIndex Index of the file
  * @param issueIndex Index of the issue
  * @returns Formatted issue string
  */
 export function formatIssueForDisplay(
   issue: ReviewIssue,
+  filePath: string,
   fileIndex: number,
   issueIndex: number
 ): string {
@@ -189,7 +191,7 @@ export function formatIssueForDisplay(
 
   let output = `\n${bold}Issue ${fileIndex + 1}.${issueIndex + 1}: ${priorityColor}[${issue.priority}]${reset}${bold} ${issue.id}${reset}\n`;
   output += `${bold}Description:${reset} ${issue.description}\n`;
-  output += `${bold}File:${reset} ${issue.filePath}\n`;
+  output += `${bold}File:${reset} ${filePath}\n`;
   output += `${bold}Location:${reset} Lines ${issue.location.startLine}-${issue.location.endLine}\n\n`;
 
   output += `${bold}Current Code:${reset}\n`;
@@ -235,6 +237,7 @@ export function displayStructuredReview(parsedReview: ReviewSchema): void {
     file.issues.forEach((issue, issueIndex) => {
       const formattedIssue = formatIssueForDisplay(
         issue,
+        file.filePath,
         fileIndex,
         issueIndex
       );

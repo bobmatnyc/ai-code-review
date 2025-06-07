@@ -9,8 +9,7 @@
 import { AbstractStrategy } from '../base';
 import {
   ArchitecturalReviewStrategy,
-  ConsolidatedReviewStrategy,
-  IndividualReviewStrategy
+  ConsolidatedReviewStrategy
 } from '../implementations';
 import { ReviewOptions, ReviewType, FileInfo, ReviewResult } from '../../types/review';
 import { PluginManager } from '../../plugins/PluginManager';
@@ -104,12 +103,6 @@ export class StrategyFactory {
     if (options.type === 'architectural') {
       logger.info('Creating architectural review strategy');
       return new ArchitecturalReviewStrategy();
-    }
-    
-    // Check if this is an individual file review
-    if (options.individual) {
-      logger.info(`Creating individual review strategy for type: ${options.type}`);
-      return new IndividualReviewStrategy(options.type);
     }
     
     // Default to consolidated review strategy

@@ -7,4 +7,3 @@
 
 export * from './architecturalReviewStrategy';
 export * from './consolidatedReviewStrategy';
-export * from './individualReviewStrategy';

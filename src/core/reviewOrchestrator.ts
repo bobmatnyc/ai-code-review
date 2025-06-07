@@ -142,11 +142,7 @@ export async function orchestrateReview(
     }
 
     // Log the review type
-    if (options.individual) {
-      logger.info(
-        `Starting individual ${options.type} reviews for ${effectiveTarget}...`
-      );
-    } else if (options.type === 'architectural') {
+    if (options.type === 'architectural') {
       logger.info(`Starting architectural review for ${effectiveTarget}...`);
     } else {
       logger.info(
@@ -443,18 +439,6 @@ export async function orchestrateReview(
       return; // Exit after displaying the estimation
     }
 
-    // Check if interactive mode is appropriate for individual reviews
-    // Interactive mode with individual reviews only makes sense for a single file
-    // because we can't effectively display multiple individual reviews interactively
-    if (options.interactive && options.individual && filesToReview.length > 1) {
-      logger.warn(
-        'Interactive mode with individual reviews is only supported for single file reviews.'
-      );
-      logger.warn(
-        'Switching to consolidated review mode for interactive review of multiple files.'
-      );
-      options.individual = false; // Force consolidated mode for multiple files in interactive mode
-    }
 
     // Create output directory for reviews
     const actualProjectName = projectName || 'unknown-project';
@@ -596,7 +580,7 @@ export async function orchestrateReview(
     }
     
     // Perform token analysis to check if content exceeds context window
-    if (!options.multiPass && !options.individual) {
+    if (!options.multiPass) {
       try {
         logger.info('Analyzing token usage to determine review strategy...');
         

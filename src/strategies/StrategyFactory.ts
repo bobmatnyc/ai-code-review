@@ -8,7 +8,6 @@
 import { ReviewOptions, ReviewType } from '../types/review';
 import { IReviewStrategy } from './ReviewStrategy';
 import { ConsolidatedReviewStrategy } from './ConsolidatedReviewStrategy';
-import { IndividualReviewStrategy } from './IndividualReviewStrategy';
 import { ArchitecturalReviewStrategy } from './ArchitecturalReviewStrategy';
 import { UnusedCodeReviewStrategy } from './UnusedCodeReviewStrategy';
 import { FocusedUnusedCodeReviewStrategy } from './FocusedUnusedCodeReviewStrategy';
@@ -52,9 +51,7 @@ export class StrategyFactory {
       return new MultiPassReviewStrategy(reviewType);
     }
     
-    if (options.individual) {
-      return new IndividualReviewStrategy(reviewType);
-    } else if (reviewType === 'architectural') {
+    if (reviewType === 'architectural') {
       return new ArchitecturalReviewStrategy();
     } else if (reviewType === 'unused-code') {
       // Use code tracing strategy if the traceCode option is set

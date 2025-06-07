@@ -4,7 +4,6 @@
 
 import { StrategyFactory } from '../../strategies/StrategyFactory';
 import { ConsolidatedReviewStrategy } from '../../strategies/ConsolidatedReviewStrategy';
-import { IndividualReviewStrategy } from '../../strategies/IndividualReviewStrategy';
 import { ArchitecturalReviewStrategy } from '../../strategies/ArchitecturalReviewStrategy';
 import { ReviewOptions } from '../../types/review';
 import { PluginManager } from '../../plugins/PluginManager';
@@ -40,21 +39,6 @@ describe('StrategyFactory', () => {
     expect(strategy).toBeInstanceOf(ConsolidatedReviewStrategy);
   });
   
-  test('createStrategy should return IndividualReviewStrategy when individual is true', () => {
-    // Set up test data
-    const options: ReviewOptions = {
-      type: 'quick-fixes',
-      includeTests: false,
-      output: 'markdown',
-      individual: true
-    };
-    
-    // Create strategy
-    const strategy = StrategyFactory.createStrategy(options);
-    
-    // Verify the strategy type
-    expect(strategy).toBeInstanceOf(IndividualReviewStrategy);
-  });
   
   test('createStrategy should return ArchitecturalReviewStrategy for architectural review type', () => {
     // Set up test data

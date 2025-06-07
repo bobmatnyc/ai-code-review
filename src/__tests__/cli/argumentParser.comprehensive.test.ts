@@ -154,16 +154,10 @@ describe('Comprehensive CLI Argument Parser Tests', () => {
       expect(argv.outputDir).toBe('./reviews');
     });
 
-    it('should parse individual flag', () => {
-      process.argv = ['node', 'test', '--individual'];
-      const argv = parseArguments();
-      expect(argv.individual).toBe(true);
-    });
-
-    it('should parse individual flag with short alias', () => {
+    it('should parse interactive flag with short alias', () => {
       process.argv = ['node', 'test', '-i'];
       const argv = parseArguments();
-      expect(argv.individual).toBe(true);
+      expect(argv.interactive).toBe(true);
     });
   });
 
@@ -334,7 +328,6 @@ describe('Comprehensive CLI Argument Parser Tests', () => {
         '--model', 'openai:gpt-4',
         '--output', 'json',
         '--output-dir', './reports',
-        '--individual',
         '--include-tests',
         '--multi-pass',
         '--debug',
@@ -349,7 +342,6 @@ describe('Comprehensive CLI Argument Parser Tests', () => {
         model: 'openai:gpt-4',
         output: 'json',
         outputDir: './reports',
-        individual: true,
         includeTests: true,
         multiPass: true,
         debug: true,
