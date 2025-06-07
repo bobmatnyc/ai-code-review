@@ -311,12 +311,15 @@ interface ParsedArguments {
   forceSinglePass?: boolean;
   contextMaintenanceFactor?: number;
   noConfirm?: boolean;
+  confirm?: boolean;
   debug?: boolean;
   language?: string;
   framework?: string;
   listmodels?: boolean;
   models?: boolean;
   target?: string;
+  'ui-language'?: string;
+  uiLanguage?: string;
   'google-api-key'?: string;
   'openrouter-api-key'?: string;
   'anthropic-api-key'?: string;

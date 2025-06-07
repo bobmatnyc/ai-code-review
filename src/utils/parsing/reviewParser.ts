@@ -9,6 +9,7 @@
 // import { z } from 'zod'; // Not currently used
 import {
   ReviewSchema,
+  ReviewIssue,
   IssuePriority,
   reviewSchema
 } from '../../types/reviewSchema';
