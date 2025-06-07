@@ -12,7 +12,7 @@ import logger from '../logger';
 // Set log level to debug for more verbose output
 logger.setLogLevel('debug');
 
-async function runTest() {
+async function runTest(): Promise<number> {
   console.log('=========== STARTING ENHANCED DEPENDENCY ANALYSIS TEST ===========');
   
   // Use the project root as the test path

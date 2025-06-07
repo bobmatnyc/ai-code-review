@@ -12,13 +12,11 @@ import {
   Declaration,
   DeclarationType,
   CodeChunk,
-  ChunkingStrategy,
   ChunkingRecommendation,
   ReviewUnit,
   ReviewPriority,
   ReviewFocus,
   ChunkRelationship,
-  RelationshipType,
   ImportRelationship
 } from './types';
 
@@ -469,7 +467,7 @@ export class ChunkGenerator {
   private createImportChunk(
     imports: ImportRelationship[],
     id: string,
-    reviewType: string
+    _reviewType: string
   ): CodeChunk | null {
     if (imports.length === 0) return null;
 
@@ -580,7 +578,7 @@ export class ChunkGenerator {
    */
   private groupByContext(
     declarations: Declaration[],
-    imports: ImportRelationship[]
+    _imports: ImportRelationship[]
   ): Declaration[][] {
     // Implementation similar to groupByDependencies but considers imports and broader context
     return this.groupByDependencies(declarations);

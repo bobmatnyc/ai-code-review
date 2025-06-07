@@ -62,13 +62,13 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
   const anthropicApiKeyResult = getAnthropicApiKey();
   const openAIApiKeyResult = getOpenAIApiKey();
 
-  // Override API keys with CLI options if provided
-  const googleApiKey = cliOptions?.apiKey?.google || googleApiKeyResult.apiKey;
+  // Override API keys with CLI options if provided (support both apiKey and apiKeys)
+  const googleApiKey = cliOptions?.apiKey?.google || cliOptions?.apiKeys?.google || googleApiKeyResult.apiKey;
   const openRouterApiKey =
-    cliOptions?.apiKey?.openrouter || openRouterApiKeyResult.apiKey;
+    cliOptions?.apiKey?.openrouter || cliOptions?.apiKeys?.openrouter || openRouterApiKeyResult.apiKey;
   const anthropicApiKey =
-    cliOptions?.apiKey?.anthropic || anthropicApiKeyResult.apiKey;
-  const openAIApiKey = cliOptions?.apiKey?.openai || openAIApiKeyResult.apiKey;
+    cliOptions?.apiKey?.anthropic || cliOptions?.apiKeys?.anthropic || anthropicApiKeyResult.apiKey;
+  const openAIApiKey = cliOptions?.apiKey?.openai || cliOptions?.apiKeys?.openai || openAIApiKeyResult.apiKey;
 
   // Get selected model (CLI override takes precedence)
   const selectedModel =

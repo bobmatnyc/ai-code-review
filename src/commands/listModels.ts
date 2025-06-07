@@ -17,7 +17,7 @@ import { hideBin } from 'yargs/helpers';
 /**
  * Main function to run the list-models command
  */
-async function main() {
+async function main(): Promise<void> {
   // Load environment variables from the tool's directory first
   await loadEnvVariables();
 

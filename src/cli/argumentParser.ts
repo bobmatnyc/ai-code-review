@@ -32,7 +32,7 @@ const validOutputFormats = ['markdown', 'json'];
  * Parse command-line arguments for the code review tool
  * @returns Parsed arguments
  */
-export function parseArguments() {
+export function parseArguments(): any {
   const config = getConfig();
   
   // Get the default model from configuration
@@ -155,6 +155,22 @@ export function parseArguments() {
             describe: 'List all supported models and their configuration names',
             type: 'boolean',
             default: false
+          })
+          .option('google-api-key', {
+            describe: 'Google API key for Gemini models',
+            type: 'string'
+          })
+          .option('openrouter-api-key', {
+            describe: 'OpenRouter API key',
+            type: 'string'
+          })
+          .option('anthropic-api-key', {
+            describe: 'Anthropic API key for Claude models',
+            type: 'string'
+          })
+          .option('openai-api-key', {
+            describe: 'OpenAI API key for GPT models',
+            type: 'string'
           });
       }
     )
@@ -173,6 +189,22 @@ export function parseArguments() {
             describe: 'Enable debug logging',
             type: 'boolean',
             default: false
+          })
+          .option('google-api-key', {
+            describe: 'Google API key for Gemini models',
+            type: 'string'
+          })
+          .option('openrouter-api-key', {
+            describe: 'OpenRouter API key',
+            type: 'string'
+          })
+          .option('anthropic-api-key', {
+            describe: 'Anthropic API key for Claude models',
+            type: 'string'
+          })
+          .option('openai-api-key', {
+            describe: 'OpenAI API key for GPT models',
+            type: 'string'
           });
       }
     )
@@ -251,6 +283,8 @@ export interface CliOptions extends ReviewOptions {
   writerModel?: string;
   /** API keys for different providers */
   apiKey?: Record<string, string>;
+  /** API keys from CLI (alternative name for compatibility) */
+  apiKeys?: Record<string, string>;
   /** Log level for logging */
   logLevel?: string;
 }
@@ -260,10 +294,42 @@ export interface CliOptions extends ReviewOptions {
  * @param argv Parsed command-line arguments
  * @returns Review options
  */
+interface ParsedArguments {
+  type?: string;
+  individual?: boolean;
+  output?: string;
+  outputDir?: string;
+  model?: string;
+  includeTests?: boolean;
+  includeProjectDocs?: boolean;
+  includeDependencyAnalysis?: boolean;
+  enableSemanticChunking?: boolean;
+  interactive?: boolean;
+  testApi?: boolean;
+  estimate?: boolean;
+  multiPass?: boolean;
+  forceSinglePass?: boolean;
+  contextMaintenanceFactor?: number;
+  noConfirm?: boolean;
+  confirm?: boolean;
+  debug?: boolean;
+  language?: string;
+  framework?: string;
+  listmodels?: boolean;
+  models?: boolean;
+  target?: string;
+  'ui-language'?: string;
+  uiLanguage?: string;
+  'google-api-key'?: string;
+  'openrouter-api-key'?: string;
+  'anthropic-api-key'?: string;
+  'openai-api-key'?: string;
+}
+
 export function mapArgsToReviewOptions(
-  argv: any // TODO: properly type this
-): ReviewOptions & { target: string } {
-  return {
+  argv: ParsedArguments
+): ReviewOptions & { target: string } & { apiKeys?: Record<string, string> } {
+  const options: ReviewOptions & { target: string } & { apiKeys?: Record<string, string> } = {
     type: argv.type as ReviewType,
     individual: argv.individual,
     output: argv.output,
@@ -287,6 +353,27 @@ export function mapArgsToReviewOptions(
     models: argv.models,
     target: argv.target || '.'
   };
+
+  // Add API keys if provided
+  const apiKeys: Record<string, string> = {};
+  if (argv['google-api-key']) {
+    apiKeys.google = argv['google-api-key'];
+  }
+  if (argv['openrouter-api-key']) {
+    apiKeys.openrouter = argv['openrouter-api-key'];
+  }
+  if (argv['anthropic-api-key']) {
+    apiKeys.anthropic = argv['anthropic-api-key'];
+  }
+  if (argv['openai-api-key']) {
+    apiKeys.openai = argv['openai-api-key'];
+  }
+
+  if (Object.keys(apiKeys).length > 0) {
+    options.apiKeys = apiKeys;
+  }
+
+  return options;
 }
 
 /**
@@ -294,7 +381,7 @@ export function mapArgsToReviewOptions(
  * @param options Raw command-line options
  * @returns Validated and transformed options
  */
-export function validateArguments(options: any): any {
+export function validateArguments(options: ParsedArguments): ParsedArguments {
   const validated = { ...options };
 
   // Handle review type aliases

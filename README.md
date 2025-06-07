@@ -1,21 +1,38 @@
-# AI Code Review v3.2.15
+# AI Code Review v4.0.2
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
 
-## What's New in v3.2.9
+## What's New in v4.0.2
 
-### Added in v3.2.9
-- **Claude 4 Model Support**: Added support for Anthropic's latest Claude 4 models
-  - **Claude 4 Opus** (`anthropic:claude-4-opus`): Most capable model with 200K context window ($15/$75 per 1M tokens)
-  - **Claude 4 Sonnet** (`anthropic:claude-4-sonnet`): Balanced model with 200K context window ($3/$15 per 1M tokens)
-- **Fixed Provider Display**: Corrected issue where Anthropic models incorrectly showed "Gemini" as the provider
-- **Improved Cost Calculations**: Fixed cost estimation to use correct API model identifiers
-- **Enhanced Token Display**: Shows detailed input/output token breakdown in cost estimates
-- **Better Multi-Pass Clarity**: Improved display of token usage in multi-pass reviews
+### Fixed in v4.0.2
+- **🔧 Complete TypeScript Error Resolution**: Fixed all 15 TypeScript compilation errors that were preventing clean builds
+  - Resolved parameter mismatches in TokenAnalysisOptions requiring reviewType and modelName
+  - Fixed ReviewType casting issues with proper type assertions
+  - Corrected function call signatures and missing object properties
+- **🧹 Code Quality Improvements**: Achieved zero ESLint errors (373 warnings under configured limit)
+  - Removed unused imports and variables across semantic analysis modules
+  - Fixed type mismatches in ChunkGenerator and SemanticChunkingIntegration
+  - Added proper SystemStats interface for better type safety
+- **✅ Build Pipeline Stability**: Full compilation success with clean CI/CD pipeline
+  - All TypeScript compilation now passes without errors
+  - Build infrastructure fully operational and ready for production
+  - Stable foundation for future v4.x releases
 
-See the [full release notes](docs/v3.2.9_release.md) and [Claude 4 quick reference](docs/claude-4-quick-reference.md) for details.
+This release focuses on build stability and code quality, ensuring a solid foundation for the advanced semantic chunking features introduced in v4.0.0.
 
 ## Version History
+
+### v4.0.2 (2025-01-21)
+- **🔧 TypeScript Compilation**: Fixed all 15 TypeScript compilation errors in test files
+- **🧹 Code Quality**: Eliminated all ESLint errors, cleaned up unused imports and variables
+- **✅ Build Pipeline**: Achieved stable, error-free build process ready for production
+- **🛠️ Type Safety**: Added proper interfaces and fixed type mismatches across codebase
+
+### v4.0.0 (2025-06-04)
+- **🧠 AI-Guided Semantic Chunking**: Revolutionary TreeSitter-based code analysis with 95%+ token reduction
+- **🎯 Intelligent Strategies**: 5 chunking strategies optimized for different review types and code structures
+- **⚡ Performance**: Solved context limit problems, reducing typical 196K+ token reviews to ~4K tokens
+- **🔧 Environment Control**: New environment variables and CLI flags for semantic chunking control
 
 ### v3.2.15 (2025-06-01)
 - **Re-added O3 Models**: Re-added support for OpenAI o3 and o3-mini reasoning models

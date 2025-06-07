@@ -218,7 +218,7 @@ import { reviewCode } from './commands/reviewCode';
 import { testModelCommand } from './commands/testModel';
 import { testBuildCommand } from './commands/testBuild';
 import { runApiConnectionTests } from './__tests__/apiConnection.test';
-import { parseArguments, mapArgsToReviewOptions } from './cli/argumentParser';
+import { parseArguments, mapArgsToReviewOptions, CliOptions } from './cli/argumentParser';
 import { initI18n, t } from './utils/i18n';
 import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
@@ -227,7 +227,7 @@ import { handleSyncGitHubProjectsCommand } from './commands/syncGithubProjects';
 
 // Hardcoded version number to ensure --version flag works correctly
 // This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '4.0.0';
+const VERSION = '4.0.2';
 
 // Main function to run the application
 async function main() {
@@ -308,7 +308,7 @@ async function main() {
     await loadEnvVariables();
 
     // Load and validate configuration with CLI overrides
-    const config = getConfig(args);
+    const config = getConfig(args as CliOptions);
 
     // Check if we have any API keys
     if (!hasAnyApiKey()) {

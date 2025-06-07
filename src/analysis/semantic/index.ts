@@ -63,7 +63,7 @@ export class SemanticAnalysisSystem {
   private analyzer: SemanticAnalyzer;
   private chunkGenerator: ChunkGenerator;
   private config: SemanticAnalysisSystemConfig;
-  private cache: Map<string, any> = new Map();
+  private cache: Map<string, SemanticAnalysisResult> = new Map();
 
   constructor(config: SemanticAnalysisSystemConfig = {}) {
     this.config = {
@@ -87,7 +87,7 @@ export class SemanticAnalysisSystem {
       reviewType?: string;
       useCache?: boolean;
     } = {}
-  ) {
+  ): Promise<SemanticAnalysisResult> {
     const {
       language,
       reviewType = 'quick-fixes',
@@ -173,8 +173,8 @@ export class SemanticAnalysisSystem {
     content: string,
     filePath: string,
     reviewType: string,
-    errors: any[]
-  ) {
+    errors: Array<{ type: string; message: string }>
+  ): SemanticAnalysisResult {
     const lines = content.split('\n');
     const chunkSize = Math.min(500, Math.max(50, lines.length / 4));
     const chunks = [];
@@ -222,7 +222,7 @@ export class SemanticAnalysisSystem {
   /**
    * Get default review focus for a review type
    */
-  private getDefaultReviewFocus(reviewType: string) {
+  private getDefaultReviewFocus(reviewType: string): string[] {
     const focusMap: Record<string, string[]> = {
       'quick-fixes': ['maintainability', 'performance'],
       'architectural': ['architecture', 'type_safety', 'maintainability'],
@@ -272,10 +272,10 @@ export class SemanticAnalysisSystem {
   /**
    * Get cache statistics
    */
-  public getCacheStats() {
+  public getCacheStats(): { size: number; enabled: boolean } {
     return {
       size: this.cache.size,
-      enabled: this.config.enableCaching
+      enabled: this.config.enableCaching ?? true
     };
   }
 

@@ -44,7 +44,7 @@ export const testBuildCommand = new Command('test-build')
 /**
  * Test all models from all providers
  */
-async function testAllModels(options: any) {
+async function testAllModels(options: any): Promise<void> {
   const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
   const results = [];
   let hasFailures = false;
@@ -156,7 +156,7 @@ async function testAllModels(options: any) {
 /**
  * Test all models from a specific provider
  */
-async function testProviderModels(provider: Provider, options: any) {
+async function testProviderModels(provider: Provider, options: any): Promise<void> {
   const modelKeys = getModelsByProvider(provider);
   const results = [];
   let hasFailures = false;

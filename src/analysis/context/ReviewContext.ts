@@ -336,14 +336,14 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
    * @param json JSON object
    * @returns New ReviewContext instance
    */
-  public static fromJSON(json: any): ReviewContext {
+  public static fromJSON(json: Record<string, unknown>): ReviewContext {
     const context = new ReviewContext(
-      json.projectName,
-      json.reviewType,
-      json.allFiles || []
+      json.projectName as string,
+      json.reviewType as string,
+      (json.allFiles as any[]) || []
     );
     
-    context.currentPass = json.currentPass || 0;
+    context.currentPass = (json.currentPass as number) || 0;
     
     // Restore code elements
     if (Array.isArray(json.codeElements)) {
@@ -371,11 +371,11 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
     
     // Restore timestamps
     if (json.createdAt) {
-      context.createdAt = new Date(json.createdAt);
+      context.createdAt = new Date(json.createdAt as string);
     }
     
     if (json.updatedAt) {
-      context.updatedAt = new Date(json.updatedAt);
+      context.updatedAt = new Date(json.updatedAt as string);
     }
     
     return context;

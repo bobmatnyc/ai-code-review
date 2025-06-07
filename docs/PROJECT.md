@@ -174,7 +174,6 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
 // Updated: 2023-07-25
 // Updated: 2024-04-05
 // Updated: 2024-04-06
-// Updated: 2025-06-04
 - `.env.local` for local development is required.
 - Required variables (use the `AI_CODE_REVIEW_` prefix):
   - `AI_CODE_REVIEW_GOOGLE_API_KEY`: API key for Google Gemini models.
@@ -182,8 +181,6 @@ Focuses on identifying performance bottlenecks and optimization opportunities:
   - `AI_CODE_REVIEW_ANTHROPIC_API_KEY`: API key for Anthropic models.
 - Model Selection:
   - `AI_CODE_REVIEW_MODEL`: Specifies the model adapter and name (e.g., `gemini:gemini-1.5-pro`).
-- Semantic Chunking:
-  - `AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING`: Enable semantic chunking for intelligent code analysis (default: `true`). Set to `false` to disable semantic chunking and use traditional token-based chunking.
 
 > Note: Older variable names like `GOOGLE_GENERATIVE_AI_KEY` or `CODE_REVIEW_*` might still be supported for backward compatibility but are deprecated. Please update to the `AI_CODE_REVIEW_` prefix.
 
@@ -287,9 +284,10 @@ The hardcoded version exists for reliability - it ensures the --version flag wor
 2. ✅ All tests passing with no errors or warnings
 3. ✅ Version numbers match in package.json and src/index.ts
 4. ✅ CHANGELOG.md updated with release notes
-5. ✅ No uncommitted changes in git
-6. ✅ Local build works correctly (`npm run build`)
-7. ✅ Version command works (`ai-code-review --show-version`)
+5. ✅ README.md updated with version highlights and history
+6. ✅ No uncommitted changes in git
+7. ✅ Local build works correctly (`npm run build`)
+8. ✅ Version command works (`ai-code-review --show-version`)
 
 #### Publication Steps
 
@@ -303,15 +301,17 @@ npm version major   # Breaking changes (e.g., 3.3.0 → 4.0.0)
 
 # 3. Update CHANGELOG.md with release notes
 
-# 4. Commit version updates
-git add src/index.ts CHANGELOG.md
-git commit -m "chore: update version and changelog for vX.Y.Z"
+# 4. Update README.md with version highlights in the Version History section
 
-# 5. Build and publish
+# 5. Commit version updates
+git add src/index.ts CHANGELOG.md README.md
+git commit -m "chore: update version, changelog, and readme for vX.Y.Z"
+
+# 6. Build and publish
 npm run build
 npm publish
 
-# 6. Verify publication
+# 7. Verify publication
 ai-code-review --show-version  # Should show new version
 ```
 
