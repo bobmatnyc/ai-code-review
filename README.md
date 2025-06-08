@@ -422,7 +422,6 @@ Options:
   # Basic Options
   -t, --type <type>       Type of review (architectural, quick-fixes, security, performance, unused-code) (default: "quick-fixes")
   -o, --output <format>   Output format (markdown, json) (default: "markdown")
-  -i, --interactive       Process review results interactively (default: false)
   -e, --estimate          Estimate token usage and cost without performing the review (default: false)
   -v, --version           Output the current version
   -h, --help              Display help information
