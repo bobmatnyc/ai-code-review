@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.2] - 2025-06-11
+
+### Fixed
+- **Evaluation Prompt Instructions**: Strengthened evaluation prompts to prevent improvement suggestions
+  - Added CRITICAL, FORBIDDEN, and FINAL REMINDER directives to ensure pure developer assessment
+  - Prevents AI models from suggesting code improvements when evaluation is requested
+  - Ensures focus remains on skill assessment, AI assistance detection, and professional maturity
+
+### Improved
+- **Semantic Chunking Optimization**: Significantly reduced API calls through better batch consolidation
+  - Now attempts to fit all threads in a single batch when possible
+  - Smart merging of smaller semantic groups to minimize batch count
+  - Increased thread limit per batch from 15 to 30
+  - Example: 21 threads now consolidate into 1 batch instead of 3 (67% reduction in API calls)
+
 ## [4.2.1] - 2025-06-11
 
 ### Fixed
