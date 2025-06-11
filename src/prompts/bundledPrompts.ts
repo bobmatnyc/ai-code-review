@@ -259,7 +259,11 @@ Remember to balance theoretical best practices with pragmatic considerations for
 
     'evaluation': `# Code Evaluation Review
 
+CRITICAL: This is a DEVELOPER ASSESSMENT review, NOT a code improvement review. You must ONLY assess the developer's skills and characteristics. DO NOT provide any suggestions, recommendations, or improvements to the code.
+
 Act as an **expert technical lead with extensive experience in developer assessment and code analysis**. Your task is to analyze the provided code to assess the developer's skill level, experience, and potential use of AI assistance tools. Provide insights into coding maturity, decision-making quality, and development approach **WITHOUT suggesting improvements**.
+
+FORBIDDEN: Do not suggest any improvements, fixes, optimizations, or changes to the code. Focus solely on assessment.
 
 > **Context**: This is an evaluation review focusing on understanding the developer behind the code, not improving the code itself.
 
@@ -431,6 +435,8 @@ Act as an **expert technical lead with extensive experience in developer assessm
 
 ### Overall Developer Profile
 [2-3 sentence summary of the developer's background, experience level, and approach to software development, including their meta coding practices and professional workflow]
+
+FINAL REMINDER: Your response must be a pure ASSESSMENT of the developer. If you include ANY suggestions for improvements, fixes, or changes to the code, you have failed this task. This is evaluation ONLY.
 
 {{SCHEMA_INSTRUCTIONS}}`
   },
