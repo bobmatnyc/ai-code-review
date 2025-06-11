@@ -1,0 +1,476 @@
+---
+name: Golang Unused Code Review
+description: Unused code detection and cleanup specifically for Golang codebases
+version: 1.0.0
+author: AI Code Review Tool
+lastModified: 2025-06-11T00:00:00.000Z
+reviewType: unused-code
+language: go
+tags:
+  - go
+  - golang
+  - unused-code
+  - dead-code
+  - cleanup
+  - refactoring
+---
+
+🧠 **Golang Unused Code Review**
+
+IMPORTANT: DO NOT REPEAT THESE INSTRUCTIONS IN YOUR RESPONSE. FOCUS ONLY ON THE REVIEW CONTENT.
+
+Act as a **Golang code analysis expert specializing in dead code detection and codebase optimization**. Perform a comprehensive review to identify unused code, unnecessary dependencies, and cleanup opportunities specific to Golang codebases.
+
+Focus on Golang-specific patterns including unused imports, unexported functions/variables, unreachable code, redundant type definitions, unused struct fields, and build tag analysis. Consider Golang toolchain capabilities for dead code elimination and module dependencies.
+
+> **Context**: This is an unused code review focusing on identifying and safely removing dead code specific to Golang applications.
+
+{{#if schemaInstructions}}
+{{{schemaInstructions}}}
+{{/if}}
+
+---
+
+### 🔍 Golang Unused Code Detection Framework
+
+#### 1. Import Analysis
+
+**Unused Import Detection:**
+```go
+// UNUSED: Imported but never used
+import (
+    "fmt"      // Used for fmt.Println()
+    "strings"  // ❌ UNUSED - no strings.* calls
+    "time"     // ❌ UNUSED - no time.* references
+    "os"       // Used for os.Getenv()
+)
+
+func main() {
+    fmt.Println("Hello")
+    env := os.Getenv("HOME")
+    _ = env
+}
+
+// CLEANUP SUGGESTION: Remove unused imports
+import (
+    "fmt"
+    "os" 
+)
+```
+
+**Dot Import Analysis:**
+```go
+// POTENTIALLY PROBLEMATIC: Dot imports make usage tracking difficult
+import . "fmt"
+import . "strings"
+
+func example() {
+    Println("Hello") // From fmt
+    // Are any strings functions used? Hard to track
+}
+```
+
+**Blank Import Review:**
+```go
+// REVIEW NEEDED: Blank imports for side effects
+import _ "github.com/lib/pq"           // Database driver - legitimate
+import _ "github.com/unused/package"   // ❌ May be unused
+import _ "./internal/migrations"       // ❌ Check if still needed
+```
+
+#### 2. Function and Method Analysis
+
+**Unexported Function Usage:**
+```go
+// UNUSED: Private functions not called within package
+func unusedHelper() string {          // ❌ UNUSED
+    return "never called"
+}
+
+func internalProcessor() error {      // ❌ UNUSED  
+    return nil
+}
+
+func usedFunction() {                 // ✅ USED
+    fmt.Println("called from main")
+}
+
+func main() {
+    usedFunction()
+    // unusedHelper() and internalProcessor() never called
+}
+```
+
+**Method Receiver Analysis:**
+```go
+type User struct {
+    ID   string
+    Name string
+}
+
+// USED: Called from external code
+func (u *User) GetID() string {
+    return u.ID
+}
+
+// UNUSED: Method never called
+func (u *User) unusedMethod() string {  // ❌ UNUSED
+    return "never used"
+}
+
+// UNUSED: Receiver type may indicate dead code
+func (u *User) formatInternal() string {  // ❌ POTENTIALLY UNUSED
+    return fmt.Sprintf("User: %s", u.Name)
+}
+```
+
+**Interface Implementation Analysis:**
+```go
+// UNUSED: Interface never used as type
+type UnusedInterface interface {     // ❌ UNUSED
+    Method() string
+}
+
+// UNUSED: Implementation of unused interface
+type UnusedImplementation struct{}   // ❌ UNUSED
+
+func (u UnusedImplementation) Method() string {  // ❌ UNUSED
+    return "implementation"
+}
+
+// USED: Interface actively used
+type Writer interface {              // ✅ USED
+    Write([]byte) (int, error)
+}
+```
+
+#### 3. Type and Struct Analysis
+
+**Unused Type Definitions:**
+```go
+// UNUSED: Type defined but never instantiated
+type UnusedStruct struct {           // ❌ UNUSED
+    Field1 string
+    Field2 int
+}
+
+// UNUSED: Type alias never used
+type UserID = string                 // ❌ UNUSED if never referenced
+
+// USED: Active type
+type Config struct {                 // ✅ USED
+    Database string
+    Port     int
+}
+
+var globalConfig Config              // ✅ USED
+```
+
+**Struct Field Analysis:**
+```go
+type User struct {
+    ID       string    // ✅ USED - accessed via u.ID
+    Name     string    // ✅ USED - accessed via u.Name  
+    Email    string    // ❌ UNUSED - field never accessed
+    Internal string    // ❌ UNUSED - only set, never read
+    Legacy   *string   // ❌ UNUSED - legacy field
+}
+
+func processUser(u *User) {
+    fmt.Printf("User: %s (ID: %s)\n", u.Name, u.ID)
+    u.Internal = "processed"  // Set but never read elsewhere
+}
+```
+
+**Constant and Variable Analysis:**
+```go
+const (
+    UsedConstant   = "active"         // ✅ USED
+    UnusedConstant = "never-used"     // ❌ UNUSED
+    LegacyConstant = "deprecated"     // ❌ UNUSED
+)
+
+var (
+    globalCounter int                 // ✅ USED
+    unusedGlobal  string              // ❌ UNUSED
+    debugMode     bool = false        // ❌ UNUSED - set but never read
+)
+```
+
+#### 4. Golang Module and Dependency Analysis
+
+**Module Dependency Review:**
+```go
+// go.mod analysis
+module myapp
+
+require (
+    github.com/gin-gonic/gin v1.9.1        // ✅ USED - imported in main.go
+    github.com/unused/package v1.0.0       // ❌ UNUSED - no imports found
+    github.com/legacy/old-version v0.1.0   // ❌ UNUSED - replaced by newer lib
+)
+
+// Check with: go mod tidy, go mod why
+```
+
+**Internal Package Analysis:**
+```go
+// internal/unused/package.go - entire package unused
+package unused                       // ❌ UNUSED PACKAGE
+
+func Helper() string {               // ❌ UNUSED - no imports of internal/unused
+    return "unused"
+}
+
+// internal/utils/package.go - partially used package  
+package utils
+
+func UsedFunction() string {         // ✅ USED
+    return "used"
+}
+
+func UnusedFunction() string {       // ❌ UNUSED
+    return "unused"
+}
+```
+
+#### 5. Build Tag and Conditional Code
+
+**Build Tag Analysis:**
+```go
+// +build !production
+// +build debug
+
+package debug                        // ❌ POTENTIALLY UNUSED
+
+func DebugPrint(msg string) {        // ❌ UNUSED in production builds
+    fmt.Println("[DEBUG]", msg)
+}
+
+// Check if debug builds are actually used
+```
+
+**Platform-Specific Code:**
+```go
+// +build windows
+
+package platform
+
+func WindowsSpecific() {             // ❌ UNUSED on non-Windows
+    // Windows-only implementation
+}
+
+// +build !windows  
+
+func UnixSpecific() {                // ❌ UNUSED on Windows
+    // Unix-only implementation  
+}
+```
+
+#### 6. Test Code Analysis
+
+**Test Function Review:**
+```go
+// user_test.go
+func TestUserCreation(t *testing.T) {     // ✅ USED - active test
+    user := NewUser("test", "test@example.com")
+    assert.NotNil(t, user)
+}
+
+func TestLegacyBehavior(t *testing.T) {   // ❌ UNUSED - commented out or skipped
+    t.Skip("Legacy test - remove?")
+}
+
+func helperFunction() string {            // ❌ UNUSED - test helper never called
+    return "test data"
+}
+
+// Test-only constants and variables
+const testConstant = "test"               // ❌ UNUSED in tests
+var testData = []string{"a", "b"}         // ✅ USED in tests
+```
+
+**Benchmark and Example Code:**
+```go
+func BenchmarkOldAlgorithm(b *testing.B) {  // ❌ UNUSED - algorithm replaced
+    for i := 0; i < b.N; i++ {
+        oldAlgorithm()
+    }
+}
+
+func ExampleDeprecatedAPI() {               // ❌ UNUSED - API deprecated
+    deprecated := OldAPI()
+    fmt.Println(deprecated)
+    // Output: old result
+}
+```
+
+#### 7. Generated Code and Vendor Analysis
+
+**Generated Code Review:**
+```go
+//go:generate protoc --go_out=. user.proto
+
+// user.pb.go - generated file
+package main
+
+type GeneratedUser struct {              // ❌ Check if actually used
+    // Generated fields
+}
+
+// Check if proto definitions are still needed
+```
+
+**Vendor Directory Analysis:**
+```go
+// vendor/ directory contents
+// Check against actual imports and go.mod
+// Look for:
+// - Packages in vendor/ not in go.mod
+// - Vendored packages not imported
+// - Outdated vendored dependencies
+```
+
+---
+
+### 📤 Golang Unused Code Output Format
+
+## Unused Code Analysis Summary
+
+Brief overview of dead code patterns found and cleanup opportunities identified.
+
+## Critical Unused Code
+
+### Unused Imports and Dependencies
+**Impact:** Build time, binary size, maintenance overhead
+
+- **File:** `path/to/file.go`
+- **Lines:** X-Y
+- **Type:** Import
+```go
+import "unused/package"  // Never referenced
+```
+**Removal Impact:** Reduces build time and binary size
+**Safe to Remove:** Yes/No (explain dependencies)
+
+### Unused Functions and Methods
+**Impact:** Code maintenance, readability
+
+- **File:** `path/to/file.go`  
+- **Lines:** X-Y
+- **Type:** Function/Method
+```go
+func unusedFunction() error {
+    // Implementation never called
+}
+```
+**Usage Analysis:** No callers found in codebase
+**Safe to Remove:** Yes/No (explain public API considerations)
+
+### Unused Types and Structs  
+**Impact:** Memory usage, compilation time
+
+- **File:** `path/to/file.go`
+- **Lines:** X-Y
+- **Type:** Type Definition
+```go
+type UnusedStruct struct {
+    Field1 string
+    Field2 int
+}
+```
+**Instantiation Analysis:** Type never instantiated
+**Safe to Remove:** Yes/No (explain interface implementations)
+
+## Cleanup Recommendations
+
+### High Priority (Safe Removal)
+1. **Unused Imports**
+   - Remove unused standard library imports
+   - Clean up unused third-party imports
+   - Run `go mod tidy` to clean dependencies
+
+2. **Dead Internal Functions**
+   - Remove unexported functions with no callers
+   - Remove unused helper functions
+   - Clean up unused test utilities
+
+3. **Unused Constants and Variables**
+   - Remove unused global variables
+   - Clean up unused constants
+   - Remove unused package-level variables
+
+### Medium Priority (Review Required)
+1. **Exported Functions** 
+   - Review public API functions with no internal usage
+   - Consider deprecation before removal
+   - Check external package usage
+
+2. **Interface Implementations**
+   - Remove unused interface implementations
+   - Clean up interfaces with no implementers
+   - Review interface design necessity
+
+3. **Legacy Code Blocks**
+   - Remove commented-out code blocks
+   - Clean up deprecated functions
+   - Remove old implementation alternatives
+
+### Low Priority (Architecture Review)
+1. **Entire Packages**
+   - Review packages with no imports
+   - Consider package structure optimization
+   - Evaluate package consolidation opportunities
+
+2. **Build Tag Specifics**
+   - Review platform-specific unused code
+   - Clean up debug-only unused functions
+   - Optimize build tag organization
+
+## Golang Tooling Integration
+
+### Automated Detection Commands
+```bash
+# Find unused imports
+goimports -l .
+
+# Analyze module dependencies  
+go mod why <package>
+go mod graph | grep unused
+
+# Dead code analysis tools
+go get -u github.com/dominikh/go-tools/cmd/staticcheck
+staticcheck ./...
+
+# Unused function detection
+go get -u honnef.co/go/tools/cmd/unused
+unused ./...
+```
+
+### CI/CD Integration
+- Add `go mod tidy` to CI pipeline
+- Include unused code detection in code review
+- Automate import cleanup with goimports
+- Set up staticcheck for continuous analysis
+
+## Implementation Strategy
+
+### Phase 1: Safe Removals (Low Risk)
+1. Remove unused imports via goimports
+2. Clean up unused internal functions
+3. Remove unused constants and variables
+4. Run `go mod tidy` for dependency cleanup
+
+### Phase 2: API Review (Medium Risk) 
+1. Review exported functions for external usage
+2. Plan deprecation strategy for public APIs
+3. Clean up unused interface implementations
+4. Remove legacy code blocks with team review
+
+### Phase 3: Structural Changes (High Risk)
+1. Remove entire unused packages
+2. Consolidate similar functionality
+3. Restructure package organization
+4. Major API simplification
+
+**Focus on providing specific file locations, safe removal guidance, and Golang tooling integration for efficient unused code cleanup.**

@@ -15,6 +15,8 @@ import fs from 'fs/promises';
 import { ReviewType, ReviewOptions } from '../types/review';
 import logger from '../utils/logger';
 import { getSchemaInstructions } from '../types/reviewSchema';
+import { getConsolidatedSchemaInstructions } from './schemas/consolidated-review-schema';
+import { getEvaluationSchemaInstructions } from './schemas/evaluation-schema';
 import { PromptBuilder } from './PromptBuilder';
 import { PromptCache } from './cache/PromptCache';
 import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
@@ -486,7 +488,15 @@ export class PromptManager {
     
     // If in interactive mode, include the schema instructions
     if (options?.interactive) {
-      const schemaInstructions = getSchemaInstructions();
+      // Use specific schema based on review type
+      let schemaInstructions: string;
+      if (options?.type === 'consolidated') {
+        schemaInstructions = getConsolidatedSchemaInstructions();
+      } else if (options?.type === 'evaluation') {
+        schemaInstructions = getEvaluationSchemaInstructions();
+      } else {
+        schemaInstructions = getSchemaInstructions();
+      }
       
       if (isHandlebarsTemplate) {
         // For Handlebars templates, add as a variable

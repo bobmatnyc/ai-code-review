@@ -118,5 +118,7 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<
   'focused-unused-code':
     'Focused unused code review with targeted analysis',
   'improved-quick-fixes':
-    'Enhanced quick fixes review with more comprehensive suggestions'
+    'Enhanced quick fixes review with more comprehensive suggestions',
+  'evaluation':
+    'Developer skill and AI assistance assessment without code improvement suggestions'
 };

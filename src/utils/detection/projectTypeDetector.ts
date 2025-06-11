@@ -161,6 +161,56 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
     confidence: 'low'
   },
 
+  // Go signatures
+  {
+    language: 'go',
+    requiredFiles: ['go.mod'],
+    optionalFiles: ['go.sum', 'main.go'],
+    confidence: 'high'
+  },
+  {
+    language: 'go',
+    requiredFiles: ['main.go'],
+    confidence: 'medium'
+  },
+  {
+    language: 'go',
+    requiredFiles: ['cmd/'],
+    optionalFiles: ['internal/', 'pkg/'],
+    projectType: 'Go CLI Application',
+    confidence: 'medium'
+  },
+  {
+    language: 'go',
+    requiredFiles: ['Dockerfile'],
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
+      // Check if Dockerfile mentions Go
+      try {
+        const dockerfilePath = path.join(projectPath, 'Dockerfile');
+        const dockerfileContent = await fs.readFile(dockerfilePath, 'utf-8');
+        return dockerfileContent.includes('golang') || dockerfileContent.includes('go:');
+      } catch {
+        return false;
+      }
+    },
+    projectType: 'Go Docker Application',
+    confidence: 'medium'
+  },
+  {
+    language: 'go',
+    requiredFiles: [],
+    additionalCheck: async (projectPath: string): Promise<boolean> => {
+      // Check for .go files
+      try {
+        const files = await fs.readdir(projectPath);
+        return files.some(file => file.endsWith('.go'));
+      } catch {
+        return false;
+      }
+    },
+    confidence: 'low'
+  },
+
   // PHP signatures
   {
     language: 'php',

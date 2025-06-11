@@ -23,7 +23,8 @@ export type ReviewType =
   | 'code-tracing-unused-code'
   | 'improved-quick-fixes'
   | 'consolidated'
-  | 'best-practices';
+  | 'best-practices'
+  | 'evaluation';
 
 /**
  * Options for code reviews

@@ -151,6 +151,36 @@ export function getLanguageForFile(filePath: string): string {
     case '.js':
     case '.jsx':
       return 'javascript';
+    case '.py':
+    case '.pyi':
+    case '.pyx':
+      return 'python';
+    case '.php':
+      return 'php';
+    case '.rb':
+    case '.rake':
+    case '.gemspec':
+    case '.ru':
+    case '.erb':
+      return 'ruby';
+    case '.go':
+      return 'go';
+    case '.java':
+      return 'java';
+    case '.rs':
+      return 'rust';
+    case '.c':
+    case '.h':
+      return 'c';
+    case '.cpp':
+    case '.hpp':
+      return 'cpp';
+    case '.cs':
+      return 'csharp';
+    case '.swift':
+      return 'swift';
+    case '.kt':
+      return 'kotlin';
     case '.json':
       return 'json';
     case '.md':
