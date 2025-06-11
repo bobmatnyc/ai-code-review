@@ -161,6 +161,8 @@ This script:
 5. Validates package.json structure
 6. Syncs model mappings and version
 
+**⚠️ Known Issue**: Watch for duplicate shebang lines in `dist/index.js`. If you encounter `SyntaxError: Invalid or unexpected token` when running the CLI, check for and remove duplicate shebang lines (see Troubleshooting section).
+
 ---
 
 ## 📋 5. Release Process
@@ -405,6 +407,20 @@ npm outdated           # Check for outdated packages
 1. **Command Not Found**: Run `npm run postbuild` to link globally
 2. **Permission Errors**: Verify executable permissions on `dist/index.js`
 3. **Module Resolution**: Check relative vs absolute import paths
+4. **⚠️ Duplicate Shebang Error**: If you see `SyntaxError: Invalid or unexpected token` with shebang line, check for duplicate shebangs:
+   ```bash
+   # Check first few lines of built CLI
+   head -5 dist/index.js
+   
+   # Should see only ONE shebang line:
+   #!/usr/bin/env node
+   "use strict";
+   
+   # If you see TWO shebang lines, remove the duplicate:
+   sed -i '2d' dist/index.js  # Remove line 2 if it's duplicate shebang
+   ```
+   **Root Cause**: Build process and prepare-package script both adding shebangs
+   **Prevention**: The prepare-package script now checks for existing shebangs before adding
 
 ---
 

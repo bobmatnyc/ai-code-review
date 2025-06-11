@@ -18,12 +18,16 @@ pnpm run build
 echo "Making CLI executable and adding shebang line..."
 chmod +x dist/index.js
 
-# Add shebang line to the beginning of the file
-# Using a more reliable method that works across platforms
-echo "Adding shebang line to dist/index.js..."
-echo '#!/usr/bin/env node' > dist/index.js.tmp
-cat dist/index.js >> dist/index.js.tmp
-mv dist/index.js.tmp dist/index.js
+# Check if shebang already exists, if not add it
+echo "Checking shebang line in dist/index.js..."
+if ! head -1 dist/index.js | grep -q "^#!/usr/bin/env node"; then
+  echo "Adding shebang line to dist/index.js..."
+  echo '#!/usr/bin/env node' > dist/index.js.tmp
+  cat dist/index.js >> dist/index.js.tmp
+  mv dist/index.js.tmp dist/index.js
+else
+  echo "Shebang already present in dist/index.js"
+fi
 chmod +x dist/index.js
 
 # Verify the shebang was correctly added
