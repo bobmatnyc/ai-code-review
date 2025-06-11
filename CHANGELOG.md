@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.1] - 2025-06-11
+
+### Fixed
+- **Missing Evaluation Prompt**: Added evaluation review type to bundled prompts
+  - Fixes "No prompt template found for evaluation" error when using npx or published package
+  - Evaluation review type was defined but not accessible in bundled prompts
+  - Now includes comprehensive developer skill assessment framework in bundled prompts
+
 ## [4.2.0] - 2025-06-11
 
 ### Added
