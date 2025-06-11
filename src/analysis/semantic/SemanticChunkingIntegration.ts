@@ -88,7 +88,7 @@ const DEFAULT_CONFIG: ChunkingIntegrationConfig = {
   enableCaching: true,
   maxTokensPerBatch: 4000, // Target batch size for efficient AI processing
   minThreadsPerBatch: 3, // Minimum threads to consider for consolidation
-  maxThreadsPerBatch: 15, // Maximum threads in a single batch
+  maxThreadsPerBatch: 30, // Maximum threads in a single batch - increased to allow larger consolidations
   semanticConfig: {
     analyzer: {
       enabledLanguages: ['typescript', 'javascript', 'python', 'ruby'],
@@ -186,11 +186,62 @@ export class SemanticChunkingIntegration {
 
     logger.debug(`Consolidating ${chunks.length} semantic threads into batches`);
     
-    // Group chunks by type and complexity for better consolidation
+    // Calculate total tokens to determine if we can fit everything in one batch
+    const totalTokens = chunks.reduce((sum, chunk) => sum + (chunk.estimatedTokens || 0), 0);
+    
+    // If all chunks can fit within a single batch's token limit and thread count, 
+    // create one consolidated batch instead of grouping by affinity
+    if (totalTokens <= this.config.maxTokensPerBatch && chunks.length <= this.config.maxThreadsPerBatch) {
+      logger.info(`All ${chunks.length} threads fit within limits (${totalTokens} tokens) - creating single batch`);
+      const singleBatch = this.mergeBatchChunks(chunks, 'consolidated', 1);
+      return [singleBatch];
+    }
+    
+    // Otherwise, group chunks by type and complexity for better consolidation
     const groupedChunks = this.groupChunksByAffinity(chunks);
     const consolidatedBatches: CodeChunk[] = [];
     
-    for (const [groupType, groupChunks] of Object.entries(groupedChunks)) {
+    // First, try to combine smaller groups to minimize batch count
+    const groupEntries = Object.entries(groupedChunks).filter(([_, chunks]) => chunks.length > 0);
+    const sortedGroups = groupEntries.sort((a, b) => a[1].length - b[1].length);
+    
+    // Attempt to merge small groups together
+    const mergedGroups: Array<[string, CodeChunk[]]> = [];
+    let currentMergedGroup: CodeChunk[] = [];
+    let currentMergedTokens = 0;
+    let currentMergedName = '';
+    
+    for (const [groupType, groupChunks] of sortedGroups) {
+      const groupTokens = groupChunks.reduce((sum, chunk) => sum + (chunk.estimatedTokens || 0), 0);
+      
+      if (currentMergedGroup.length === 0) {
+        currentMergedGroup = groupChunks;
+        currentMergedTokens = groupTokens;
+        currentMergedName = groupType;
+      } else if (
+        currentMergedTokens + groupTokens <= this.config.maxTokensPerBatch &&
+        currentMergedGroup.length + groupChunks.length <= this.config.maxThreadsPerBatch
+      ) {
+        // Merge this group with the current merged group
+        currentMergedGroup.push(...groupChunks);
+        currentMergedTokens += groupTokens;
+        currentMergedName = `${currentMergedName}_${groupType}`;
+      } else {
+        // Can't merge, save current and start new
+        mergedGroups.push([currentMergedName, currentMergedGroup]);
+        currentMergedGroup = groupChunks;
+        currentMergedTokens = groupTokens;
+        currentMergedName = groupType;
+      }
+    }
+    
+    // Don't forget the last group
+    if (currentMergedGroup.length > 0) {
+      mergedGroups.push([currentMergedName, currentMergedGroup]);
+    }
+    
+    // Now create batches from the merged groups
+    for (const [groupType, groupChunks] of mergedGroups) {
       const batches = this.createBatchesFromGroup(groupChunks, groupType);
       consolidatedBatches.push(...batches);
     }
