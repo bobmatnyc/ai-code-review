@@ -53,7 +53,8 @@ const reviewTypeMapping: Record<string, string> = {
   'improved-unused-code': 'improved-unused-code-review',
   'consolidated': 'consolidated-review',
   // Add mapping for improved quick fixes
-  'improved-quick-fixes': 'improved-quick-fixes-review'
+  'improved-quick-fixes': 'improved-quick-fixes-review',
+  'evaluation': 'evaluation'
 };
 
 /**
