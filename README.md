@@ -1,6 +1,24 @@
-# AI Code Review v4.1.2
+# AI Code Review v4.2.0
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
+
+## What's New in v4.2.0
+
+### New Features in v4.2.0
+- **Evaluation Review Type**: New developer skill assessment and AI assistance detection
+  - Analyzes coding skill level: Beginner/Intermediate/Advanced/Expert
+  - Detects AI assistance likelihood and professional maturity
+  - Includes meta coding quality indicators (documentation, testing, workflow)
+  - Structured schema output for consistent evaluation results
+- **Golang Language Support**: Comprehensive support for Go/Golang projects
+  - Golang-specific prompt templates for all review types
+  - Idiomatic Go pattern analysis and best practices
+  - Go project type detection and file filtering
+  - Concurrency, interface design, and error handling expertise
+- **Enhanced Grading System**: Academic-style grading for consolidated reviews
+  - A+ to F grading scale for code quality assessment
+  - Multiple grade categories: functionality, code quality, documentation, testing
+  - Integrated into multi-file review workflows
 
 ## What's New in v4.1.x
 
@@ -97,7 +115,7 @@ This release focuses on build stability and code quality, ensuring a solid found
 ### v3.1.0 (2025-05-20)
 - **Enhanced Prompts**: Improved prompt templates with YAML metadata
 - **Dependency Analysis**: Added dependency-cruiser and ts-prune integration
-- **Multi-Language Support**: Added specialized prompts for Ruby/Rails, Python, PHP
+- **Multi-Language Support**: Added specialized prompts for Ruby/Rails, Python, PHP, Golang
 
 ## What's New in v3.0.2
 
@@ -176,8 +194,8 @@ This release focuses on build stability and code quality, ensuring a solid found
 
 ### Major Features in v2.1.0
 
-- **Automatic Language Detection**: Automatically detects Ruby, Python, PHP, TypeScript, and JavaScript projects
-- **Multi-Language Support**: Added specialized prompts for Ruby/Rails, Python, and PHP code review
+- **Automatic Language Detection**: Automatically detects Ruby, Python, PHP, Golang, TypeScript, and JavaScript projects
+- **Multi-Language Support**: Added specialized prompts for Ruby/Rails, Python, PHP, and Golang code review
 - **Dependency Analysis**: Added dependency-cruiser integration for architectural reviews
 - **Static Code Analysis**: Added ts-prune and eslint integration for unused code detection
 - **Enhanced Prompts**: Improved prompt templates with standardized YAML metadata
@@ -248,6 +266,8 @@ This tool analyzes code from specified files or directories in sibling projects 
   - **Security**: Focus on security vulnerabilities and best practices
   - **Performance**: Identify performance bottlenecks and optimization opportunities
   - **Unused Code**: Identify and suggest removal of dead code, redundant functions, and unused variables with deep code tracing capabilities
+  - **Evaluation**: Developer skill assessment and AI assistance detection with meta coding quality analysis
+  - **Best Practices**: Code quality review with adherence to language-specific conventions and standards
 - **Interactive Mode**: Process review results interactively, implementing fixes based on priority
 - **Automatic Fixes**: Automatically implement high priority fixes without manual intervention
 - **Prompt-Based Fixes**: Confirm and apply medium and low priority fixes with user input
