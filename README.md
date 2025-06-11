@@ -5,7 +5,8 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 ## What's New in v4.2.0
 
 ### New Features in v4.2.0
-- **Evaluation Review Type**: New developer skill assessment and AI assistance detection
+- **Evaluation Review Type**: Comprehensive code review with developer skill assessment
+  - Performs thorough code review PLUS developer assessment in one analysis
   - Analyzes coding skill level: Beginner/Intermediate/Advanced/Expert
   - Detects AI assistance likelihood and professional maturity
   - Includes meta coding quality indicators (documentation, testing, workflow)
@@ -266,7 +267,7 @@ This tool analyzes code from specified files or directories in sibling projects 
   - **Security**: Focus on security vulnerabilities and best practices
   - **Performance**: Identify performance bottlenecks and optimization opportunities
   - **Unused Code**: Identify and suggest removal of dead code, redundant functions, and unused variables with deep code tracing capabilities
-  - **Evaluation**: Developer skill assessment and AI assistance detection with meta coding quality analysis
+  - **Evaluation**: Comprehensive code review combined with developer skill assessment, AI assistance detection, and meta coding quality analysis
   - **Best Practices**: Code quality review with adherence to language-specific conventions and standards
 - **Interactive Mode**: Process review results interactively, implementing fixes based on priority
 - **Automatic Fixes**: Automatically implement high priority fixes without manual intervention
