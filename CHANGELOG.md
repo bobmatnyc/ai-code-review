@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2025-06-11
+
+### Added
+- **Evaluation Review Type**: New developer skill assessment and AI assistance detection
+  - Analyzes coding skill level: Beginner/Intermediate/Advanced/Expert
+  - Detects AI assistance likelihood and professional maturity
+  - Includes meta coding quality indicators (documentation, testing, workflow)
+  - Structured schema output for consistent evaluation results
+- **Golang Language Support**: Comprehensive support for Go/Golang projects
+  - Golang-specific prompt templates for all review types (architectural, quick-fixes, security, performance, unused-code, best-practices, evaluation)
+  - Idiomatic Go pattern analysis and best practices
+  - Go project type detection and file filtering (.go, go.mod, go.sum)
+  - Concurrency, interface design, and error handling expertise
+- **Enhanced Grading System**: Academic-style grading for consolidated reviews
+  - A+ to F grading scale for code quality assessment
+  - Multiple grade categories: functionality, code quality, documentation, testing, maintainability, security, performance
+  - Integrated into multi-file review workflows
+
+### Updated
+- Version bumped to 4.2.0 to reflect significant new functionality
+- README.md updated with new features and supported languages
+- Documentation enhanced to include evaluation review type and Golang support
+
 ## [4.1.2] - 2025-06-07
 
 ### Fixed
