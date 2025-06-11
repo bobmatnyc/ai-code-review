@@ -1,31 +1,66 @@
-# 🔁 Atlas Message Agent - Development Workflow
+# 🔁 AI Code Review Tool - Development Workflow
 
 **Version**: 1.0  
-**Updated**: 5-21-2025  
-**Reference**: This document contains the complete workflow procedures for the Atlas Message Agent project. It should be referenced from `INSTRUCTIONS.md`.
+**Updated**: 2025-06-11  
+**Repository**: https://github.com/bobmatnyc/ai-code-review.git
 
-**Changes in v1.0**:
-- Extracted from INSTRUCTIONS.md for better organization
-- Added GitHub API milestone management procedures  
-- Complete Git workflow and branch naming conventions
-- Issue tracking with structured labels and templates
-- Design document workflow requirements
+This document contains the complete workflow procedures for the AI Code Review tool project, a TypeScript-based CLI tool for automated code reviews using multiple AI providers (Gemini, Claude, OpenAI, OpenRouter).
 
 ---
 
-## 🔁 1. Git Workflow & Version Control
+## 🔧 1. Development Environment Setup
 
-We treat Git as a tool for **narrating engineering decisions**—not just storing code. Use it intentionally to reflect clarity, atomicity, and collaboration.
+### Prerequisites
+- Node.js >= 18.0.0
+- npm (or pnpm for some operations)
+- API keys for at least one AI provider
 
-### ✅ Commit Philosophy
+### Local Setup
+```bash
+# Clone the repository
+git clone https://github.com/bobmatnyc/ai-code-review.git
+cd ai-code-review
 
-- **Commit early, commit often**, but only once the change is coherent.
-- Each commit should answer: *What changed, and why?*
-- Prefer **small, purposeful commits** over monolithic ones.
+# Install dependencies
+npm install
 
-### 🔤 Conventional Commit Format
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your API keys
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
+# Run tests to verify setup
+npm test
+
+# Build the project
+npm run build
+```
+
+### Required Environment Variables
+Create `.env.local` with at least one AI provider:
+```bash
+# Choose one or more providers
+AI_CODE_REVIEW_MODEL=gemini:gemini-2.5-pro
+GOOGLE_API_KEY=your_google_api_key
+
+# OR
+AI_CODE_REVIEW_MODEL=anthropic:claude-3.5-sonnet
+ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# OR  
+AI_CODE_REVIEW_MODEL=openai:gpt-4o
+OPENAI_API_KEY=your_openai_api_key
+
+# OR
+AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3.5-sonnet
+OPENROUTER_API_KEY=your_openrouter_api_key
+```
+
+---
+
+## 🔁 2. Git Workflow & Version Control
+
+### Commit Standards
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 <type>(optional-scope): short summary
@@ -34,289 +69,380 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 [optional footer(s)]
 ```
 
+**Valid types**: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`, `ci`
+
 **Examples:**
-- `feat(auth): add OAuth login`
-- `fix(api): correct rate limit handling`
-- `chore(lint): update prettier config`
+- `feat(evaluation): add developer skill assessment review type`
+- `fix(golang): correct Go project type detection`
+- `docs(readme): update installation instructions`
+- `chore(deps): update dependencies to latest versions`
 
-**Valid types**:  
-`feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`, `ci`
-
-### 🌱 Branch Naming Convention
-
-Branches should reflect purpose and follow a `type/slug` format:
-
-```
-feature/search-api
-fix/token-refresh
-chore/update-deps
+### Branch Naming
+```bash
+feature/evaluation-review-type
+fix/golang-file-detection
+chore/update-dependencies
+docs/workflow-documentation
 ```
 
-### 🔄 Local Workflow
-
+### Local Development Workflow
 ```bash
 # Start from main
 git checkout main
 git pull origin main
 
-# Create a new branch
-git checkout -b feature/new-dashboard
+# Create feature branch
+git checkout -b feature/new-feature
 
-# Make your changes
+# Make changes and commit frequently
 git add .
-git commit -m "feat(dashboard): initial layout and state setup"
+git commit -m "feat(scope): add initial implementation"
 
 # Keep up to date
 git fetch origin
 git rebase origin/main
 
-# Push and open PR
-git push -u origin feature/new-dashboard
+# Push and create PR
+git push -u origin feature/new-feature
 ```
 
-### 🔍 PR & Merge Rules
-
-- Always **rebase** before opening PRs.
-- **Run full CI checks locally** before pushing any changes.
-- **Wait for all CI checks to pass** before requesting review.
-- **Fix all CI failures immediately** – don't leave broken builds.
-- **Squash-merge** in GitHub. Clean up the title to follow commit conventions.
-- Only merge if CI passes and code is reviewed.
-
-### ✅ Before Closing Issues
-
-Never close an issue until:
-1. All code changes are merged to main
-2. CI checks are passing on main
-3. Any documentation updates are complete
-4. Tests have been added/updated as needed
-5. The fix has been verified in the CI environment
-
-### 🚫 Avoid
-
-- Committing secrets, `.env`, build artifacts, or large binary files.
-- Merge commits in feature branches (use rebase instead).
-- Committing unresolved conflicts or commented-out code.
-
 ---
 
-## 🧭 2. GitHub Issue Tracking
+## 🧪 3. Testing & Quality Assurance
 
-We use **GitHub Issues** for all tracked work—features, bugs, ideas, spikes.  
-Submit via GitHub Issues REST API with `GITHUB_TOKEN`. No automation scripts.
-
-Each issue answers: *What are we doing, why does it matter, and how will we know it's done?*
-
-### Issue Fields to Fill
-
-- **Title** – human-readable and emoji-tagged (e.g. `🚀 Add login flow`)
-- **Description** – context, proposed approach, and acceptance criteria
-- **Labels** – use taxonomy below
-- **Assignee** – assign only when actively in progress
-- **Milestone** – for cycles/themes
-- **References** – include links to **design docs** where applicable
-
-### Label Taxonomy
-
-| Category  | Prefix    | Examples                                 |
-| --------- | --------- | ---------------------------------------- |
-| Theme     | `theme:`  | `theme:infra`, `theme:ai`, `theme:ux`    |
-| Status    | `status:` | `status:in-progress`, `status:blocked`   |
-| Priority  | `prio:`   | `prio:high`, `prio:low`                  |
-| Effort    | `size:`   | `size:xs`, `size:m`, `size:xl`           |
-| Type      | `type:`   | `type:bug`, `type:feature`, `type:chore` |
-
----
-
-## 📅 3. Milestones & Roadmap Management
-
-Milestones replace a static `ROADMAP.md`. Use them to group issues by cycle or theme.
-
-### Creating Milestones
-
-**Use GitHub API** (gh CLI doesn't support milestones):
+### Full CI Pipeline
+Before committing or publishing, always run:
 
 ```bash
-# Create a new milestone
-gh api repos/OWNER/REPO/milestones --method POST \
-  --field title='Phase 1: Foundation' \
-  --field description='Core infrastructure and MVP setup' \
-  --field due_on='2025-06-04T23:59:59Z' \
-  --field state='open'
-
-# Assign issue to milestone
-gh issue edit ISSUE_NUMBER --milestone 'Phase 1: Foundation'
+# Complete validation pipeline
+npm run lint          # ESLint validation
+npm run test          # Full test suite with vitest
+npm run build         # TypeScript compilation and bundling
+npm run validate:prompts  # Validate prompt templates
 ```
 
-### Milestone Guidelines
+### Test Categories
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: API client and workflow testing  
+- **Prompt Validation**: Template syntax and metadata validation
+- **Model Tests**: Live API testing (when keys available)
 
-- **Include**: goal (1–2 lines), timeframe, and summary
-- **Examples**: `Phase 1: Foundation & MVP`, `Q2 2025 Infrastructure`, `Semantic Intelligence`
-- **Optionally close** with a wrap-up issue
-- **Design docs** should be linked for each milestone initiative
-- **Due dates** should be realistic and account for dependencies
-
-### Milestone Structure
-
-- **Phase 1**: Foundation & MVP (2 weeks)
-- **Phase 2**: Semantic Intelligence (2 weeks)  
-- **Phase 3**: Agent API & Operations (2 weeks)
-- **Phase 4**: Self-Learning & Training (2 weeks)
-- **Future Enhancements**: Long-term improvements (no due date)
+### Coverage Requirements
+- Minimum 80% test coverage for new features
+- All public APIs must have tests
+- Critical paths (review orchestration, client selection) require comprehensive testing
 
 ---
 
-## 📌 4. Decision Logs
+## 📦 4. Building & Packaging
 
-Capture important design or architectural decisions as `type:decision` issues.
-
-* Use titles like `📌 Decision: Move to Mastra`
-* Include rationale and resolution in comments
-* Reference relevant **design documents** if one informed the decision
-
----
-
-## 🧾 5. How to Write Good Issues
-
-* Start with **why**
-* Use checklists if multiple deliverables
-* Use code blocks and links to previous Issues/PRs
-* Link relevant design docs from `docs/design/`
-
----
-
-## 🚀 6. Proposing New Work
-
-Anyone can open an Issue. Use this template:
-
-```md
-### Summary
-What's the idea or problem?
-
-### Why it matters
-Why now? What impact does it have?
-
-### Proposal (if known)
-How might we tackle this? Link to any relevant design doc in `docs/design/`.
-
-### Success Criteria
-What does "done" look like?
-```
-
-Apply appropriate `type:` and `theme:` labels.
-
----
-
-## 🔗 7. Design Document Workflow
-
-Design documents live in `docs/design/` and are required for all substantial features, architecture changes, or systems work.
-
-### Design Doc Requirements
-
-- Each major issue **must reference a design doc** unless trivial
-- GitHub Issues proposing large features must either embed or link to the doc
-- Revisit/update the design doc post-launch with a closing summary
-
-### Design Doc Structure
-
-```md
-# Feature Name or System Title
-
-## Summary
-What is this and why are we doing it?
-
-## Problem
-The pain point, friction, or opportunity this addresses.
-
-## Goals & Non-goals
-Explicit scope boundaries.
-
-## Product Considerations
-User needs, performance, accessibility, regulatory impacts.
-
-## Technical Design
-Architecture, key components, protocols, libraries, and rationale.
-
-## Implementation Plan
-Phased rollout or sequencing steps.
-
-## Open Questions
-Unresolved items or future revisits.
-
-## References
-Link related issues, PRs, or past work.
-```
-
----
-
-## 🔄 8. Milestone API Commands Reference
-
-### Common Milestone Operations
-
+### Development Build
 ```bash
-# List all milestones
-gh api repos/OWNER/REPO/milestones
-
-# Create milestone with due date
-gh api repos/OWNER/REPO/milestones --method POST \
-  --field title='Milestone Name' \
-  --field description='Milestone description' \
-  --field due_on='2025-12-31T23:59:59Z' \
-  --field state='open'
-
-# Update milestone
-gh api repos/OWNER/REPO/milestones/NUMBER --method PATCH \
-  --field title='Updated Title' \
-  --field state='closed'
-
-# Assign issue to milestone
-gh issue edit ISSUE_NUMBER --milestone 'Milestone Name'
-
-# List issues in milestone
-gh issue list --milestone 'Milestone Name'
+npm run dev        # Run with ts-node for development
+npm run local      # Run with tsconfig-paths for module resolution
 ```
 
-### Milestone States
-
-- **open**: Active milestone accepting issues
-- **closed**: Completed milestone (automatically closes when due date passes)
-
----
-
-## 🔁 9. Replaces These Docs
-
-* `ROADMAP.md` → use Milestones
-* `PROGRESS.md` → use Labels + Issues  
-* Task trackers (Notion, Google Docs) → link Issues and **Design Docs**
-
----
-
-## 🚀 10. Quick Reference: Issue Commands
-
+### Production Build
 ```bash
-# Create new issue
-gh issue create --title "Issue title" --body "Description" --label "type:feature"
+npm run build      # Full production build with tests
+npm run quick-build # Fast build without tests (development only)
+```
 
-# List issues
-gh issue list --state open
-gh issue list --milestone "Phase 1"
-gh issue list --label "prio:high"
+### Package Preparation
+```bash
+npm run prepare-package  # Complete package preparation for publishing
+```
 
-# Edit issue
-gh issue edit NUMBER --title "New title"
-gh issue edit NUMBER --milestone "Phase 1"
-gh issue edit NUMBER --add-label "status:in-progress"
+This script:
+1. Cleans previous builds
+2. Runs full test suite
+3. Builds TypeScript with type definitions
+4. Creates executable CLI with shebang
+5. Validates package.json structure
+6. Syncs model mappings and version
 
-# Close issue
-gh issue close NUMBER --comment "Completed in PR #123"
+---
+
+## 📋 5. Release Process
+
+### Pre-Release Checklist
+1. **Version Management**:
+   ```bash
+   # Update version in package.json
+   npm version [patch|minor|major]
+   
+   # Sync version across files
+   npm run version:sync
+   ```
+
+2. **Documentation Updates**:
+   - Update README.md with new features
+   - Update CHANGELOG.md with release notes
+   - Verify all prompt templates have correct metadata
+
+3. **Quality Verification**:
+   ```bash
+   npm run lint && npm run test && npm run build
+   ```
+
+4. **Package Preparation**:
+   ```bash
+   npm run prepare-package
+   ```
+
+### Publishing to NPM
+```bash
+# Verify you're logged into npm
+npm whoami
+
+# Publish to npm registry
+npm publish
+
+# Or using pnpm (alternative)
+pnpm publish
+```
+
+### Release Tags
+```bash
+# Tag the release
+git tag -a v4.2.0 -m "Release version 4.2.0: evaluation review and Golang support"
+git push origin v4.2.0
 ```
 
 ---
 
-## 👁️ Final Note
+## 🎯 6. Feature Development Guidelines
 
-Issues aren't just tasks—they're **shared context**.  
-Design docs make that context durable.
+### Adding New Review Types
+1. **Create Schema**: Define Zod schema in `src/prompts/schemas/`
+2. **Create Prompts**: Add language-specific templates in `promptText/languages/`
+3. **Update Types**: Add to `ReviewType` enum in `src/types/review.ts`
+4. **Update CLI**: Add to argument parser choices
+5. **Add Tests**: Create comprehensive test coverage
+6. **Update Docs**: Document in README.md and examples
 
-Write them like you're briefing a future teammate (or future you).  
-Clear Issues and thoughtful docs create speed later.
+### Adding Language Support
+1. **Prompt Templates**: Create templates in `promptText/languages/[language]/`
+2. **Project Detection**: Update `src/utils/detection/projectTypeDetector.ts`
+3. **File Filtering**: Update `src/utils/files/fileFilters.ts`
+4. **Language Detection**: Update language mapping functions
+5. **Testing**: Add language-specific test cases
+
+### Adding AI Provider Support
+1. **Client Implementation**: Create in `src/clients/implementations/`
+2. **Model Maps**: Update `src/clients/utils/modelMaps/data/`
+3. **Factory Registration**: Update client factory
+4. **Error Handling**: Implement provider-specific error patterns
+5. **Cost Estimation**: Add to estimator factory
+
+---
+
+## 🔍 7. Code Quality Standards
+
+### TypeScript Requirements
+- Strict mode enabled (`tsconfig.json`)
+- No `any` types (prefer `unknown` or proper interfaces)
+- Complete JSDoc documentation for public APIs
+- Consistent import/export patterns
+
+### ESLint Configuration
+- Maximum 1000 warnings allowed
+- Zero errors policy
+- Automatic fixing where possible: `npm run lint:fix`
+
+### File Organization
+```
+src/
+├── analysis/          # Token analysis and semantic chunking
+├── cli/              # Command-line interface
+├── clients/          # AI provider clients
+├── commands/         # CLI command implementations  
+├── core/            # Core orchestration logic
+├── formatters/      # Output formatting
+├── prompts/         # Prompt management and schemas
+├── strategies/      # Review strategy implementations
+├── types/           # TypeScript type definitions
+└── utils/           # Utility functions and helpers
+```
+
+---
+
+## 🧾 8. Documentation Standards
+
+### Code Documentation
+- JSDoc comments for all public functions and classes
+- Type annotations for complex interfaces
+- Examples in documentation where helpful
+
+### Prompt Templates
+All prompt templates must include YAML frontmatter:
+```yaml
+---
+name: Review Type Name
+description: Clear description of the review purpose
+version: 1.0.0
+author: AI Code Review Tool
+lastModified: 2025-06-11T00:00:00.000Z
+reviewType: type-name
+language: language-code
+tags:
+  - tag1
+  - tag2
+---
+```
+
+### README Maintenance
+- Keep feature list up to date
+- Include examples for new capabilities
+- Maintain version history with meaningful release notes
+
+---
+
+## 🚀 9. CI/CD & Automation
+
+### Pre-commit Hooks
+```bash
+# Recommended pre-commit setup
+npm run lint && npm run test && npm run build
+```
+
+### NPM Scripts Reference
+```bash
+# Development
+npm run dev           # Development server with ts-node
+npm run local         # Local execution with path resolution
+
+# Testing  
+npm test             # Full test suite
+npm run test:watch   # Watch mode testing
+npm run test:coverage # Coverage report
+
+# Building
+npm run build        # Production build
+npm run build:types  # TypeScript declarations only
+npm run quick-build  # Fast build for development
+
+# Quality
+npm run lint         # ESLint checking
+npm run format       # Prettier formatting
+
+# Validation
+npm run validate:models  # Model configuration validation
+npm run validate:prompts # Prompt template validation
+
+# Utilities
+npm run version:sync     # Sync version across files
+npm run models:sync      # Update model mappings
+npm run prepare-package  # Package for publishing
+```
+
+### Automated Checks
+- TypeScript compilation
+- ESLint validation  
+- Test execution
+- Prompt template validation
+- Model configuration verification
+
+---
+
+## 📊 10. Project Metrics & Monitoring
+
+### Key Performance Indicators
+- Test coverage percentage
+- Build success rate
+- ESLint warning count (target: <500)
+- Response time for different AI providers
+- Token usage efficiency
+
+### Quality Gates
+- All tests must pass
+- Zero TypeScript compilation errors
+- ESLint warnings under configured limit
+- Successful prompt validation
+- Working CLI executable generation
+
+---
+
+## 🔗 11. Dependencies & Security
+
+### Dependency Management
+```bash
+npm audit              # Security audit
+npm update             # Update dependencies
+npm outdated           # Check for outdated packages
+```
+
+### Security Practices
+- Never commit API keys or secrets
+- Use `.env.local` for local development
+- Validate all external inputs
+- Keep dependencies updated
+- Regular security audits
+
+### Major Dependencies
+- **TypeScript**: Core language and type system
+- **Vitest**: Testing framework
+- **ESLint**: Code quality and linting
+- **Zod**: Schema validation for review outputs
+- **Handlebars**: Template engine for prompts
+- **Various AI SDKs**: Provider-specific clients
+
+---
+
+## 📝 12. Troubleshooting Common Issues
+
+### Build Failures
+1. **TypeScript Errors**: Run `npm run build:types` to isolate
+2. **Missing Dependencies**: Run `npm install` to sync
+3. **Path Resolution**: Check `tsconfig.json` paths configuration
+
+### Test Failures  
+1. **API Key Issues**: Verify `.env.local` configuration
+2. **Mock Problems**: Ensure test mocks match actual exports
+3. **Timeout Issues**: Check network connectivity for integration tests
+
+### CLI Issues
+1. **Command Not Found**: Run `npm run postbuild` to link globally
+2. **Permission Errors**: Verify executable permissions on `dist/index.js`
+3. **Module Resolution**: Check relative vs absolute import paths
+
+---
+
+## 🎯 13. Contributing Guidelines
+
+### Pull Request Process
+1. Create feature branch from main
+2. Implement changes with tests
+3. Run full CI pipeline locally
+4. Update documentation as needed
+5. Create PR with clear description
+6. Wait for CI validation
+7. Address review feedback
+8. Squash merge when approved
+
+### Code Review Checklist
+- [ ] Tests included and passing
+- [ ] Documentation updated
+- [ ] TypeScript compilation successful
+- [ ] ESLint validation passed
+- [ ] Breaking changes documented
+- [ ] Version updated if needed
+
+---
+
+## 🔄 14. Maintenance Procedures
+
+### Regular Maintenance Tasks
+- **Weekly**: Dependency updates and security patches
+- **Monthly**: Performance review and optimization
+- **Quarterly**: Major dependency upgrades
+- **As Needed**: Documentation updates and prompt improvements
+
+### Version Management
+- **Patch** (x.x.X): Bug fixes, minor improvements
+- **Minor** (x.X.x): New features, new language support  
+- **Major** (X.x.x): Breaking changes, architecture updates
+
+---
+
+This workflow ensures consistent development practices, reliable releases, and maintainable code quality for the AI Code Review tool.
