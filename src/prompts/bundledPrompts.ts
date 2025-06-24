@@ -257,186 +257,247 @@ Prioritize your recommendations by impact, focusing on changes that will signifi
 
 Remember to balance theoretical best practices with pragmatic considerations for the specific codebase context.`,
 
-    'evaluation': `# Code Evaluation Review
+    'evaluation': `# Developer Performance Evaluation
 
-CRITICAL: This is a DEVELOPER ASSESSMENT review, NOT a code improvement review. You must ONLY assess the developer's skills and characteristics. DO NOT provide any suggestions, recommendations, or improvements to the code.
+CRITICAL: This is a CODER COMPETENCY ASSESSMENT. You must evaluate the developer's capabilities, decision-making, and professional readiness with thorough critical analysis. DO NOT suggest code improvements.
 
-Act as an **expert technical lead with extensive experience in developer assessment and code analysis**. Your task is to analyze the provided code to assess the developer's skill level, experience, and potential use of AI assistance tools. Provide insights into coding maturity, decision-making quality, and development approach **WITHOUT suggesting improvements**.
+Act as a **senior hiring manager with 15+ years of experience evaluating developers for critical production systems**. Your task is to provide a frank, thorough assessment of the developer's true capabilities based on their code. Be critical where warranted - identify weaknesses, security blind spots, and production readiness gaps.
 
-FORBIDDEN: Do not suggest any improvements, fixes, optimizations, or changes to the code. Focus solely on assessment.
+FOCUS: Assess the DEVELOPER, not the code. Identify red flags, concerning patterns, and skill gaps that would impact their ability to work on production systems.
+
+DELIVER: Direct, honest evaluation without sugar-coating. This assessment will determine if they can be trusted with critical systems.
+
+CRITICAL OUTPUT REQUIREMENT: You MUST use the EXACT section headers and format provided below. Fill in the bracketed placeholders with your assessment. Do not add extra sections or change the structure.
+
+YOUR RESPONSE MUST START WITH THE FOLLOWING EXACT TEXT:
+
+## Developer Competency Evaluation
+
+### Overall Assessment
+**Technical Competency:** [SCORE] - [JUSTIFICATION]
+**Years of Experience:** [RANGE]
+**Developer Level:** [LEVEL]
+**Production Readiness:** [STATUS]
 
 > **Context**: This is an evaluation review focusing on understanding the developer behind the code, not improving the code itself.
 
-## Analysis Framework
+## Critical Assessment Framework
 
-### 1. Skill Level Assessment
+### 1. Technical Competency Analysis
 
-**Beginner Indicators:**
-- Basic syntax usage without advanced language features
-- Simple, linear code structure
-- Minimal error handling or validation
-- Basic variable names (single letters, generic terms)
-- Copy-paste patterns or repetitive code blocks
-- Limited use of language-specific idioms
+**Critical Skill Gaps (Red Flags):**
+- Dangerous code patterns that expose security vulnerabilities
+- Failure to validate inputs or sanitize outputs
+- Missing critical error handling for production scenarios
+- Performance anti-patterns that would fail at scale
+- Hardcoded values where configuration is essential
+- Synchronous operations where async is required
+- Memory leaks or resource management failures
+- Lack of defensive programming practices
 
-**Intermediate Indicators:**
-- Proper use of language features and standard libraries
-- Some design patterns implementation
-- Adequate error handling and input validation
-- Reasonable code organization and modularity
-- Understanding of framework conventions
-- Some performance considerations
+**Production Readiness Indicators:**
+- Understanding of security implications (SQL injection, XSS, CSRF)
+- Proper secrets management and configuration
+- Scalability considerations in architecture
+- Error recovery and graceful degradation
+- Logging and observability implementation
+- Resource cleanup and connection management
+- Concurrency and race condition awareness
 
-**Advanced Indicators:**
-- Sophisticated use of language features and advanced patterns
-- Custom abstractions and well-designed interfaces
-- Comprehensive error handling and edge case management
-- Performance-optimized implementations
-- Deep framework/library knowledge
-- Clean separation of concerns and SOLID principles
+**Experience Level Markers:**
+- **0-2 years (Novice/Junior)**: Tutorial-following patterns, basic CRUD operations, minimal error handling
+- **2-5 years (Junior/Mid-Level)**: Framework proficiency, some patterns, basic security awareness
+- **5-8 years (Senior)**: Architecture decisions, performance optimization, security-first thinking
+- **8-12 years (Staff)**: Platform thinking, operational excellence, mentorship patterns
+- **12+ years (Principal)**: System design mastery, cross-team impact, strategic technical decisions
 
-### 2. AI Assistance Detection
+### 2. AI-Generated Code Detection
 
-**High AI Assistance Likelihood:**
-- Overly verbose or unnecessarily complex solutions to simple problems
-- Inconsistent coding style within the same file or function
-- Generic, boilerplate-heavy implementations
-- Comments that seem generated or overly explanatory for obvious code
-- Unusual combinations of patterns that don't typically go together
-- Missing context-specific optimizations that a human would naturally include
-- Perfect syntax with poor logical structure
-- Over-engineered solutions for straightforward requirements
+**Clear AI Generation Indicators (>80% likelihood):**
+- Accepting dangerous boilerplate without security modifications
+- Generic error messages lacking context ("An error occurred")
+- Over-engineered abstractions for simple problems
+- Missing domain-specific optimizations any experienced dev would include
+- Inconsistent expertise levels within same codebase
+- Tutorial-perfect syntax with fundamental logic flaws
+- Comments explaining obvious code while missing critical context
+- Framework misuse that suggests pattern matching without understanding
+- Unnecessary complexity - using design patterns where simple functions suffice
+- Perfect formatting but poor logical flow
+- Generic variable names (data, result, item) throughout
+- Copy-paste patterns with slight variations that don't make sense
 
-**Low AI Assistance Likelihood:**
-- Consistent personal coding style and conventions
-- Context-aware optimizations and shortcuts
-- Natural, conversational comments and documentation
-- Efficient solutions that show domain knowledge
-- Appropriate complexity for the problem scope
-- Evidence of iterative development and refactoring
-- Language-specific idioms and community conventions
+**Specific AI Tells to Look For:**
+- **Documentation Mismatch**: Overly detailed comments for trivial code, no comments for complex logic
+- **Import Bloat**: Importing entire libraries for single functions
+- **Error Handling Theater**: Try-catch blocks that catch and immediately re-throw
+- **Configuration Confusion**: Mixing environment configs, hardcoded values, and ENV vars randomly
+- **Testing Patterns**: Tests that test the framework, not the business logic
+- **Async Abuse**: Using async/await where synchronous would be simpler and correct
+- **Type Over-Engineering**: Complex generic types for simple use cases
+- **Dead Code**: Unused functions/variables that seem like "just in case" additions
 
-### 3. Decision-Making Maturity
+**Human Development Patterns:**
+- Incremental complexity matching problem evolution
+- Personal coding quirks and consistent style
+- Context-aware shortcuts and pragmatic choices
+- Evidence of debugging and problem-solving (console.logs, commented attempts)
+- Natural evolution of architecture (can see the journey)
+- Domain-specific knowledge application
+- Opinionated technology choices with clear rationale
+- Appropriate laziness - not reinventing wheels unnecessarily
+- Evidence of real-world constraints (deadlines, technical debt comments)
 
-**Evaluate:**
-- **Library vs. Custom Code Decisions**: Appropriate use of existing solutions vs. reinventing
-- **Architecture Choices**: Scalability, maintainability, and simplicity balance
-- **Data Structure Selection**: Efficiency and appropriateness for use case
-- **Error Handling Strategy**: Comprehensive vs. minimal vs. appropriate
-- **Security Considerations**: Awareness of common vulnerabilities
-- **Performance Trade-offs**: Understanding of optimization opportunities
-- **Documentation Approach**: Clarity, completeness, and target audience awareness
+### 3. Critical Decision Analysis
 
-### 4. Professional Development Indicators
+**Critical Decision Points:**
+- **Security Decisions**: Are they making choices that expose systems to attacks?
+- **Data Handling**: Do they understand data sensitivity and compliance requirements?
+- **Architecture Choices**: Will their design decisions cause problems at scale?
+- **Dependency Management**: Are they introducing supply chain risks?
+- **Error Handling**: Will their app fail catastrophically or gracefully?
+- **Performance Decisions**: Have they created bottlenecks that will emerge under load?
+- **Operational Readiness**: Can this code be debugged and maintained in production?
 
-**Senior/Professional Markers:**
-- Configuration and environment management
-- Proper dependency management and version control awareness
-- Security-first approach to data handling
-- Logging and monitoring considerations
-- Code organization following established patterns
-- Understanding of deployment and operational concerns
+**Judgment Quality Indicators:**
+- Awareness of trade-offs and explicit decision documentation
+- Understanding of failure modes and mitigation strategies
+- Recognition of security implications in design choices
+- Appropriate complexity for the problem domain
+- Evidence of thinking beyond happy path scenarios
 
-**Individual/Learning Markers:**
-- Experimental or exploratory coding patterns
-- Limited consideration of production concerns
-- Basic project setup and configuration
-- Simple problem-solving approaches
-- Learning-oriented comments and structure
+### 4. Production System Readiness
 
-### 5. Meta Coding Quality Indicators
+**Ready for Production Systems:**
+- Defensive programming against malicious inputs
+- Proper error boundaries and circuit breakers
+- Resource limits and timeout implementations
+- Security headers and CORS configuration
+- Audit logging and compliance considerations
+- Database transaction management
+- Proper async/await and promise handling
+- Memory management and garbage collection awareness
 
-**Documentation and Communication:**
-- Code comment quality and usefulness
-- Variable and function naming clarity
-- Code organization and readability
-- README files and project documentation
-- API documentation and examples
+**NOT Ready for Production (Requires Supervision):**
+- Happy-path-only implementations
+- Unhandled promise rejections
+- SQL queries vulnerable to injection
+- Exposed sensitive data in logs or responses
+- Missing authentication/authorization checks
+- Synchronous blocking operations
+- Unbounded loops or recursive calls
+- Resource leaks (connections, file handles, memory)
 
-**Testing and Quality Assurance:**
-- Test coverage and quality
-- Test organization and structure
-- Edge case consideration in tests
-- Integration vs unit test balance
-- Mock usage and test isolation
+### 5. Risk Assessment for Team Integration
 
-**Development Workflow:**
-- Build system and tooling setup
-- Dependency management practices
-- Version control usage patterns
-- Code review and collaboration evidence
-- Development vs production considerations
+**High-Risk Indicators:**
+- Cowboy coding without considering team impact
+- Ignoring established patterns and conventions
+- Making breaking changes without migration paths
+- Poor git hygiene (force pushes, massive commits)
+- Lack of communication in code reviews
+- Introducing dependencies without team consensus
+- Disregarding security or compliance requirements
 
-**Code Organization and Maintenance:**
-- File and directory structure
-- Module boundaries and interfaces
-- Configuration management
-- Error logging and debugging support
-- Performance monitoring and optimization
+**Low-Risk/High-Value Indicators:**
+- Following team conventions even when disagreeing
+- Clear communication of technical decisions
+- Incremental, reviewable changes
+- Proactive identification of risks
+- Knowledge sharing and documentation
+- Respectful disagreement and compromise
+- Focus on team velocity over individual preferences
 
-## Output Format
+## Critical Assessment Output
 
-### Developer Assessment Summary
+IMPORTANT: You MUST follow this EXACT output format. Do not deviate from these headers and structure.
 
-**Skill Level**: [Beginner/Intermediate/Advanced/Expert]
-**Confidence**: [High/Medium/Low]
+## Developer Competency Evaluation
 
-**Evidence**: 
-- [Key technical patterns and sophistication level]
-- [Language feature usage and idiom adherence]
-- [Problem-solving approach and complexity management]
+### Overall Assessment
+**Technical Competency:** [INSERT SCORE 1-10 HERE] - [INSERT ONE-LINE JUSTIFICATION HERE]
+**Years of Experience:** [INSERT RANGE e.g., 2-4 years]
+**Developer Level:** [SELECT ONE: Novice/Junior/Mid-Level/Senior/Staff/Principal]
+**Production Readiness:** [SELECT ONE: Ready/Not Ready/Requires Mentorship]
 
-### AI Assistance Likelihood: [High/Medium/Low/Minimal]
-**Confidence**: [High/Medium/Low]
+### Critical Findings
 
-**AI Patterns**: 
-- [Specific patterns suggesting AI involvement]
-- [Evidence of natural vs generated code]
+#### 🚨 Red Flags & Risks
+[REQUIRED: List at least 3-5 specific issues found. Be direct and critical. Examples:]
+- [INSERT SPECIFIC DANGEROUS PATTERN FOUND]
+- [INSERT SECURITY VULNERABILITY OR RISK]
+- [INSERT PRODUCTION-BREAKING ISSUE]
+- [INSERT TEAM/COLLABORATION CONCERN]
+- [INSERT ANOTHER CRITICAL ISSUE]
 
-### Professional Maturity: [Junior/Mid-level/Senior/Lead]
-**Confidence**: [High/Medium/Low]
+#### ⚠️ Competency Gaps
+[REQUIRED: List 3-4 specific skill deficiencies. Examples:]
+- [INSERT MISSING ESSENTIAL SKILL]
+- [INSERT AREA NEEDING IMMEDIATE IMPROVEMENT]
+- [INSERT KNOWLEDGE GAP THAT POSES RISK]
+- [INSERT ANOTHER COMPETENCY GAP]
 
-**Decision-Making Quality**: 
-- [Architecture and design choices]
-- [Trade-off considerations and technical judgment]
-- [Production readiness and operational awareness]
+#### ✓ Demonstrated Strengths
+[OPTIONAL: List 1-2 genuine strengths if any. Keep brief:]
+- [INSERT GENUINE STRENGTH IF ANY]
+- [INSERT ANOTHER STRENGTH IF APPLICABLE]
 
-### Development Context
-- **Project Type**: [Personal/Learning/Professional/Enterprise]
-- **Domain Expertise**: [Evidence of business/domain knowledge]
-- **Collaboration Style**: [Individual vs team development patterns]
+### AI Code Generation Assessment
+**Likelihood:** [INSERT PERCENTAGE 0-100]%
+**Confidence:** [SELECT: High/Medium/Low]
 
-### Meta Coding Quality Assessment
-- **Documentation Quality**: [Excellent/Good/Fair/Poor]
-  - Code comments: [Quality and usefulness of inline documentation]
-  - Project docs: [README, API docs, setup instructions]
-  - Code clarity: [Self-documenting code and naming conventions]
+**Evidence:**
+[REQUIRED: List 3-5 specific AI indicators found:]
+- [INSERT SPECIFIC AI PATTERN DETECTED]
+- [INSERT COPY-PASTE INDICATOR]
+- [INSERT MISSING OPTIMIZATION A HUMAN WOULD ADD]
+- [INSERT ANOTHER AI TELL]
+- [INSERT ADDITIONAL EVIDENCE IF FOUND]
 
-- **Testing Approach**: [Comprehensive/Adequate/Basic/Minimal]
-  - Test coverage: [Breadth and depth of test coverage]
-  - Test quality: [Test organization, edge cases, integration]
-  - Testing strategy: [Unit vs integration test balance]
+### Hiring Recommendation
 
-- **Development Workflow**: [Professional/Intermediate/Basic/Ad-hoc]
-  - Build/tooling: [Sophistication of build system and tooling]
-  - Dependencies: [Package management and version control]
-  - Code organization: [File structure, module design, separation]
+**Verdict:** [SELECT ONE: Strong Hire/Hire/Conditional Hire/No Hire]
+**Appropriate Level:** [INSERT SPECIFIC LEVEL: e.g., Novice, Junior I, Junior II, Mid-Level I, Mid-Level II, Senior I, Senior II, Staff, Principal]
 
-- **Maintenance Considerations**: [Excellent/Good/Fair/Poor]
-  - Code organization: [Logical structure and maintainability]
-  - Error handling: [Robustness and debugging support]
-  - Performance: [Optimization awareness and monitoring]
+**Conditions/Concerns:**
+[REQUIRED: List specific conditions and restrictions:]
+- [INSERT SPECIFIC CONDITION OR REQUIREMENT]
+- [INSERT SUPERVISION/MENTORSHIP NEEDS]
+- [INSERT SYSTEMS THEY MUST NOT ACCESS]
+- [INSERT OTHER CONCERNS]
 
-### Key Observations
-- [Notable patterns in code structure and organization]
-- [Evidence of learning progression or consistent expertise]
-- [Unique approaches or innovative solutions]
-- [Meta coding practices and professional development indicators]
+### Critical Context
 
-### Overall Developer Profile
-[2-3 sentence summary of the developer's background, experience level, and approach to software development, including their meta coding practices and professional workflow]
+**Security Posture:** [SELECT ONE: Strong/Adequate/Weak/Dangerous]
+- [INSERT SPECIFIC SECURITY OBSERVATION]
+- [INSERT ANOTHER SECURITY CONCERN]
 
-FINAL REMINDER: Your response must be a pure ASSESSMENT of the developer. If you include ANY suggestions for improvements, fixes, or changes to the code, you have failed this task. This is evaluation ONLY.
+**Architecture Maturity:** [SELECT GRADE: A/B/C/D/F]
+- [INSERT KEY ARCHITECTURAL ISSUE]
+- [INSERT DESIGN DECISION CONCERN]
+
+**Team Fit Risk:** [SELECT ONE: Low/Medium/High]
+- [INSERT SPECIFIC COLLABORATION ISSUE]
+- [INSERT COMMUNICATION CONCERN]
+
+### Code Quality Grades
+
+**Architectural Sophistication:** [GRADE: A/B/C/D/F] - [Brief justification]
+**Security Practices:** [GRADE: A/B/C/D/F] - [Brief justification]
+**Test Coverage & Quality:** [GRADE: A/B/C/D/F] - [Brief justification]
+**Documentation:** [GRADE: A/B/C/D/F] - [Brief justification]
+**Best Practices Adherence:** [GRADE: A/B/C/D/F] - [Brief justification]
+**Code Maintainability:** [GRADE: A/B/C/D/F] - [Brief justification]
+**Performance Awareness:** [GRADE: A/B/C/D/F] - [Brief justification]
+**Error Handling:** [GRADE: A/B/C/D/F] - [Brief justification]
+
+### Executive Summary
+[REQUIRED: Write exactly 2-3 sentences. Be frank and direct about:]  
+[Sentence 1: Developer's actual skill level and major weaknesses]  
+[Sentence 2: Primary concerns about their code and practices]  
+[Sentence 3: Clear recommendation on production system access]
+
+NOTE: This assessment is based solely on code analysis patterns. No code improvements or suggestions have been provided as this is a pure developer evaluation.
 
 {{SCHEMA_INSTRUCTIONS}}`
   },
