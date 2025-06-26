@@ -224,10 +224,7 @@ import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
 import { listModelConfigs } from './clients/utils/modelLister';
 import { handleSyncGitHubProjectsCommand } from './commands/syncGithubProjects';
-
-// Hardcoded version number to ensure --version flag works correctly
-// This is more reliable than requiring package.json which can be affected by npm installation issues
-const VERSION = '4.2.3';
+import { VERSION } from './version';
 
 // Main function to run the application
 async function main() {
