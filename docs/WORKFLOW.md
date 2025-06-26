@@ -172,9 +172,8 @@ This script:
    ```bash
    # Update version in package.json
    npm version [patch|minor|major]
-   
-   # Sync version across files
-   npm run version:sync
+
+   # Version is automatically synced during build
    ```
 
 2. **Documentation Updates**:
@@ -333,7 +332,6 @@ npm run validate:models  # Model configuration validation
 npm run validate:prompts # Prompt template validation
 
 # Utilities
-npm run version:sync     # Sync version across files
 npm run models:sync      # Update model mappings
 npm run prepare-package  # Package for publishing
 ```
