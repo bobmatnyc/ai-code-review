@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v2
         with:
           version: 8
       - name: Use Node.js
@@ -30,13 +30,13 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v8
+      - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v8
+        uses: pnpm/action-setup@v2
         with:
           version: 8
       - name: Use Node.js
-        uses: actions/setup-node@v8
+        uses: actions/setup-node@v4
         with:
           node-version: '18.x'
           cache: 'pnpm'
@@ -49,13 +49,13 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v8
+      - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v8
+        uses: pnpm/action-setup@v2
         with:
-          version: latest
+          version: 8
       - name: Use Node.js
-        uses: actions/setup-node@v8
+        uses: actions/setup-node@v4
         with:
           node-version: '18.x'
           cache: 'pnpm'
@@ -68,13 +68,13 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v8
+      - uses: actions/checkout@v4
       - name: Install pnpm
-        uses: pnpm/action-setup@v8
+        uses: pnpm/action-setup@v2
         with:
           version: 8
       - name: Use Node.js
-        uses: actions/setup-node@v8
+        uses: actions/setup-node@v4
         with:
           node-version: '18.x'
           cache: 'pnpm'
