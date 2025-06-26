@@ -18,7 +18,7 @@
  */
 
 import { ReviewResult } from '../types/review';
-import logger from '../utils/logger';
+
 import { formatAsMarkdown } from './utils/MarkdownFormatters';
 import { formatAsJson } from './utils/JsonFormatter';
 

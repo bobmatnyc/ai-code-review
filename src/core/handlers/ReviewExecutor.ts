@@ -29,7 +29,7 @@ export async function executeReview(
   options: ReviewOptions,
   apiClientConfig: { modelName: string; [key: string]: unknown },
   projectDocs: unknown = null,
-  semanticResult: SemanticAnalysisResult | null = null,
+  _semanticResult: SemanticAnalysisResult | null = null,
   tokenAnalysis: TokenAnalysisResult | null = null
 ): Promise<ReviewResult> {
   // Create strategy based on review type
