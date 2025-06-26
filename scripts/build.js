@@ -12,8 +12,38 @@ const builtinModules = require('module').builtinModules;
 
 const external = [...builtinModules, ...Object.keys(dependencies || {})];
 
+/**
+ * Generate version.ts file from package.json
+ * This ensures package.json is the single source of truth for versioning
+ */
+function generateVersionFile() {
+  console.log('📦 Generating version file from package.json...');
+
+  const fs = require('fs');
+
+  // Read package.json
+  const packageJsonPath = path.resolve(__dirname, '../package.json');
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  const version = packageJson.version;
+
+  // Generate version.ts content
+  const versionFileContent = `// This file is auto-generated during build from package.json
+// Do not edit manually - changes will be overwritten
+export const VERSION = '${version}';
+`;
+
+  // Write version.ts file
+  const versionFilePath = path.resolve(__dirname, '../src/version.ts');
+  fs.writeFileSync(versionFilePath, versionFileContent);
+
+  console.log(`✅ Generated version.ts with version '${version}'`);
+}
+
 async function build() {
   try {
+    // Generate version file first
+    generateVersionFile();
+
     await esbuild.build({
       entryPoints: ['src/index.ts'],
       bundle: true,
