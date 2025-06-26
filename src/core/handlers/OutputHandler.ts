@@ -96,12 +96,16 @@ export function createOutputDirectory(
   const outputDir = options.outputDir || configOutputDir;
   
   // Determine if the path is absolute or relative
-  const outputBaseDir = path.isAbsolute(outputDir) 
-    ? outputDir 
-    : path.resolve(projectPath, outputDir);
+  let outputBaseDir: string;
+  
+  if (path.isAbsolute(outputDir)) {
+    outputBaseDir = outputDir;
+  } else {
+    outputBaseDir = path.resolve(projectPath, outputDir);
+  }
   
   // Log the output directory
-  if (outputDir !== defaultOutputDir) {
+  if (options.outputDir) {
     logger.info(`Using custom output directory: ${outputBaseDir}`);
   }
   

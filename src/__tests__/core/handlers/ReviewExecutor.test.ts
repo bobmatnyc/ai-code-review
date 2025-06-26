@@ -48,6 +48,9 @@ describe('ReviewExecutor', () => {
 
   describe('executeReview', () => {
     it('should execute review with correct strategy', async () => {
+      // Mock the strategy.execute to return a specific value
+      vi.mocked(mockStrategy.execute).mockResolvedValue({ issues: [] });
+      
       const result = await executeReview(
         mockFileInfos,
         mockOptions,

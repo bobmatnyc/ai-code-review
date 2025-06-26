@@ -71,7 +71,7 @@ export async function executeReview(
  * @param tokenAnalysis Token analysis result (if available)
  * @returns Whether multi-pass review is needed
  */
-function determineIfMultiPassNeeded(
+export function determineIfMultiPassNeeded(
   options: ReviewOptions,
   tokenAnalysis: TokenAnalysisResult | null
 ): boolean {
