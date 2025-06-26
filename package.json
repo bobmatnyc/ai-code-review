@@ -7,15 +7,15 @@
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "npm run test && npm run build:types && node scripts/build.js && node scripts/fix-openai-test.js && node scripts/sync-model-maps.js",
-    "build:types": "tsc --emitDeclarationOnly",
+    "build:types": "npm run generate-version && tsc --emitDeclarationOnly",
     "ci:local": "./scripts/ci-local.sh",
     "postbuild": "./scripts/link-global.sh",
     "start": "node dist/index.js",
     "dev": "ts-node --transpile-only src/index.ts",
     "local": "ts-node --transpile-only -r tsconfig-paths/register src/index.ts",
-    "lint": "eslint . --ext .ts --max-warnings 1000",
+    "lint": "npm run generate-version && eslint . --ext .ts --max-warnings 1000",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "npm run validate:prompts && vitest run",
+    "test": "npm run generate-version && npm run validate:prompts && vitest run",
     "test:e2e": "node scripts/e2e-test.js",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -34,7 +34,8 @@
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
     "validate:prompts": "node scripts/validate-prompts.js",
     "update:prompts": "node scripts/update-prompts-frontmatter.js",
-    "quick-build": "npm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
+    "generate-version": "node scripts/generate-version.js",
+    "quick-build": "npm run generate-version && npm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
     "consolidate": "ts-node scripts/consolidate-review.ts"
   },
   "keywords": [
