@@ -7,11 +7,41 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import logger from '../logger';
 
-const execAsync = promisify(exec);
+/**
+ * Recursively count files with specific extensions in a directory
+ * @param dirPath Directory path to search
+ * @param extensions Array of file extensions to count (e.g., ['.ts', '.tsx'])
+ * @returns Promise resolving to the count of matching files
+ */
+async function countFilesByExtension(dirPath: string, extensions: string[]): Promise<number> {
+  let count = 0;
+
+  try {
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+
+      if (entry.isDirectory()) {
+        // Skip common directories that shouldn't be counted
+        if (!['node_modules', '.git', 'dist', 'build', '.next', 'coverage'].includes(entry.name)) {
+          count += await countFilesByExtension(fullPath, extensions);
+        }
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name);
+        if (extensions.includes(ext)) {
+          count++;
+        }
+      }
+    }
+  } catch (error) {
+    logger.debug(`Error reading directory ${dirPath}: ${error}`);
+  }
+
+  return count;
+}
 
 /**
  * Framework detection result
@@ -278,16 +308,13 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
     const extensionCounts: Record<string, number> = {};
     
     for (const [language, extensions] of Object.entries(fileExtensionMap)) {
-      let count = 0;
-      for (const ext of extensions) {
-        try {
-          const { stdout } = await execAsync(`find ${projectPath} -type f -name "*${ext}" | wc -l`);
-          count += parseInt(stdout.trim(), 10);
-        } catch (error) {
-          logger.debug(`Error counting ${ext} files: ${error}`);
-        }
+      try {
+        const count = await countFilesByExtension(projectPath, extensions);
+        extensionCounts[language] = count;
+      } catch (error) {
+        logger.debug(`Error counting ${language} files: ${error}`);
+        extensionCounts[language] = 0;
       }
-      extensionCounts[language] = count;
     }
     
     // Find the language with the most files
