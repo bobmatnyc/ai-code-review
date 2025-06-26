@@ -8,6 +8,9 @@ dist/
 build/
 out/
 
+# Auto-generated files
+src/version.ts
+
 # Environment variables
 .env
 .env.local

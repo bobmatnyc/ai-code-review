@@ -250,29 +250,27 @@ Output will be generated in the `/review/[project-name]/` directory, with subdir
 ## Release Management & Publishing
 
 ### Version Management
-// Added: 2025-05-21
+// Updated: 2025-06-26
 
-#### Dual Version System
-This project maintains versions in two locations:
+#### Single Source of Truth System
+This project uses **package.json** as the single source of truth for versioning. The version is automatically embedded into the build at compile time.
 
-1. **package.json** - The source of truth for the npm package version
-2. **src/index.ts** - Contains a hardcoded `VERSION` constant for CLI --version flag reliability
+**How it works:**
+1. **package.json** - Contains the authoritative version number
+2. **src/version.ts** - Auto-generated file that exports the VERSION constant (do not edit manually)
+3. **Build process** - Automatically generates `src/version.ts` from `package.json` during build
 
-The hardcoded version exists for reliability - it ensures the --version flag works correctly even when package.json reading fails due to npm installation issues or module resolution problems.
+This approach eliminates version synchronization issues and ensures consistency between the npm package version and the CLI --version flag.
 
-#### Critical Steps for Version Updates
+#### Steps for Version Updates
 
-**IMPORTANT**: Both versions must always be synchronized manually.
+**SIMPLIFIED PROCESS**: Only update package.json - everything else is automatic.
 
 1. **Update package.json version** (via npm version command or direct edit)
-2. **Update hardcoded version in src/index.ts** at line ~213:
-   ```typescript
-   const VERSION = '3.2.8'; // Must match package.json version
-   ```
-3. **Update CHANGELOG.md** with the new release notes
-4. **Rebuild the project** with `npm run build`
-5. **Verify version consistency** with `ai-code-review --show-version`
-6. **Test the build** to ensure functionality
+2. **Update CHANGELOG.md** with the new release notes
+3. **Build the project** with `npm run build` (automatically generates version.ts)
+4. **Verify version** with `ai-code-review --show-version`
+5. **Test the build** to ensure functionality
 
 ### Publishing Process
 // Added: 2025-05-21
@@ -282,12 +280,11 @@ The hardcoded version exists for reliability - it ensures the --version flag wor
 **Required Files and Tests**:
 1. ✅ Run full CI pipeline: `npm run lint && npm run build:types && npm test`
 2. ✅ All tests passing with no errors or warnings
-3. ✅ Version numbers match in package.json and src/index.ts
-4. ✅ CHANGELOG.md updated with release notes
-5. ✅ README.md updated with version highlights and history
-6. ✅ No uncommitted changes in git
-7. ✅ Local build works correctly (`npm run build`)
-8. ✅ Version command works (`ai-code-review --show-version`)
+3. ✅ CHANGELOG.md updated with release notes
+4. ✅ README.md updated with version highlights and history
+5. ✅ No uncommitted changes in git
+6. ✅ Local build works correctly (`npm run build`)
+7. ✅ Version command works (`ai-code-review --show-version`)
 
 #### Publication Steps
 
@@ -297,14 +294,12 @@ npm version patch   # Bug fixes (e.g., 3.2.7 → 3.2.8)
 npm version minor   # New features (e.g., 3.2.8 → 3.3.0)
 npm version major   # Breaking changes (e.g., 3.3.0 → 4.0.0)
 
-# 2. Update hardcoded version in src/index.ts to match package.json
+# 2. Update CHANGELOG.md with release notes
 
-# 3. Update CHANGELOG.md with release notes
+# 3. Update README.md with version highlights in the Version History section
 
-# 4. Update README.md with version highlights in the Version History section
-
-# 5. Commit version updates
-git add src/index.ts CHANGELOG.md README.md
+# 4. Commit version updates
+git add CHANGELOG.md README.md
 git commit -m "chore: update version, changelog, and readme for vX.Y.Z"
 
 # 6. Build and publish
@@ -322,16 +317,17 @@ ai-code-review --show-version  # Should show new version
 3. **Tag release in git**: `git tag v3.2.8 && git push origin --tags`
 4. **Monitor for issues**: Check for any installation or functionality issues
 
-### Version Mismatch Troubleshooting
-// Added: 2025-05-21
+### Version Troubleshooting
+// Updated: 2025-06-26
 
-If you notice version mismatches between what the CLI reports and what's in package.json:
+If you notice any version-related issues:
 
-1. **Check the `VERSION` constant** in src/index.ts (around line 213)
-2. **Update it to match package.json** exactly
-3. **Rebuild the project** with `npm run build`
-4. **Test the fix** with `ai-code-review --show-version`
-5. **Republish if necessary** (bump patch version if already published)
+1. **Verify package.json version** is correct
+2. **Rebuild the project** with `npm run build` (regenerates src/version.ts)
+3. **Test the fix** with `ai-code-review --show-version`
+4. **Check that src/version.ts was generated** and contains the correct version
+
+**Note**: Version mismatches are now impossible since the version is automatically generated from package.json during build.
 
 ### Release Notes Guidelines
 // Added: 2025-05-21
@@ -355,10 +351,10 @@ Follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format:
 ```
 
 ### Future Enhancements
-// Added: 2025-05-21
+// Updated: 2025-06-26
 
 Consider implementing:
-1. **Automated version synchronization** - Build script to ensure package.json and src/index.ts versions match
-2. **Pre-commit hooks** - Validate version consistency before commits
+1. ✅ **Automated version synchronization** - ✅ COMPLETED: Build script automatically generates version from package.json
+2. **Pre-commit hooks** - Validate build success before commits
 3. **CI/CD pipeline** - Automated testing and publishing workflow
 4. **Release automation** - GitHub Actions for automated releases with proper tagging

@@ -299,13 +299,21 @@ This tool analyzes code from specified files or directories in sibling projects 
 ### Global Installation
 
 ```bash
+# Using npm
 npm install -g @bobmatnyc/ai-code-review
+
+# Using pnpm (recommended)
+pnpm add -g @bobmatnyc/ai-code-review
 ```
 
 ### Local Installation
 
 ```bash
+# Using npm
 npm install --save-dev @bobmatnyc/ai-code-review
+
+# Using pnpm (recommended)
+pnpm add -D @bobmatnyc/ai-code-review
 ```
 
 ### API Key Setup

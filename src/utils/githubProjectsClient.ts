@@ -90,7 +90,7 @@ async function executeGraphQLQuery(query: string, variables: any, token: string)
       throw new Error(`GitHub API error: ${response.status} ${errorText}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as any;
 
     if (data.errors) {
       throw new Error(`GraphQL error: ${JSON.stringify(data.errors)}`);

@@ -154,8 +154,8 @@ export function formatAsMarkdown(review: ReviewResult): string {
     displayPath = process.cwd() + ' (Current Directory)';
   }
   
-  // Extract model vendor and name from modelInfo
-  const { modelVendor, modelName } = extractModelInfoFromString(modelInfo);
+  // Extract model vendor and name from modelInfo (currently unused but may be needed for future features)
+  // const { modelVendor, modelName } = extractModelInfoFromString(modelInfo);
   
   // Create metadata section
   const metadataSection = formatMetadataSection(

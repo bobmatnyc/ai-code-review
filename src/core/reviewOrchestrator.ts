@@ -13,7 +13,7 @@ import { getApiKeyType } from '../utils/api/apiUtils';
 import { runApiConnectionTests } from '../__tests__/apiConnection.test';
 import { getConfig } from '../utils/config';
 import { ProgrammingLanguage } from '../types/common';
-import { parseModelString } from '../clients/utils/modelMaps';
+
 import configManager from '../utils/configManager';
 import {
   listModels,
@@ -25,8 +25,7 @@ import { discoverFilesForReview, readFilesForReview } from './handlers/FileProce
 import { performEstimation } from './handlers/EstimationHandler';
 import { performSemanticAnalysis } from './handlers/SemanticAnalysisHandler';
 import { executeReview } from './handlers/ReviewExecutor';
-import { handleReviewOutput, createOutputDirectory } from './handlers/OutputHandler';
-import { getProviderDisplayInfo } from './utils/ModelInfoUtils';
+import { handleReviewOutput } from './handlers/OutputHandler';
 
 // Import other dependencies
 import { selectApiClient } from './ApiClientSelector';
@@ -231,7 +230,7 @@ export async function orchestrateReview(
     }
 
     // Read file contents
-    const { fileInfos, errors } = await readFilesForReview(filesToReview, projectPath);
+    const { fileInfos } = await readFilesForReview(filesToReview, projectPath);
 
     // Read project documentation if enabled
     let projectDocs = null;
