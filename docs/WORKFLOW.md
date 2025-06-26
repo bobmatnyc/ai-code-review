@@ -6,6 +6,18 @@
 
 This document contains the complete workflow procedures for the AI Code Review tool project, a TypeScript-based CLI tool for automated code reviews using multiple AI providers (Gemini, Claude, OpenAI, OpenRouter).
 
+## 📋 Prerequisites
+
+This project uses **pnpm** as the package manager. Make sure you have pnpm installed:
+
+```bash
+# Install pnpm globally
+npm install -g pnpm
+
+# Or enable Corepack (recommended)
+corepack enable
+```
+
 ---
 
 ## 🔧 1. Development Environment Setup
@@ -21,18 +33,18 @@ This document contains the complete workflow procedures for the AI Code Review t
 git clone https://github.com/bobmatnyc/ai-code-review.git
 cd ai-code-review
 
-# Install dependencies
-npm install
+# Install dependencies (using pnpm)
+pnpm install
 
 # Set up environment variables
 cp .env.example .env.local
 # Edit .env.local with your API keys
 
 # Run tests to verify setup
-npm test
+pnpm test
 
 # Build the project
-npm run build
+pnpm run build
 ```
 
 ### Required Environment Variables
@@ -115,10 +127,10 @@ Before committing or publishing, always run:
 
 ```bash
 # Complete validation pipeline
-npm run lint          # ESLint validation
-npm run test          # Full test suite with vitest
-npm run build         # TypeScript compilation and bundling
-npm run validate:prompts  # Validate prompt templates
+pnpm run lint          # ESLint validation
+pnpm test              # Full test suite with vitest
+pnpm run build         # TypeScript compilation and bundling
+pnpm run validate:prompts  # Validate prompt templates
 ```
 
 ### Test Categories
@@ -307,33 +319,33 @@ tags:
 npm run lint && npm run test && npm run build
 ```
 
-### NPM Scripts Reference
+### PNPM Scripts Reference
 ```bash
 # Development
-npm run dev           # Development server with ts-node
-npm run local         # Local execution with path resolution
+pnpm run dev           # Development server with ts-node
+pnpm run local         # Local execution with path resolution
 
-# Testing  
-npm test             # Full test suite
-npm run test:watch   # Watch mode testing
-npm run test:coverage # Coverage report
+# Testing
+pnpm test              # Full test suite
+pnpm run test:watch    # Watch mode testing
+pnpm run test:coverage # Coverage report
 
 # Building
-npm run build        # Production build
-npm run build:types  # TypeScript declarations only
-npm run quick-build  # Fast build for development
+pnpm run build         # Production build
+pnpm run build:types   # TypeScript declarations only
+pnpm run quick-build   # Fast build for development
 
 # Quality
-npm run lint         # ESLint checking
-npm run format       # Prettier formatting
+pnpm run lint          # ESLint checking
+pnpm run format        # Prettier formatting
 
 # Validation
-npm run validate:models  # Model configuration validation
-npm run validate:prompts # Prompt template validation
+pnpm run validate:models  # Model configuration validation
+pnpm run validate:prompts # Prompt template validation
 
 # Utilities
-npm run models:sync      # Update model mappings
-npm run prepare-package  # Package for publishing
+pnpm run models:sync      # Update model mappings
+pnpm run prepare-package  # Package for publishing
 ```
 
 ### Automated Checks
