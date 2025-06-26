@@ -251,7 +251,6 @@ export async function orchestrateReview(
     
     // Perform token analysis to check if content exceeds context window
     let tokenAnalysis = null;
-    let semanticResult = null;
     
     if (!options.multiPass) {
       try {
@@ -281,7 +280,7 @@ export async function orchestrateReview(
         tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
         
         // Try semantic chunking for intelligent code analysis
-        semanticResult = await performSemanticAnalysis(fileInfos, options);
+        await performSemanticAnalysis(fileInfos, options);
       } catch (error) {
         logger.warn(`Token analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         logger.info('Proceeding with review without token analysis');
@@ -294,7 +293,6 @@ export async function orchestrateReview(
       options,
       apiClientConfig as any,
       projectDocs,
-      semanticResult,
       tokenAnalysis
     );
     

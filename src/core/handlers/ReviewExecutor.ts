@@ -10,7 +10,7 @@ import logger from '../../utils/logger';
 import { FileInfo } from '../fileDiscovery';
 import { ReviewOptions, ReviewResult } from '../../types/review';
 import { StrategyFactory } from '../../strategies/StrategyFactory';
-import { SemanticAnalysisResult } from './SemanticAnalysisHandler';
+
 import { TokenAnalysisResult } from '../../analysis/tokens';
 
 /**
@@ -29,7 +29,6 @@ export async function executeReview(
   options: ReviewOptions,
   apiClientConfig: { modelName: string; [key: string]: unknown },
   projectDocs: unknown = null,
-  _semanticResult: SemanticAnalysisResult | null = null,
   tokenAnalysis: TokenAnalysisResult | null = null
 ): Promise<ReviewResult> {
   // Create strategy based on review type
