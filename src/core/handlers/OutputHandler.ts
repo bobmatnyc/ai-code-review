@@ -69,7 +69,11 @@ export async function handleReviewOutput(
   
   // Log cost information if available
   if (reviewResult.cost) {
-    logger.info(`Estimated cost: ${reviewResult.cost}`);
+    // Use formattedCost if available, otherwise fall back to string representation
+    const costDisplay = typeof reviewResult.cost === 'object' && reviewResult.cost.formattedCost
+      ? reviewResult.cost.formattedCost
+      : reviewResult.cost;
+    logger.info(`Estimated cost: ${costDisplay}`);
   }
   
   // Log token usage if available
