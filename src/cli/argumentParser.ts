@@ -152,6 +152,10 @@ export function parseArguments(): any {
             type: 'boolean',
             default: false
           })
+          .option('config', {
+            describe: 'Path to JSON configuration file',
+            type: 'string'
+          })
           .option('google-api-key', {
             describe: 'Google API key for Gemini models',
             type: 'string'
@@ -243,6 +247,29 @@ export function parseArguments(): any {
           });
       }
     )
+    .command(
+      'generate-config',
+      'Generate a sample configuration file',
+      yargs => {
+        return yargs
+          .option('output', {
+            alias: 'o',
+            describe: 'Output file path for the configuration',
+            type: 'string'
+          })
+          .option('format', {
+            alias: 'f',
+            describe: 'Configuration file format',
+            choices: ['yaml', 'json'],
+            default: 'yaml'
+          })
+          .option('force', {
+            describe: 'Overwrite existing configuration file',
+            type: 'boolean',
+            default: false
+          });
+      }
+    )
     .option('show-version', {
       describe: 'Show version information',
       type: 'boolean',
@@ -283,6 +310,8 @@ export interface CliOptions extends ReviewOptions {
   apiKeys?: Record<string, string>;
   /** Log level for logging */
   logLevel?: string;
+  /** Path to JSON configuration file */
+  config?: string;
 }
 
 /**
@@ -314,6 +343,7 @@ interface ParsedArguments {
   listmodels?: boolean;
   models?: boolean;
   target?: string;
+  config?: string;
   'ui-language'?: string;
   uiLanguage?: string;
   'google-api-key'?: string;

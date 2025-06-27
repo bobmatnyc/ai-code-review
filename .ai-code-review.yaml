@@ -1,0 +1,44 @@
+# AI Code Review Configuration File
+# This file contains configuration options for the AI Code Review tool.
+#
+# Configuration priority order:
+# 1. Command-line arguments (highest priority)
+# 2. Configuration file (this file)
+# 3. Environment variables (AI_CODE_REVIEW_*)
+# 4. Default values (lowest priority)
+#
+# Usage: ai-code-review --config .ai-code-review.yaml
+#
+# For security, consider using environment variables for API keys instead of
+# storing them in this file. Environment variable names:
+# - AI_CODE_REVIEW_GOOGLE_API_KEY
+# - AI_CODE_REVIEW_OPENROUTER_API_KEY
+# - AI_CODE_REVIEW_ANTHROPIC_API_KEY
+# - AI_CODE_REVIEW_OPENAI_API_KEY
+
+output:
+  format: markdown
+  dir: ./ai-code-review-docs
+review:
+  type: quick-fixes
+  interactive: false
+  include_tests: false
+  include_project_docs: true
+  include_dependency_analysis: true
+  trace_code: false
+  use_ts_prune: false
+  use_eslint: false
+  auto_fix: false
+  prompt_all: false
+  confirm: true
+api:
+  model: gemini:gemini-2.5-pro  # Changed model for testing
+  keys:
+    google: test-key-123  # Test API key
+    openrouter: YOUR_OPENROUTER_API_KEY_HERE
+    anthropic: YOUR_ANTHROPIC_API_KEY_HERE
+    openai: YOUR_OPENAI_API_KEY_HERE
+  test_api: false
+system:
+  debug: true  # Enable debug for testing
+  log_level: debug  # Set to debug level
