@@ -7,14 +7,15 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as YAML from 'yaml';
 import logger from './logger';
 import { ReviewOptions } from '../types/review';
 import { CliOptions } from '../cli/argumentParser';
 
 /**
- * Interface for the JSON configuration file structure
+ * Interface for the configuration file structure (supports both YAML and JSON)
  */
-export interface JsonConfig {
+export interface ConfigFile {
   output?: {
     format?: string;
     dir?: string;
@@ -58,18 +59,41 @@ export interface JsonConfig {
 }
 
 /**
- * Default configuration file path
+ * Default configuration file paths (in order of preference)
  */
-const DEFAULT_CONFIG_FILE = '.ai-code-review.json';
+const DEFAULT_CONFIG_FILES = [
+  '.ai-code-review.yaml',
+  '.ai-code-review.yml',
+  '.ai-code-review.json'
+];
 
 /**
- * Load a JSON configuration file
+ * Load a configuration file (YAML or JSON)
  * @param configFilePath Path to the configuration file
  * @returns The parsed configuration or null if the file doesn't exist
  */
-export function loadConfigFile(configFilePath?: string): JsonConfig | null {
-  // Determine the configuration file path
-  const filePath = configFilePath || path.resolve(process.cwd(), DEFAULT_CONFIG_FILE);
+export function loadConfigFile(configFilePath?: string): ConfigFile | null {
+  let filePath: string;
+
+  if (configFilePath) {
+    // If explicitly provided, use the specified path
+    filePath = path.resolve(process.cwd(), configFilePath);
+  } else {
+    // Try default config files in order of preference
+    filePath = '';
+    for (const defaultFile of DEFAULT_CONFIG_FILES) {
+      const testPath = path.resolve(process.cwd(), defaultFile);
+      if (fs.existsSync(testPath)) {
+        filePath = testPath;
+        break;
+      }
+    }
+
+    // If no default file found, use the first preference for error messages
+    if (!filePath) {
+      filePath = path.resolve(process.cwd(), DEFAULT_CONFIG_FILES[0]);
+    }
+  }
   
   try {
     // Check if the file exists
@@ -84,18 +108,37 @@ export function loadConfigFile(configFilePath?: string): JsonConfig | null {
       }
       return null;
     }
-    
-    // Read and parse the file
+
+    // Read the file content
     const content = fs.readFileSync(filePath, 'utf-8');
-    
+    const fileExtension = path.extname(filePath).toLowerCase();
+
     try {
-      // Parse the JSON content
-      const config = JSON.parse(content) as JsonConfig;
-      logger.info(`Loaded configuration from ${filePath}`);
+      let config: ConfigFile;
+
+      if (fileExtension === '.yaml' || fileExtension === '.yml') {
+        // Parse YAML content
+        config = YAML.parse(content) as ConfigFile;
+        logger.info(`Loaded YAML configuration from ${filePath}`);
+      } else if (fileExtension === '.json') {
+        // Parse JSON content
+        config = JSON.parse(content) as ConfigFile;
+        logger.info(`Loaded JSON configuration from ${filePath}`);
+      } else {
+        // Try to detect format by content
+        try {
+          config = YAML.parse(content) as ConfigFile;
+          logger.info(`Loaded configuration from ${filePath} (detected as YAML)`);
+        } catch (yamlError) {
+          config = JSON.parse(content) as ConfigFile;
+          logger.info(`Loaded configuration from ${filePath} (detected as JSON)`);
+        }
+      }
+
       return config;
     } catch (parseError) {
       logger.error(`Error parsing configuration file: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
-      logger.error(`Please check the JSON syntax in ${filePath}`);
+      logger.error(`Please check the syntax in ${filePath}`);
       return null;
     }
   } catch (error) {
@@ -105,12 +148,12 @@ export function loadConfigFile(configFilePath?: string): JsonConfig | null {
 }
 
 /**
- * Apply JSON configuration to review options
- * @param config The JSON configuration
+ * Apply configuration to review options
+ * @param config The configuration (YAML or JSON)
  * @param options The review options to modify
  * @returns The modified review options
  */
-export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions): ReviewOptions {
+export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions): ReviewOptions {
   // Make a copy of the options to avoid modifying the original
   const newOptions = { ...options };
   
@@ -236,11 +279,11 @@ export function applyConfigToOptions(config: JsonConfig, options: ReviewOptions)
 }
 
 /**
- * Generate a sample configuration file
- * @returns A JSON string containing the sample configuration
+ * Generate a sample configuration file in YAML format
+ * @returns A YAML string containing the sample configuration
  */
 export function generateSampleConfig(): string {
-  const sampleConfig: JsonConfig = {
+  const sampleConfig: ConfigFile = {
     output: {
       format: 'markdown',
       dir: './ai-code-review-docs'
@@ -260,40 +303,101 @@ export function generateSampleConfig(): string {
     },
     api: {
       model: 'gemini:gemini-1.5-pro',
-      writer_model: undefined,
       keys: {
-        google: undefined,
-        openrouter: undefined,
-        anthropic: undefined,
-        openai: undefined
+        google: 'YOUR_GOOGLE_API_KEY_HERE',
+        openrouter: 'YOUR_OPENROUTER_API_KEY_HERE',
+        anthropic: 'YOUR_ANTHROPIC_API_KEY_HERE',
+        openai: 'YOUR_OPENAI_API_KEY_HERE'
       },
       test_api: false
-    },
-    prompts: {
-      prompt_file: undefined,
-      prompt_fragment: undefined,
-      prompt_fragment_position: 'middle',
-      prompt_strategy: undefined,
-      use_cache: true
     },
     system: {
       debug: false,
       log_level: 'info'
     }
   };
-  
-  // Generate a commented version of the JSON
+
+  // Generate YAML with comments
+  const yamlString = YAML.stringify(sampleConfig, {
+    commentString: (comment) => ` ${comment}`,
+    lineWidth: 0, // Disable line wrapping
+  });
+
+  // Add header comments
+  const header = `# AI Code Review Configuration File
+# This file contains configuration options for the AI Code Review tool.
+#
+# Configuration priority order:
+# 1. Command-line arguments (highest priority)
+# 2. Configuration file (this file)
+# 3. Environment variables (AI_CODE_REVIEW_*)
+# 4. Default values (lowest priority)
+#
+# Usage: ai-code-review --config .ai-code-review.yaml
+#
+# For security, consider using environment variables for API keys instead of
+# storing them in this file. Environment variable names:
+# - AI_CODE_REVIEW_GOOGLE_API_KEY
+# - AI_CODE_REVIEW_OPENROUTER_API_KEY
+# - AI_CODE_REVIEW_ANTHROPIC_API_KEY
+# - AI_CODE_REVIEW_OPENAI_API_KEY
+
+`;
+
+  return header + yamlString;
+}
+
+/**
+ * Generate a sample configuration file in JSON format
+ * @returns A JSON string containing the sample configuration
+ */
+export function generateSampleConfigJSON(): string {
+  const sampleConfig: ConfigFile = {
+    output: {
+      format: 'markdown',
+      dir: './ai-code-review-docs'
+    },
+    review: {
+      type: 'quick-fixes',
+      interactive: false,
+      include_tests: false,
+      include_project_docs: true,
+      include_dependency_analysis: true,
+      trace_code: false,
+      use_ts_prune: false,
+      use_eslint: false,
+      auto_fix: false,
+      prompt_all: false,
+      confirm: true
+    },
+    api: {
+      model: 'gemini:gemini-1.5-pro',
+      keys: {
+        google: 'YOUR_GOOGLE_API_KEY_HERE',
+        openrouter: 'YOUR_OPENROUTER_API_KEY_HERE',
+        anthropic: 'YOUR_ANTHROPIC_API_KEY_HERE',
+        openai: 'YOUR_OPENAI_API_KEY_HERE'
+      },
+      test_api: false
+    },
+    system: {
+      debug: false,
+      log_level: 'info'
+    }
+  };
+
   return JSON.stringify(sampleConfig, null, 2);
 }
 
 /**
  * Save a sample configuration file
  * @param outputPath Path to save the configuration file
+ * @param format Format to use ('yaml' or 'json')
  * @returns True if the file was saved successfully, false otherwise
  */
-export function saveSampleConfig(outputPath: string): boolean {
+export function saveSampleConfig(outputPath: string, format: 'yaml' | 'json' = 'yaml'): boolean {
   try {
-    const sampleConfig = generateSampleConfig();
+    const sampleConfig = format === 'json' ? generateSampleConfigJSON() : generateSampleConfig();
     fs.writeFileSync(outputPath, sampleConfig);
     return true;
   } catch (error) {
@@ -306,5 +410,6 @@ export default {
   loadConfigFile,
   applyConfigToOptions,
   generateSampleConfig,
+  generateSampleConfigJSON,
   saveSampleConfig
 };

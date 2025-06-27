@@ -19,6 +19,8 @@ import path from 'path';
 import fs from 'fs';
 import { z } from 'zod';
 import { CliOptions } from '../cli/argumentParser';
+import { loadConfigFile, applyConfigToOptions } from './configFileManager';
+import { ReviewOptions } from '../types/review';
 
 /**
  * Zod schema for application configuration
@@ -56,40 +58,68 @@ let config: AppConfig | null = null;
  * @throws Error if required environment variables are missing
  */
 function loadConfig(cliOptions?: CliOptions): AppConfig {
+  // Load JSON configuration if specified or if default file exists
+  let jsonConfig = null;
+  if (cliOptions?.config) {
+    // Load from specified config file
+    jsonConfig = loadConfigFile(cliOptions.config);
+    if (!jsonConfig) {
+      logger.error(`Failed to load configuration file: ${cliOptions.config}`);
+      throw new Error(`Configuration file not found or invalid: ${cliOptions.config}`);
+    }
+  } else {
+    // Try to load default config file (don't fail if it doesn't exist)
+    jsonConfig = loadConfigFile();
+  }
+
+  // Apply JSON configuration to CLI options if JSON config was loaded
+  let mergedOptions = cliOptions;
+  if (jsonConfig && cliOptions) {
+    // Create a base ReviewOptions object from CLI options
+    const baseOptions: ReviewOptions = { ...cliOptions };
+    const appliedOptions = applyConfigToOptions(jsonConfig, baseOptions);
+    mergedOptions = { ...cliOptions, ...appliedOptions } as CliOptions;
+  } else if (jsonConfig && !cliOptions) {
+    // If no CLI options but we have JSON config, create options from JSON
+    const baseOptions: ReviewOptions = { type: 'quick-fixes' }; // Provide default type
+    const appliedOptions = applyConfigToOptions(jsonConfig, baseOptions);
+    mergedOptions = appliedOptions as CliOptions;
+  }
+
   // Get API keys from environment variables
   const googleApiKeyResult = getGoogleApiKey();
   const openRouterApiKeyResult = getOpenRouterApiKey();
   const anthropicApiKeyResult = getAnthropicApiKey();
   const openAIApiKeyResult = getOpenAIApiKey();
 
-  // Override API keys with CLI options if provided (support both apiKey and apiKeys)
-  const googleApiKey = cliOptions?.apiKey?.google || cliOptions?.apiKeys?.google || googleApiKeyResult.apiKey;
+  // Override API keys with merged options if provided (support both apiKey and apiKeys)
+  const googleApiKey = mergedOptions?.apiKey?.google || mergedOptions?.apiKeys?.google || googleApiKeyResult.apiKey;
   const openRouterApiKey =
-    cliOptions?.apiKey?.openrouter || cliOptions?.apiKeys?.openrouter || openRouterApiKeyResult.apiKey;
+    mergedOptions?.apiKey?.openrouter || mergedOptions?.apiKeys?.openrouter || openRouterApiKeyResult.apiKey;
   const anthropicApiKey =
-    cliOptions?.apiKey?.anthropic || cliOptions?.apiKeys?.anthropic || anthropicApiKeyResult.apiKey;
-  const openAIApiKey = cliOptions?.apiKey?.openai || cliOptions?.apiKeys?.openai || openAIApiKeyResult.apiKey;
+    mergedOptions?.apiKey?.anthropic || mergedOptions?.apiKeys?.anthropic || anthropicApiKeyResult.apiKey;
+  const openAIApiKey = mergedOptions?.apiKey?.openai || mergedOptions?.apiKeys?.openai || openAIApiKeyResult.apiKey;
 
-  // Get selected model (CLI override takes precedence)
+  // Get selected model (merged options take precedence)
   const selectedModel =
-    cliOptions?.model ||
+    mergedOptions?.model ||
     process.env.AI_CODE_REVIEW_MODEL ||
     'gemini:gemini-2.5-pro-preview';
 
-  // Get writer model (CLI override takes precedence)
+  // Get writer model (merged options take precedence)
   const writerModel =
-    cliOptions?.writerModel ||
+    mergedOptions?.writerModel ||
     process.env.AI_CODE_REVIEW_WRITER_MODEL ||
     undefined;
 
   // Get debug mode
   const debug =
-    cliOptions?.debug ||
+    mergedOptions?.debug ||
     process.env.AI_CODE_REVIEW_DEBUG === 'true' ||
     process.argv.includes('--debug');
 
-  // Get log level (CLI override takes precedence)
-  const logLevel = (cliOptions?.logLevel ||
+  // Get log level (merged options take precedence)
+  const logLevel = (mergedOptions?.logLevel ||
     process.env.AI_CODE_REVIEW_LOG_LEVEL ||
     'info') as 'debug' | 'info' | 'warn' | 'error' | 'none';
 
@@ -99,9 +129,9 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
     ? contextPathsStr.split(',').map(p => p.trim())
     : undefined;
 
-  // Get output directory (CLI override takes precedence)
+  // Get output directory (merged options take precedence)
   const outputDir =
-    cliOptions?.outputDir ||
+    mergedOptions?.outputDir ||
     process.env.AI_CODE_REVIEW_OUTPUT_DIR ||
     'ai-code-review-docs';
 

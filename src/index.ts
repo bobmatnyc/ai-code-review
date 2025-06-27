@@ -224,6 +224,7 @@ import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
 import { listModelConfigs } from './clients/utils/modelLister';
 import { handleSyncGitHubProjectsCommand } from './commands/syncGithubProjects';
+import { handleGenerateConfigCommand } from './commands/generateConfig';
 import { VERSION } from './version';
 
 // Main function to run the application
@@ -296,6 +297,13 @@ async function main() {
     // Check for models flag to list all supported models and their configuration names
     if ((argv as any).models) {
       listModelConfigs();
+      return;
+    }
+
+    // Handle generate-config command early (before API key validation)
+    const modelTestArgs = process.argv.slice(2);
+    if (modelTestArgs[0] === 'generate-config') {
+      await handleGenerateConfigCommand(argv);
       return;
     }
 
@@ -456,7 +464,7 @@ async function main() {
     program.addCommand(testBuildCommand);
 
     // Process model testing commands if specified
-    const modelTestArgs = process.argv.slice(2);
+    // modelTestArgs already declared above
     if (
       modelTestArgs[0] === 'model-test' ||
       modelTestArgs[0] === 'test-build'
@@ -470,6 +478,8 @@ async function main() {
       await handleSyncGitHubProjectsCommand();
       return;
     }
+
+
 
     // Run the code review
     await reviewCode(args.target, args);

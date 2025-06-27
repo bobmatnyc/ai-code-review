@@ -83,6 +83,9 @@ dependencies:
   tree-sitter-typescript:
     specifier: ^0.21.2
     version: 0.21.2(tree-sitter@0.21.1)
+  yaml:
+    specifier: ^2.8.0
+    version: 2.8.0
   yargs:
     specifier: ^17.7.2
     version: 17.7.2
@@ -3758,7 +3761,7 @@ packages:
       openapi-types: 12.1.3
       p-retry: 4.6.2
       uuid: 10.0.0
-      yaml: 2.7.1
+      yaml: 2.8.0
       zod: 3.24.3
       zod-to-json-schema: 3.24.5(zod@3.24.3)
     transitivePeerDependencies:
@@ -5052,9 +5055,9 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
-  /yaml@2.7.1:
-    resolution: {integrity: sha512-10ULxpnOCQXxJvBgxsn9ptjq6uviG/htZKk9veJGhlqn3w/DxQ631zFF+nlQXLwmImeS5amR2dl2U8sg6U9jsQ==}
-    engines: {node: '>= 14'}
+  /yaml@2.8.0:
+    resolution: {integrity: sha512-4lLa/EcQCB0cJkyts+FpIRx5G/llPxfP6VQU5KByHEhLxY3IJCH0f0Hy1MHI8sClTvsIb8qwRJ6R/ZdlDJ/leQ==}
+    engines: {node: '>= 14.6'}
     hasBin: true
     dev: false
 
