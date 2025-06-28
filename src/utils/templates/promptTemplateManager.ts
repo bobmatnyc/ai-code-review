@@ -54,7 +54,8 @@ const reviewTypeMapping: Record<string, string> = {
   'consolidated': 'consolidated-review',
   // Add mapping for improved quick fixes
   'improved-quick-fixes': 'improved-quick-fixes-review',
-  'evaluation': 'evaluation'
+  'evaluation': 'evaluation',
+  'extract-patterns': 'extract-patterns-review'
 };
 
 /**
