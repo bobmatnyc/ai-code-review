@@ -17,6 +17,7 @@ import logger from '../utils/logger';
 import { getSchemaInstructions } from '../types/reviewSchema';
 import { getConsolidatedSchemaInstructions } from './schemas/consolidated-review-schema';
 import { getEvaluationSchemaInstructions } from './schemas/evaluation-schema';
+import { getExtractPatternsSchemaInstructions } from './schemas/extract-patterns-schema';
 import { PromptBuilder } from './PromptBuilder';
 import { PromptCache } from './cache/PromptCache';
 import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
@@ -494,6 +495,8 @@ export class PromptManager {
         schemaInstructions = getConsolidatedSchemaInstructions();
       } else if (options?.type === 'evaluation') {
         schemaInstructions = getEvaluationSchemaInstructions();
+      } else if (options?.type === 'extract-patterns') {
+        schemaInstructions = getExtractPatternsSchemaInstructions();
       } else {
         schemaInstructions = getSchemaInstructions();
       }
