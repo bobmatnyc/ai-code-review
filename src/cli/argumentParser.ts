@@ -23,7 +23,8 @@ const validReviewTypes: ReviewType[] = [
   'code-tracing-unused-code',
   'improved-quick-fixes',
   'consolidated',
-  'evaluation'
+  'evaluation',
+  'extract-patterns'
 ];
 
 // Define valid output formats
