@@ -5,6 +5,14 @@ vi.mock('fs/promises', () => ({
   readFile: vi.fn().mockResolvedValue('Test prompt template')
 }));
 
+// Mock the configuration loading to prevent YAML file interference
+vi.mock('../utils/config', () => ({
+  getConfig: vi.fn(),
+  resetConfig: vi.fn(),
+  getApiKeyForProvider: vi.fn(),
+  hasAnyApiKey: vi.fn().mockReturnValue(true)
+}));
+
 // Mock the console.log and console.error
 beforeEach(() => {
   vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -19,10 +27,29 @@ afterEach(() => {
 // Mock environment variables
 const originalEnv = process.env;
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.resetModules();
   process.env = { ...originalEnv };
   process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = 'test-api-key';
+
+  // Reset the config mock
+  const { getConfig, getApiKeyForProvider } = await import('../utils/config');
+  vi.mocked(getConfig).mockImplementation(() => ({
+    selectedModel: process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-2.5-pro',
+    googleApiKey: 'test-api-key',
+    openRouterApiKey: undefined,
+    anthropicApiKey: undefined,
+    openAIApiKey: undefined,
+    debug: false,
+    logLevel: 'info' as const,
+    contextPaths: undefined,
+    writerModel: undefined
+  }));
+
+  vi.mocked(getApiKeyForProvider).mockImplementation((provider: string) => {
+    if (provider === 'gemini') return 'test-api-key';
+    return undefined;
+  });
 });
 
 afterEach(() => {
@@ -70,8 +97,9 @@ describe('Model Name Display', () => {
     }
 
     // Check that Gemini initialization log was called
+    // The logger formats messages with timestamp and level, and logs the API identifier
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('Initializing Gemini model: gemini-2.5-pro')
+      expect.stringContaining('Initializing Gemini model: gemini-2.5-pro-preview-05-06')
     );
   });
 
@@ -156,7 +184,7 @@ describe('Model Name Display', () => {
 
     // Check that Gemini initialization log was called
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('Initializing Gemini model: gemini-2.5-pro')
+      expect.stringContaining('Initializing Gemini model: gemini-2.5-pro-preview-05-06')
     );
 
     // No need to check for specific success message format since it may have changed

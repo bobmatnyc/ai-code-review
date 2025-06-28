@@ -13,6 +13,7 @@ import { UnusedCodeReviewStrategy } from './UnusedCodeReviewStrategy';
 import { FocusedUnusedCodeReviewStrategy } from './FocusedUnusedCodeReviewStrategy';
 import { CodeTracingUnusedCodeReviewStrategy } from './CodeTracingUnusedCodeReviewStrategy';
 import { ImprovedQuickFixesReviewStrategy } from './ImprovedQuickFixesReviewStrategy';
+import { ExtractPatternsReviewStrategy } from './ExtractPatternsReviewStrategy';
 import { MultiPassReviewStrategy } from './MultiPassReviewStrategy';
 import { PluginManager } from '../plugins/PluginManager';
 import logger from '../utils/logger';
@@ -53,6 +54,8 @@ export class StrategyFactory {
     
     if (reviewType === 'architectural') {
       return new ArchitecturalReviewStrategy();
+    } else if (reviewType === 'extract-patterns') {
+      return new ExtractPatternsReviewStrategy();
     } else if (reviewType === 'unused-code') {
       // Use code tracing strategy if the traceCode option is set
       if (options.traceCode) {
