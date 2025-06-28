@@ -24,7 +24,8 @@ export type ReviewType =
   | 'improved-quick-fixes'
   | 'consolidated'
   | 'best-practices'
-  | 'evaluation';
+  | 'evaluation'
+  | 'extract-patterns';
 
 /**
  * Options for code reviews

@@ -120,5 +120,7 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<
   'improved-quick-fixes':
     'Enhanced quick fixes review with more comprehensive suggestions',
   'evaluation':
-    'Developer skill and AI assistance assessment without code improvement suggestions'
+    'Developer skill and AI assistance assessment without code improvement suggestions',
+  'extract-patterns':
+    'Extract detailed code patterns, architecture, and design decisions for creating exemplar project libraries'
 };
