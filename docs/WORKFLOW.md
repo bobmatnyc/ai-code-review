@@ -1,10 +1,43 @@
 # 🔁 AI Code Review Tool - Development Workflow
 
-**Version**: 1.0  
-**Updated**: 2025-06-11  
+**Version**: 2.0
+**Updated**: 2025-06-27
 **Repository**: https://github.com/bobmatnyc/ai-code-review.git
 
 This document contains the complete workflow procedures for the AI Code Review tool project, a TypeScript-based CLI tool for automated code reviews using multiple AI providers (Gemini, Claude, OpenAI, OpenRouter).
+
+## 📋 Project Management with Track Down
+
+This project uses **Track Down**, a markdown-based project tracking system that treats project management artifacts as code. All project tracking is maintained in versioned markdown files within the repository, enabling the same collaborative patterns used for source code to apply to project management.
+
+### Track Down Benefits
+- Version-controlled project history with full audit trail
+- Offline-capable project management
+- Tool-agnostic implementation using standard markdown
+- Seamless integration with existing development workflows
+- Zero external dependencies or hosted services required
+
+### Track Down File Structure
+
+```
+ai-code-review/
+├── trackdown/
+│   ├── BACKLOG.md              # Central tracking file
+│   ├── ROADMAP.md              # High-level planning
+│   ├── RETROSPECTIVES.md       # Sprint retrospectives
+│   ├── METRICS.md              # Project metrics/reports
+│   ├── templates/
+│   │   ├── epic-template.md
+│   │   ├── story-template.md
+│   │   └── task-template.md
+│   ├── archive/
+│   │   └── completed-sprints/
+│   └── scripts/
+│       ├── status-report.py
+│       ├── backlog-parser.py
+│       └── metrics-generator.py
+└── docs/WORKFLOW.md            # This file
+```
 
 ## 📋 Prerequisites
 
@@ -69,32 +102,91 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 
 ---
 
-## 🔁 2. Git Workflow & Version Control
+## 🔁 2. Track Down Project Management Workflow
+
+### Daily Workflow with Track Down
+
+1. **Morning Standup Reference**
+   ```bash
+   # Review current sprint section in BACKLOG.md
+   cat trackdown/BACKLOG.md | grep -A 20 "Current Sprint"
+
+   # Update task statuses based on progress
+   # Move checkboxes as work progresses
+   # Add technical notes and discoveries
+   ```
+
+2. **Work Item Updates**
+   - Move checkboxes from `[ ]` to `[x]` as work progresses
+   - Add technical notes and discoveries inline
+   - Update time estimates if significantly off
+   - Reference work items in commit messages
+
+3. **End-of-Day Sync**
+   ```bash
+   # Commit BACKLOG.md changes with descriptive messages
+   git add trackdown/BACKLOG.md
+   git commit -m "trackdown: update US-001 status to in-progress, add technical notes"
+   git push origin feature-branch
+   ```
+
+### Work Item Naming Conventions
+
+- **Epics:** EP-XXX (EP-001, EP-002...)
+- **User Stories:** US-XXX (US-001, US-002...)
+- **Tasks:** T-XXX (T-001, T-002...)
+- **Bugs:** BUG-XXX (BUG-001, BUG-002...)
+- **Spikes:** SP-XXX (SP-001, SP-002...)
+
+### Status Values
+
+- `Backlog` - Not yet prioritized
+- `Ready` - Prioritized and ready for development
+- `In Progress` - Currently being worked on
+- `In Review` - Under code/design review
+- `Testing` - In QA testing phase
+- `Done` - Completed and deployed
+- `Blocked` - Cannot proceed due to dependencies
+
+### Priority Levels
+
+- `Critical` - Production issues, security vulnerabilities
+- `High` - Key features, important bug fixes
+- `Medium` - Standard features and improvements
+- `Low` - Nice-to-have features, technical debt
+
+## 🔁 3. Git Workflow & Version Control
 
 ### Commit Standards
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+Follow [Conventional Commits](https://www.conventionalcommits.org/) with Track Down integration:
 
 ```
 <type>(optional-scope): short summary
 
 [optional body]
-[optional footer(s)]
+
+Closes: US-001
+References: EP-001
 ```
 
 **Valid types**: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`, `ci`
 
 **Examples:**
 - `feat(evaluation): add developer skill assessment review type`
-- `fix(golang): correct Go project type detection`
-- `docs(readme): update installation instructions`
-- `chore(deps): update dependencies to latest versions`
 
-### Branch Naming
+  `Closes: US-015`
+  `References: EP-003`
+
+- `fix(golang): correct Go project type detection`
+
+  `Closes: BUG-002`
+
+### Branch Naming with Work Item References
 ```bash
-feature/evaluation-review-type
-fix/golang-file-detection
-chore/update-dependencies
-docs/workflow-documentation
+feature/US-001-evaluation-review-type
+fix/BUG-002-golang-file-detection
+chore/T-005-update-dependencies
+docs/US-020-workflow-documentation
 ```
 
 ### Local Development Workflow
@@ -103,24 +195,60 @@ docs/workflow-documentation
 git checkout main
 git pull origin main
 
-# Create feature branch
-git checkout -b feature/new-feature
+# Create feature branch with work item reference
+git checkout -b feature/US-001-new-feature
 
-# Make changes and commit frequently
+# Make changes and commit frequently with work item references
 git add .
-git commit -m "feat(scope): add initial implementation"
+git commit -m "feat(scope): add initial implementation
+
+Partial work on US-001. Added basic structure and tests.
+References: EP-001"
+
+# Update Track Down status
+# Edit trackdown/BACKLOG.md to mark US-001 as "In Progress"
 
 # Keep up to date
 git fetch origin
 git rebase origin/main
 
 # Push and create PR
-git push -u origin feature/new-feature
+git push -u origin feature/US-001-new-feature
+```
+
+### Pull Request Integration with Track Down
+
+Use this template for PRs:
+
+```markdown
+## Related Work Items
+- Closes US-001
+- References EP-001
+
+## Changes Made
+- Implemented user registration API endpoint
+- Added input validation for email and password
+- Created user model with password hashing
+
+## Testing
+- [ ] Unit tests added/updated
+- [ ] Integration tests passing
+- [ ] Manual testing completed
+
+## Documentation
+- [ ] README updated if needed
+- [ ] API documentation updated
+- [ ] Work item updated with completion notes
+
+## Track Down Updates
+- [ ] BACKLOG.md updated with completion status
+- [ ] Technical notes added to work item
+- [ ] Next steps identified for related work items
 ```
 
 ---
 
-## 🧪 3. Testing & Quality Assurance
+## 🧪 4. Testing & Quality Assurance
 
 ### Full CI Pipeline
 Before committing or publishing, always run:
@@ -146,7 +274,7 @@ pnpm run validate:prompts  # Validate prompt templates
 
 ---
 
-## 📦 4. Building & Packaging
+## 📦 5. Building & Packaging
 
 ### Development Build
 ```bash
@@ -177,28 +305,38 @@ This script:
 
 ---
 
-## 📋 5. Release Process
+## 📋 6. Release Process with Track Down Integration
 
 ### Pre-Release Checklist
-1. **Version Management**:
+1. **Track Down Sprint Completion**:
+   ```bash
+   # Review current sprint completion in BACKLOG.md
+   # Move completed items to archive
+   # Update ROADMAP.md with progress
+   # Generate sprint retrospective in RETROSPECTIVES.md
+   ```
+
+2. **Version Management**:
    ```bash
    # Update version in package.json
    npm version [patch|minor|major]
 
    # Version is automatically synced during build
+   # Update version in trackdown/ROADMAP.md
    ```
 
-2. **Documentation Updates**:
+3. **Documentation Updates**:
    - Update README.md with new features
    - Update CHANGELOG.md with release notes
    - Verify all prompt templates have correct metadata
+   - Update trackdown/METRICS.md with release metrics
 
-3. **Quality Verification**:
+4. **Quality Verification**:
    ```bash
    npm run lint && npm run test && npm run build
    ```
 
-4. **Package Preparation**:
+5. **Package Preparation**:
    ```bash
    npm run prepare-package
    ```
@@ -215,42 +353,91 @@ npm publish
 pnpm publish
 ```
 
-### Release Tags
+### Release Tags with Track Down Updates
 ```bash
 # Tag the release
 git tag -a v4.2.0 -m "Release version 4.2.0: evaluation review and Golang support"
 git push origin v4.2.0
+
+# Update Track Down post-release
+# Mark release epic as complete in BACKLOG.md
+# Archive completed sprint in trackdown/archive/
+# Update ROADMAP.md with next quarter planning
 ```
 
 ---
 
-## 🎯 6. Feature Development Guidelines
+## 🎯 7. Feature Development Guidelines with Track Down
 
-### Adding New Review Types
-1. **Create Schema**: Define Zod schema in `src/prompts/schemas/`
-2. **Create Prompts**: Add language-specific templates in `promptText/languages/`
-3. **Update Types**: Add to `ReviewType` enum in `src/types/review.ts`
-4. **Update CLI**: Add to argument parser choices
-5. **Add Tests**: Create comprehensive test coverage
-6. **Update Docs**: Document in README.md and examples
+### Track Down Work Item Creation Process
 
-### Adding Language Support
-1. **Prompt Templates**: Create templates in `promptText/languages/[language]/`
-2. **Project Detection**: Update `src/utils/detection/projectTypeDetector.ts`
-3. **File Filtering**: Update `src/utils/files/fileFilters.ts`
-4. **Language Detection**: Update language mapping functions
-5. **Testing**: Add language-specific test cases
+1. **Epic Planning**: Create high-level epic in `trackdown/BACKLOG.md`
+   ```markdown
+   ### Epic: New Review Type Support (EP-005)
+   **Target:** End of Q2 2025
+   **Status:** Planning
+   **Priority:** High
 
-### Adding AI Provider Support
-1. **Client Implementation**: Create in `src/clients/implementations/`
-2. **Model Maps**: Update `src/clients/utils/modelMaps/data/`
-3. **Factory Registration**: Update client factory
-4. **Error Handling**: Implement provider-specific error patterns
-5. **Cost Estimation**: Add to estimator factory
+   Add support for new review types to expand tool capabilities.
+
+   **Stories:** US-025, US-026, US-027, US-028
+   ```
+
+2. **User Story Breakdown**: Define specific user stories under the epic
+   ```markdown
+   ## **[US-025]** Add Security Review Type
+
+   **Type:** User Story
+   **Epic:** EP-005 New Review Type Support
+   **Priority:** High
+   **Story Points:** 8
+   **Assignee:** @developer-username
+   **Status:** Ready
+   **Sprint:** 12
+
+   **User Story:**
+   As a developer, I want to run security-focused code reviews so that I can identify potential vulnerabilities.
+
+   **Acceptance Criteria:**
+   - [ ] Security review schema defined in Zod
+   - [ ] Language-specific security prompts created
+   - [ ] CLI updated with security review option
+   - [ ] Tests cover security review functionality
+   - [ ] Documentation updated with examples
+   ```
+
+### Adding New Review Types with Track Down
+1. **Create Work Item**: Add user story to `trackdown/BACKLOG.md`
+2. **Create Schema**: Define Zod schema in `src/prompts/schemas/`
+3. **Create Prompts**: Add language-specific templates in `promptText/languages/`
+4. **Update Types**: Add to `ReviewType` enum in `src/types/review.ts`
+5. **Update CLI**: Add to argument parser choices
+6. **Add Tests**: Create comprehensive test coverage
+7. **Update Docs**: Document in README.md and examples
+8. **Update Track Down**: Mark story as complete, add technical notes
+
+### Adding Language Support with Track Down
+1. **Create Work Item**: Add language support story to backlog
+2. **Prompt Templates**: Create templates in `promptText/languages/[language]/`
+3. **Project Detection**: Update `src/utils/detection/projectTypeDetector.ts`
+4. **File Filtering**: Update `src/utils/files/fileFilters.ts`
+5. **Language Detection**: Update language mapping functions
+6. **Testing**: Add language-specific test cases
+7. **Track Down Updates**: Document implementation notes and completion
+
+### Adding AI Provider Support with Track Down
+1. **Create Epic**: Add provider support epic to roadmap
+2. **Break Down Stories**: Create individual stories for each component
+3. **Client Implementation**: Create in `src/clients/implementations/`
+4. **Model Maps**: Update `src/clients/utils/modelMaps/data/`
+5. **Factory Registration**: Update client factory
+6. **Error Handling**: Implement provider-specific error patterns
+7. **Cost Estimation**: Add to estimator factory
+8. **Track Down Completion**: Update all related work items
 
 ---
 
-## 🔍 7. Code Quality Standards
+## 🔍 8. Code Quality Standards
 
 ### TypeScript Requirements
 - Strict mode enabled (`tsconfig.json`)
@@ -280,7 +467,7 @@ src/
 
 ---
 
-## 🧾 8. Documentation Standards
+## 🧾 9. Documentation Standards
 
 ### Code Documentation
 - JSDoc comments for all public functions and classes
@@ -311,12 +498,29 @@ tags:
 
 ---
 
-## 🚀 9. CI/CD & Automation
+## 🚀 10. CI/CD & Automation with Track Down Integration
 
-### Pre-commit Hooks
+### Pre-commit Hooks with Track Down Validation
 ```bash
-# Recommended pre-commit setup
+# Recommended pre-commit setup with Track Down validation
 npm run lint && npm run test && npm run build
+
+# Optional: Validate Track Down files
+python trackdown/scripts/backlog-validator.py
+```
+
+### Track Down Automation Scripts
+
+**Status Report Generator** (`trackdown/scripts/status-report.py`):
+```bash
+# Generate weekly status report from BACKLOG.md
+python trackdown/scripts/status-report.py > weekly-report.md
+```
+
+**Metrics Collection** (`trackdown/scripts/metrics-generator.py`):
+```bash
+# Auto-update metrics and generate reports
+python trackdown/scripts/metrics-generator.py
 ```
 
 ### PNPM Scripts Reference
@@ -350,14 +554,16 @@ pnpm run prepare-package  # Package for publishing
 
 ### Automated Checks
 - TypeScript compilation
-- ESLint validation  
+- ESLint validation
 - Test execution
 - Prompt template validation
 - Model configuration verification
+- Track Down backlog format validation
+- Work item metadata completeness check
 
 ---
 
-## 📊 10. Project Metrics & Monitoring
+## 📊 11. Project Metrics & Monitoring with Track Down
 
 ### Key Performance Indicators
 - Test coverage percentage
@@ -365,6 +571,11 @@ pnpm run prepare-package  # Package for publishing
 - ESLint warning count (target: <500)
 - Response time for different AI providers
 - Token usage efficiency
+- **Track Down Metrics:**
+  - Sprint velocity (story points completed per sprint)
+  - Cycle time from "Ready" to "Done"
+  - Sprint commitment accuracy
+  - Defect rate (bugs per story points delivered)
 
 ### Quality Gates
 - All tests must pass
@@ -372,10 +583,14 @@ pnpm run prepare-package  # Package for publishing
 - ESLint warnings under configured limit
 - Successful prompt validation
 - Working CLI executable generation
+- **Track Down Quality Gates:**
+  - All committed work items have required metadata
+  - Sprint goals clearly defined and tracked
+  - Work item status accurately reflects progress
 
 ---
 
-## 🔗 11. Dependencies & Security
+## 🔗 12. Dependencies & Security
 
 ### Dependency Management
 ```bash
@@ -401,7 +616,7 @@ npm outdated           # Check for outdated packages
 
 ---
 
-## 📝 12. Troubleshooting Common Issues
+## 📝 13. Troubleshooting Common Issues
 
 ### Build Failures
 1. **TypeScript Errors**: Run `npm run build:types` to isolate
@@ -434,17 +649,20 @@ npm outdated           # Check for outdated packages
 
 ---
 
-## 🎯 13. Contributing Guidelines
+## 🎯 14. Contributing Guidelines with Track Down
 
-### Pull Request Process
-1. Create feature branch from main
+### Pull Request Process with Track Down Integration
+1. Create feature branch from main with work item reference
 2. Implement changes with tests
-3. Run full CI pipeline locally
-4. Update documentation as needed
-5. Create PR with clear description
-6. Wait for CI validation
-7. Address review feedback
-8. Squash merge when approved
+3. Update Track Down work item status throughout development
+4. Run full CI pipeline locally
+5. Update documentation as needed
+6. Create PR with Track Down work item references
+7. Wait for CI validation
+8. Address review feedback
+9. Update Track Down with completion notes
+10. Squash merge when approved
+11. Mark work item as "Done" in Track Down
 
 ### Code Review Checklist
 - [ ] Tests included and passing
@@ -453,22 +671,100 @@ npm outdated           # Check for outdated packages
 - [ ] ESLint validation passed
 - [ ] Breaking changes documented
 - [ ] Version updated if needed
+- [ ] **Track Down Requirements:**
+  - [ ] Work item referenced in PR
+  - [ ] Work item status updated to "In Review"
+  - [ ] Technical notes added to work item
+  - [ ] Acceptance criteria verified
+  - [ ] Related work items identified for future sprints
 
 ---
 
-## 🔄 14. Maintenance Procedures
+## 🔄 15. Maintenance Procedures with Track Down
 
 ### Regular Maintenance Tasks
-- **Weekly**: Dependency updates and security patches
-- **Monthly**: Performance review and optimization
-- **Quarterly**: Major dependency upgrades
+- **Daily**: Update work item statuses in Track Down
+- **Weekly**:
+  - Dependency updates and security patches
+  - Generate Track Down status reports
+  - Review and groom upcoming stories in backlog
+- **Monthly**:
+  - Performance review and optimization
+  - Archive completed sprints in Track Down
+  - Review and update Track Down templates
+- **Quarterly**:
+  - Major dependency upgrades
+  - Major roadmap reviews in Track Down
+  - Team retrospectives on project management approach
 - **As Needed**: Documentation updates and prompt improvements
 
-### Version Management
+### Version Management with Track Down Integration
 - **Patch** (x.x.X): Bug fixes, minor improvements
-- **Minor** (x.X.x): New features, new language support  
+  - Update related bug work items to "Done"
+  - Add patch notes to METRICS.md
+- **Minor** (x.X.x): New features, new language support
+  - Complete feature epics in Track Down
+  - Update ROADMAP.md with delivered capabilities
 - **Major** (X.x.x): Breaking changes, architecture updates
+  - Archive major version epic
+  - Plan next major version in ROADMAP.md
+
+### Track Down Maintenance Procedures
+
+**Sprint Planning Process:**
+1. **Sprint Preparation**
+   - Review and groom upcoming stories in backlog
+   - Estimate story points for unestimated items
+   - Identify dependencies and risks
+
+2. **Sprint Commitment**
+   - Move committed stories to "Current Sprint" section
+   - Set sprint goal and success criteria
+   - Update sprint number and dates in BACKLOG.md
+
+3. **Sprint Execution**
+   - Daily updates to story status
+   - Add sub-tasks as implementation details emerge
+   - Track blockers and impediments
+
+**Sprint Retrospective Process:**
+1. Archive completed sprint in `trackdown/archive/completed-sprints/`
+2. Update `trackdown/RETROSPECTIVES.md` with lessons learned
+3. Update velocity metrics in `trackdown/METRICS.md`
+4. Plan improvements for next sprint
 
 ---
 
-This workflow ensures consistent development practices, reliable releases, and maintainable code quality for the AI Code Review tool.
+## 🎯 16. Track Down Implementation Checklist
+
+To fully implement Track Down in this project, complete these setup tasks:
+
+### Phase 1: Foundation Setup
+- [ ] Create `trackdown/` directory structure
+- [ ] Initialize `trackdown/BACKLOG.md` with current project status
+- [ ] Create `trackdown/ROADMAP.md` with quarterly planning
+- [ ] Set up `trackdown/templates/` with work item templates
+- [ ] Migrate any existing GitHub issues to Track Down format
+
+### Phase 2: Automation Setup
+- [ ] Implement `trackdown/scripts/backlog-validator.py`
+- [ ] Create `trackdown/scripts/status-report.py`
+- [ ] Set up `trackdown/scripts/metrics-generator.py`
+- [ ] Configure Git hooks for Track Down validation
+- [ ] Update CI/CD pipeline to include Track Down checks
+
+### Phase 3: Team Adoption
+- [ ] Train team on Track Down workflow
+- [ ] Establish daily/weekly Track Down update routines
+- [ ] Create first sprint in Track Down format
+- [ ] Begin using work item references in commits and PRs
+
+### Phase 4: Optimization
+- [ ] Implement advanced metrics collection
+- [ ] Create dashboard generation scripts
+- [ ] Integrate with existing development tools
+- [ ] Refine process based on team feedback
+
+---
+
+This workflow ensures consistent development practices, reliable releases, and maintainable code quality for the AI Code Review tool, while leveraging Track Down for comprehensive project management that scales with the development team.
