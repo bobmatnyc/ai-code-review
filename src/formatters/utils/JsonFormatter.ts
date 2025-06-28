@@ -6,7 +6,7 @@
  */
 
 import { ReviewResult } from '../../types/review';
-import { sanitizeContent } from '../../utils/parsing/sanitizer';
+import { sanitizeContent } from '../../utils/sanitizer';
 
 import { extractModelInfo } from './ModelInfoExtractor';
 import { createEnhancedMetadata, parseMetadata } from './MetadataFormatter';

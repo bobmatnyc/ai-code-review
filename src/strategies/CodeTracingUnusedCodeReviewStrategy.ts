@@ -18,14 +18,14 @@ import {
   // ReviewType // Not used in this file
 } from '../types/review';
 import { StructuredReview } from '../types/structuredReview';
-import { ProjectDocs } from '../utils/files/projectDocs';
+import { ProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { CodeTracingUnusedCodeReview } from '../prompts/schemas/code-tracing-unused-code-schema';
 import {
   formatCodeTracingUnusedCodeReviewAsMarkdown,
   generateCodeTracingRemovalScript
 } from '../formatters/codeTracingUnusedCodeFormatter';
-import { formatProjectDocs } from '../utils/files/projectDocs';
+import { formatProjectDocs } from '../utils/projectDocs';
 import logger from '../utils/logger';
 
 /**

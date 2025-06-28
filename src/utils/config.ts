@@ -6,6 +6,9 @@
  * present and provides type-safe access to configuration values.
  *
  * Uses Zod for schema validation to ensure type safety and provide clear error messages.
+ *
+ * @deprecated This module is being replaced by unifiedConfig.ts for better maintainability.
+ * New code should use getUnifiedConfig() from './unifiedConfig' instead.
  */
 
 import {
@@ -21,6 +24,56 @@ import { z } from 'zod';
 import { CliOptions } from '../cli/argumentParser';
 import { loadConfigFile, applyConfigToOptions } from './configFileManager';
 import { ReviewOptions } from '../types/review';
+// Import the new unified configuration system
+import { getUnifiedConfig, hasAnyApiKey as unifiedHasAnyApiKey, Config as UnifiedConfig } from './unifiedConfig';
+
+/**
+ * Configuration error result
+ */
+export interface ConfigErrorResult {
+  success: false;
+  error: string;
+  suggestions: string[];
+  details?: string;
+}
+
+/**
+ * Configuration success result
+ */
+export interface ConfigSuccessResult {
+  success: true;
+  config: AppConfig;
+}
+
+/**
+ * Configuration result type
+ */
+export type ConfigResult = ConfigSuccessResult | ConfigErrorResult;
+
+/**
+ * Display user-friendly configuration error
+ * @param result Configuration error result
+ */
+export function displayConfigError(result: ConfigErrorResult): void {
+  console.log('\n🚨 Configuration Error');
+  console.log('═'.repeat(50));
+  console.log(`\n❌ ${result.error}`);
+
+  if (result.details) {
+    console.log(`\n📋 Details: ${result.details}`);
+  }
+
+  console.log('\n💡 How to fix this:');
+  result.suggestions.forEach(suggestion => {
+    console.log(`   ${suggestion}`);
+  });
+
+  console.log('\n📚 Additional help:');
+  console.log('   • Run with --debug for detailed error information');
+  console.log('   • Check the documentation for configuration examples');
+  console.log('   • Use ai-code-review generate-config to create a sample config file');
+  console.log('');
+}
 
 /**
  * Zod schema for application configuration
@@ -52,19 +105,103 @@ export type AppConfig = z.infer<typeof appConfigSchema>;
 let config: AppConfig | null = null;
 
 /**
- * Load and validate environment variables
- * @param cliOptions Optional CLI options that override environment variables
- * @returns Validated configuration object
- * @throws Error if required environment variables are missing
+ * Provide user-friendly explanations for configuration validation errors
+ * @param zodError The Zod validation error
+ * @returns User-friendly error explanation
  */
-function loadConfig(cliOptions?: CliOptions): AppConfig {
+function explainConfigError(zodError: z.ZodError): ConfigErrorResult {
+  const errors = zodError.errors;
+  const suggestions: string[] = [];
+  let mainError = 'Configuration validation failed';
+  let details = '';
+
+  for (const error of errors) {
+    const field = error.path.join('.');
+    const receivedValue = 'received' in error ? error.received : 'unknown';
+
+    switch (field) {
+      case 'logLevel':
+        if (error.code === 'invalid_enum_value') {
+          mainError = `Invalid log level: "${receivedValue}"`;
+          details = `The log level must be one of: ${('options' in error && error.options) ? error.options.join(', ') : 'debug, info, warn, error, none'}`;
+          suggestions.push('Fix your log level setting:');
+          suggestions.push('  • In .env.local: AI_CODE_REVIEW_LOG_LEVEL=info');
+          suggestions.push('  • In .ai-code-review.yaml: system.log_level: info');
+          suggestions.push('  • Use lowercase values: debug, info, warn, error, or none');
+        }
+        break;
+
+      case 'selectedModel':
+        mainError = `Invalid model configuration: "${receivedValue}"`;
+        suggestions.push('Fix your model setting:');
+        suggestions.push('  • Use format: provider:model-name');
+        suggestions.push('  • Examples: gemini:gemini-1.5-pro, openai:gpt-4, anthropic:claude-3-opus');
+        suggestions.push('  • In .env.local: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
+        suggestions.push('  • In .ai-code-review.yaml: api.model: gemini:gemini-1.5-pro');
+        break;
+
+      case 'debug':
+        mainError = `Invalid debug setting: "${receivedValue}"`;
+        suggestions.push('Fix your debug setting:');
+        suggestions.push('  • Use true or false');
+        suggestions.push('  • In .env.local: AI_CODE_REVIEW_DEBUG=true');
+        suggestions.push('  • In .ai-code-review.yaml: system.debug: true');
+        break;
+
+      case 'outputDir':
+        mainError = `Invalid output directory: "${receivedValue}"`;
+        suggestions.push('Fix your output directory setting:');
+        suggestions.push('  • Use a valid directory path');
+        suggestions.push('  • In .env.local: AI_CODE_REVIEW_OUTPUT_DIR=./my-reviews');
+        suggestions.push('  • In .ai-code-review.yaml: output.dir: ./my-reviews');
+        break;
+
+      default:
+        if (field.includes('ApiKey')) {
+          const provider = field.replace('ApiKey', '').toLowerCase();
+          mainError = `Invalid API key for ${provider}`;
+          suggestions.push(`Fix your ${provider} API key:`);
+          suggestions.push(`  • In .env.local: AI_CODE_REVIEW_${provider.toUpperCase()}_API_KEY=your-key-here`);
+          suggestions.push(`  • In .ai-code-review.yaml: api.keys.${provider}: your-key-here`);
+          suggestions.push('  • Make sure the key is a valid string');
+        } else {
+          mainError = `Invalid configuration for ${field}: "${receivedValue}"`;
+          suggestions.push(`Check your ${field} setting in .env.local or .ai-code-review.yaml`);
+        }
+        break;
+    }
+  }
+
+  // Add general suggestions
+  suggestions.push('');
+  suggestions.push('General troubleshooting:');
+  suggestions.push('  • Check .env.local file in your project root');
+  suggestions.push('  • Check .ai-code-review.yaml configuration file');
+  suggestions.push('  • Use --debug flag for more detailed error information');
+  suggestions.push('  • Run with --config path/to/config.yaml to use a specific config file');
+
+  return {
+    success: false,
+    error: mainError,
+    suggestions,
+    details
+  };
+}
+
+
+
+/**
+ * Build configuration object from various sources
+ * @param cliOptions Optional CLI options
+ * @returns Configuration object ready for validation
+ */
+function buildConfigObject(cliOptions?: CliOptions) {
   // Load JSON configuration if specified or if default file exists
   let jsonConfig = null;
   if (cliOptions?.config) {
     // Load from specified config file
     jsonConfig = loadConfigFile(cliOptions.config);
     if (!jsonConfig) {
-      logger.error(`Failed to load configuration file: ${cliOptions.config}`);
       throw new Error(`Configuration file not found or invalid: ${cliOptions.config}`);
     }
   } else {
@@ -120,7 +257,7 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
 
   // Get log level (merged options take precedence)
   const logLevel = (mergedOptions?.logLevel ||
-    process.env.AI_CODE_REVIEW_LOG_LEVEL ||
+    process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase() ||
     'info') as 'debug' | 'info' | 'warn' | 'error' | 'none';
 
   // Get context paths
@@ -135,8 +272,7 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
     process.env.AI_CODE_REVIEW_OUTPUT_DIR ||
     'ai-code-review-docs';
 
-  // Create the configuration object
-  const configObj = {
+  return {
     googleApiKey,
     openRouterApiKey,
     anthropicApiKey,
@@ -148,12 +284,25 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
     contextPaths,
     outputDir
   };
+}
+
+/**
+ * Load and validate environment variables
+ * @param cliOptions Optional CLI options that override environment variables
+ * @returns Validated configuration object
+ * @throws Error if required environment variables are missing
+ */
+function loadConfig(cliOptions?: CliOptions): AppConfig {
+  // Build configuration object
+  const configObj = buildConfigObject(cliOptions);
 
   // Validate the configuration using Zod
   try {
     return appConfigSchema.parse(configObj);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      // Use the user-friendly error explanation
+      const explanation = explainConfigError(error);
       logger.error('Configuration validation failed:', error.errors);
       throw new Error(
         `Configuration validation failed: ${error.errors.map(e => e.message).join(', ')}`
@@ -194,6 +343,80 @@ export function hasAnyApiKey(): boolean {
     anthropicApiKey ||
     openAIApiKey
   );
+}
+
+/**
+ * Load configuration safely with improved error handling
+ * @param cliOptions Optional CLI options
+ * @returns Configuration result with success/error status
+ */
+export function loadConfigSafe(cliOptions?: CliOptions): ConfigResult {
+  try {
+    // Convert CLI options to unified config format
+    const unifiedCliOptions = cliOptions ? {
+      model: cliOptions.model,
+      writerModel: cliOptions.writerModel,
+      outputDir: cliOptions.outputDir,
+      outputFormat: cliOptions.output as 'markdown' | 'json' | undefined,
+      debug: cliOptions.debug,
+      logLevel: cliOptions.logLevel as 'debug' | 'info' | 'warn' | 'error' | 'none' | undefined,
+      interactive: cliOptions.interactive,
+      includeTests: cliOptions.includeTests,
+      includeProjectDocs: cliOptions.includeProjectDocs,
+      includeDependencyAnalysis: cliOptions.includeDependencyAnalysis,
+      enableSemanticChunking: cliOptions.enableSemanticChunking,
+      config: cliOptions.config
+    } : undefined;
+
+    // Try the new unified configuration system first
+    const unifiedConfig = getUnifiedConfig(unifiedCliOptions);
+
+    // Convert to legacy format for backward compatibility
+    const legacyConfig: AppConfig = {
+      googleApiKey: unifiedConfig.googleApiKey,
+      openRouterApiKey: unifiedConfig.openRouterApiKey,
+      anthropicApiKey: unifiedConfig.anthropicApiKey,
+      openAIApiKey: unifiedConfig.openAIApiKey,
+      selectedModel: unifiedConfig.model,
+      writerModel: unifiedConfig.writerModel,
+      debug: unifiedConfig.debug,
+      logLevel: unifiedConfig.logLevel,
+      contextPaths: unifiedConfig.contextPaths,
+      outputDir: unifiedConfig.outputDir
+    };
+
+    return {
+      success: true,
+      config: legacyConfig
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Provide helpful suggestions based on common configuration errors
+    const suggestions: string[] = [];
+
+    if (errorMessage.includes('API key')) {
+      suggestions.push('Set at least one API key using AI_CODE_REVIEW_*_API_KEY environment variables');
+      suggestions.push('Check your .env.local file for correct API key format');
+    }
+
+    if (errorMessage.includes('model')) {
+      suggestions.push('Set AI_CODE_REVIEW_MODEL environment variable (e.g., "gemini:gemini-1.5-pro")');
+      suggestions.push('Ensure the model format is "provider:model-name"');
+    }
+
+    if (errorMessage.includes('validation')) {
+      suggestions.push('Check your configuration file syntax (.ai-code-review.yaml)');
+      suggestions.push('Verify all required fields are present and correctly formatted');
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+      suggestions,
+      details: error instanceof Error ? error.stack : undefined
+    };
+  }
 }
 
 /**

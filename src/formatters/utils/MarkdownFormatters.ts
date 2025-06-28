@@ -7,7 +7,7 @@
 
 import { ReviewResult } from '../../types/review';
 import { StructuredReview } from '../../types/structuredReview';
-import { sanitizeContent } from '../../utils/parsing/sanitizer';
+import { sanitizeContent } from '../../utils/sanitizer';
 import logger from '../../utils/logger';
 import { extractModelInfo, extractModelInfoFromString } from './ModelInfoExtractor';
 import { formatIssue, formatSchemaIssue } from './IssueFormatters';

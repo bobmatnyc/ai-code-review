@@ -227,7 +227,8 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           prompt,
           this.getFullModelName(),
           filePath,
-          reviewType
+          reviewType,
+          options
         );
       } catch (error) {
         throw handleApiError(error, 'generate review', this.getFullModelName());
@@ -342,7 +343,8 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           prompt,
           this.getFullModelName(),
           'consolidated',
-          reviewType
+          reviewType,
+          options
         );
       } catch (error) {
         throw handleApiError(

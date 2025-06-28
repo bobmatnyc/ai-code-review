@@ -17,7 +17,7 @@
 export * from './types';
 
 // Export enhanced model map
-export { ENHANCED_MODEL_MAP } from './data';
+export { ENHANCED_MODEL_MAP } from './modelData';
 
 // Export legacy compatibility
 export { MODEL_MAP, MODELS } from './legacy';

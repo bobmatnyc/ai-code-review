@@ -10,6 +10,7 @@ import { FileInfo } from '../fileDiscovery';
 import { ReviewOptions } from '../../types/review';
 import { estimateFromFilePaths } from '../../utils/estimationUtils';
 import { getProviderDisplayInfo } from '../utils/ModelInfoUtils';
+import { SemanticChunkingIntegration } from '../../analysis/semantic';
 
 /**
  * Perform token usage and cost estimation for review
@@ -49,7 +50,6 @@ export async function performEstimation(
     
     // Try semantic chunking for intelligent code analysis
     try {
-      const { SemanticChunkingIntegration } = await import('../../analysis/semantic');
       const semanticIntegration = new SemanticChunkingIntegration({
         enableSemanticChunking: options.enableSemanticChunking ?? true,
         enableFallback: true,

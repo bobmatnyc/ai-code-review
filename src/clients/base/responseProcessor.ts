@@ -15,6 +15,69 @@ import { getCostInfoFromText } from '../utils/tokenCounter';
 import configManager from '../../utils/configManager';
 
 /**
+ * Attempt to recover JSON from malformed responses using various strategies
+ * @param content The malformed response content
+ * @returns Parsed StructuredReview object or null if recovery fails
+ */
+function attemptJsonRecovery(content: string): StructuredReview | null {
+  const strategies = [
+    // Strategy 1: Remove leading language identifiers (e.g., "typescript\n{...}")
+    (text: string) => {
+      const match = text.match(/^(?:typescript|javascript|json|ts|js)\s*\n?\s*({[\s\S]*})$/i);
+      return match ? match[1] : null;
+    },
+
+    // Strategy 2: Extract JSON from mixed content (find first complete JSON object)
+    (text: string) => {
+      const match = text.match(/({[\s\S]*?})\s*$/);
+      return match ? match[1] : null;
+    },
+
+    // Strategy 3: Look for JSON between quotes (e.g., "typescript\n{...}")
+    (text: string) => {
+      const match = text.match(/"[^"]*"\s*\n?\s*({[\s\S]*})/);
+      return match ? match[1] : null;
+    },
+
+    // Strategy 4: Remove everything before the first opening brace
+    (text: string) => {
+      const braceIndex = text.indexOf('{');
+      if (braceIndex === -1) return null;
+      return text.substring(braceIndex);
+    },
+
+    // Strategy 5: Try to extract from code blocks with language prefixes
+    (text: string) => {
+      const match = text.match(/```(?:json|typescript|javascript)?\s*([^`]+)\s*```/i);
+      if (!match) return null;
+      const blockContent = match[1].trim();
+      // Remove language identifier if it's at the start
+      const cleanContent = blockContent.replace(/^(?:typescript|javascript|json|ts|js)\s*\n?/i, '');
+      return cleanContent.startsWith('{') ? cleanContent : null;
+    }
+  ];
+
+  for (const strategy of strategies) {
+    try {
+      const extracted = strategy(content.trim());
+      if (extracted) {
+        const parsed = JSON.parse(extracted) as StructuredReview;
+        // Basic validation
+        if (typeof parsed === 'object' && parsed !== null) {
+          logger.debug('Successfully recovered JSON using recovery strategy');
+          return parsed;
+        }
+      }
+    } catch (error) {
+      // Continue to next strategy
+      continue;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Process API response content and extract structured data if possible
  * @param content The API response content
  * @returns Structured data object or null if not valid JSON
@@ -183,14 +246,35 @@ export function extractStructuredData(content: string): StructuredReview | undef
     // Always provide basic info regardless of log level
     const contentPreview = content.substring(0, 50).replace(/\n/g, ' ');
     logger.info(`JSON parse error with content starting with: "${contentPreview}..."`);
-    
+
+    // Try additional recovery strategies for common malformed response patterns
+    try {
+      const recoveredJson = attemptJsonRecovery(content);
+      if (recoveredJson) {
+        logger.info('Successfully recovered JSON from malformed response');
+        return recoveredJson;
+      }
+    } catch (recoveryError) {
+      logger.debug('JSON recovery attempt failed:', recoveryError);
+    }
+
     // Check for common patterns that might be causing issues
     if (content.includes('```typescript') || content.includes('```ts')) {
       logger.info('Content contains TypeScript code blocks that may be causing parsing issues');
     }
-    
+
     if (content.includes('```json')) {
       logger.info('Content contains JSON code blocks that could not be parsed properly');
+    }
+
+    // Check for language identifier patterns that might indicate Gemini response issues
+    if (content.match(/^(?:typescript|javascript|json|ts|js)\s*\n/i)) {
+      logger.info('Content starts with language identifier, which may indicate a Gemini response formatting issue');
+    }
+
+    // Check for quoted language identifiers
+    if (content.match(/"(?:typescript|javascript|json|ts|js)"/i)) {
+      logger.info('Content contains quoted language identifiers, which may indicate a parsing issue');
     }
     
     // In debug mode, log additional details to help diagnose the issue
@@ -255,6 +339,7 @@ function mapPriority(priority: string | undefined): 'high' | 'medium' | 'low' {
  * @param modelName The full model name
  * @param filePath The file path or identifier
  * @param reviewType The review type
+ * @param options Optional review options to determine expected output format
  * @returns Standardized review result
  */
 export function createStandardReviewResult(
@@ -262,10 +347,14 @@ export function createStandardReviewResult(
   prompt: string,
   modelName: string,
   filePath: string,
-  reviewType: ReviewType
+  reviewType: ReviewType,
+  options?: { interactive?: boolean; output?: string }
 ): ReviewResult {
-  // Extract structured data
-  const structuredData = extractStructuredData(content);
+  // Only attempt to extract structured data if we expect JSON output
+  const expectsJsonOutput = options?.interactive === true || options?.output === 'json';
+
+  // Extract structured data only when appropriate
+  const structuredData = expectsJsonOutput ? extractStructuredData(content) : undefined;
   
   // Calculate cost information
   let cost: CostInfo | undefined;

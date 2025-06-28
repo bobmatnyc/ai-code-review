@@ -37,9 +37,14 @@
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
     "validate:prompts": "node scripts/validate-prompts.js",
     "update:prompts": "node scripts/update-prompts-frontmatter.js",
+    "train-patterns": "tsx src/prompts/training/trainExtractPatterns.ts",
+    "demo-training": "node scripts/test-pattern-training.js",
+    "simple-training": "tsx src/prompts/training/simpleTraining.ts",
     "quick-build": "pnpm run generate-version && pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
     "consolidate": "ts-node scripts/consolidate-review.ts",
-    "generate-version": "node scripts/generate-version.js"
+    "generate-version": "node scripts/generate-version.js",
+    "setup:pre-commit": "./scripts/setup-pre-commit.sh",
+    "setup:pnpm": "./scripts/migrate-to-pnpm.sh"
   },
   "keywords": [
     "code-review",
@@ -70,8 +75,10 @@
     "url": "git+https://github.com/bobmatnyc/ai-code-review.git"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
   },
+  "packageManager": "pnpm@8.15.0",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
@@ -142,6 +149,5 @@
   },
   "resolutions": {
     "esbuild": "^0.25.3"
-  },
-  "packageManager": "pnpm@8.15.4"
+  }
 }

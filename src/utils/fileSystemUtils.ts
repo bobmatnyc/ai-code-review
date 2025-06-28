@@ -8,8 +8,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { ReviewType } from '../../types/review';
-import logger from '../logger';
+import { ReviewType } from '../types/review';
+import logger from './logger';
 
 /**
  * Create a directory if it doesn't exist

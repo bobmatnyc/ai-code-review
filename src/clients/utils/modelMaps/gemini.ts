@@ -2,7 +2,7 @@
  * @fileoverview Gemini model configurations
  */
 
-import { EnhancedModelMapping, ModelCategory } from '../types';
+import { EnhancedModelMapping, ModelCategory } from './types';
 
 export const GEMINI_MODELS: Record<string, EnhancedModelMapping> = {
   "gemini:gemini-2.5-pro-preview": {

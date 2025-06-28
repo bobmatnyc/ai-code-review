@@ -14,8 +14,9 @@ import {
   ReviewType
 } from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
-// Import all clients directly
-import { generateConsolidatedReview } from '../clients/geminiClient';
+// Import the new client factory
+import { ClientFactory } from '../clients/factory/clientFactory';
+// Import legacy clients for backward compatibility
 import {
   generateAnthropicConsolidatedReview,
   initializeAnthropicClient
@@ -28,6 +29,7 @@ import {
   generateOpenRouterConsolidatedReview,
   initializeAnyOpenRouterModel
 } from '../clients/openRouterClientWrapper';
+import { generateConsolidatedReview } from '../clients/geminiClient';
 
 // Other imports
 import logger from '../utils/logger';
@@ -71,7 +73,12 @@ export async function generateReview(
       options
     );
   } else if (apiClientConfig.clientType === 'Google') {
-    result = generateConsolidatedReview(
+    logger.debug('generateReview: Using Gemini client via factory');
+    // Use the new client factory for Gemini
+    const client = ClientFactory.createClient(apiClientConfig.modelName);
+    await client.initialize();
+
+    result = client.generateConsolidatedReview(
       fileInfos,
       project,
       reviewType,

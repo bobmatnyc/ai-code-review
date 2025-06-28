@@ -1,0 +1,70 @@
+# AI Code Review Tool Configuration Example
+# Copy this file to .ai-code-review.yaml and customize as needed
+
+# API Configuration
+# Note: API keys should be set via environment variables for security
+# Use AI_CODE_REVIEW_*_API_KEY environment variables instead of storing keys here
+api:
+  # google_api_key: "your-google-api-key"  # Use AI_CODE_REVIEW_GOOGLE_API_KEY env var instead
+  # openrouter_api_key: "your-openrouter-api-key"  # Use AI_CODE_REVIEW_OPENROUTER_API_KEY env var instead
+  # anthropic_api_key: "your-anthropic-api-key"  # Use AI_CODE_REVIEW_ANTHROPIC_API_KEY env var instead
+  # openai_api_key: "your-openai-api-key"  # Use AI_CODE_REVIEW_OPENAI_API_KEY env var instead
+
+# Model Configuration
+model:
+  # Default model to use for reviews
+  default: "gemini:gemini-1.5-pro"
+  
+  # Optional: Separate model for consolidation/writing tasks
+  # writer: "openrouter:anthropic/claude-3-haiku"
+
+# Output Configuration
+output:
+  # Directory for review outputs
+  directory: "ai-code-review-docs"
+  
+  # Output format: markdown or json
+  format: "markdown"
+
+# Behavior Configuration
+behavior:
+  # Enable debug mode for verbose logging
+  debug: false
+  
+  # Log level: debug, info, warn, error, none
+  log_level: "info"
+  
+  # Enable interactive mode by default
+  interactive: false
+
+# Feature Configuration
+features:
+  # Include test files in reviews
+  include_tests: false
+  
+  # Include project documentation in context
+  include_project_docs: false
+  
+  # Include dependency analysis in architectural reviews
+  include_dependency_analysis: false
+  
+  # Enable semantic code chunking for better analysis
+  enable_semantic_chunking: true
+
+# Environment Variable Precedence Order:
+# 1. CLI arguments (highest priority)
+# 2. Environment variables (AI_CODE_REVIEW_*)
+# 3. Configuration file values (this file)
+# 4. Default values (lowest priority)
+
+# Recommended Environment Variables:
+# AI_CODE_REVIEW_GOOGLE_API_KEY=your-google-api-key
+# AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+# AI_CODE_REVIEW_LOG_LEVEL=info
+# AI_CODE_REVIEW_OUTPUT_DIR=ai-code-review-docs
+
+# Deprecated Environment Variables (still supported but will show warnings):
+# CODE_REVIEW_GOOGLE_API_KEY (use AI_CODE_REVIEW_GOOGLE_API_KEY instead)
+# CODE_REVIEW_OPENROUTER_API_KEY (use AI_CODE_REVIEW_OPENROUTER_API_KEY instead)
+# CODE_REVIEW_ANTHROPIC_API_KEY (use AI_CODE_REVIEW_ANTHROPIC_API_KEY instead)
+# CODE_REVIEW_OPENAI_API_KEY (use AI_CODE_REVIEW_OPENAI_API_KEY instead)

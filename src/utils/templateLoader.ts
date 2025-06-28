@@ -8,8 +8,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Handlebars from 'handlebars';
-import logger from '../logger';
-import configManager from '../configManager';
+import logger from './logger';
+import configManager from './configManager';
 
 // Get the templates directory from configuration or use a fallback
 const getTemplatesDir = (): string => {

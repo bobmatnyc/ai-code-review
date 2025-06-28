@@ -223,7 +223,8 @@ export class GeminiClient extends AbstractClient {
           prompt,
           this.getFullModelName(),
           filePath,
-          reviewType
+          reviewType,
+          options
         );
       } catch (error) {
         throw handleApiError(error, 'generate review', this.getFullModelName());
@@ -289,7 +290,8 @@ export class GeminiClient extends AbstractClient {
           prompt,
           this.getFullModelName(),
           'consolidated',
-          reviewType
+          reviewType,
+          options
         );
       } catch (error) {
         throw handleApiError(
@@ -493,15 +495,48 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
           const trimmedText = text.trim();
           if (!trimmedText.startsWith('{') || !trimmedText.endsWith('}')) {
             logger.warn('Response from Gemini is not properly formatted as JSON. Attempting to extract JSON...');
-            
-            // Try to extract JSON from response
-            const jsonMatch = trimmedText.match(/({[\s\S]*})/);
-            if (jsonMatch) {
-              return jsonMatch[1];
-            } else {
-              logger.error('Failed to extract JSON from Gemini response');
-              throw new Error('Gemini API returned a response that is not valid JSON');
+
+            // Strategy 1: Try to extract JSON from response using regex
+            let extractedJson = trimmedText.match(/({[\s\S]*})/);
+            if (extractedJson) {
+              return extractedJson[1];
             }
+
+            // Strategy 2: Handle responses that start with language identifiers
+            const languageMatch = trimmedText.match(/^(?:typescript|javascript|json|ts|js)\s*\n?\s*({[\s\S]*})$/i);
+            if (languageMatch) {
+              logger.info('Found JSON after language identifier, extracting...');
+              return languageMatch[1];
+            }
+
+            // Strategy 3: Look for JSON in code blocks
+            const codeBlockMatch = trimmedText.match(/```(?:json|typescript|javascript)?\s*([^`]+)\s*```/i);
+            if (codeBlockMatch) {
+              const blockContent = codeBlockMatch[1].trim();
+              // Remove language identifier if it's at the start of the block
+              const cleanContent = blockContent.replace(/^(?:typescript|javascript|json|ts|js)\s*\n?/i, '');
+              if (cleanContent.startsWith('{')) {
+                logger.info('Found JSON in code block, extracting...');
+                return cleanContent;
+              }
+            }
+
+            // Strategy 4: Remove everything before the first opening brace
+            const braceIndex = trimmedText.indexOf('{');
+            if (braceIndex > 0) {
+              const jsonCandidate = trimmedText.substring(braceIndex);
+              try {
+                // Validate it's actually JSON
+                JSON.parse(jsonCandidate);
+                logger.info('Successfully extracted JSON by removing prefix content');
+                return jsonCandidate;
+              } catch (parseError) {
+                // Continue to error handling
+              }
+            }
+
+            logger.error('Failed to extract JSON from Gemini response');
+            throw new Error('Gemini API returned a response that is not valid JSON');
           }
         } catch (error) {
           logger.error('Error validating JSON response:', error);

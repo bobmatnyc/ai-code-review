@@ -2,7 +2,7 @@
  * @fileoverview OpenRouter model configurations
  */
 
-import { EnhancedModelMapping, ModelCategory } from '../types';
+import { EnhancedModelMapping, ModelCategory } from './types';
 
 export const OPENROUTER_MODELS: Record<string, EnhancedModelMapping> = {
   "openrouter:anthropic/claude-4-opus": {

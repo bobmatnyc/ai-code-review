@@ -1,5 +1,5 @@
 ---
-last_updated: '2025-06-27'
+last_updated: '2025-06-28'
 project_name: AI Code Review Tool
 repository: https://github.com/bobmatnyc/ai-code-review.git
 title: AI Code Review Tool - Project Metrics
@@ -8,6 +8,49 @@ title: AI Code Review Tool - Project Metrics
 # AI Code Review Tool - Project Metrics
 
 ## 📊 Current Sprint Metrics (Sprint 1)
+
+### Sprint Overview
+- **Sprint:** 1
+- **Last Updated:** 2025-06-28 12:52:21
+- **Total Work Items:** 12
+- **Completed Items:** 0
+- **Completion Rate:** 0.0%
+
+### Work Item Status Distribution
+- **Done:** 11 items
+- **In Progress:** 1 items
+
+### Work Item Type Distribution
+- **Task:** 1 items
+- **User Story:** 10 items
+- **Unknown:** 1 items
+
+### Priority Distribution
+- **High:** 8 items
+- **Medium:** 2 items
+- **Critical:** 1 items
+- **Unknown:** 1 items
+
+### Sprint Overview
+- **Sprint:** 1
+- **Last Updated:** 2025-06-28 12:49:30
+- **Total Work Items:** 12
+- **Completed Items:** 0
+- **Completion Rate:** 0.0%
+
+### Work Item Status Distribution
+- **Done:** 10 items
+- **In Progress:** 2 items
+
+### Work Item Type Distribution
+- **User Story:** 10 items
+- **Unknown:** 2 items
+
+### Priority Distribution
+- **High:** 7 items
+- **Medium:** 2 items
+- **Critical:** 1 items
+- **Unknown:** 2 items
 
 ### Sprint Overview
 - **Sprint:** 1

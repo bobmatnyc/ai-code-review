@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: "npm"  # Note: GitHub Dependabot uses "npm" for all Node.js projects, including pnpm
     directory: "/"
     schedule:
       interval: "weekly"

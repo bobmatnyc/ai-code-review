@@ -2,7 +2,7 @@
  * @fileoverview Core functions for model map operations
  */
 
-import { ENHANCED_MODEL_MAP } from './data';
+import { ENHANCED_MODEL_MAP } from './modelData';
 import { 
   Provider, 
   ModelMapping, 

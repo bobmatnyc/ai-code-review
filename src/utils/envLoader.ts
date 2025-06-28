@@ -11,6 +11,9 @@
  * - Managing API key precedence (GOOGLE_GENERATIVE_AI_KEY vs GOOGLE_AI_STUDIO_KEY)
  * - Providing clear error messages for configuration issues
  * - Logging environment variable status without exposing sensitive values
+ *
+ * @deprecated This module is being replaced by unifiedConfig.ts for better maintainability.
+ * The new system provides clearer precedence rules and better error handling.
  */
 
 import * as path from 'path';

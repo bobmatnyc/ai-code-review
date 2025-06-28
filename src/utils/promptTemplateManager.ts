@@ -7,9 +7,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { ReviewType } from '../../types/review';
+import { ReviewType } from '../types/review';
 import { loadPromptTemplate, listAvailableTemplates } from './templateLoader';
-import logger from '../logger';
+import logger from './logger';
 
 /**
  * Maps framework identifiers from the API to template directory names

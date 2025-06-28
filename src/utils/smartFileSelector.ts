@@ -8,7 +8,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import logger from '../logger';
+import logger from './logger';
 import { loadGitignorePatterns, shouldExcludeFile } from './fileFilters';
 
 /**

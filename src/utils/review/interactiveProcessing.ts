@@ -10,7 +10,7 @@ import { FixPriority, FixSuggestion, SuggestionSummary, FixSummary } from './typ
 import { extractFixSuggestions } from './reviewExtraction';
 import { displayFixSuggestions, displayDetailedFixSuggestion } from './fixDisplay';
 import { applyFixToFile, promptForConfirmation } from './fixImplementation';
-import { parseReviewJson, displayStructuredReview } from '../parsing/reviewParser';
+import { parseReviewJson, displayStructuredReview } from '../reviewParser';
 import logger from '../logger';
 
 /**

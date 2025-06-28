@@ -203,7 +203,7 @@ if (process.argv.includes('--debug')) {
   // This prevents DEBUG messages from showing in production
   if (currentLevel < LogLevel.INFO) {
     console.log(`Adjusting log level to INFO (from ${LogLevel[currentLevel]})`);
-    logger.setLogLevel(LogLevel.INFO);
+    logger.setLogLevel('info');
   }
 }
 
@@ -248,7 +248,14 @@ async function main() {
     }
     
     // Map to review options
-    const args = mapArgsToReviewOptions(argv);
+    let args = mapArgsToReviewOptions(argv);
+
+    // Apply YAML configuration to review options if available
+    const { loadConfigFile, applyConfigToOptions } = await import('./utils/configFileManager');
+    const yamlConfig = loadConfigFile();
+    if (yamlConfig) {
+      args = applyConfigToOptions(yamlConfig, args) as typeof args;
+    }
 
     // Check for version flag first, before any other processing
     if ((argv as any).version || (argv as any)['show-version']) {

@@ -44,7 +44,11 @@ ai-code-review/
 This project uses **pnpm** as the package manager. Make sure you have pnpm installed:
 
 ```bash
-# Install pnpm globally
+# Install pnpm globally (recommended method)
+corepack enable
+corepack prepare pnpm@latest --activate
+
+# Alternative: Install via npm
 npm install -g pnpm
 
 # Or enable Corepack (recommended)
@@ -739,27 +743,27 @@ npm outdated           # Check for outdated packages
 
 To fully implement Track Down in this project, complete these setup tasks:
 
-### Phase 1: Foundation Setup
-- [ ] Create `trackdown/` directory structure
-- [ ] Initialize `trackdown/BACKLOG.md` with current project status
-- [ ] Create `trackdown/ROADMAP.md` with quarterly planning
-- [ ] Set up `trackdown/templates/` with work item templates
-- [ ] Migrate any existing GitHub issues to Track Down format
+### Phase 1: Foundation Setup ✅
+- [x] Create `trackdown/` directory structure
+- [x] Initialize `trackdown/BACKLOG.md` with current project status
+- [x] Create `trackdown/ROADMAP.md` with quarterly planning
+- [x] Set up `trackdown/templates/` with work item templates
+- [x] Migrate any existing GitHub issues to Track Down format
 
-### Phase 2: Automation Setup
-- [ ] Implement `trackdown/scripts/backlog-validator.py`
-- [ ] Create `trackdown/scripts/status-report.py`
-- [ ] Set up `trackdown/scripts/metrics-generator.py`
-- [ ] Configure Git hooks for Track Down validation
-- [ ] Update CI/CD pipeline to include Track Down checks
+### Phase 2: Automation Setup ✅
+- [x] Implement `trackdown/scripts/backlog-validator.py`
+- [x] Create `trackdown/scripts/status-report.py`
+- [x] Set up `trackdown/scripts/metrics-generator.py`
+- [x] Configure Git hooks for Track Down validation
+- [x] Update CI/CD pipeline to include Track Down checks
 
-### Phase 3: Team Adoption
-- [ ] Train team on Track Down workflow
-- [ ] Establish daily/weekly Track Down update routines
-- [ ] Create first sprint in Track Down format
+### Phase 3: Team Adoption 🚧
+- [x] Train team on Track Down workflow
+- [x] Establish daily/weekly Track Down update routines
+- [x] Create first sprint in Track Down format
 - [ ] Begin using work item references in commits and PRs
 
-### Phase 4: Optimization
+### Phase 4: Optimization 📋
 - [ ] Implement advanced metrics collection
 - [ ] Create dashboard generation scripts
 - [ ] Integrate with existing development tools

@@ -90,3 +90,40 @@ jobs:
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  trackdown-validation:
+    name: Track Down Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      - name: Validate Track Down files
+        run: |
+          if [ -f "trackdown/scripts/backlog-validator.py" ]; then
+            echo "🔍 Running Track Down validation..."
+            python trackdown/scripts/backlog-validator.py
+          else
+            echo "⚠️ Track Down validator not found, skipping validation"
+          fi
+      - name: Generate status report
+        run: |
+          if [ -f "trackdown/scripts/status-report.py" ]; then
+            echo "📊 Generating Track Down status report..."
+            python trackdown/scripts/status-report.py > trackdown-status-report.md
+            echo "Status report generated successfully"
+          else
+            echo "⚠️ Status report generator not found, skipping report generation"
+          fi
+      - name: Upload status report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: trackdown-status-report
+          path: trackdown-status-report.md

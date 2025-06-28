@@ -16,6 +16,7 @@ import {
 } from '../utils/removalScriptGenerator';
 import { generateVersionedOutputPath, generateUniqueOutputPath } from '../utils/fileSystem';
 import { logError } from '../utils/errorLogger';
+import { createAIDependencyAnalysis } from '../utils/dependencies/aiDependencyAnalyzer';
 import logger from '../utils/logger';
 
 /**
@@ -152,8 +153,7 @@ export async function saveReviewOutput(
       console.log(`=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`);
       logger.info(`=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`);
       try {
-        // Import the AI-powered dependency analyzer (no external dependencies required)
-        const aiDependencyAnalyzer = await import('../utils/dependencies/aiDependencyAnalyzer');
+        // Use the AI-powered dependency analyzer (no external dependencies required)
         logger.info(`Performing AI-powered dependency analysis for ${options.type} review...`);
         
         // Use project directory path instead of current working directory to ensure correct analysis
@@ -162,7 +162,7 @@ export async function saveReviewOutput(
         logger.info(`Project path for dependency analysis: ${projectPath}`);
         
         // Run the AI-powered dependency analysis
-        const dependencySection = await aiDependencyAnalyzer.createAIDependencyAnalysis(projectPath);
+        const dependencySection = await createAIDependencyAnalysis(projectPath);
         
         // Append dependency analysis section to the review
         if (options.output === 'json') {

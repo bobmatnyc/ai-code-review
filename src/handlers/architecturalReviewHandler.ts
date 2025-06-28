@@ -9,10 +9,13 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { ReviewOptions, ReviewType, FileInfo } from '../types/review';
-// Import only the Gemini client by default
+// Import all clients statically to avoid dynamic import issues in bundled builds
 import { generateArchitecturalReview } from '../clients/geminiClient';
+import { generateOpenRouterConsolidatedReview, initializeAnyOpenRouterModel } from '../clients/openRouterClient';
+import { generateArchitecturalAnthropicReview, initializeAnthropicClient } from '../clients/anthropicClientWrapper';
+import { generateOpenAIArchitecturalReview, initializeAnyOpenAIModel } from '../clients/openaiClientWrapper';
+import { addFileTreeToReview } from '../core/OutputManager';
 
-// Other clients will be dynamically imported based on the selected model
 import { formatReviewOutput } from '../formatters/outputFormatter';
 import { logError } from '../utils/errorLogger';
 import { readProjectDocs } from '../utils/projectDocs';
@@ -104,12 +107,6 @@ export async function handleArchitecturalReview(
 
       logger.info(`Using OpenRouter model: ${modelName}`);
 
-      // Dynamically import the OpenRouter client to avoid loading it unnecessarily
-      const {
-        generateOpenRouterConsolidatedReview,
-        initializeAnyOpenRouterModel
-      } = await import('../clients/openRouterClient.js');
-
       // Initialize OpenRouter model if needed
       await initializeAnyOpenRouterModel();
 
@@ -152,10 +149,6 @@ export async function handleArchitecturalReview(
 
       logger.info(`Using Anthropic API with model: ${modelName}`);
 
-      // Dynamically import the Anthropic client to avoid loading it unnecessarily
-      const { generateArchitecturalAnthropicReview, initializeAnthropicClient } =
-        await import('../clients/anthropicClientWrapper.js');
-
       // Initialize Anthropic model if needed
       await initializeAnthropicClient();
 
@@ -177,10 +170,6 @@ export async function handleArchitecturalReview(
       }
 
       logger.info(`Using OpenAI API with model: ${modelName}`);
-
-      // Dynamically import the OpenAI client to avoid loading it unnecessarily
-      const { generateOpenAIArchitecturalReview, initializeAnyOpenAIModel } =
-        await import('../clients/openaiClientWrapper.js');
 
       // Initialize OpenAI model if needed
       await initializeAnyOpenAIModel();
@@ -263,7 +252,6 @@ export async function handleArchitecturalReview(
       
       // Instead of using a specific formatter, use our generic implementation
       // that works for all review types
-      const { addFileTreeToReview } = await import('../core/OutputManager.js');
       formattedOutput = addFileTreeToReview(formattedOutput, fileInfos, options.output || 'markdown');
       logger.info('Added file tree to architectural review');
     } catch (error) {

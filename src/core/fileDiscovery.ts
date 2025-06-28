@@ -12,7 +12,7 @@ import {
   getFilesToReview as getFilteredFiles, 
   loadGitignorePatterns 
 } from '../utils/fileFilters';
-import { applySmartFiltering } from '../utils/files/smartFileSelector';
+import { applySmartFiltering } from '../utils/smartFileSelector';
 import logger from '../utils/logger';
 
 /**

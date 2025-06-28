@@ -7,7 +7,7 @@
  */
 
 import * as path from 'path';
-import { fileExists } from '../utils/files/fileSystem';
+import { fileExists } from '../utils/fileSystemUtils';
 import logger from '../utils/logger';
 import {
   getGitHubProjectsConfig,

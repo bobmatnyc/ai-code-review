@@ -13,15 +13,24 @@ export * from './config';
 export * from './fileSystem';
 export * from './priorityFilter';
 export * from './pathValidator';
+export * from './fileFilters';
+export * from './smartFileSelector';
+// export * from './fileSystemUtils'; // Commented out due to conflicts with fileSystem.ts
+export * from './projectDocs';
 
 // API utilities
 export * from './api';
 
-// File utilities
-export * from './files';
+// File utilities (moved to main utils directory)
+// export * from './files'; // Deprecated - files moved to main utils
 
-// Parsing utilities
-export * from './parsing';
+// Parsing utilities (moved to main utils directory)
+export * from './reviewParser';
+export * from './sanitizer';
+
+// Template utilities (moved from templates directory)
+export * from './promptTemplateManager';
+export * from './templateLoader';
 
 // Detection utilities
 export * from './detection';

@@ -1,0 +1,126 @@
+# Pre-commit hooks configuration for AI Code Review
+# See https://pre-commit.com for more information
+
+repos:
+  # Built-in hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+        exclude: '\.md$'
+      - id: check-yaml
+        args: ['--unsafe']
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: detect-private-key
+      - id: check-case-conflict
+
+  # TypeScript/JavaScript linting
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.44.0
+    hooks:
+      - id: eslint
+        files: \.(js|ts)$
+        types: [file]
+        additional_dependencies:
+          - eslint@^8.44.0
+          - '@typescript-eslint/eslint-plugin@^6.0.0'
+          - '@typescript-eslint/parser@^6.0.0'
+
+  # TypeScript type checking
+  - repo: local
+    hooks:
+      - id: typescript-check
+        name: TypeScript type check
+        entry: pnpm run build:types
+        language: system
+        files: \.(ts|js)$
+        pass_filenames: false
+
+  # Package.json validation
+  - repo: local
+    hooks:
+      - id: package-json-check
+        name: Package.json validation
+        entry: node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))"
+        language: system
+        files: package\.json$
+        pass_filenames: false
+
+  # Environment variable validation
+  - repo: local
+    hooks:
+      - id: env-var-check
+        name: Environment variable validation
+        entry: bash -c 'if grep -r "CODE_REVIEW_" src/ --include="*.ts" --include="*.js"; then echo "❌ Found deprecated CODE_REVIEW_* environment variables. Use AI_CODE_REVIEW_* instead."; exit 1; fi'
+        language: system
+        files: \.(ts|js)$
+        pass_filenames: false
+
+  # Import path validation
+  - repo: local
+    hooks:
+      - id: import-path-check
+        name: Import path validation
+        entry: bash -c 'if grep -r "from.*utils/files/" src/ --include="*.ts" --include="*.js"; then echo "❌ Found deprecated import paths. Files have been moved to main utils directory."; exit 1; fi'
+        language: system
+        files: \.(ts|js)$
+        pass_filenames: false
+
+  # Configuration validation
+  - repo: local
+    hooks:
+      - id: config-validation
+        name: Configuration validation
+        entry: bash -c 'if grep -r "import.*envLoader" src/ --include="*.ts" --include="*.js" | grep -v "// @deprecated"; then echo "⚠️  Consider using unifiedConfig instead of envLoader for new code."; fi'
+        language: system
+        files: \.(ts|js)$
+        pass_filenames: false
+        verbose: true
+
+  # Build validation
+  - repo: local
+    hooks:
+      - id: build-check
+        name: Build validation
+        entry: pnpm run quick-build
+        language: system
+        files: \.(ts|js|json)$
+        pass_filenames: false
+
+  # Documentation consistency
+  - repo: local
+    hooks:
+      - id: docs-consistency
+        name: Documentation consistency check
+        entry: bash -c 'if grep -r "npm install" docs/ README.md INSTALL.md | grep -v "pnpm\|alternative"; then echo "❌ Found npm-first documentation. Use pnpm-first with npm as alternative."; exit 1; fi'
+        language: system
+        files: \.(md)$
+        pass_filenames: false
+
+  # Security checks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package-lock\.json
+
+# Configuration for specific hooks
+default_language_version:
+  node: '18.0.0'
+
+# Global excludes
+exclude: |
+  (?x)^(
+    dist/.*|
+    node_modules/.*|
+    \.git/.*|
+    ai-code-review-docs/.*|
+    coverage/.*|
+    \.pnpm-store/.*
+  )$

@@ -294,26 +294,30 @@ This tool analyzes code from specified files or directories in sibling projects 
 - Review code before committing to ensure no secrets are included
 - Consider using secret scanning tools in your CI/CD pipeline
 
+## Quick Start
+
+**New to AI Code Review?** Check out our [Quick Start Guide](docs/QUICK_START.md) for a 5-minute setup.
+
 ## Installation
 
 ### Global Installation
 
 ```bash
-# Using npm
-npm install -g @bobmatnyc/ai-code-review
-
 # Using pnpm (recommended)
 pnpm add -g @bobmatnyc/ai-code-review
+
+# Using npm (alternative)
+npm install -g @bobmatnyc/ai-code-review
 ```
 
 ### Local Installation
 
 ```bash
-# Using npm
-npm install --save-dev @bobmatnyc/ai-code-review
-
 # Using pnpm (recommended)
 pnpm add -D @bobmatnyc/ai-code-review
+
+# Using npm (alternative)
+npm install --save-dev @bobmatnyc/ai-code-review
 ```
 
 ### API Key Setup
@@ -352,7 +356,10 @@ You can get API keys from:
 # Global installation
 ai-code-review [target] [options]
 
-# Local installation
+# Local installation with pnpm
+pnpm exec ai-code-review [target] [options]
+
+# Local installation with npm
 npx ai-code-review [target] [options]
 
 # Note: The tool only works within the current project
@@ -807,6 +814,9 @@ SERPAPI_KEY=your_serpapi_api_key_here
 When installed globally, you can use the setup script to create your `.env.local` file:
 
 ```bash
+# If installed via pnpm
+pnpm exec @bobmatnyc/ai-code-review/scripts/setup-env.js
+
 # If installed via npm
 npx @bobmatnyc/ai-code-review/scripts/setup-env.js
 

@@ -6,7 +6,7 @@ import { GEMINI_MODELS } from './gemini';
 import { ANTHROPIC_MODELS } from './anthropic';
 import { OPENAI_MODELS } from './openai';
 import { OPENROUTER_MODELS } from './openrouter';
-import { EnhancedModelMapping } from '../types';
+import { EnhancedModelMapping } from './types';
 
 /**
  * Enhanced model map with comprehensive metadata.

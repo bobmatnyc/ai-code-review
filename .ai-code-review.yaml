@@ -20,7 +20,7 @@ output:
   format: markdown
   dir: ./ai-code-review-docs
 review:
-  type: quick-fixes
+  type: extract-patterns
   interactive: false
   include_tests: false
   include_project_docs: true
@@ -34,11 +34,11 @@ review:
 api:
   model: gemini:gemini-2.5-pro  # Changed model for testing
   keys:
-    google: test-key-123  # Test API key
-    openrouter: YOUR_OPENROUTER_API_KEY_HERE
-    anthropic: YOUR_ANTHROPIC_API_KEY_HERE
-    openai: YOUR_OPENAI_API_KEY_HERE
+    google: your_google_api_key_here  # Replace with actual API key
+    openrouter: your_openrouter_api_key_here  # Replace with actual API key
+    anthropic: your_anthropic_api_key_here  # Replace with actual API key
+    openai: your_openai_api_key_here  # Replace with actual API key
   test_api: false
 system:
-  debug: true  # Enable debug for testing
-  log_level: debug  # Set to debug level
+  debug: false  # Enable debug for testing
+  log_level: info  # Set to info level

@@ -2,7 +2,7 @@
  * @fileoverview OpenAI model configurations
  */
 
-import { EnhancedModelMapping, ModelCategory } from '../types';
+import { EnhancedModelMapping, ModelCategory } from './types';
 
 export const OPENAI_MODELS: Record<string, EnhancedModelMapping> = {
   "openai:gpt-4o": {

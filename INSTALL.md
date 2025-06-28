@@ -5,7 +5,7 @@ This guide will help you install and set up the AI Code Review tool.
 ## Prerequisites
 
 - Node.js >= 18.0.0
-- npm or pnpm
+- pnpm >= 8.0.0 (recommended) or npm
 - At least one of the following API keys:
   - Google Generative AI API key
   - Anthropic API key
@@ -16,6 +16,10 @@ This guide will help you install and set up the AI Code Review tool.
 ### Global Installation
 
 ```bash
+# Using pnpm (recommended)
+pnpm add -g @bobmatnyc/ai-code-review
+
+# Using npm (alternative)
 npm install -g @bobmatnyc/ai-code-review
 ```
 
@@ -24,6 +28,10 @@ This will install the tool globally, making the `ai-code-review` command availab
 ### Local Installation
 
 ```bash
+# Using pnpm (recommended)
+pnpm add -D @bobmatnyc/ai-code-review
+
+# Using npm (alternative)
 npm install --save-dev @bobmatnyc/ai-code-review
 ```
 
@@ -71,7 +79,10 @@ To verify that the tool is installed correctly, run:
 # Global installation
 ai-code-review --version
 
-# Local installation
+# Local installation with pnpm
+pnpm exec ai-code-review --version
+
+# Local installation with npm
 npx ai-code-review --version
 ```
 

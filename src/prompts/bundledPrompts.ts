@@ -12,7 +12,7 @@
  */
 
 import { ReviewType } from '../types/review';
-import { getPromptTemplate, checkTemplatesAvailability } from '../utils/templates/promptTemplateManager';
+import { getPromptTemplate, checkTemplatesAvailability } from '../utils/promptTemplateManager';
 import logger from '../utils/logger';
 
 // Flag to control whether to use the template system (can be configured at runtime)

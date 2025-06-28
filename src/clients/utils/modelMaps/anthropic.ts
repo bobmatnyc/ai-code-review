@@ -2,7 +2,7 @@
  * @fileoverview Anthropic model configurations
  */
 
-import { EnhancedModelMapping, ModelCategory } from '../types';
+import { EnhancedModelMapping, ModelCategory } from './types';
 
 export const ANTHROPIC_MODELS: Record<string, EnhancedModelMapping> = {
   "anthropic:claude-4-opus": {

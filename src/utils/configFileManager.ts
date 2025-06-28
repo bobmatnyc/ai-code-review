@@ -169,7 +169,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
   
   // Apply review configuration
   if (config.review) {
-    if (config.review.type && !newOptions.type) {
+    if (config.review.type) {
       newOptions.type = config.review.type as any;
     }
     if (config.review.interactive !== undefined && newOptions.interactive === undefined) {
@@ -317,11 +317,8 @@ export function generateSampleConfig(): string {
     }
   };
 
-  // Generate YAML with comments
-  const yamlString = YAML.stringify(sampleConfig, {
-    commentString: (comment) => ` ${comment}`,
-    lineWidth: 0, // Disable line wrapping
-  });
+  // Generate YAML
+  const yamlString = YAML.stringify(sampleConfig);
 
   // Add header comments
   const header = `# AI Code Review Configuration File

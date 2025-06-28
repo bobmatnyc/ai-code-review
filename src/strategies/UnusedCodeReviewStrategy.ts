@@ -19,7 +19,7 @@
 import { BaseReviewStrategy } from './ReviewStrategy';
 import { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
 import { ProjectDocs } from '../utils/projectDocs';
-import { addMetadataToProjectDocs } from '../utils/files/projectDocs';
+import { addMetadataToProjectDocs } from '../utils/projectDocs';
 import { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
 import logger from '../utils/logger';

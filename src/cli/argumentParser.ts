@@ -9,7 +9,7 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { ReviewType, ReviewOptions } from '../types/review';
-import { getConfig } from '../utils/config';
+import { getConfig, loadConfigSafe, displayConfigError } from '../utils/config';
 import logger from '../utils/logger';
 
 // Define valid review types
@@ -35,8 +35,17 @@ const validOutputFormats = ['markdown', 'json'];
  * @returns Parsed arguments
  */
 export function parseArguments(): any {
-  const config = getConfig();
-  
+  // Try to load configuration safely
+  const configResult = loadConfigSafe();
+
+  if (!configResult.success) {
+    // Display user-friendly error and exit
+    displayConfigError(configResult);
+    process.exit(1);
+  }
+
+  const config = configResult.config;
+
   // Get the default model from configuration
   const defaultModel = config.selectedModel || '';
   
@@ -55,8 +64,8 @@ export function parseArguments(): any {
           .option('type', {
             alias: 't',
             describe: 'Type of review to perform',
-            choices: validReviewTypes,
-            default: 'quick-fixes'
+            choices: validReviewTypes
+            // No default here - will be set after config file is applied
           })
           .option('output', {
             alias: 'o',
@@ -357,7 +366,7 @@ export function mapArgsToReviewOptions(
   argv: ParsedArguments
 ): ReviewOptions & { target: string } & { apiKeys?: Record<string, string> } {
   const options: ReviewOptions & { target: string } & { apiKeys?: Record<string, string> } = {
-    type: argv.type as ReviewType,
+    type: (argv.type as ReviewType) || 'quick-fixes', // Apply default if not set by CLI or config
     output: argv.output,
     outputDir: argv.outputDir,
     model: argv.model,

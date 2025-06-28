@@ -284,7 +284,8 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           prompt,
           this.getFullModelName(),
           filePath,
-          reviewType
+          reviewType,
+          options
         );
       } catch (error) {
         throw handleApiError(error, 'generate review', this.getFullModelName());
@@ -432,7 +433,8 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
           prompt,
           this.getFullModelName(),
           'consolidated',
-          reviewType
+          reviewType,
+          options
         );
       } catch (error) {
         logger.error(`[O3 DEBUG] Error in generateConsolidatedReview: ${error instanceof Error ? error.message : String(error)}`);
@@ -700,7 +702,8 @@ ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in yo
           prompt,
           this.getFullModelName(),
           'architectural',
-          'architectural'
+          'architectural',
+          options
         );
       } catch (error) {
         throw handleApiError(
