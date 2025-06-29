@@ -9,7 +9,7 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { ReviewType, ReviewOptions } from '../types/review';
-import { getConfig, loadConfigSafe, displayConfigError } from '../utils/config';
+import { loadConfigSafe, displayConfigError } from '../utils/config';
 import logger from '../utils/logger';
 
 // Define valid review types

@@ -11,7 +11,7 @@ import { PromptManager } from '../PromptManager';
 import { LangChainPromptStrategy } from '../strategies/LangChainPromptStrategy';
 import { PromptOptimizer } from '../meta/PromptOptimizer';
 import { PromptCache } from '../cache/PromptCache';
-import { ReviewOptions, ReviewResult } from '../../types/review';
+import { ReviewOptions } from '../../types/review';
 import logger from '../../utils/logger';
 
 /**
@@ -67,12 +67,12 @@ export class ExtractPatternsTrainer {
   private cache: PromptCache;
 
   constructor() {
-    this.promptManager = new PromptManager();
+    this.promptManager = PromptManager.getInstance();
+    this.cache = PromptCache.getInstance();
     this.langchainStrategy = new LangChainPromptStrategy(
       this.promptManager,
-      new PromptCache()
+      this.cache
     );
-    this.cache = new PromptCache();
     this.optimizer = new PromptOptimizer(this.promptManager, this.cache);
   }
 
@@ -211,9 +211,9 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
    * Evaluate prompt against a single example (mock implementation)
    */
   private async evaluateAgainstExample(
-    prompt: string,
-    example: PatternTrainingExample,
-    options: ReviewOptions
+    _prompt: string,
+    _example: PatternTrainingExample,
+    _options: ReviewOptions
   ): Promise<TrainingFeedback> {
     // This is a mock implementation
     // In a real scenario, this would call the AI model and compare results
@@ -247,24 +247,10 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
   ): Promise<string> {
     // Collect all improvement suggestions
     const allImprovements = feedbacks.flatMap(f => f.improvements);
-    const allFeedback = feedbacks.flatMap(f => f.specificFeedback);
+    // Note: feedback analysis would be implemented here in a real scenario
 
-    // Create optimization instructions
-    const optimizationInstructions = `
-Based on the following feedback, improve this prompt:
-
-Specific Issues:
-${allFeedback.map(f => `- ${f}`).join('\n')}
-
-Suggested Improvements:
-${allImprovements.map(i => `- ${i}`).join('\n')}
-
-Focus on making the prompt more specific about:
-1. Identifying concrete design patterns with examples
-2. Providing quantitative code metrics
-3. Analyzing architectural patterns systematically
-4. Measuring code composition ratios accurately
-`;
+    // Create optimization instructions (placeholder for future implementation)
+    // This would analyze feedback and create specific optimization instructions
 
     // This would use the PromptOptimizer to generate an improved prompt
     // For now, return the original prompt with some basic improvements

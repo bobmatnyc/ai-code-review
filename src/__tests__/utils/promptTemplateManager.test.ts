@@ -9,18 +9,18 @@
 import fs from 'fs';
 import path from 'path';
 import { ReviewType } from '../../types/review';
-import { 
-  getPromptTemplate, 
-  checkTemplatesAvailability, 
-  getSupportedTemplates 
-} from '../../utils/templates/promptTemplateManager';
-import { loadPromptTemplate, listAvailableTemplates } from '../../utils/templates/templateLoader';
+import {
+  getPromptTemplate,
+  checkTemplatesAvailability,
+  getSupportedTemplates
+} from '../../utils/promptTemplateManager';
+import { loadPromptTemplate, listAvailableTemplates } from '../../utils/templateLoader';
 import { vi } from 'vitest';
 
 // Mock dependencies
 vi.mock('fs');
 vi.mock('path');
-vi.mock('../../utils/templates/templateLoader');
+vi.mock('../../utils/templateLoader');
 vi.mock('../../utils/logger', () => {
   const mockLogger = {
     debug: vi.fn(),

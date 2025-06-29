@@ -3,7 +3,7 @@
  */
 
 import { IssuePriority } from '../types/reviewSchema';
-import { formatIssueForDisplay } from '../utils/parsing/reviewParser';
+import { formatIssueForDisplay } from '../utils/reviewParser';
 import { vi } from 'vitest';
 
 // Mock the logger to prevent console output in tests

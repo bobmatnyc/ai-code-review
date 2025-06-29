@@ -5,13 +5,13 @@
 import { discoverFiles } from '../../core/fileDiscovery';
 import * as fileSystem from '../../utils/fileSystem';
 import * as fileFilters from '../../utils/fileFilters';
-import * as smartFileSelector from '../../utils/files/smartFileSelector';
+import * as smartFileSelector from '../../utils/smartFileSelector';
 import { vi } from 'vitest';
 
 // Mock the dependencies
 vi.mock('../../utils/fileSystem');
 vi.mock('../../utils/fileFilters');
-vi.mock('../../utils/files/smartFileSelector');
+vi.mock('../../utils/smartFileSelector');
 vi.mock('../../utils/logger', () => {
   const mockLogger = {
     info: vi.fn(),

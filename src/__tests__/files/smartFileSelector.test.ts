@@ -9,7 +9,7 @@ import {
   loadTsConfig,
   matchesTsConfig,
   applySmartFiltering
-} from '../../utils/files/smartFileSelector';
+} from '../../utils/smartFileSelector';
 
 import { vi } from 'vitest';
 
@@ -149,7 +149,7 @@ describe('Smart File Selector', () => {
       
       // Import mocks at module level
       const fileFiltersModule = await import('../../utils/fileFilters');
-      const smartFileSelectorModule = await import('../../utils/files/smartFileSelector');
+      const smartFileSelectorModule = await import('../../utils/smartFileSelector');
       
       // Mock loadGitignorePatterns
       const loadGitignorePatterns = fileFiltersModule.loadGitignorePatterns as any;

@@ -25,6 +25,49 @@ export default defineConfig({
       threads: {
         singleThread: true
       }
+    },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        // Standard exclusions
+        'node_modules/**',
+        'dist/**',
+        '**/__tests__/**',
+        '**/tests/**',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+
+        // Project-specific exclusions for non-core code
+        'docs/**',
+        'scripts/**',
+        'src/prompts/**',
+
+        // Configuration and build files
+        '*.config.*',
+        '*.d.ts',
+        'src/version.ts', // Generated file
+
+        // Examples and experimental code
+        '**/examples/**',
+        '**/debug/**',
+
+        // Database and evaluation (experimental features)
+        'src/database/**',
+        'src/evaluation/**'
+      ],
+      include: [
+        'src/**/*.ts'
+      ],
+      // Coverage thresholds for core functionality
+      thresholds: {
+        global: {
+          branches: 70,
+          functions: 70,
+          lines: 70,
+          statements: 70
+        }
+      }
     }
   },
   esbuild: {

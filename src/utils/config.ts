@@ -25,7 +25,7 @@ import { CliOptions } from '../cli/argumentParser';
 import { loadConfigFile, applyConfigToOptions } from './configFileManager';
 import { ReviewOptions } from '../types/review';
 // Import the new unified configuration system
-import { getUnifiedConfig, hasAnyApiKey as unifiedHasAnyApiKey, Config as UnifiedConfig } from './unifiedConfig';
+import { getUnifiedConfig } from './unifiedConfig';
 
 /**
  * Configuration error result
@@ -104,89 +104,7 @@ export type AppConfig = z.infer<typeof appConfigSchema>;
 // Singleton instance of the configuration
 let config: AppConfig | null = null;
 
-/**
- * Provide user-friendly explanations for configuration validation errors
- * @param zodError The Zod validation error
- * @returns User-friendly error explanation
- */
-function explainConfigError(zodError: z.ZodError): ConfigErrorResult {
-  const errors = zodError.errors;
-  const suggestions: string[] = [];
-  let mainError = 'Configuration validation failed';
-  let details = '';
 
-  for (const error of errors) {
-    const field = error.path.join('.');
-    const receivedValue = 'received' in error ? error.received : 'unknown';
-
-    switch (field) {
-      case 'logLevel':
-        if (error.code === 'invalid_enum_value') {
-          mainError = `Invalid log level: "${receivedValue}"`;
-          details = `The log level must be one of: ${('options' in error && error.options) ? error.options.join(', ') : 'debug, info, warn, error, none'}`;
-          suggestions.push('Fix your log level setting:');
-          suggestions.push('  • In .env.local: AI_CODE_REVIEW_LOG_LEVEL=info');
-          suggestions.push('  • In .ai-code-review.yaml: system.log_level: info');
-          suggestions.push('  • Use lowercase values: debug, info, warn, error, or none');
-        }
-        break;
-
-      case 'selectedModel':
-        mainError = `Invalid model configuration: "${receivedValue}"`;
-        suggestions.push('Fix your model setting:');
-        suggestions.push('  • Use format: provider:model-name');
-        suggestions.push('  • Examples: gemini:gemini-1.5-pro, openai:gpt-4, anthropic:claude-3-opus');
-        suggestions.push('  • In .env.local: AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro');
-        suggestions.push('  • In .ai-code-review.yaml: api.model: gemini:gemini-1.5-pro');
-        break;
-
-      case 'debug':
-        mainError = `Invalid debug setting: "${receivedValue}"`;
-        suggestions.push('Fix your debug setting:');
-        suggestions.push('  • Use true or false');
-        suggestions.push('  • In .env.local: AI_CODE_REVIEW_DEBUG=true');
-        suggestions.push('  • In .ai-code-review.yaml: system.debug: true');
-        break;
-
-      case 'outputDir':
-        mainError = `Invalid output directory: "${receivedValue}"`;
-        suggestions.push('Fix your output directory setting:');
-        suggestions.push('  • Use a valid directory path');
-        suggestions.push('  • In .env.local: AI_CODE_REVIEW_OUTPUT_DIR=./my-reviews');
-        suggestions.push('  • In .ai-code-review.yaml: output.dir: ./my-reviews');
-        break;
-
-      default:
-        if (field.includes('ApiKey')) {
-          const provider = field.replace('ApiKey', '').toLowerCase();
-          mainError = `Invalid API key for ${provider}`;
-          suggestions.push(`Fix your ${provider} API key:`);
-          suggestions.push(`  • In .env.local: AI_CODE_REVIEW_${provider.toUpperCase()}_API_KEY=your-key-here`);
-          suggestions.push(`  • In .ai-code-review.yaml: api.keys.${provider}: your-key-here`);
-          suggestions.push('  • Make sure the key is a valid string');
-        } else {
-          mainError = `Invalid configuration for ${field}: "${receivedValue}"`;
-          suggestions.push(`Check your ${field} setting in .env.local or .ai-code-review.yaml`);
-        }
-        break;
-    }
-  }
-
-  // Add general suggestions
-  suggestions.push('');
-  suggestions.push('General troubleshooting:');
-  suggestions.push('  • Check .env.local file in your project root');
-  suggestions.push('  • Check .ai-code-review.yaml configuration file');
-  suggestions.push('  • Use --debug flag for more detailed error information');
-  suggestions.push('  • Run with --config path/to/config.yaml to use a specific config file');
-
-  return {
-    success: false,
-    error: mainError,
-    suggestions,
-    details
-  };
-}
 
 
 
@@ -301,8 +219,7 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
     return appConfigSchema.parse(configObj);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // Use the user-friendly error explanation
-      const explanation = explainConfigError(error);
+      // Log configuration validation errors
       logger.error('Configuration validation failed:', error.errors);
       throw new Error(
         `Configuration validation failed: ${error.errors.map(e => e.message).join(', ')}`

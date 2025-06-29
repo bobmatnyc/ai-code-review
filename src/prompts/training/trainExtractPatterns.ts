@@ -104,13 +104,13 @@ async function trainExtractPatternsPrompt(config: TrainingConfig): Promise<void>
   logger.info('Starting extract-patterns prompt training...');
   
   const trainer = new ExtractPatternsTrainer();
-  const promptManager = new PromptManager();
+  const promptManager = PromptManager.getInstance();
   
   // Get the current prompt or use the enhanced base prompt
   let currentPrompt: string;
   if (config.useExistingPrompt) {
     try {
-      currentPrompt = await promptManager.getPrompt('extract-patterns', 'typescript');
+      currentPrompt = await promptManager.getPromptTemplate('extract-patterns', { type: 'extract-patterns', language: 'typescript' });
       logger.info('Using existing extract-patterns prompt as starting point');
     } catch (error) {
       logger.warn('Could not load existing prompt, using enhanced base prompt');
@@ -123,10 +123,10 @@ async function trainExtractPatternsPrompt(config: TrainingConfig): Promise<void>
 
   // Set up review options for training
   const reviewOptions: ReviewOptions = {
-    reviewType: 'extract-patterns',
+    type: 'extract-patterns',
     language: 'typescript',
     includeTests: true,
-    outputFormat: 'json',
+    output: 'json',
     schemaInstructions: 'Use the extract-patterns schema for structured output'
   };
 

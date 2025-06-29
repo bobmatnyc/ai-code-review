@@ -497,7 +497,7 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
             logger.warn('Response from Gemini is not properly formatted as JSON. Attempting to extract JSON...');
 
             // Strategy 1: Try to extract JSON from response using regex
-            let extractedJson = trimmedText.match(/({[\s\S]*})/);
+            const extractedJson = trimmedText.match(/({[\s\S]*})/);
             if (extractedJson) {
               return extractedJson[1];
             }

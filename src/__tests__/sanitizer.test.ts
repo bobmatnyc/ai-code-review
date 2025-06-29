@@ -5,7 +5,7 @@
  * used to prevent XSS attacks and ensure safe rendering of content.
  */
 
-import { sanitizeContent, sanitizeHtml, sanitizeFilename } from '../utils/parsing/sanitizer';
+import { sanitizeContent, sanitizeHtml, sanitizeFilename } from '../utils/sanitizer';
 
 describe('sanitizer', () => {
   describe('sanitizeContent', () => {

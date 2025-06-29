@@ -1,6 +1,7 @@
 # 🔧 INSTRUCTIONS (GitHub-Centric Workflow)
 
 Updated: 5-05-2025
+Updated: 6-29-2025 - Corrected project structure and testing requirements
 
 ---
 
@@ -12,7 +13,7 @@ Updated: 5-05-2025
 
 1. **Validate assumptions** – ask clarifying questions before proceeding.
 2. **Implement with simplicity** – prefer minimal, working code.
-3. **Test and lint rigorously** – `npm run lint && npm run build:types && npm test`.
+3. **Test and lint rigorously** – `pnpm run lint && pnpm run build:types && pnpm test`.
 4. **Verify CI checks before closing tickets** – run full CI pipeline locally.
 5. **Document intent** – not just behavior.
 6. **Confirm before architectural shifts or abstractions.**
@@ -26,7 +27,7 @@ Updated: 5-05-2025
 * **Build real, test real** – avoid mocks unless directed.
 * **Simplicity > Cleverness** – prefer straight-line solutions.
 * **Validate all assumptions** – ask before introducing new paradigms.
-* **Follow monorepo principles** – workspace isolation, shared utilities.
+* **Follow single-repo principles** – clean module organization, shared utilities.
 * **Document clearly** – capture why, not just how.
 * **No implicit fallbacks** – when configurations fail, fail gracefully with clear errors. Never automatically fall back to different services.
 

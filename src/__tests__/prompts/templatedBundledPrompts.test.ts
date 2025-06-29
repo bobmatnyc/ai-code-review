@@ -9,14 +9,14 @@
 // import path from 'path'; // Not used in this file
 import { ReviewType } from '../../types/review';
 import { getBundledPrompt } from '../../prompts/bundledPrompts';
-import { getPromptTemplate, checkTemplatesAvailability } from '../../utils/templates/promptTemplateManager';
+import { getPromptTemplate, checkTemplatesAvailability } from '../../utils/promptTemplateManager';
 
 import { vi } from 'vitest';
 
 // Mock dependencies
 vi.mock('fs');
 vi.mock('path');
-vi.mock('../../utils/templates/promptTemplateManager');
+vi.mock('../../utils/promptTemplateManager');
 vi.mock('../../utils/logger', () => {
   const mockLogger = {
     debug: vi.fn(),

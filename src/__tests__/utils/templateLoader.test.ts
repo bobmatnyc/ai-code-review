@@ -7,7 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { renderTemplate, loadPromptTemplate, listAvailableTemplates } from '../../utils/templates/templateLoader';
+import { renderTemplate, loadPromptTemplate, listAvailableTemplates } from '../../utils/templateLoader';
 import { vi } from 'vitest';
 
 // Mock fs and path modules

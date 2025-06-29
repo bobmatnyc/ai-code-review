@@ -5,11 +5,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { parseArguments, mapArgsToReviewOptions, validateArguments } from '../../cli/argumentParser';
 
-// Mock getConfig to return default values
+// Mock config functions to return default values
 vi.mock('../../utils/config', () => ({
   getConfig: vi.fn(() => ({
     selectedModel: 'gemini:gemini-2.5-pro'
-  }))
+  })),
+  loadConfigSafe: vi.fn(() => ({
+    success: true,
+    config: {
+      selectedModel: 'gemini:gemini-2.5-pro'
+    }
+  })),
+  displayConfigError: vi.fn()
 }));
 
 // Mock logger to prevent console output during tests
@@ -62,7 +69,8 @@ describe('Comprehensive CLI Argument Parser Tests', () => {
     it('should default review type to quick-fixes', () => {
       process.argv = ['node', 'test'];
       const argv = parseArguments();
-      expect(argv.type).toBe('quick-fixes');
+      const options = mapArgsToReviewOptions(argv);
+      expect(options.type).toBe('quick-fixes');
     });
   });
 

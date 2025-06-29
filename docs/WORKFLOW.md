@@ -375,40 +375,97 @@ git push origin v4.2.0
 
 ### Track Down Work Item Creation Process
 
+#### Finding Next Available Work Item Numbers
+Before creating new work items, find the next available numbers:
+
+```bash
+# Find next epic number
+grep -o "EP-[0-9]\+" trackdown/BACKLOG.md | sort -V | tail -1
+# Example output: EP-006, so next would be EP-007
+
+# Find next user story number
+grep -o "US-[0-9]\+" trackdown/BACKLOG.md | sort -V | tail -1
+# Example output: US-014, so next would be US-015
+
+# Find next task number
+grep -o "T-[0-9]\+" trackdown/BACKLOG.md | sort -V | tail -1
+```
+
+#### Using Templates
+Use the provided templates for consistency:
+
+```bash
+# Copy epic template
+cp trackdown/templates/epic-template.md temp-epic.md
+# Edit temp-epic.md with your epic details
+# Copy content to appropriate section in BACKLOG.md
+
+# Copy user story template
+cp trackdown/templates/story-template.md temp-story.md
+# Edit temp-story.md with your story details
+# Copy content to appropriate section in BACKLOG.md
+```
+
 1. **Epic Planning**: Create high-level epic in `trackdown/BACKLOG.md`
    ```markdown
-   ### Epic: New Review Type Support (EP-005)
-   **Target:** End of Q2 2025
-   **Status:** Planning
+   ### Epic: Test Coverage Enhancement (EP-007)
+   **Status:** Ready
    **Priority:** High
+   **Target:** Q3 2025
 
-   Add support for new review types to expand tool capabilities.
+   Improve test coverage across all core modules to ensure reliability and maintainability.
 
-   **Stories:** US-025, US-026, US-027, US-028
+   **Stories:** US-015, US-016, US-017, US-018
    ```
 
 2. **User Story Breakdown**: Define specific user stories under the epic
    ```markdown
-   ## **[US-025]** Add Security Review Type
+   ### **[US-015]** API Client Test Coverage Enhancement
 
    **Type:** User Story
-   **Epic:** EP-005 New Review Type Support
+   **Epic:** EP-007 Test Coverage Enhancement
    **Priority:** High
    **Story Points:** 8
-   **Assignee:** @developer-username
+   **Assignee:** @bobmatnyc
    **Status:** Ready
-   **Sprint:** 12
 
    **User Story:**
-   As a developer, I want to run security-focused code reviews so that I can identify potential vulnerabilities.
+   As a developer, I want comprehensive test coverage for API clients so that external integrations are reliable and well-tested.
 
    **Acceptance Criteria:**
-   - [ ] Security review schema defined in Zod
-   - [ ] Language-specific security prompts created
-   - [ ] CLI updated with security review option
-   - [ ] Tests cover security review functionality
-   - [ ] Documentation updated with examples
+   - [ ] AnthropicClient has >80% test coverage
+   - [ ] GoogleClient has >80% test coverage
+   - [ ] OpenAIClient has >80% test coverage
+   - [ ] OpenRouterClient has >80% test coverage
+   - [ ] Error handling scenarios are tested
+   - [ ] Mock strategies are consistent across clients
+
+   **Technical Notes:**
+   - Current API client coverage is only 3.16%
+   - Focus on error handling and retry logic
+   - Use consistent mocking patterns
    ```
+
+#### Updating Work Item Status During Development
+Update work item status as you progress:
+
+```bash
+# When starting work
+# Change status from "Ready" to "In Progress" in BACKLOG.md
+# Add your name as assignee if not already assigned
+
+# During development - add technical notes
+# Add discoveries, challenges, or implementation details to the work item
+
+# When creating PR
+# Change status to "In Review"
+# Reference work item in PR title and description
+
+# When completed
+# Change status to "Done"
+# Add completion date
+# Add final technical notes and lessons learned
+```
 
 ### Adding New Review Types with Track Down
 1. **Create Work Item**: Add user story to `trackdown/BACKLOG.md`
