@@ -98,20 +98,25 @@ export function createOutputDirectory(
   const defaultOutputDir = 'ai-code-review-docs';
   const configOutputDir = options.configOutputDir || defaultOutputDir;
   const outputDir = options.outputDir || configOutputDir;
-  
+
+  // Basic security validation: prevent obvious path traversal attempts
+  if (outputDir.includes('..')) {
+    throw new Error('Output directory path cannot contain ".." for security reasons');
+  }
+
   // Determine if the path is absolute or relative
   let outputBaseDir: string;
-  
+
   if (path.isAbsolute(outputDir)) {
     outputBaseDir = outputDir;
   } else {
     outputBaseDir = path.resolve(projectPath, outputDir);
   }
-  
+
   // Log the output directory
   if (options.outputDir) {
     logger.info(`Using custom output directory: ${outputBaseDir}`);
   }
-  
+
   return outputBaseDir;
 }

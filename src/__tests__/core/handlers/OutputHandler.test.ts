@@ -24,7 +24,12 @@ vi.mock('path', async () => {
   const actual = await vi.importActual('path');
   return {
     ...actual,
-    resolve: vi.fn().mockImplementation((dir, file) => `${dir}/${file}`),
+    resolve: vi.fn().mockImplementation((dir, file) => {
+      if (file === undefined) {
+        return dir; // When called with just one argument, return it as-is
+      }
+      return `${dir}/${file}`;
+    }),
     isAbsolute: vi.fn().mockImplementation(path => path.startsWith('/'))
   };
 });
@@ -144,44 +149,56 @@ describe('OutputHandler', () => {
     });
   });
 
-  // Skip the createOutputDirectory tests for now
-  describe.skip('createOutputDirectory', () => {
-    it('should handle absolute output directory path', () => {
-      const options = { outputDir: '/absolute/path', configOutputDir: 'default' };
-      const result = createOutputDirectory('/project', options);
-      console.log('Test 1 result:', result);
-      
-      expect(result).toBe('/absolute/path');
-      expect(path.isAbsolute).toHaveBeenCalledWith('/absolute/path');
-      expect(logger.info).toHaveBeenCalledWith('Using custom output directory: /absolute/path');
+  describe('createOutputDirectory', () => {
+    beforeEach(() => {
+      // Reset mocks for each test
+      vi.clearAllMocks();
     });
 
-    it('should handle relative output directory path', () => {
-      const options = { outputDir: 'relative/path', configOutputDir: 'default' };
-      const result = createOutputDirectory('/project', options);
-      console.log('Test 2 result:', result);
-      
-      expect(result).toBe('/project/relative/path');
-      expect(path.isAbsolute).toHaveBeenCalledWith('relative/path');
-      expect(path.resolve).toHaveBeenCalledWith('/project', 'relative/path');
-      expect(logger.info).toHaveBeenCalledWith('Using custom output directory: /project/relative/path');
-    });
-
-    it('should use config output directory if no output directory is specified', () => {
-      const options = { configOutputDir: 'config/path' };
-      const result = createOutputDirectory('/project', options);
-      console.log('Test 3 result:', result);
-      
-      expect(result).toBe('/project/config/path');
-    });
-
-    it('should use default output directory if no output directory is specified', () => {
-      const options = {};
-      const result = createOutputDirectory('/project', options);
-      console.log('Test 4 result:', result);
-      
+    it('should use default output directory when no options provided', () => {
+      const result = createOutputDirectory('/project', {});
       expect(result).toBe('/project/ai-code-review-docs');
-      expect(logger.info).not.toHaveBeenCalled();
+    });
+
+    it('should use CLI outputDir option when provided', () => {
+      const result = createOutputDirectory('/project', { outputDir: 'custom-output' });
+      expect(result).toBe('/project/custom-output');
+      expect(logger.info).toHaveBeenCalledWith('Using custom output directory: /project/custom-output');
+    });
+
+    it('should use config outputDir when CLI option not provided', () => {
+      const result = createOutputDirectory('/project', { configOutputDir: 'config-output' });
+      expect(result).toBe('/project/config-output');
+    });
+
+    it('should prioritize CLI outputDir over config outputDir', () => {
+      const result = createOutputDirectory('/project', {
+        outputDir: 'cli-output',
+        configOutputDir: 'config-output'
+      });
+      expect(result).toBe('/project/cli-output');
+    });
+
+    it('should handle absolute paths correctly', () => {
+      const result = createOutputDirectory('/project', { outputDir: '/tmp/reviews' });
+      expect(result).toBe('/tmp/reviews');
+    });
+
+    it('should throw error for paths containing ".."', () => {
+      expect(() => {
+        createOutputDirectory('/project', { outputDir: '../dangerous-path' });
+      }).toThrow('Output directory path cannot contain ".." for security reasons');
+    });
+
+    it('should throw error for relative paths that escape project directory', () => {
+      expect(() => {
+        createOutputDirectory('/project', { outputDir: '../../outside-project' });
+      }).toThrow('Output directory path cannot contain ".." for security reasons');
+    });
+
+    it('should allow relative paths within project directory', () => {
+      const result = createOutputDirectory('/project', { outputDir: 'subdir/output' });
+      expect(result).toBe('/project/subdir/output');
     });
   });
 });

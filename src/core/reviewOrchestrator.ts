@@ -25,7 +25,7 @@ import { discoverFilesForReview, readFilesForReview } from './handlers/FileProce
 import { performEstimation } from './handlers/EstimationHandler';
 import { performSemanticAnalysis } from './handlers/SemanticAnalysisHandler';
 import { executeReview } from './handlers/ReviewExecutor';
-import { handleReviewOutput } from './handlers/OutputHandler';
+import { handleReviewOutput, createOutputDirectory } from './handlers/OutputHandler';
 
 // Import other dependencies
 import { selectApiClient } from './ApiClientSelector';
@@ -118,24 +118,15 @@ export async function orchestrateReview(
     const projectPath = process.cwd();
     const projectName = path.basename(projectPath);
 
-    // Get the output directory from options, config, or default
-    const defaultOutputDir = 'ai-code-review-docs';
-    const configOutputDir = configManager.getPathsConfig().outputDir || defaultOutputDir;
-    const cliOptions = options as any; // Using any here as a temporary workaround
-    const outputDir = cliOptions.outputDir || configOutputDir;
-    
-    // Determine if the path is absolute or relative
-    const outputBaseDir = path.isAbsolute(outputDir) 
-      ? outputDir 
-      : path.resolve(projectPath, outputDir);
-    
-    // Create output directory
+    // Create output directory using the centralized function
+    const configOutputDir = configManager.getPathsConfig().outputDir;
+    const outputBaseDir = createOutputDirectory(projectPath, {
+      outputDir: options.outputDir,
+      configOutputDir: configOutputDir
+    });
+
+    // Create the directory
     await createDirectory(outputBaseDir);
-    
-    // Log the output directory
-    if (outputDir !== defaultOutputDir) {
-      logger.info(`Using custom output directory: ${outputBaseDir}`);
-    }
 
     // Log project information
     logger.info(`Project: ${projectName}`);

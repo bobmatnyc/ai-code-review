@@ -93,10 +93,10 @@ Users need to repeatedly specify the same flags when running the tool. A JSON co
 ## Acceptance Criteria
 
 1. **Output Directory Flag**
-   - [ ] `--output-dir` flag properly overrides the default output directory
-   - [ ] Absolute and relative paths both work correctly
-   - [ ] Help text documents this option clearly
-   - [ ] Environment variable overrides work as expected
+   - [x] `--output-dir` flag properly overrides the default output directory
+   - [x] Absolute and relative paths both work correctly
+   - [x] Help text documents this option clearly
+   - [x] Environment variable overrides work as expected
 
 2. **JSON Configuration**
    - [ ] Tool reads JSON configuration from default location if it exists
