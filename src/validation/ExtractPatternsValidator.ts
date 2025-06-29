@@ -8,7 +8,6 @@
 
 import { z } from 'zod';
 import { ExtractPatternsReview, ExtractPatternsReviewRootSchema } from '../prompts/schemas/extract-patterns-schema';
-import logger from '../utils/logger';
 
 /**
  * Quality score levels
