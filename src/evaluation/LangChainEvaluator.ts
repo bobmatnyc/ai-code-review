@@ -144,7 +144,7 @@ export class LangChainEvaluator {
    */
   private static evaluateRelevance(
     patterns: ExtractPatternsReview,
-    sourceCodeContext?: string[]
+    _sourceCodeContext?: string[]
   ): number {
     let score = 100;
 

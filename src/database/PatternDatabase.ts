@@ -160,8 +160,8 @@ export class PatternDatabase {
       }
 
       if (criteria.language) {
-        filteredIndex = filteredIndex.filter(item => 
-          item.language.toLowerCase() === criteria.language.toLowerCase()
+        filteredIndex = filteredIndex.filter(item =>
+          item.language.toLowerCase() === criteria.language!.toLowerCase()
         );
       }
 
@@ -251,7 +251,6 @@ export class PatternDatabase {
     topPatterns: Array<{ pattern: string; count: number }>;
   }> {
     try {
-      const index = await this.loadIndex();
       const allEntries = await this.getAllEntries();
 
       const languageDistribution: Record<string, number> = {};
