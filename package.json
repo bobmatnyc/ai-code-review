@@ -31,7 +31,6 @@
     "validate:models": "node scripts/validate-models.js",
     "models:sync": "node scripts/sync-model-maps.js",
     "prepare-package": "./scripts/prepare-package.sh",
-    "prepublishOnly": "pnpm run version:sync",
     "local-review": "./scripts/runners/local-ai-review.sh",
     "built-review": "./scripts/runners/built-ai-review.sh",
     "cleanup": "tsx scripts/cleanup-dead-code.ts",
