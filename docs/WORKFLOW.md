@@ -330,7 +330,8 @@ This script:
    ```
 
 3. **Documentation Updates**:
-   - Update README.md with new features
+   - Update README.md version number in the title (e.g., "# AI Code Review v4.3.0")
+   - Update README.md with new features in "What's New in vX.X.X" section
    - Update CHANGELOG.md with release notes
    - Verify all prompt templates have correct metadata
    - Update trackdown/METRICS.md with release metrics
@@ -345,16 +346,25 @@ This script:
    npm run prepare-package
    ```
 
+### README Update Checklist
+Before publishing, ensure README.md is updated:
+- [ ] Version number in title matches package.json version
+- [ ] "What's New in vX.X.X" section added for new version
+- [ ] Previous version's "What's New" section preserved below
+- [ ] New features documented with examples if applicable
+- [ ] Installation instructions still accurate
+- [ ] API changes documented if breaking changes
+
 ### Publishing to NPM
 ```bash
 # Verify you're logged into npm
 npm whoami
 
 # Publish to npm registry
-npm publish
+npm publish --access=public
 
 # Or using pnpm (alternative)
-pnpm publish
+pnpm publish --access=public
 ```
 
 ### Release Tags with Track Down Updates
