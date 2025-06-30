@@ -1,6 +1,34 @@
-# AI Code Review v4.2.0
+# AI Code Review v4.3.0
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
+
+## What's New in v4.3.0
+
+### New Features in v4.3.0
+- **Prompt Template Manager**: Handlebars integration for dynamic prompt templates
+  - Support for conditional logic and loops in prompts
+  - Partial template support for reusable components
+  - Helper functions for common operations
+- **Extract Patterns Review Type**: Phase 2 implementation with validation & enhancement
+  - Pattern validation and quality scoring
+  - Structured output for detected patterns
+  - Enhanced pattern extraction capabilities
+- **Output Directory Override**: New `--output-dir` flag for custom review output locations
+  - Flexible file organization for review results
+  - Maintains backward compatibility with default locations
+- **YAML Configuration Support**: `.ai-code-review.yaml` configuration files
+  - Human-readable configuration format
+  - JSON configuration still supported for backward compatibility
+  - Automatic configuration file discovery
+
+### Improvements in v4.3.0
+- **Testing Strategy**: Comprehensive testing framework implementation
+  - Achieved 95.6% test pass rate (476/498 tests)
+  - 100% of test files passing (46/46)
+  - Enhanced coverage configuration for core code
+- **CI/CD Infrastructure**: Improved versioning and release automation
+  - Better version management across the codebase
+  - Enhanced build and deployment processes
 
 ## What's New in v4.2.0
 
