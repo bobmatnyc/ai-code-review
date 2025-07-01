@@ -169,7 +169,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
   
   // Apply review configuration
   if (config.review) {
-    if (config.review.type) {
+    if (config.review.type && newOptions.type === undefined) {
       newOptions.type = config.review.type as any;
     }
     if (config.review.interactive !== undefined && newOptions.interactive === undefined) {

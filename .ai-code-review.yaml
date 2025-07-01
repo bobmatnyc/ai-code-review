@@ -20,7 +20,7 @@ output:
   format: markdown
   dir: ./ai-code-review-docs
 review:
-  type: extract-patterns
+  # type: extract-patterns  # Commented out to allow CLI --type flag to work
   interactive: false
   include_tests: false
   include_project_docs: true
