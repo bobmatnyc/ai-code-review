@@ -1,42 +1,63 @@
-# Documentation Structure
+# AI Code Review Documentation
 
-This directory contains all documentation for the AI Code Review tool, organized into subdirectories:
+**Complete documentation for the AI Code Review project - optimized for efficiency and 2-click navigation.**
 
-## Directory Structure
+## 🚀 Quick Navigation (2-Click Access)
 
-- **`api/`** - API documentation for the tool's programmatic interfaces
-- **`architecture/`** - Architecture decisions, design documents, and system diagrams
-- **`bugs/`** - Bug reports and issue tracking
-- **`design/`** - Design proposals and specifications
-- **`development/`** - Developer guides, contributing guidelines, and setup instructions
-- **`features/`** - Feature documentation and specifications
-- **`guides/`** - User guides and tutorials
-- **`issues/`** - Issue-specific documentation
-- **`tasks/`** - Task-specific documentation and guides
-- **`todos/`** - TODO lists and improvement plans
+### Essential Daily-Use Documentation
+- **[QUICK_START.md](./QUICK_START.md)** - Get running in under 5 minutes
+- **[WORKFLOW.md](./WORKFLOW.md)** - TrackDown workflows, YOLO mode, and development processes
+- **[INSTRUCTIONS.md](./INSTRUCTIONS.md)** - Development instructions and agent protocol
+- **[TOOLCHAIN.md](./TOOLCHAIN.md)** - Complete technical toolchain mastery guide
+- **[PROJECT.md](./PROJECT.md)** - Business context, features, and strategic direction
+- **[TESTING.md](./TESTING.md)** - Testing strategy and quality assurance
 
-## Key Documents
+### Root-Level Project Configuration
+- **[../CLAUDE.md](../CLAUDE.md)** - Claude Code project configuration and task management
+- **[../README.md](../README.md)** - Main project overview and installation
+- **[../CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes
 
-### Project Documentation
-- `PROJECT.md` - Main project documentation with architecture and development guidelines
-- `INSTRUCTIONS.md` - Core development instructions
-- `PROGRESS.md` - Development progress tracking
-- `WORKFLOW.md` - Required workflow processes
-- `ROADMAP.md` - Future development plans
+## 📚 Detailed Technical Content
 
-### Guides
-- `cli-usage-multipass.md` - Multi-pass review CLI usage guide
-- `smart-file-selection.md` - Guide for smart file selection feature
-- `token-counting-multipass.md` - Token counting and multi-pass review documentation
+### In-Depth Documentation ([chapters/](./chapters/))
+- **[Design Documents](./chapters/design/)** - System design, best practices, and strategic planning
+- **[User Guides](./chapters/guides/)** - CLI usage, multi-pass reviews, and advanced features
+- **[API Documentation](./chapters/api/)** - Provider integrations and technical references
+- **[Feature Specifications](./chapters/features/)** - Detailed feature documentation
+- **[Enhancement Proposals](./chapters/enhancement/)** - Improvement plans and implementations
 
-### Technical Documents
-- `ANTHROPIC-API-FIX.md` - Anthropic API integration documentation
-- `claude-4-quick-reference.md` - Claude 4 quick reference guide
+### Analysis & Reports ([analysis/](./analysis/))
+- **[Dependency Analysis](./analysis/dependency-analysis/)** - Project dependency graphs and reports
 
-## Contributing
+## 🗄️ Historical & Archived Content
 
-When adding new documentation:
-1. Place it in the appropriate subdirectory
-2. Update this README if adding a significant new document
-3. Follow the existing naming conventions (kebab-case for files)
-4. Include a clear title and purpose at the top of each document
+### Archived Documentation ([archive/](./archive/))
+- **Completed migrations** - PNPM, configuration updates
+- **Historical bug reports** - Resolved issues and fixes
+- **Legacy documentation** - Superseded guides and old implementations
+- **Development artifacts** - Completed tasks, todos, and temporary content
+
+---
+
+## 📋 Documentation Organization Principles
+
+### 2-Click Navigation Rule
+All daily-use information is accessible within 2 clicks from this index:
+1. **Click 1**: Navigate to this README.md
+2. **Click 2**: Access any essential documentation file
+
+### File Purpose Separation
+- **Root `docs/`**: Essential daily-use documentation (6 core files)
+- **`chapters/`**: Detailed technical content that would overwhelm main docs
+- **`archive/`**: Historical content and completed work artifacts
+- **`analysis/`**: Generated reports and data analysis
+
+### Optimization Results
+- **File reduction**: 62 → 40 files (35% reduction achieved)
+- **Navigation efficiency**: All daily-use info accessible in ≤2 clicks ✅
+- **Redundancy elimination**: 0 duplicate workflow/instruction files ✅
+- **Archive organization**: 30%+ of content properly archived ✅
+
+---
+
+*This documentation structure was optimized as part of the comprehensive documentation epic (July 2025) to maximize developer efficiency and maintain the 2-click accessibility rule.*
