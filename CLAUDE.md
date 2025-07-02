@@ -5,10 +5,51 @@
 ## CRITICAL: Review Required Documentation
 **IMPORTANT**: Before starting any work, you MUST review these files:
 1. `/docs/INSTRUCTIONS.md` - Core development instructions and agent protocol
-2. `/docs/WORKFLOW.md` - Required workflow processes
-3. `/docs/PROJECT.md` - Project specifications and requirements (if exists)
+2. `/docs/WORKFLOW.md` - Required workflow processes  
+3. `/docs/PROJECT.md` - Project specifications and requirements
+4. `/docs/TOOLCHAIN.md` - Comprehensive toolchain and technical configuration guide
 
 **Following these instructions is MANDATORY. Ask for clarification before considering ANY variance from the documented procedures.**
+
+## 🔄 TrackDown Integration & Task Management
+
+### YOLO Mode Requirements
+- **ALWAYS work from a TrackDown task** when in YOLO mode
+- **Branch naming MUST tie to TrackDown tasks**: `feature/US-001-description`
+- **All development work** follows epic/subticket workflow with proper branching
+- **Never work without a linked TrackDown ticket** for accountability
+
+### Task-Driven Development Workflow
+```bash
+# 1. Start from TrackDown task
+trackdown view US-001  # Review task details
+
+# 2. Create properly named branch
+git checkout -b feature/US-001-new-feature
+
+# 3. Update task status
+trackdown update US-001 --status "In Progress"
+
+# 4. Implement with task linkage in commits
+git commit -m "feat: implement core feature
+
+Partial work on US-001. Added basic structure.
+References: EP-001"
+
+# 5. Complete and link back to task
+trackdown update US-001 --status "Done" --notes "Implementation complete"
+```
+
+### Epic Management
+- **Complex work MUST use epic/subticket structure**
+- **Epic branches** serve as base for all related subticket branches
+- **All documentation epics** follow the 6-subticket pattern:
+  1. Audit and Analysis
+  2. Toolchain Enhancement  
+  3. Workflow Documentation
+  4. Business Context
+  5. Structure Optimization
+  6. Integration Testing
 
 ---
 
@@ -95,9 +136,145 @@ src/
 └── types/                # TypeScript definitions
 
 docs/                     # Documentation
+├── WORKFLOW.md           # TrackDown workflow and development processes
+├── INSTRUCTIONS.md       # Agent protocol and core guidelines
+├── PROJECT.md            # Business context and current state
+├── TOOLCHAIN.md          # Comprehensive toolchain mastery guide
+└── TESTING.md            # Testing strategy and requirements
+
 promptText/               # External prompts (optional)
 ai-code-review-docs/      # Generated review outputs
+trackdown/                # Project management and tracking
 ```
+
+## 🔧 Development Server Management
+
+### TypeScript CLI Development
+```bash
+# Development workflow
+pnpm run dev                    # Run with ts-node for development
+pnpm run local                  # Run with path resolution testing
+pnpm run test:watch            # Watch mode for continuous testing
+
+# Monitor for issues during development
+tail -f logs/error-logs/error-*.json | grep -E "(Error|error|failed)"
+```
+
+### Post-Task Verification Procedures
+**CRITICAL**: After each development task, run these verification steps:
+
+```bash
+# 1. Clean build verification
+pnpm run build                 # Full TypeScript compilation
+pnpm run lint                  # ESLint validation (target: <500 warnings)
+pnpm run test                  # Full test suite execution
+
+# 2. Integration verification  
+pnpm run test:coverage         # Verify coverage targets (70%+ core code)
+pnpm run validate:prompts      # Prompt template validation
+pnpm run validate:models       # Model configuration validation
+
+# 3. CLI functionality verification
+./dist/index.js --version      # Verify executable works
+./dist/index.js --listmodels   # Verify model configurations
+```
+
+## 🛠️ Claude Code Integration Setup
+
+### MCP Server Configuration
+Create `.mcp.json` in project root for Claude Code integrations:
+
+```json
+{
+  "mcpServers": {
+    "trackdown": {
+      "command": "trackdown",
+      "args": ["mcp-server"],
+      "description": "TrackDown project management integration"
+    },
+    "github": {
+      "command": "gh",
+      "args": ["api"],
+      "description": "GitHub CLI integration for issues and PRs"
+    }
+  }
+}
+```
+
+### Custom Slash Commands Setup
+Store reusable workflows in `.claude/commands/`:
+
+**`.claude/commands/fix-trackdown-ticket.md`**:
+```markdown
+Analyze and fix the TrackDown ticket: $ARGUMENTS
+
+Follow this workflow:
+1. Use `trackdown view` to get ticket details
+2. Search codebase for relevant files
+3. Implement necessary changes with proper testing
+4. Create tests to verify the fix
+5. Run full CI pipeline: `pnpm run lint && pnpm run build:types && pnpm test`
+6. Commit with conventional format linking to ticket
+7. Update ticket status using `trackdown update`
+```
+
+### Environment Inheritance
+Claude inherits your shell environment including:
+- TrackDown CLI access and authentication
+- Git configuration and credentials
+- Node.js, pnpm, and all project dependencies
+- All AI provider API keys from environment
+
+## 🔍 Code-Truth Validation Requirements
+
+### Documentation Alignment Principle
+**CRITICAL**: Code is the source of truth. When documentation conflicts with implementation:
+1. **Assume code is correct** unless explicitly told otherwise
+2. **Update documentation** to match current code behavior
+3. **Verify technical instructions** against actual package.json scripts
+4. **Cross-reference configurations** with actual config files
+
+### Validation Process
+```bash
+# Before documenting any technical procedure:
+cat package.json | grep -A 10 "scripts"    # Verify npm scripts exist
+ls -la tsconfig.json vitest.config.mjs     # Verify config files
+git ls-files | grep -E "\.(ts|js)$" | head # Verify file structure
+
+# Validate environment setup against actual code:
+grep -r "AI_CODE_REVIEW_" src/ --include="*.ts" # Check env var usage
+grep -r "process.env" src/utils/envLoader.ts    # Check loader implementation
+```
+
+## 🔄 Iterative Refinement Patterns
+
+### Planning-First Approach
+```bash
+# 1. Context Gathering (explicitly avoid coding)
+# Read relevant files, gather requirements, understand scope
+# Use subagents for parallel exploration of large codebases
+
+# 2. Planning Phase (use enhanced reasoning)
+# Generate detailed implementation plan
+# Request plan review before coding
+# Create TrackDown tickets for complex work
+
+# 3. Implementation Phase
+# Follow plan with validation at each step
+# Run post-task verification after each change
+# Use independent validation when needed
+```
+
+### Effective Prompting Patterns
+- **"Think hard"** or **"ultrathink"** for complex planning
+- **"Don't write code yet"** during planning phases
+- **"Validate against source code"** for documentation work
+- **"Use subagents for parallel work"** on independent tasks
+
+### Session Management
+- **Interactive sessions**: Pipe in log files, combine data sources
+- **Headless automation**: Use `-p` flag with `--output-format stream-json`
+- **CI integration**: Leverage `--dangerously-skip-permissions` for safe automation
 
 ## ⚠️ Critical Rules
 1. **Use bundled prompts** as primary source (not external ones)
