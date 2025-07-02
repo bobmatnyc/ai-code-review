@@ -37,7 +37,7 @@ export function getLanguageFromExtension(extension: string): string {
     html: 'html',
     css: 'css',
     scss: 'scss',
-    sql: 'sql'
+    sql: 'sql',
   };
 
   return extensionMap[extension.toLowerCase()] || extension;

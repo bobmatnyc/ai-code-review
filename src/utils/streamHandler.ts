@@ -18,14 +18,14 @@
  * take significant time to complete.
  */
 
-import { ReviewType } from '../types/review';
 import chalk from 'chalk';
+import type { ReviewType } from '../types/review';
 
 /**
  * Handler for streaming review content to the console
  */
 export class StreamHandler {
-  private content: string = '';
+  private content = '';
   private startTime: number;
   private modelName: string;
 
@@ -40,9 +40,7 @@ export class StreamHandler {
 
     // Print header
     console.log('\n');
-    console.log(
-      chalk.bgBlue.white.bold(` ${reviewType.toUpperCase()} REVIEW `)
-    );
+    console.log(chalk.bgBlue.white.bold(` ${reviewType.toUpperCase()} REVIEW `));
     console.log(chalk.dim(`Using model: ${modelName}`));
     console.log(chalk.dim('Streaming response...\n'));
     console.log(chalk.yellow('─'.repeat(process.stdout.columns || 80)));
@@ -70,11 +68,7 @@ export class StreamHandler {
 
     console.log('\n');
     console.log(chalk.yellow('─'.repeat(process.stdout.columns || 80)));
-    console.log(
-      chalk.dim(
-        `\nReview completed in ${duration} seconds using ${this.modelName}`
-      )
-    );
+    console.log(chalk.dim(`\nReview completed in ${duration} seconds using ${this.modelName}`));
     console.log('\n');
 
     return this.content;

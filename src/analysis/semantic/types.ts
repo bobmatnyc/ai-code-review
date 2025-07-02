@@ -56,7 +56,7 @@ export interface Declaration {
 /**
  * Types of code declarations
  */
-export type DeclarationType = 
+export type DeclarationType =
   | 'function'
   | 'class'
   | 'interface'
@@ -95,12 +95,7 @@ export interface ImportRelationship {
 /**
  * Types of imports
  */
-export type ImportType = 
-  | 'default'
-  | 'named'
-  | 'namespace'
-  | 'side_effect'
-  | 'dynamic';
+export type ImportType = 'default' | 'named' | 'namespace' | 'side_effect' | 'dynamic';
 
 /**
  * Code complexity metrics
@@ -169,12 +164,12 @@ export interface ChunkingRecommendation {
 /**
  * Chunking strategy types
  */
-export type ChunkingStrategy = 
-  | 'individual'      // Each declaration reviewed individually
-  | 'grouped'         // Related declarations grouped together
-  | 'hierarchical'    // Nested structure (classes with methods)
-  | 'functional'      // Group by functional relationships
-  | 'contextual';     // Group by shared context/dependencies
+export type ChunkingStrategy =
+  | 'individual' // Each declaration reviewed individually
+  | 'grouped' // Related declarations grouped together
+  | 'hierarchical' // Nested structure (classes with methods)
+  | 'functional' // Group by functional relationships
+  | 'contextual'; // Group by shared context/dependencies
 
 /**
  * Individual code chunk for review
@@ -219,7 +214,7 @@ export interface CodeChunk {
 /**
  * Types of review units
  */
-export type ReviewUnit = 
+export type ReviewUnit =
   | 'function'
   | 'class'
   | 'module'
@@ -238,7 +233,7 @@ export type ReviewPriority = 'high' | 'medium' | 'low';
 /**
  * Review focus areas
  */
-export type ReviewFocus = 
+export type ReviewFocus =
   | 'security'
   | 'performance'
   | 'architecture'
@@ -267,7 +262,7 @@ export interface ChunkRelationship {
 /**
  * Types of relationships between chunks
  */
-export type RelationshipType = 
+export type RelationshipType =
   | 'depends_on'
   | 'calls'
   | 'implements'

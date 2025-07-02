@@ -13,7 +13,7 @@ export enum LogLevel {
   INFO = 1,
   WARN = 2,
   ERROR = 3,
-  NONE = 4
+  NONE = 4,
 }
 
 // Map string log level names to enum values
@@ -22,7 +22,7 @@ const LOG_LEVEL_MAP: Record<string, LogLevel> = {
   info: LogLevel.INFO,
   warn: LogLevel.WARN,
   error: LogLevel.ERROR,
-  none: LogLevel.NONE
+  none: LogLevel.NONE,
 };
 
 // ANSI color codes for terminal output
@@ -34,7 +34,7 @@ const COLORS = {
   info: '\x1b[32m', // Green
   warn: '\x1b[33m', // Yellow
   error: '\x1b[31m', // Red
-  time: '\x1b[90m' // Gray
+  time: '\x1b[90m', // Gray
 };
 
 // Track if we're initializing to avoid circular dependencies
@@ -44,12 +44,14 @@ const isInitializing = false;
 function getCurrentLogLevel(): LogLevel {
   // Avoid debug logs during initialization to prevent overwhelming output
   const shouldLog = process.argv.includes('--trace-logger') && !isInitializing;
-  
+
   if (shouldLog) {
     // Only print when explicitly requested with --trace-logger
-    console.error(`Debug: getCurrentLogLevel called, AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL}`);
+    console.error(
+      `Debug: getCurrentLogLevel called, AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL}`,
+    );
   }
-  
+
   // Always check CLI flags first - highest priority
   if (process.argv.includes('--debug')) {
     if (shouldLog) {
@@ -57,22 +59,25 @@ function getCurrentLogLevel(): LogLevel {
     }
     return LogLevel.DEBUG;
   }
-  
+
   // Next check environment variable
   const envLogLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase();
-  
+
   if (envLogLevel) {
     if (shouldLog) {
       console.error(`Debug: Found AI_CODE_REVIEW_LOG_LEVEL environment variable: ${envLogLevel}`);
     }
-    
+
     if (envLogLevel in LOG_LEVEL_MAP) {
       if (shouldLog) {
         console.error(`Debug: Mapped log level ${envLogLevel} -> ${LOG_LEVEL_MAP[envLogLevel]}`);
       }
       return LOG_LEVEL_MAP[envLogLevel];
-    } else if (shouldLog) {
-      console.error(`Debug: Invalid log level: ${envLogLevel}, valid options are: ${Object.keys(LOG_LEVEL_MAP).join(', ')}`);
+    }
+    if (shouldLog) {
+      console.error(
+        `Debug: Invalid log level: ${envLogLevel}, valid options are: ${Object.keys(LOG_LEVEL_MAP).join(', ')}`,
+      );
     }
   } else if (shouldLog) {
     console.error('Debug: AI_CODE_REVIEW_LOG_LEVEL environment variable not found');
@@ -95,11 +100,11 @@ let currentLogLevel = getCurrentLogLevel();
 export function setLogLevel(level: LogLevel | string): void {
   // Only log when explicitly requested with --trace-logger
   const shouldLog = process.argv.includes('--trace-logger');
-  
+
   if (shouldLog) {
     console.error(`Debug: setLogLevel called with ${level}`);
   }
-  
+
   if (typeof level === 'string') {
     const levelLower = level.toLowerCase();
     if (levelLower in LOG_LEVEL_MAP) {
@@ -145,12 +150,7 @@ function formatLogMessage(level: string, message: string): string {
  * @param message The message to log
  * @param args Additional arguments to log
  */
-function log(
-  level: LogLevel,
-  levelName: string,
-  message: string,
-  ...args: any[]
-): void {
+function log(level: LogLevel, levelName: string, message: string, ...args: any[]): void {
   // Only log if the current log level is less than or equal to the specified level
   if (level >= currentLogLevel) {
     const formattedMessage = formatLogMessage(levelName, message);
@@ -171,7 +171,9 @@ function log(
     }
   } else if (level === LogLevel.DEBUG && process.argv.includes('--trace-logger')) {
     // Only show debug suppression messages when explicitly requested
-    console.error(`Suppressing DEBUG log because currentLogLevel=${currentLogLevel}, message was: ${message}`);
+    console.error(
+      `Suppressing DEBUG log because currentLogLevel=${currentLogLevel}, message was: ${message}`,
+    );
   }
 }
 
@@ -218,14 +220,10 @@ export function error(message: string, ...args: any[]): void {
  */
 export function createLogger(prefix: string) {
   return {
-    debug: (message: string, ...args: any[]) =>
-      debug(`[${prefix}] ${message}`, ...args),
-    info: (message: string, ...args: any[]) =>
-      info(`[${prefix}] ${message}`, ...args),
-    warn: (message: string, ...args: any[]) =>
-      warn(`[${prefix}] ${message}`, ...args),
-    error: (message: string, ...args: any[]) =>
-      error(`[${prefix}] ${message}`, ...args)
+    debug: (message: string, ...args: any[]) => debug(`[${prefix}] ${message}`, ...args),
+    info: (message: string, ...args: any[]) => info(`[${prefix}] ${message}`, ...args),
+    warn: (message: string, ...args: any[]) => warn(`[${prefix}] ${message}`, ...args),
+    error: (message: string, ...args: any[]) => error(`[${prefix}] ${message}`, ...args),
   };
 }
 
@@ -238,5 +236,5 @@ export default {
   setLogLevel,
   getLogLevel,
   createLogger,
-  LogLevel
+  LogLevel,
 };

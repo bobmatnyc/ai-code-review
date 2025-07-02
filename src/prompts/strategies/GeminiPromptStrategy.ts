@@ -4,10 +4,10 @@
  * This module provides a prompt strategy optimized for Google's Gemini models.
  */
 
-import { ReviewOptions } from '../../types/review';
+import type { ReviewOptions } from '../../types/review';
+import type { PromptCache } from '../cache/PromptCache';
+import type { PromptManager } from '../PromptManager';
 import { PromptStrategy } from './PromptStrategy';
-import { PromptManager } from '../PromptManager';
-import { PromptCache } from '../cache/PromptCache';
 
 /**
  * Prompt strategy for Gemini models

@@ -65,8 +65,14 @@ This is a **TypeScript CLI tool** for AI-powered code reviews:
 
 ### Essential Commands
 ```bash
-# Before completing any task
+# Before completing any task (2025 Biome toolchain)
 pnpm run lint && pnpm run build:types && pnpm test
+
+# New Biome commands (10x faster linting/formatting)
+pnpm run lint                   # Biome linting (replaces ESLint)
+pnpm run lint:fix               # Auto-fix issues with Biome
+pnpm run format                 # Biome formatting (replaces Prettier)
+pnpm run format:check           # Check formatting without fixing
 
 # Local development
 pnpm run dev                    # Run with ts-node
@@ -75,8 +81,10 @@ pnpm run test:watch            # Watch mode testing
 pnpm run test:coverage         # Coverage reports
 ```
 
-### Code Standards
-- **TypeScript**: Strict mode enabled (`tsconfig.json`)
+### Code Standards (2025 Modernized Toolchain)
+- **TypeScript 5.8.3**: Latest stable with strict mode enabled
+- **Biome**: Unified linting & formatting (10x faster than ESLint+Prettier)
+- **Node.js 20+**: Modern runtime requirement (updated from 18+)
 - **No `any` types** - Use `unknown`, generics, or well-defined types
 - **JSDoc required** for all public functions, classes, and types
 - **Follow existing patterns** - Don't introduce new paradigms without approval

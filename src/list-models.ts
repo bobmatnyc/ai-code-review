@@ -21,18 +21,14 @@ const apiKey =
   process.env.GOOGLE_AI_STUDIO_KEY;
 
 if (!apiKey) {
-  console.error(
-    'No API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in .env.local'
-  );
+  console.error('No API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in .env.local');
   process.exit(1);
 }
 
 async function listModels() {
   try {
     if (!apiKey) {
-      console.error(
-        'No API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in .env.local'
-      );
+      console.error('No API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in .env.local');
       return;
     }
 
@@ -54,7 +50,7 @@ async function listModels() {
 
     // Make a request to list models using REST API
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1/models?key=' + apiKey
+      'https://generativelanguage.googleapis.com/v1/models?key=' + apiKey,
     );
 
     if (!response.ok) {
@@ -69,13 +65,9 @@ async function listModels() {
 
     if (data.models && Array.isArray(data.models)) {
       data.models.forEach((model: any) => {
-        console.log(
-          `- ${model.name} (${model.displayName || 'No display name'})`
-        );
+        console.log(`- ${model.name} (${model.displayName || 'No display name'})`);
         if (model.supportedGenerationMethods) {
-          console.log(
-            `  Supported methods: ${model.supportedGenerationMethods.join(', ')}`
-          );
+          console.log(`  Supported methods: ${model.supportedGenerationMethods.join(', ')}`);
         }
       });
     } else {
@@ -87,7 +79,7 @@ async function listModels() {
   }
 }
 
-listModels().catch(error => {
+listModels().catch((error) => {
   console.error('Error running script:', error);
   process.exit(1);
 });

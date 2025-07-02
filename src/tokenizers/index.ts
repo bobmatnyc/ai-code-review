@@ -5,6 +5,6 @@
  */
 
 export * from './baseTokenizer';
-export * from './gptTokenizer';
 export * from './claudeTokenizer';
 export * from './geminiTokenizer';
+export * from './gptTokenizer';

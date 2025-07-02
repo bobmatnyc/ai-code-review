@@ -27,61 +27,58 @@ export class OpenAITokenEstimator extends AbstractTokenEstimator {
   /**
    * Pricing information for OpenAI models
    */
-  private MODEL_PRICING: Record<
-    string,
-    { inputTokenCost: number; outputTokenCost: number }
-  > = {
+  private MODEL_PRICING: Record<string, { inputTokenCost: number; outputTokenCost: number }> = {
     // GPT-4o models
     'gpt-4o': {
       inputTokenCost: 0.005, // $5.00 per 1M tokens
-      outputTokenCost: 0.015 // $15.00 per 1M tokens
+      outputTokenCost: 0.015, // $15.00 per 1M tokens
     },
 
     // GPT-4 Turbo models
     'gpt-4-turbo': {
       inputTokenCost: 0.01, // $10.00 per 1M tokens
-      outputTokenCost: 0.03 // $30.00 per 1M tokens
+      outputTokenCost: 0.03, // $30.00 per 1M tokens
     },
     'gpt-4-turbo-preview': {
       inputTokenCost: 0.01, // $10.00 per 1M tokens
-      outputTokenCost: 0.03 // $30.00 per 1M tokens
+      outputTokenCost: 0.03, // $30.00 per 1M tokens
     },
 
     // GPT-4 models
     'gpt-4': {
       inputTokenCost: 0.03, // $30.00 per 1M tokens
-      outputTokenCost: 0.06 // $60.00 per 1M tokens
+      outputTokenCost: 0.06, // $60.00 per 1M tokens
     },
     'gpt-4-32k': {
       inputTokenCost: 0.06, // $60.00 per 1M tokens
-      outputTokenCost: 0.12 // $120.00 per 1M tokens
+      outputTokenCost: 0.12, // $120.00 per 1M tokens
     },
 
     // GPT-3.5 Turbo models
     'gpt-3.5-turbo': {
       inputTokenCost: 0.0005, // $0.50 per 1M tokens
-      outputTokenCost: 0.0015 // $1.50 per 1M tokens
+      outputTokenCost: 0.0015, // $1.50 per 1M tokens
     },
     'gpt-3.5-turbo-16k': {
       inputTokenCost: 0.001, // $1.00 per 1M tokens
-      outputTokenCost: 0.002 // $2.00 per 1M tokens
+      outputTokenCost: 0.002, // $2.00 per 1M tokens
     },
 
     // O3 reasoning models
-    'o3': {
+    o3: {
       inputTokenCost: 0.015, // $15.00 per 1M tokens
-      outputTokenCost: 0.06 // $60.00 per 1M tokens
+      outputTokenCost: 0.06, // $60.00 per 1M tokens
     },
     'o3-mini': {
       inputTokenCost: 0.003, // $3.00 per 1M tokens
-      outputTokenCost: 0.012 // $12.00 per 1M tokens
+      outputTokenCost: 0.012, // $12.00 per 1M tokens
     },
 
     // Default fallback pricing (using GPT-4o as default)
     default: {
       inputTokenCost: 0.005, // $5.00 per 1M tokens
-      outputTokenCost: 0.015 // $15.00 per 1M tokens
-    }
+      outputTokenCost: 0.015, // $15.00 per 1M tokens
+    },
   };
 
   /**
@@ -113,7 +110,7 @@ export class OpenAITokenEstimator extends AbstractTokenEstimator {
   calculateCost(
     inputTokens: number,
     outputTokens: number,
-    modelName: string = this.getDefaultModel()
+    modelName: string = this.getDefaultModel(),
   ): number {
     const pricing = this.getModelPricing(modelName);
     const inputCost = (inputTokens / 1000) * pricing.inputTokenCost;
@@ -135,6 +132,8 @@ export class OpenAITokenEstimator extends AbstractTokenEstimator {
    * @returns True if the model is supported, false otherwise
    */
   supportsModel(modelName: string): boolean {
-    return modelName in this.MODEL_PRICING || modelName.startsWith('gpt-') || modelName.startsWith('o3');
+    return (
+      modelName in this.MODEL_PRICING || modelName.startsWith('gpt-') || modelName.startsWith('o3')
+    );
   }
 }

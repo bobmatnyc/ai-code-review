@@ -4,8 +4,8 @@
  * This module defines a simplified schema focused solely on detecting unused code.
  */
 
-import { z } from 'zod';
 import { StructuredOutputParser } from '@langchain/core/output_parsers';
+import { z } from 'zod';
 
 /**
  * Confidence level for an unused code finding
@@ -53,7 +53,7 @@ export const UnusedElementSchema = z.object({
       'enum',
       'export',
       'hook',
-      'component'
+      'component',
     ])
     .describe('Type of unused code element'),
 
@@ -72,7 +72,7 @@ export const UnusedElementSchema = z.object({
    */
   location: z.object({
     startLine: z.number().describe('Starting line number'),
-    endLine: z.number().optional().describe('Ending line number')
+    endLine: z.number().optional().describe('Ending line number'),
   }),
 
   /**
@@ -95,10 +95,7 @@ export const UnusedElementSchema = z.object({
   /**
    * Whether other code depends on this element
    */
-  hasDependents: z
-    .boolean()
-    .default(false)
-    .describe('Whether other code depends on this element'),
+  hasDependents: z.boolean().default(false).describe('Whether other code depends on this element'),
 
   /**
    * Elements that depend on this element (if any)
@@ -111,10 +108,7 @@ export const UnusedElementSchema = z.object({
   /**
    * Potential risks of removing this element
    */
-  removalRisks: z
-    .string()
-    .optional()
-    .describe('Potential risks of removing this element')
+  removalRisks: z.string().optional().describe('Potential risks of removing this element'),
 });
 
 /**
@@ -126,9 +120,9 @@ export const FocusedUnusedCodeReviewSchema = z.object({
    */
   unusedFiles: z
     .array(
-      UnusedElementSchema.refine(val => val.elementType === 'file', {
-        message: 'Element must be a file'
-      })
+      UnusedElementSchema.refine((val) => val.elementType === 'file', {
+        message: 'Element must be a file',
+      }),
     )
     .describe('Files that are never imported or used'),
 
@@ -138,11 +132,11 @@ export const FocusedUnusedCodeReviewSchema = z.object({
   unusedFunctions: z
     .array(
       UnusedElementSchema.refine(
-        val => ['function', 'hook'].includes(val.elementType as string),
+        (val) => ['function', 'hook'].includes(val.elementType as string),
         {
-          message: 'Element must be a function or hook'
-        }
-      )
+          message: 'Element must be a function or hook',
+        },
+      ),
     )
     .describe('Functions that are never called'),
 
@@ -152,11 +146,11 @@ export const FocusedUnusedCodeReviewSchema = z.object({
   unusedClasses: z
     .array(
       UnusedElementSchema.refine(
-        val => ['class', 'component'].includes(val.elementType as string),
+        (val) => ['class', 'component'].includes(val.elementType as string),
         {
-          message: 'Element must be a class or component'
-        }
-      )
+          message: 'Element must be a class or component',
+        },
+      ),
     )
     .describe('Classes that are never instantiated'),
 
@@ -166,12 +160,11 @@ export const FocusedUnusedCodeReviewSchema = z.object({
   unusedTypesAndInterfaces: z
     .array(
       UnusedElementSchema.refine(
-        val =>
-          ['interface', 'type', 'enum'].includes(val.elementType as string),
+        (val) => ['interface', 'type', 'enum'].includes(val.elementType as string),
         {
-          message: 'Element must be an interface, type, or enum'
-        }
-      )
+          message: 'Element must be an interface, type, or enum',
+        },
+      ),
     )
     .describe('Types and interfaces that are never used'),
 
@@ -180,9 +173,9 @@ export const FocusedUnusedCodeReviewSchema = z.object({
    */
   deadCodeBranches: z
     .array(
-      UnusedElementSchema.refine(val => val.elementType === 'dead-branch', {
-        message: 'Element must be a dead branch'
-      })
+      UnusedElementSchema.refine((val) => val.elementType === 'dead-branch', {
+        message: 'Element must be a dead branch',
+      }),
     )
     .describe('Code branches that can never execute'),
 
@@ -192,15 +185,14 @@ export const FocusedUnusedCodeReviewSchema = z.object({
   unusedVariablesAndImports: z
     .array(
       UnusedElementSchema.refine(
-        val =>
+        (val) =>
           ['variable', 'import', 'parameter', 'property', 'export'].includes(
-            val.elementType as string
+            val.elementType as string,
           ),
         {
-          message:
-            'Element must be a variable, import, parameter, property, or export'
-        }
-      )
+          message: 'Element must be a variable, import, parameter, property, or export',
+        },
+      ),
     )
     .describe('Variables and imports that are never used'),
 
@@ -209,20 +201,14 @@ export const FocusedUnusedCodeReviewSchema = z.object({
    */
   summary: z
     .object({
-      totalUnusedElements: z
-        .number()
-        .describe('Total number of unused elements found'),
-      highConfidenceCount: z
-        .number()
-        .describe('Number of high-confidence findings'),
-      filesWithUnusedCode: z
-        .number()
-        .describe('Number of files containing unused code'),
+      totalUnusedElements: z.number().describe('Total number of unused elements found'),
+      highConfidenceCount: z.number().describe('Number of high-confidence findings'),
+      filesWithUnusedCode: z.number().describe('Number of files containing unused code'),
       potentialCodeReduction: z
         .string()
-        .describe('Estimated percentage of code that could be removed')
+        .describe('Estimated percentage of code that could be removed'),
     })
-    .describe('Summary statistics of the unused code findings')
+    .describe('Summary statistics of the unused code findings'),
 });
 
 /**
@@ -233,15 +219,14 @@ export type UnusedElement = z.infer<typeof UnusedElementSchema>;
 /**
  * Type for the focused unused code review result
  */
-export type FocusedUnusedCodeReview = z.infer<
-  typeof FocusedUnusedCodeReviewSchema
->;
+export type FocusedUnusedCodeReview = z.infer<typeof FocusedUnusedCodeReviewSchema>;
 
 /**
  * LangChain parser for focused unused code review
  */
-export const focusedUnusedCodeReviewParser =
-  StructuredOutputParser.fromZodSchema(FocusedUnusedCodeReviewSchema);
+export const focusedUnusedCodeReviewParser = StructuredOutputParser.fromZodSchema(
+  FocusedUnusedCodeReviewSchema,
+);
 
 /**
  * Get format instructions for the focused unused code review parser

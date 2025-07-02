@@ -5,10 +5,10 @@
  * and optimization with the AI Code Review tool.
  */
 
+import { PromptCache } from '../cache/PromptCache';
 import { PromptManager } from '../PromptManager';
 import { PromptStrategyFactory } from '../strategies/PromptStrategyFactory';
 import { LangChainUtils } from '../utils/LangChainUtils';
-import { PromptCache } from '../cache/PromptCache';
 
 /**
  * Example function demonstrating LangChain usage with the AI Code Review tool
@@ -21,11 +21,7 @@ async function langChainExample() {
   const promptCache = PromptCache.getInstance();
 
   // Create a LangChain strategy
-  const strategy = PromptStrategyFactory.createStrategy(
-    'langchain',
-    promptManager,
-    promptCache
-  );
+  const strategy = PromptStrategyFactory.createStrategy('langchain', promptManager, promptCache);
 
   // Get a raw prompt template for a security review
   const rawPrompt = await promptManager.getPromptTemplate('security', {
@@ -33,7 +29,7 @@ async function langChainExample() {
     promptStrategy: 'langchain',
     type: 'security',
     includeTests: false,
-    output: 'markdown'
+    output: 'markdown',
   });
 
   // Convert to a LangChain template
@@ -41,7 +37,7 @@ async function langChainExample() {
     language: 'typescript',
     type: 'security',
     includeTests: false,
-    output: 'markdown'
+    output: 'markdown',
   });
 
   // Create a structured output parser
@@ -66,7 +62,7 @@ function authenticateUser(username, password) {
     LANGUAGE: 'JavaScript',
     SCHEMA_INSTRUCTIONS: formatInstructions,
     LANGUAGE_INSTRUCTIONS:
-      'This code is written in JavaScript. Please provide language-specific security advice.'
+      'This code is written in JavaScript. Please provide language-specific security advice.',
   };
 
   // Format the prompt

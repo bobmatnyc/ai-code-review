@@ -5,10 +5,10 @@
  * like Claude.
  */
 
-import { ReviewOptions } from '../../types/review';
+import type { ReviewOptions } from '../../types/review';
+import type { PromptCache } from '../cache/PromptCache';
+import type { PromptManager } from '../PromptManager';
 import { PromptStrategy } from './PromptStrategy';
-import { PromptManager } from '../PromptManager';
-import { PromptCache } from '../cache/PromptCache';
 
 /**
  * Prompt strategy for Anthropic models

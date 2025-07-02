@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unified configuration management system
- * 
+ *
  * This module provides a simplified, centralized configuration system that:
  * 1. Establishes clear precedence order: CLI > Environment > Config File > Defaults
  * 2. Deprecates old CODE_REVIEW_* prefixes in favor of AI_CODE_REVIEW_*
@@ -8,11 +8,11 @@
  * 4. Provides clear error messages and validation
  */
 
-import path from 'path';
-import fs from 'fs';
-import { z } from 'zod';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 import yaml from 'yaml';
+import { z } from 'zod';
 import logger from './logger';
 
 // Configuration schema with validation
@@ -22,26 +22,26 @@ const ConfigSchema = z.object({
   openRouterApiKey: z.string().optional(),
   anthropicApiKey: z.string().optional(),
   openAIApiKey: z.string().optional(),
-  
+
   // Model configuration
   model: z.string().default('gemini:gemini-1.5-pro'),
   writerModel: z.string().optional(),
-  
+
   // Output configuration
   outputDir: z.string().default('ai-code-review-docs'),
   outputFormat: z.enum(['markdown', 'json']).default('markdown'),
-  
+
   // Behavior configuration
   debug: z.boolean().default(false),
   logLevel: z.enum(['debug', 'info', 'warn', 'error', 'none']).default('info'),
   interactive: z.boolean().default(false),
-  
+
   // Feature flags
   includeTests: z.boolean().default(false),
   includeProjectDocs: z.boolean().default(false),
   includeDependencyAnalysis: z.boolean().default(false),
   enableSemanticChunking: z.boolean().default(true),
-  
+
   // Advanced configuration
   contextPaths: z.array(z.string()).optional(),
   maxTokens: z.number().optional(),
@@ -103,10 +103,7 @@ let configInstance: Config | null = null;
  * Load environment variables from .env.local file
  */
 function loadEnvironmentFile(): void {
-  const envPaths = [
-    path.resolve(process.cwd(), '.env.local'),
-    path.resolve(process.cwd(), '.env'),
-  ];
+  const envPaths = [path.resolve(process.cwd(), '.env.local'), path.resolve(process.cwd(), '.env')];
 
   for (const envPath of envPaths) {
     if (fs.existsSync(envPath)) {
@@ -121,20 +118,16 @@ function loadEnvironmentFile(): void {
  * Load configuration file (YAML or JSON)
  */
 function loadConfigurationFile(configPath?: string): ConfigFile | null {
-  const configPaths = configPath ? [configPath] : [
-    '.ai-code-review.yaml',
-    '.ai-code-review.yml', 
-    '.ai-code-review.json'
-  ];
+  const configPaths = configPath
+    ? [configPath]
+    : ['.ai-code-review.yaml', '.ai-code-review.yml', '.ai-code-review.json'];
 
   for (const filePath of configPaths) {
     const fullPath = path.resolve(process.cwd(), filePath);
     if (fs.existsSync(fullPath)) {
       try {
         const content = fs.readFileSync(fullPath, 'utf8');
-        const config = filePath.endsWith('.json') 
-          ? JSON.parse(content)
-          : yaml.parse(content);
+        const config = filePath.endsWith('.json') ? JSON.parse(content) : yaml.parse(content);
         logger.debug(`Loaded configuration from ${fullPath}`);
         return config;
       } catch (error) {
@@ -154,44 +147,46 @@ function getApiKey(provider: 'google' | 'openrouter' | 'anthropic' | 'openai'): 
     google: {
       new: 'AI_CODE_REVIEW_GOOGLE_API_KEY',
       legacy: 'CODE_REVIEW_GOOGLE_API_KEY',
-      generic: ['GOOGLE_GENERATIVE_AI_KEY', 'GOOGLE_AI_STUDIO_KEY']
+      generic: ['GOOGLE_GENERATIVE_AI_KEY', 'GOOGLE_AI_STUDIO_KEY'],
     },
     openrouter: {
       new: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
       legacy: 'CODE_REVIEW_OPENROUTER_API_KEY',
-      generic: ['OPENROUTER_API_KEY']
+      generic: ['OPENROUTER_API_KEY'],
     },
     anthropic: {
       new: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
       legacy: 'CODE_REVIEW_ANTHROPIC_API_KEY',
-      generic: ['ANTHROPIC_API_KEY']
+      generic: ['ANTHROPIC_API_KEY'],
     },
     openai: {
       new: 'AI_CODE_REVIEW_OPENAI_API_KEY',
       legacy: 'CODE_REVIEW_OPENAI_API_KEY',
-      generic: ['OPENAI_API_KEY']
-    }
+      generic: ['OPENAI_API_KEY'],
+    },
   };
 
   const mapping = envMappings[provider];
-  
+
   // Check new prefix first
   const newKey = process.env[mapping.new];
   if (newKey) return newKey;
-  
+
   // Check legacy prefix with deprecation warning
   const legacyKey = process.env[mapping.legacy];
   if (legacyKey) {
-    logger.warn(`⚠️  DEPRECATION WARNING: ${mapping.legacy} is deprecated. Please use ${mapping.new} instead.`);
+    logger.warn(
+      `⚠️  DEPRECATION WARNING: ${mapping.legacy} is deprecated. Please use ${mapping.new} instead.`,
+    );
     return legacyKey;
   }
-  
+
   // Check generic environment variables
   for (const genericVar of mapping.generic) {
     const genericKey = process.env[genericVar];
     if (genericKey) return genericKey;
   }
-  
+
   return undefined;
 }
 
@@ -201,10 +196,10 @@ function getApiKey(provider: 'google' | 'openrouter' | 'anthropic' | 'openai'): 
 function buildConfiguration(cliOptions?: CliOptions): Config {
   // 1. Load environment file
   loadEnvironmentFile();
-  
+
   // 2. Load configuration file
   const configFile = loadConfigurationFile(cliOptions?.config);
-  
+
   // 3. Build configuration object with precedence: CLI > Environment > Config File > Defaults
   const rawConfig = {
     // API Keys (environment only, not exposed via CLI for security)
@@ -212,70 +207,72 @@ function buildConfiguration(cliOptions?: CliOptions): Config {
     openRouterApiKey: getApiKey('openrouter'),
     anthropicApiKey: getApiKey('anthropic'),
     openAIApiKey: getApiKey('openai'),
-    
+
     // Model configuration
-    model: cliOptions?.model || 
-           process.env.AI_CODE_REVIEW_MODEL || 
-           configFile?.model?.default || 
-           'gemini:gemini-1.5-pro',
-           
-    writerModel: cliOptions?.writerModel || 
-                 process.env.AI_CODE_REVIEW_WRITER_MODEL || 
-                 configFile?.model?.writer,
-    
+    model:
+      cliOptions?.model ||
+      process.env.AI_CODE_REVIEW_MODEL ||
+      configFile?.model?.default ||
+      'gemini:gemini-1.5-pro',
+
+    writerModel:
+      cliOptions?.writerModel ||
+      process.env.AI_CODE_REVIEW_WRITER_MODEL ||
+      configFile?.model?.writer,
+
     // Output configuration
-    outputDir: cliOptions?.outputDir || 
-               process.env.AI_CODE_REVIEW_OUTPUT_DIR || 
-               configFile?.output?.directory || 
-               'ai-code-review-docs',
-               
-    outputFormat: cliOptions?.outputFormat || 
-                  configFile?.output?.format || 
-                  'markdown',
-    
+    outputDir:
+      cliOptions?.outputDir ||
+      process.env.AI_CODE_REVIEW_OUTPUT_DIR ||
+      configFile?.output?.directory ||
+      'ai-code-review-docs',
+
+    outputFormat: cliOptions?.outputFormat || configFile?.output?.format || 'markdown',
+
     // Behavior configuration
-    debug: cliOptions?.debug ?? 
-           (process.env.AI_CODE_REVIEW_DEBUG === 'true') ?? 
-           configFile?.behavior?.debug ?? 
-           false,
-           
-    logLevel: cliOptions?.logLevel || 
-              process.env.AI_CODE_REVIEW_LOG_LEVEL || 
-              configFile?.behavior?.log_level || 
-              'info',
-              
-    interactive: cliOptions?.interactive ?? 
-                 configFile?.behavior?.interactive ?? 
-                 false,
-    
+    debug:
+      cliOptions?.debug ??
+      process.env.AI_CODE_REVIEW_DEBUG === 'true' ??
+      configFile?.behavior?.debug ??
+      false,
+
+    logLevel:
+      cliOptions?.logLevel ||
+      process.env.AI_CODE_REVIEW_LOG_LEVEL ||
+      configFile?.behavior?.log_level ||
+      'info',
+
+    interactive: cliOptions?.interactive ?? configFile?.behavior?.interactive ?? false,
+
     // Feature flags
-    includeTests: cliOptions?.includeTests ?? 
-                  configFile?.features?.include_tests ?? 
-                  false,
-                  
-    includeProjectDocs: cliOptions?.includeProjectDocs ?? 
-                        configFile?.features?.include_project_docs ?? 
-                        false,
-                        
-    includeDependencyAnalysis: cliOptions?.includeDependencyAnalysis ?? 
-                               configFile?.features?.include_dependency_analysis ?? 
-                               false,
-                               
-    enableSemanticChunking: cliOptions?.enableSemanticChunking ?? 
-                            (process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'true') ??
-                            configFile?.features?.enable_semantic_chunking ?? 
-                            true,
-    
+    includeTests: cliOptions?.includeTests ?? configFile?.features?.include_tests ?? false,
+
+    includeProjectDocs:
+      cliOptions?.includeProjectDocs ?? configFile?.features?.include_project_docs ?? false,
+
+    includeDependencyAnalysis:
+      cliOptions?.includeDependencyAnalysis ??
+      configFile?.features?.include_dependency_analysis ??
+      false,
+
+    enableSemanticChunking:
+      cliOptions?.enableSemanticChunking ??
+      process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'true' ??
+      configFile?.features?.enable_semantic_chunking ??
+      true,
+
     // Advanced configuration
-    contextPaths: process.env.AI_CODE_REVIEW_CONTEXT?.split(',').map(p => p.trim()),
+    contextPaths: process.env.AI_CODE_REVIEW_CONTEXT?.split(',').map((p) => p.trim()),
   };
-  
+
   // 4. Validate configuration
   try {
     return ConfigSchema.parse(rawConfig);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const issues = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ');
+      const issues = error.issues
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .join(', ');
       throw new Error(`Configuration validation failed: ${issues}`);
     }
     throw error;
@@ -310,26 +307,29 @@ export function hasAnyApiKey(config?: Config): boolean {
 /**
  * Validate configuration for a specific model
  */
-export function validateModelConfig(model: string, config?: Config): { valid: boolean; error?: string } {
+export function validateModelConfig(
+  model: string,
+  config?: Config,
+): { valid: boolean; error?: string } {
   const cfg = config || getUnifiedConfig();
   const [provider] = model.split(':');
-  
+
   const providerKeyMap = {
-    'gemini': cfg.googleApiKey,
-    'google': cfg.googleApiKey,
-    'openrouter': cfg.openRouterApiKey,
-    'anthropic': cfg.anthropicApiKey,
-    'openai': cfg.openAIApiKey,
+    gemini: cfg.googleApiKey,
+    google: cfg.googleApiKey,
+    openrouter: cfg.openRouterApiKey,
+    anthropic: cfg.anthropicApiKey,
+    openai: cfg.openAIApiKey,
   };
-  
+
   const requiredKey = providerKeyMap[provider as keyof typeof providerKeyMap];
-  
+
   if (!requiredKey) {
     return {
       valid: false,
-      error: `No API key found for provider '${provider}'. Please set the appropriate AI_CODE_REVIEW_*_API_KEY environment variable.`
+      error: `No API key found for provider '${provider}'. Please set the appropriate AI_CODE_REVIEW_*_API_KEY environment variable.`,
     };
   }
-  
+
   return { valid: true };
 }

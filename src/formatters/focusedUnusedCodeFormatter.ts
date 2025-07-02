@@ -5,9 +5,9 @@
  */
 
 import chalk from 'chalk';
-import {
+import type {
   FocusedUnusedCodeReview,
-  UnusedElement
+  UnusedElement,
 } from '../prompts/schemas/focused-unused-code-schema';
 
 /**
@@ -15,9 +15,7 @@ import {
  * @param review The review to format
  * @returns Formatted markdown
  */
-export function formatFocusedUnusedCodeReviewAsMarkdown(
-  review: FocusedUnusedCodeReview
-): string {
+export function formatFocusedUnusedCodeReviewAsMarkdown(review: FocusedUnusedCodeReview): string {
   // Build the header
   let markdown = '# Unused Code Detection Report\n\n';
 
@@ -35,15 +33,9 @@ export function formatFocusedUnusedCodeReviewAsMarkdown(
       'The following files are never imported or used anywhere in the codebase and can be safely removed:\n\n';
 
     // Group by confidence
-    const highConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'high'
-    );
-    const mediumConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'medium'
-    );
-    const lowConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'low'
-    );
+    const highConfidence = review.unusedFiles.filter((file) => file.confidence === 'high');
+    const mediumConfidence = review.unusedFiles.filter((file) => file.confidence === 'medium');
+    const lowConfidence = review.unusedFiles.filter((file) => file.confidence === 'low');
 
     if (highConfidence.length > 0) {
       markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
@@ -68,15 +60,9 @@ export function formatFocusedUnusedCodeReviewAsMarkdown(
       'The following functions are never called in the codebase and can be safely removed:\n\n';
 
     // Group by confidence
-    const highConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'high'
-    );
-    const mediumConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'medium'
-    );
-    const lowConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'low'
-    );
+    const highConfidence = review.unusedFunctions.filter((func) => func.confidence === 'high');
+    const mediumConfidence = review.unusedFunctions.filter((func) => func.confidence === 'medium');
+    const lowConfidence = review.unusedFunctions.filter((func) => func.confidence === 'low');
 
     if (highConfidence.length > 0) {
       markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
@@ -101,15 +87,9 @@ export function formatFocusedUnusedCodeReviewAsMarkdown(
       'The following classes are never instantiated in the codebase and can be safely removed:\n\n';
 
     // Group by confidence
-    const highConfidence = review.unusedClasses.filter(
-      cls => cls.confidence === 'high'
-    );
-    const mediumConfidence = review.unusedClasses.filter(
-      cls => cls.confidence === 'medium'
-    );
-    const lowConfidence = review.unusedClasses.filter(
-      cls => cls.confidence === 'low'
-    );
+    const highConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'high');
+    const mediumConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'medium');
+    const lowConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'low');
 
     if (highConfidence.length > 0) {
       markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
@@ -135,13 +115,13 @@ export function formatFocusedUnusedCodeReviewAsMarkdown(
 
     // Group by confidence
     const highConfidence = review.unusedTypesAndInterfaces.filter(
-      type => type.confidence === 'high'
+      (type) => type.confidence === 'high',
     );
     const mediumConfidence = review.unusedTypesAndInterfaces.filter(
-      type => type.confidence === 'medium'
+      (type) => type.confidence === 'medium',
     );
     const lowConfidence = review.unusedTypesAndInterfaces.filter(
-      type => type.confidence === 'low'
+      (type) => type.confidence === 'low',
     );
 
     if (highConfidence.length > 0) {
@@ -163,19 +143,14 @@ export function formatFocusedUnusedCodeReviewAsMarkdown(
   // Dead Code Branches Section
   if (review.deadCodeBranches.length > 0) {
     markdown += '## Dead Code Branches\n\n';
-    markdown +=
-      'The following code branches can never execute and can be safely removed:\n\n';
+    markdown += 'The following code branches can never execute and can be safely removed:\n\n';
 
     // Group by confidence
-    const highConfidence = review.deadCodeBranches.filter(
-      branch => branch.confidence === 'high'
-    );
+    const highConfidence = review.deadCodeBranches.filter((branch) => branch.confidence === 'high');
     const mediumConfidence = review.deadCodeBranches.filter(
-      branch => branch.confidence === 'medium'
+      (branch) => branch.confidence === 'medium',
     );
-    const lowConfidence = review.deadCodeBranches.filter(
-      branch => branch.confidence === 'low'
-    );
+    const lowConfidence = review.deadCodeBranches.filter((branch) => branch.confidence === 'low');
 
     if (highConfidence.length > 0) {
       markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
@@ -201,13 +176,13 @@ export function formatFocusedUnusedCodeReviewAsMarkdown(
 
     // Group by confidence
     const highConfidence = review.unusedVariablesAndImports.filter(
-      variable => variable.confidence === 'high'
+      (variable) => variable.confidence === 'high',
     );
     const mediumConfidence = review.unusedVariablesAndImports.filter(
-      variable => variable.confidence === 'medium'
+      (variable) => variable.confidence === 'medium',
     );
     const lowConfidence = review.unusedVariablesAndImports.filter(
-      variable => variable.confidence === 'low'
+      (variable) => variable.confidence === 'low',
     );
 
     if (highConfidence.length > 0) {
@@ -298,7 +273,7 @@ function formatElementType(elementType: string): string {
     enum: 'Enum',
     export: 'Export',
     hook: 'React Hook',
-    component: 'React Component'
+    component: 'React Component',
   };
 
   return mapping[elementType] || elementType;
@@ -309,9 +284,7 @@ function formatElementType(elementType: string): string {
  * @param review The review to format
  * @returns Formatted string for terminal output
  */
-export function formatFocusedUnusedCodeReviewForTerminal(
-  review: FocusedUnusedCodeReview
-): string {
+export function formatFocusedUnusedCodeReviewForTerminal(review: FocusedUnusedCodeReview): string {
   // Build the header
   let output = chalk.bold.blue('UNUSED CODE DETECTION REPORT\n\n');
 
@@ -326,19 +299,13 @@ export function formatFocusedUnusedCodeReviewForTerminal(
   if (review.unusedFiles.length > 0) {
     output += chalk.bold.magenta('UNUSED FILES\n\n');
     output += chalk.italic(
-      'The following files are never imported or used and can be safely removed:\n\n'
+      'The following files are never imported or used and can be safely removed:\n\n',
     );
 
     // Group by confidence
-    const highConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'high'
-    );
-    const mediumConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'medium'
-    );
-    const lowConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'low'
-    );
+    const highConfidence = review.unusedFiles.filter((file) => file.confidence === 'high');
+    const mediumConfidence = review.unusedFiles.filter((file) => file.confidence === 'medium');
+    const lowConfidence = review.unusedFiles.filter((file) => file.confidence === 'low');
 
     if (highConfidence.length > 0) {
       output += chalk.bold.green('HIGH CONFIDENCE (SAFE TO REMOVE)\n\n');
@@ -346,9 +313,7 @@ export function formatFocusedUnusedCodeReviewForTerminal(
     }
 
     if (mediumConfidence.length > 0) {
-      output += chalk.bold.yellow(
-        'MEDIUM CONFIDENCE (VERIFY BEFORE REMOVING)\n\n'
-      );
+      output += chalk.bold.yellow('MEDIUM CONFIDENCE (VERIFY BEFORE REMOVING)\n\n');
       output += formatElementsForTerminal(mediumConfidence, 'yellow');
     }
 
@@ -362,19 +327,13 @@ export function formatFocusedUnusedCodeReviewForTerminal(
   if (review.unusedFunctions.length > 0) {
     output += chalk.bold.cyan('UNUSED FUNCTIONS\n\n');
     output += chalk.italic(
-      'The following functions are never called and can be safely removed:\n\n'
+      'The following functions are never called and can be safely removed:\n\n',
     );
 
     // Group by confidence - same pattern as above
-    const highConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'high'
-    );
-    const mediumConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'medium'
-    );
-    const lowConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'low'
-    );
+    const highConfidence = review.unusedFunctions.filter((func) => func.confidence === 'high');
+    const mediumConfidence = review.unusedFunctions.filter((func) => func.confidence === 'medium');
+    const lowConfidence = review.unusedFunctions.filter((func) => func.confidence === 'low');
 
     if (highConfidence.length > 0) {
       output += chalk.bold.green('HIGH CONFIDENCE (SAFE TO REMOVE)\n\n');
@@ -382,9 +341,7 @@ export function formatFocusedUnusedCodeReviewForTerminal(
     }
 
     if (mediumConfidence.length > 0) {
-      output += chalk.bold.yellow(
-        'MEDIUM CONFIDENCE (VERIFY BEFORE REMOVING)\n\n'
-      );
+      output += chalk.bold.yellow('MEDIUM CONFIDENCE (VERIFY BEFORE REMOVING)\n\n');
       output += formatElementsForTerminal(mediumConfidence, 'yellow');
     }
 
@@ -408,7 +365,7 @@ export function formatFocusedUnusedCodeReviewForTerminal(
  */
 function formatElementsForTerminal(
   elements: UnusedElement[],
-  color: 'green' | 'yellow' | 'red'
+  color: 'green' | 'yellow' | 'red',
 ): string {
   let output = '';
 
@@ -456,22 +413,16 @@ function formatElementsForTerminal(
  * @param review The review to format
  * @returns Shell script for removing unused code
  */
-export function generateFocusedRemovalScript(
-  review: FocusedUnusedCodeReview
-): string {
+export function generateFocusedRemovalScript(review: FocusedUnusedCodeReview): string {
   let script = '#!/bin/bash\n\n';
   script += '# Script generated by AI Code Review to remove unused code\n';
-  script +=
-    '# WARNING: This script should be carefully reviewed before execution\n';
+  script += '# WARNING: This script should be carefully reviewed before execution\n';
   script += '# RECOMMENDED: Create a git branch before running this script\n\n';
 
-  script +=
-    'echo "This script will remove unused code found in the static analysis."\n\n';
+  script += 'echo "This script will remove unused code found in the static analysis."\n\n';
 
   // Only include high confidence issues for the removal script
-  const highConfidenceFiles = review.unusedFiles.filter(
-    file => file.confidence === 'high'
-  );
+  const highConfidenceFiles = review.unusedFiles.filter((file) => file.confidence === 'high');
 
   // Start with removing entire files (most impactful)
   if (highConfidenceFiles.length > 0) {
@@ -489,16 +440,14 @@ export function generateFocusedRemovalScript(
   // This uses sed to remove specific line ranges
 
   const highConfidenceFunctions = review.unusedFunctions.filter(
-    func => func.confidence === 'high'
+    (func) => func.confidence === 'high',
   );
-  const highConfidenceClasses = review.unusedClasses.filter(
-    cls => cls.confidence === 'high'
-  );
+  const highConfidenceClasses = review.unusedClasses.filter((cls) => cls.confidence === 'high');
   const highConfidenceTypes = review.unusedTypesAndInterfaces.filter(
-    type => type.confidence === 'high'
+    (type) => type.confidence === 'high',
   );
   const highConfidenceBranches = review.deadCodeBranches.filter(
-    branch => branch.confidence === 'high'
+    (branch) => branch.confidence === 'high',
   );
 
   // Group all elements by file for targeted removal
@@ -539,7 +488,7 @@ export function generateFocusedRemovalScript(
   // Sort elements within each file by line number (descending)
   // This ensures we remove from bottom to top to avoid changing line numbers
   for (const filePath in elementsByFile) {
-    if (highConfidenceFiles.find(file => file.filePath === filePath)) {
+    if (highConfidenceFiles.find((file) => file.filePath === filePath)) {
       // Skip files that will be removed entirely
       continue;
     }
@@ -553,7 +502,7 @@ export function generateFocusedRemovalScript(
     script += 'echo "REMOVING UNUSED CODE ELEMENTS:"\n\n';
 
     for (const [filePath, elements] of Object.entries(elementsByFile)) {
-      if (highConfidenceFiles.find(file => file.filePath === filePath)) {
+      if (highConfidenceFiles.find((file) => file.filePath === filePath)) {
         // Skip files that will be removed entirely
         continue;
       }
@@ -583,5 +532,5 @@ export function generateFocusedRemovalScript(
 export default {
   formatFocusedUnusedCodeReviewAsMarkdown,
   formatFocusedUnusedCodeReviewForTerminal,
-  generateFocusedRemovalScript
+  generateFocusedRemovalScript,
 };

@@ -5,11 +5,11 @@
  * including handling code blocks, project context, and review instructions.
  */
 
-import { ProjectDocs, formatProjectDocs } from '../../utils/projectDocs';
-import { getLanguageFromExtension } from '../utils/languageDetection';
 import path from 'path';
+import type { FileInfo } from '../../types/review';
+import { formatProjectDocs, type ProjectDocs } from '../../utils/projectDocs';
+import { getLanguageFromExtension } from '../utils/languageDetection';
 import { generateDirectoryStructure } from './directoryStructure';
-import { FileInfo } from '../../types/review';
 
 /**
  * Format a code block with the appropriate language
@@ -38,7 +38,7 @@ export function formatSingleFileReviewPrompt(
   promptTemplate: string,
   fileContent: string,
   filePath: string,
-  projectDocs?: ProjectDocs | null
+  projectDocs?: ProjectDocs | null,
 ): string {
   // Format the code block
   const codeBlock = formatCodeBlock(fileContent, filePath);
@@ -68,16 +68,16 @@ export function formatConsolidatedReviewPrompt(
   promptTemplate: string,
   projectName: string,
   files: Array<{ relativePath?: string; content: string; sizeInBytes: number }>,
-  projectDocs?: ProjectDocs | null
+  projectDocs?: ProjectDocs | null,
 ): string {
   // Format project documentation if available
   const projectContext = projectDocs ? formatProjectDocs(projectDocs) : '';
 
   // Convert the file array to FileInfo format for the directory structure generator
-  const fileInfos: FileInfo[] = files.map(file => ({
+  const fileInfos: FileInfo[] = files.map((file) => ({
     path: file.relativePath || file.sizeInBytes.toString(), // Use sizeInBytes as fallback for path
     relativePath: file.relativePath,
-    content: file.content
+    content: file.content,
   }));
 
   // Create a project structure summary using the utility function
@@ -85,10 +85,7 @@ export function formatConsolidatedReviewPrompt(
 
   // Prepare file summaries
   const fileSummaries = files
-    .map(
-      file =>
-        `- ${file.relativePath || 'unnamed file'} (${file.sizeInBytes} bytes)`
-    )
+    .map((file) => `- ${file.relativePath || 'unnamed file'} (${file.sizeInBytes} bytes)`)
     .join('\n');
 
   // Prepare the user prompt

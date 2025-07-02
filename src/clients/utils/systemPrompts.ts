@@ -1,12 +1,12 @@
 /**
  * @fileoverview System prompts for different model providers and review types.
- * 
+ *
  * This module provides a collection of system prompts used for different
  * review types and model providers. It helps maintain consistency across
  * client implementations and reduce duplication.
  */
 
-import { ReviewType } from '../../types/review';
+import type { ReviewType } from '../../types/review';
 
 /**
  * Standard system prompt for code reviews
@@ -102,12 +102,12 @@ Always include a dedicated "Dependency Security Analysis" section in your review
  * @param useMarkdown Whether to use Markdown formatting instead of JSON
  * @returns The system prompt for the specified review type
  */
-export function getSystemPrompt(reviewType: ReviewType, useMarkdown: boolean = false): string {
+export function getSystemPrompt(reviewType: ReviewType, useMarkdown = false): string {
   // For architectural reviews, use the architectural review system prompt
   if (reviewType === 'architectural') {
     return ARCHITECTURAL_REVIEW_SYSTEM_PROMPT;
   }
-  
+
   // For other reviews, use the standard system prompt (JSON or Markdown)
   return useMarkdown ? MARKDOWN_FORMAT_SYSTEM_PROMPT : JSON_FORMAT_SYSTEM_PROMPT;
 }

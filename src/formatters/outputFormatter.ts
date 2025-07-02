@@ -17,10 +17,9 @@
  * structured regardless of the review type or content.
  */
 
-import { ReviewResult } from '../types/review';
-
-import { formatAsMarkdown } from './utils/MarkdownFormatters';
+import type { ReviewResult } from '../types/review';
 import { formatAsJson } from './utils/JsonFormatter';
+import { formatAsMarkdown } from './utils/MarkdownFormatters';
 
 /**
  * Format the review output based on the specified format
@@ -28,10 +27,7 @@ import { formatAsJson } from './utils/JsonFormatter';
  * @param format Output format (markdown or json)
  * @returns Formatted review output
  */
-export function formatReviewOutput(
-  review: ReviewResult,
-  format: string
-): string {
+export function formatReviewOutput(review: ReviewResult, format: string): string {
   // Debug logging to help diagnose issues with missing fields
   if (!review.filePath) {
     console.warn('Warning: filePath is undefined or empty in ReviewResult');
@@ -39,7 +35,7 @@ export function formatReviewOutput(
   if (!review.modelUsed) {
     console.warn('Warning: modelUsed is undefined or empty in ReviewResult');
   }
-  
+
   // Ensure costInfo is set if only cost is available
   if (review.cost && !review.costInfo) {
     review.costInfo = review.cost;
@@ -52,15 +48,15 @@ export function formatReviewOutput(
   return formatAsMarkdown(review);
 }
 
+export { formatIssue, formatSchemaIssue } from './utils/IssueFormatters';
+export { formatAsJson } from './utils/JsonFormatter';
 // Re-export utility functions for use by other modules
 export { formatAsMarkdown } from './utils/MarkdownFormatters';
-export { formatAsJson } from './utils/JsonFormatter';
-export { formatIssue, formatSchemaIssue } from './utils/IssueFormatters';
-export { extractModelInfo, extractModelInfoFromString } from './utils/ModelInfoExtractor';
-export { 
-  formatMetadataSection, 
-  parseMetadata, 
-  createEnhancedMetadata, 
-  parseCostInfo, 
-  formatCostInfo 
+export {
+  createEnhancedMetadata,
+  formatCostInfo,
+  formatMetadataSection,
+  parseCostInfo,
+  parseMetadata,
 } from './utils/MetadataFormatter';
+export { extractModelInfo, extractModelInfoFromString } from './utils/ModelInfoExtractor';

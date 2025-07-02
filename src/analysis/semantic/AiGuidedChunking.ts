@@ -1,6 +1,6 @@
 /**
  * @fileoverview AI-guided chunking service for intelligent code analysis
- * 
+ *
  * This module provides AI-powered recommendations for optimal code chunking
  * strategies based on semantic analysis results. It integrates with various
  * AI providers to generate intelligent chunking plans that improve code
@@ -8,16 +8,12 @@
  */
 
 import logger from '../../utils/logger';
-import {
-  SemanticAnalysis,
-  Declaration,
+import type {
+  ChunkingRecommendation,
   ChunkingStrategy,
-  ChunkingRecommendation
+  Declaration,
+  SemanticAnalysis,
 } from './types';
-
-
-
-
 
 /**
  * Configuration for AI-guided chunking
@@ -45,7 +41,7 @@ const DEFAULT_CONFIG: AiGuidedChunkingConfig = {
   timeout: 30000, // 30 seconds
   useCache: true,
   fallbackEnabled: true,
-  enabledReviewTypes: ['architectural', 'security', 'performance']
+  enabledReviewTypes: ['architectural', 'security', 'performance'],
 };
 
 /**
@@ -58,66 +54,68 @@ export class AiGuidedChunking {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
-
-
   /**
    * Generate AI-guided chunking recommendation
    */
   public async generateChunkingRecommendation(
     analysis: SemanticAnalysis,
-    reviewType: string
+    reviewType: string,
   ): Promise<ChunkingRecommendation> {
     logger.debug(`Generating enhanced rule-based chunking for review type: ${reviewType}`);
     return this.generateEnhancedRuleBasedChunking(analysis, reviewType);
   }
-
-
 
   /**
    * Generate enhanced rule-based chunking recommendation
    */
   private generateEnhancedRuleBasedChunking(
     analysis: SemanticAnalysis,
-    reviewType: string
+    reviewType: string,
   ): ChunkingRecommendation {
     logger.debug('Generating enhanced rule-based chunking recommendation');
 
     // Enhanced strategy selection based on multiple factors
     let strategy: ChunkingStrategy = 'individual';
     let reasoning = '';
-    
+
     // Factor 1: Review type preferences
     const reviewTypeStrategies: Record<string, ChunkingStrategy> = {
-      'architectural': 'hierarchical',
-      'security': 'contextual',
-      'performance': 'functional',
+      architectural: 'hierarchical',
+      security: 'contextual',
+      performance: 'functional',
       'quick-fixes': 'individual',
-      'unused-code': 'grouped'
+      'unused-code': 'grouped',
     };
-    
+
     // Factor 2: Code structure analysis
     const hasClasses = analysis.complexity.classCount > 0;
-    const hasComplexFunctions = analysis.topLevelDeclarations.some(d => (d.cyclomaticComplexity || 0) > 10);
+    const hasComplexFunctions = analysis.topLevelDeclarations.some(
+      (d) => (d.cyclomaticComplexity || 0) > 10,
+    );
     const hasManyDeclarations = analysis.topLevelDeclarations.length > 10;
     const hasHighComplexity = analysis.complexity.cyclomaticComplexity > 20;
     const hasInterconnectedImports = analysis.importGraph.length > 5;
-    
+
     // Enhanced decision logic
     if (reviewType === 'architectural' && hasClasses) {
       strategy = 'hierarchical';
-      reasoning = 'Architectural review with class structures detected - using hierarchical chunking to preserve class-method relationships';
+      reasoning =
+        'Architectural review with class structures detected - using hierarchical chunking to preserve class-method relationships';
     } else if (reviewType === 'security' && hasInterconnectedImports) {
       strategy = 'contextual';
-      reasoning = 'Security review with complex imports detected - using contextual chunking to analyze data flow and dependencies';
+      reasoning =
+        'Security review with complex imports detected - using contextual chunking to analyze data flow and dependencies';
     } else if (reviewType === 'performance' && hasComplexFunctions) {
       strategy = 'functional';
-      reasoning = 'Performance review with complex functions detected - using functional chunking to analyze execution paths';
+      reasoning =
+        'Performance review with complex functions detected - using functional chunking to analyze execution paths';
     } else if (hasManyDeclarations && !hasHighComplexity) {
       strategy = 'grouped';
       reasoning = 'Many simple declarations detected - using grouped chunking for efficiency';
     } else if (hasClasses) {
       strategy = 'hierarchical';
-      reasoning = 'Object-oriented code detected - using hierarchical chunking to maintain class boundaries';
+      reasoning =
+        'Object-oriented code detected - using hierarchical chunking to maintain class boundaries';
     } else if (hasHighComplexity) {
       strategy = 'individual';
       reasoning = 'High complexity detected - using individual chunking for focused analysis';
@@ -130,7 +128,10 @@ export class AiGuidedChunking {
     let estimatedChunks = 1;
     switch (strategy) {
       case 'hierarchical':
-        estimatedChunks = Math.max(1, analysis.complexity.classCount + Math.ceil(analysis.complexity.functionCount / 2));
+        estimatedChunks = Math.max(
+          1,
+          analysis.complexity.classCount + Math.ceil(analysis.complexity.functionCount / 2),
+        );
         break;
       case 'grouped':
         estimatedChunks = Math.max(1, Math.ceil(analysis.topLevelDeclarations.length / 5));
@@ -142,7 +143,10 @@ export class AiGuidedChunking {
         estimatedChunks = Math.max(1, Math.ceil(analysis.importGraph.length / 3));
         break;
       default: // individual
-        estimatedChunks = Math.min(analysis.topLevelDeclarations.length, Math.ceil(analysis.totalLines / 100));
+        estimatedChunks = Math.min(
+          analysis.topLevelDeclarations.length,
+          Math.ceil(analysis.totalLines / 100),
+        );
     }
 
     return {
@@ -151,7 +155,7 @@ export class AiGuidedChunking {
       crossReferences: [],
       reasoning: `Enhanced rule-based: ${reasoning}`,
       estimatedTokens: analysis.totalLines * 4,
-      estimatedChunks
+      estimatedChunks,
     };
   }
 
@@ -160,13 +164,13 @@ export class AiGuidedChunking {
    */
   private mapTypeToReviewUnit(type: string): string {
     const typeMap: Record<string, string> = {
-      'function': 'function',
-      'class': 'class',
-      'interface': 'interface',
-      'module': 'module',
-      'type': 'type_definitions',
-      'import': 'imports',
-      'export': 'exports'
+      function: 'function',
+      class: 'class',
+      interface: 'interface',
+      module: 'module',
+      type: 'type_definitions',
+      import: 'imports',
+      export: 'exports',
     };
     return typeMap[type] || 'module';
   }
@@ -176,17 +180,17 @@ export class AiGuidedChunking {
    */
   private determineReviewFocus(declarations: Declaration[], _analysis: SemanticAnalysis): string[] {
     const focuses = [];
-    
-    if (declarations.some(d => d.type === 'class')) {
+
+    if (declarations.some((d) => d.type === 'class')) {
       focuses.push('architecture');
     }
-    if (declarations.some(d => (d.cyclomaticComplexity || 0) > 10)) {
+    if (declarations.some((d) => (d.cyclomaticComplexity || 0) > 10)) {
       focuses.push('maintainability');
     }
-    if (declarations.some(d => d.name.includes('Auth') || d.name.includes('Security'))) {
+    if (declarations.some((d) => d.name.includes('Auth') || d.name.includes('Security'))) {
       focuses.push('security');
     }
-    
+
     return focuses.length > 0 ? focuses : ['maintainability'];
   }
 

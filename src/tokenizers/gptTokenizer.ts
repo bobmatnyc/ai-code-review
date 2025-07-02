@@ -6,7 +6,7 @@
  */
 
 import { encode } from 'gpt-tokenizer';
-import { Tokenizer, TokenizerRegistry } from './baseTokenizer';
+import { type Tokenizer, TokenizerRegistry } from './baseTokenizer';
 
 /**
  * Tokenizer for OpenAI GPT models
@@ -46,7 +46,7 @@ export class GPTTokenizer implements Tokenizer {
   supportsModel(modelName: string): boolean {
     // Convert to lowercase for case-insensitive matching
     const lowerModelName = modelName.toLowerCase();
-    return this.modelPatterns.some(pattern => pattern.test(lowerModelName));
+    return this.modelPatterns.some((pattern) => pattern.test(lowerModelName));
   }
 }
 

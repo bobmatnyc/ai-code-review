@@ -14,7 +14,7 @@ import { z } from 'zod';
 export enum IssuePriority {
   HIGH = 'HIGH',
   MEDIUM = 'MEDIUM',
-  LOW = 'LOW'
+  LOW = 'LOW',
 }
 
 // Zod schema for issue priority
@@ -31,7 +31,7 @@ export interface IssueLocation {
 // Zod schema for issue location
 export const issueLocationSchema = z.object({
   startLine: z.number(),
-  endLine: z.number()
+  endLine: z.number(),
 });
 
 /**
@@ -55,7 +55,7 @@ export const reviewIssueSchema = z.object({
   location: issueLocationSchema,
   currentCode: z.string(),
   suggestedCode: z.string(),
-  explanation: z.string()
+  explanation: z.string(),
 });
 
 /**
@@ -69,7 +69,7 @@ export interface FileReview {
 // Zod schema for file review
 export const fileReviewSchema = z.object({
   filePath: z.string(),
-  issues: z.array(reviewIssueSchema)
+  issues: z.array(reviewIssueSchema),
 });
 
 /**
@@ -87,7 +87,7 @@ export const reviewSummarySchema = z.object({
   highPriorityIssues: z.number(),
   mediumPriorityIssues: z.number(),
   lowPriorityIssues: z.number(),
-  totalIssues: z.number()
+  totalIssues: z.number(),
 });
 
 /**
@@ -105,7 +105,7 @@ export const codeReviewSchema = z.object({
   version: z.string(),
   timestamp: z.string(),
   files: z.array(fileReviewSchema),
-  summary: reviewSummarySchema
+  summary: reviewSummarySchema,
 });
 
 /**
@@ -117,7 +117,7 @@ export interface ReviewSchema {
 
 // Zod schema for review schema
 export const reviewSchema = z.object({
-  review: codeReviewSchema
+  review: codeReviewSchema,
 });
 
 /**

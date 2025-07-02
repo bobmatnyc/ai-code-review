@@ -1,14 +1,10 @@
 /**
  * @fileoverview Anthropic tool calling handler implementation
- * 
+ *
  * This module provides a tool calling handler specifically for Anthropic Claude models.
  */
 
-import {
-  ToolCallingHandler,
-  FunctionToolDefinition,
-  ToolCallResult
-} from './toolCalling';
+import type { FunctionToolDefinition, ToolCallingHandler, ToolCallResult } from './toolCalling';
 
 /**
  * Implementation of ToolCallingHandler for Anthropic models
@@ -20,14 +16,14 @@ export class AnthropicToolCallingHandler implements ToolCallingHandler {
    * @returns The tools formatted for Anthropic
    */
   prepareTools(tools: FunctionToolDefinition[]): any[] {
-    return tools.map(tool => ({
+    return tools.map((tool) => ({
       name: tool.name,
       description: tool.description,
       input_schema: {
         type: 'object',
         properties: tool.parameters.properties,
-        required: tool.parameters.required || []
-      }
+        required: tool.parameters.required || [],
+      },
     }));
   }
 
@@ -48,7 +44,7 @@ export class AnthropicToolCallingHandler implements ToolCallingHandler {
     if (!data.content || !Array.isArray(data.content)) {
       return {
         toolCalls: [],
-        responseMessage: ''
+        responseMessage: '',
       };
     }
 
@@ -57,7 +53,7 @@ export class AnthropicToolCallingHandler implements ToolCallingHandler {
       name: string;
       arguments: any;
     }> = [];
-    
+
     let responseMessage = '';
 
     // Process the content blocks
@@ -70,7 +66,7 @@ export class AnthropicToolCallingHandler implements ToolCallingHandler {
           toolCalls.push({
             id: block.id,
             name: block.name,
-            arguments: block.input
+            arguments: block.input,
           });
         } catch (error) {
           console.error('Error processing Anthropic tool call:', error);
@@ -80,7 +76,7 @@ export class AnthropicToolCallingHandler implements ToolCallingHandler {
 
     return {
       toolCalls,
-      responseMessage
+      responseMessage,
     };
   }
 
@@ -98,27 +94,27 @@ export class AnthropicToolCallingHandler implements ToolCallingHandler {
       toolCallId?: string;
       name?: string;
     }>,
-    toolResults: ToolCallResult[]
+    toolResults: ToolCallResult[],
   ): any {
     // For Anthropic, we need to create a new set of messages
     const messages = [...conversation];
-    
+
     // Add tool results for each tool call
-    toolResults.forEach(result => {
+    toolResults.forEach((result) => {
       messages.push({
         role: 'assistant',
         content: null,
         toolCallId: result.toolName, // Using toolName as ID for simplicity
-        name: result.toolName
+        name: result.toolName,
       });
-      
+
       messages.push({
         role: 'tool',
         content: typeof result.result === 'string' ? result.result : JSON.stringify(result.result),
-        name: result.toolName
+        name: result.toolName,
       });
     });
-    
+
     return messages;
   }
 }

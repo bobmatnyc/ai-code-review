@@ -1,17 +1,13 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
+import { getModelsByProvider, MODEL_MAP, type Provider } from '../clients/utils/modelMaps';
 import {
-  getModelsByProvider,
-  MODEL_MAP,
-  Provider
-} from '../clients/utils/modelMaps';
-import {
-  testGeminiModel,
   testAnthropicModel,
+  testGeminiModel,
   testOpenAIModel,
-  testOpenRouterModel
+  testOpenRouterModel,
 } from '../clients/utils/modelTester';
 import logger from '../utils/logger';
 
@@ -22,13 +18,10 @@ export const testModelCommand = new Command('model-test')
   .description('Test AI models to verify API keys and model availability')
   .argument(
     '[provider:model]',
-    'Provider and model to test (e.g. gemini:gemini-1.5-pro, anthropic:claude-3-opus)'
+    'Provider and model to test (e.g. gemini:gemini-1.5-pro, anthropic:claude-3-opus)',
   )
   .option('--all', 'Test all available models')
-  .option(
-    '-p, --provider <provider>',
-    'Test all models for a specific provider'
-  )
+  .option('-p, --provider <provider>', 'Test all models for a specific provider')
   .action(async (modelStr, options) => {
     try {
       if (options.all) {
@@ -63,7 +56,7 @@ async function testSpecificModel(modelStr: string): Promise<void> {
 
   if (!provider || !modelName) {
     logger.error(
-      'Invalid model string. Format should be provider:model (e.g. gemini:gemini-1.5-pro)'
+      'Invalid model string. Format should be provider:model (e.g. gemini:gemini-1.5-pro)',
     );
     return;
   }
@@ -77,7 +70,7 @@ async function testSpecificModel(modelStr: string): Promise<void> {
   }
 
   logger.info(
-    `Testing model: ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(fullModelKey)})`
+    `Testing model: ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(fullModelKey)})`,
   );
 
   let result;
@@ -120,14 +113,12 @@ async function testAllModels(): Promise<void> {
 
   for (const provider of providers) {
     const modelKeys = getModelsByProvider(provider);
-    logger.info(
-      chalk.bold(`\nTesting ${modelKeys.length} ${provider} models:`)
-    );
+    logger.info(chalk.bold(`\nTesting ${modelKeys.length} ${provider} models:`));
 
     for (const modelKey of modelKeys) {
       const modelMapping = MODEL_MAP[modelKey];
       process.stdout.write(
-        `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `
+        `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `,
       );
 
       let result;
@@ -150,7 +141,7 @@ async function testAllModels(): Promise<void> {
         provider,
         modelKey,
         displayName: modelMapping.displayName,
-        result
+        result,
       });
 
       if (result.success) {
@@ -162,7 +153,7 @@ async function testAllModels(): Promise<void> {
   }
 
   // Print summary
-  const successful = results.filter(r => r.result.success).length;
+  const successful = results.filter((r) => r.result.success).length;
   const failed = results.length - successful;
 
   logger.info(chalk.bold('\nSummary:'));
@@ -172,10 +163,10 @@ async function testAllModels(): Promise<void> {
   if (failed > 0) {
     logger.info(chalk.bold('\nFailed models:'));
     results
-      .filter(r => !r.result.success)
-      .forEach(r => {
+      .filter((r) => !r.result.success)
+      .forEach((r) => {
         logger.info(
-          `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.result.message)}`
+          `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.result.message)}`,
         );
       });
   }
@@ -198,9 +189,7 @@ async function testProviderModels(providerStr: string) {
 
   for (const modelKey of modelKeys) {
     const modelMapping = MODEL_MAP[modelKey];
-    process.stdout.write(
-      `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `
-    );
+    process.stdout.write(`  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `);
 
     let result;
     switch (provider) {
@@ -221,7 +210,7 @@ async function testProviderModels(providerStr: string) {
     results.push({
       modelKey,
       displayName: modelMapping.displayName,
-      result
+      result,
     });
 
     if (result.success) {
@@ -232,7 +221,7 @@ async function testProviderModels(providerStr: string) {
   }
 
   // Print summary
-  const successful = results.filter(r => r.result.success).length;
+  const successful = results.filter((r) => r.result.success).length;
   const failed = results.length - successful;
 
   logger.info(chalk.bold('\nSummary:'));
@@ -242,10 +231,10 @@ async function testProviderModels(providerStr: string) {
   if (failed > 0) {
     logger.info(chalk.bold('\nFailed models:'));
     results
-      .filter(r => !r.result.success)
-      .forEach(r => {
+      .filter((r) => !r.result.success)
+      .forEach((r) => {
         logger.info(
-          `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.result.message)}`
+          `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.result.message)}`,
         );
       });
   }
@@ -268,7 +257,7 @@ async function testDefaultModels() {
     const modelMapping = MODEL_MAP[defaultModelKey];
 
     process.stdout.write(
-      `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(defaultModelKey)})... `
+      `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(defaultModelKey)})... `,
     );
 
     let result;
@@ -291,7 +280,7 @@ async function testDefaultModels() {
       provider,
       modelKey: defaultModelKey,
       displayName: modelMapping.displayName,
-      result
+      result,
     });
 
     if (result.success) {
@@ -302,7 +291,7 @@ async function testDefaultModels() {
   }
 
   // Print summary
-  const successful = results.filter(r => r.result.success).length;
+  const successful = results.filter((r) => r.result.success).length;
   const failed = results.length - successful;
 
   logger.info(chalk.bold('\nSummary:'));
@@ -312,11 +301,9 @@ async function testDefaultModels() {
   if (failed > 0) {
     logger.info(chalk.bold('\nUnavailable providers:'));
     results
-      .filter(r => !r.result.success)
-      .forEach(r => {
-        logger.info(
-          `  ${chalk.cyan(r.provider)}: ${chalk.red(r.result.message)}`
-        );
+      .filter((r) => !r.result.success)
+      .forEach((r) => {
+        logger.info(`  ${chalk.cyan(r.provider)}: ${chalk.red(r.result.message)}`);
       });
   }
 }

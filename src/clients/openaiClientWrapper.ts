@@ -5,15 +5,10 @@
  * This wrapper maintains backward compatibility while using the modern client architecture.
  */
 
-import {
-  ReviewType,
-  ReviewOptions,
-  ReviewResult,
-  FileInfo
-} from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
-import { OpenAIClient } from './implementations/openaiClient';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
 import logger from '../utils/logger';
+import type { ProjectDocs } from '../utils/projectDocs';
+import { OpenAIClient } from './implementations/openaiClient';
 
 // Create a singleton instance of the OpenAI client
 let openaiClientInstance: OpenAIClient | null = null;
@@ -57,22 +52,16 @@ export async function generateOpenAIConsolidatedReview(
   project: string,
   reviewType: ReviewType,
   projectDocs: ProjectDocs | null,
-  options: ReviewOptions
+  options: ReviewOptions,
 ): Promise<ReviewResult> {
   const client = getClientInstance();
-  
+
   // Ensure client is initialized
   if (!client.getIsInitialized()) {
     await client.initialize();
   }
-  
-  return client.generateConsolidatedReview(
-    fileInfos,
-    project,
-    reviewType,
-    projectDocs,
-    options
-  );
+
+  return client.generateConsolidatedReview(fileInfos, project, reviewType, projectDocs, options);
 }
 
 /**
@@ -89,22 +78,16 @@ export async function generateOpenAIReview(
   filePath: string,
   reviewType: ReviewType,
   projectDocs?: ProjectDocs | null,
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): Promise<ReviewResult> {
   const client = getClientInstance();
-  
+
   // Ensure client is initialized
   if (!client.getIsInitialized()) {
     await client.initialize();
   }
-  
-  return client.generateReview(
-    fileContent,
-    filePath,
-    reviewType,
-    projectDocs,
-    options
-  );
+
+  return client.generateReview(fileContent, filePath, reviewType, projectDocs, options);
 }
 
 /**
@@ -119,19 +102,14 @@ export async function generateOpenAIArchitecturalReview(
   fileInfos: FileInfo[],
   project: string,
   projectDocs: ProjectDocs | null,
-  options: ReviewOptions
+  options: ReviewOptions,
 ): Promise<ReviewResult> {
   const client = getClientInstance();
-  
+
   // Ensure client is initialized
   if (!client.getIsInitialized()) {
     await client.initialize();
   }
-  
-  return client.generateArchitecturalReview(
-    fileInfos,
-    project,
-    projectDocs,
-    options
-  );
+
+  return client.generateArchitecturalReview(fileInfos, project, projectDocs, options);
 }

@@ -5,14 +5,12 @@
  * for more effective unused code detection and analysis.
  */
 
-import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
+import { FewShotPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
+import logger from '../../utils/logger';
 import { PromptManager } from '../PromptManager';
 // import { PromptStrategyFactory } from '../strategies/PromptStrategyFactory';
 // import { PromptCache } from '../cache/PromptCache';
-import {
-  getImprovedUnusedCodeReviewFormatInstructions
-} from '../schemas/improved-unused-code-schema';
-import logger from '../../utils/logger';
+import { getImprovedUnusedCodeReviewFormatInstructions } from '../schemas/improved-unused-code-schema';
 
 // Sample code with various unused code patterns
 const typescriptSampleWithUnusedCode = `
@@ -176,18 +174,16 @@ async function improvedUnusedCodeExample() {
       promptStrategy: 'langchain',
       type: 'unused-code',
       includeTests: false,
-      output: 'markdown'
+      output: 'markdown',
     });
   } catch (error) {
-    logger.warn(
-      'Could not find improved prompt template, using standard template'
-    );
+    logger.warn('Could not find improved prompt template, using standard template');
     rawPrompt = await promptManager.getPromptTemplate('unused-code', {
       language: 'typescript',
       promptStrategy: 'langchain',
       type: 'unused-code',
       includeTests: false,
-      output: 'markdown'
+      output: 'markdown',
     });
   }
 
@@ -221,7 +217,7 @@ function calculateTotal(items) {
 This code contains:
 1. An unused variable 'tax' declared but never used
 2. Commented out code block that should be removed or implemented
-      `
+      `,
     },
     {
       code: `
@@ -242,15 +238,14 @@ function fetchData(url) {
 This code contains:
 1. A dead code path because 'useNewApi' is always true
 2. The entire if branch is unreachable and should be removed
-      `
-    }
+      `,
+    },
   ];
 
   // Create an example template
   const exampleTemplate = new PromptTemplate({
-    template:
-      'Code example:\n```typescript\n{code}\n```\n\nAnalysis:\n{analysis}',
-    inputVariables: ['code', 'analysis']
+    template: 'Code example:\n```typescript\n{code}\n```\n\nAnalysis:\n{analysis}',
+    inputVariables: ['code', 'analysis'],
   });
 
   // Create a few-shot prompt template
@@ -261,24 +256,19 @@ This code contains:
     examplePrompt: exampleTemplate,
     suffix:
       'Now, analyze the following TypeScript code for unused patterns, using the same structured approach as in the examples:\n\nCode to analyze:\n```typescript\n{CODE}\n```\n\n{{SCHEMA_INSTRUCTIONS}}',
-    inputVariables: ['CODE', 'SCHEMA_INSTRUCTIONS']
+    inputVariables: ['CODE', 'SCHEMA_INSTRUCTIONS'],
   });
 
   // Format the few-shot prompt with our sample code
   const formattedFewShotPrompt = await fewShotPromptTemplate.format({
     CODE: typescriptSampleWithUnusedCode,
-    SCHEMA_INSTRUCTIONS: formatInstructions
+    SCHEMA_INSTRUCTIONS: formatInstructions,
   });
 
   // Create a standard prompt template for comparison
   const standardTemplate = new PromptTemplate({
     template: rawPrompt,
-    inputVariables: [
-      'CODE',
-      'LANGUAGE',
-      'SCHEMA_INSTRUCTIONS',
-      'LANGUAGE_INSTRUCTIONS'
-    ]
+    inputVariables: ['CODE', 'LANGUAGE', 'SCHEMA_INSTRUCTIONS', 'LANGUAGE_INSTRUCTIONS'],
   });
 
   // Format the standard prompt
@@ -287,15 +277,11 @@ This code contains:
     LANGUAGE: 'TypeScript',
     SCHEMA_INSTRUCTIONS: formatInstructions,
     LANGUAGE_INSTRUCTIONS:
-      'This code is written in TypeScript. Please provide language-specific advice for identifying and removing unused TypeScript code.'
+      'This code is written in TypeScript. Please provide language-specific advice for identifying and removing unused TypeScript code.',
   });
 
-  logger.info(
-    'Improved LangChain-based Few-Shot Prompt for Unused Code Review:'
-  );
-  logger.info(
-    '----------------------------------------------------------------'
-  );
+  logger.info('Improved LangChain-based Few-Shot Prompt for Unused Code Review:');
+  logger.info('----------------------------------------------------------------');
   logger.info(formattedFewShotPrompt.substring(0, 500) + '...');
 
   logger.info('\nStandard Prompt for Unused Code Review:');
@@ -316,54 +302,52 @@ This code contains:
             file: 'UserProfile.tsx',
             lineStart: 40,
             lineEnd: 56,
-            codeSnippet: 'if (!USE_NEW_API) { ... }'
+            codeSnippet: 'if (!USE_NEW_API) { ... }',
           },
           assessment: {
             confidence: 'high',
             reasoning:
               'USE_NEW_API is explicitly set to true as a constant and never modified anywhere in the code.',
             staticAnalysisHint:
-              "ESLint's no-unreachable rule could detect this with proper configuration."
+              "ESLint's no-unreachable rule could detect this with proper configuration.",
           },
           suggestedAction: {
             action: 'remove',
             replacement:
               '// Remove the if/else and keep only the code in the else block\nconst result = await fetchData(`/api/v2/users/${userId}`);\nsetUserData(result);',
             explanation:
-              'Since USE_NEW_API is always true, we can remove the conditional and keep only the code in the else block.'
+              'Since USE_NEW_API is always true, we can remove the conditional and keep only the code in the else block.',
           },
           riskLevel: 'low',
           impactLevel: 'high',
           category: 'unreachableCode',
-          relatedChecks: [
-            'Check if USE_NEW_API is modified elsewhere in the codebase'
-          ]
-        }
+          relatedChecks: ['Check if USE_NEW_API is modified elsewhere in the codebase'],
+        },
       ],
       // Additional sections omitted for brevity
       summary:
         'The code contains multiple instances of unused, redundant, and dead code that can be safely removed to improve maintainability and performance.',
       recommendations: [
         'Use ESLint with the @typescript-eslint/no-unused-vars rule to automatically detect unused variables',
-        'Enable TypeScript compiler options like noUnusedLocals and noUnusedParameters'
+        'Enable TypeScript compiler options like noUnusedLocals and noUnusedParameters',
       ],
       codebasePatterns: [
         {
           pattern: 'Feature flags as constants',
           impact: 'Creates dead code paths when set to constant values',
           suggestion:
-            'Use environment variables or configuration objects for feature flags instead of hard-coded constants'
-        }
+            'Use environment variables or configuration objects for feature flags instead of hard-coded constants',
+        },
       ],
       recommendedTools: [
         {
           tool: 'ESLint',
           description: 'Static code analysis tool',
           configuration:
-            '{\n  "rules": {\n    "@typescript-eslint/no-unused-vars": "error",\n    "no-unreachable": "error"\n  }\n}'
-        }
-      ]
-    }
+            '{\n  "rules": {\n    "@typescript-eslint/no-unused-vars": "error",\n    "no-unreachable": "error"\n  }\n}',
+        },
+      ],
+    },
   };
 }
 

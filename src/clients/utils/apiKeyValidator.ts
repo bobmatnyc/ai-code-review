@@ -12,16 +12,11 @@ import logger from '../../utils/logger';
  * @param isDebugMode Whether debug mode is enabled
  * @returns True if the API key is valid, false otherwise
  */
-export function validateAnthropicApiKey(
-  apiKey: string | undefined,
-  isDebugMode: boolean = false
-): boolean {
+export function validateAnthropicApiKey(apiKey: string | undefined, isDebugMode = false): boolean {
   if (!apiKey) {
     logger.error('No Anthropic API key found.');
     logger.error('Please add the following to your .env file:');
-    logger.error(
-      '- AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here'
-    );
+    logger.error('- AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here');
     return false;
   }
 
@@ -38,10 +33,7 @@ export function validateAnthropicApiKey(
  * @param isDebugMode Whether debug mode is enabled
  * @returns True if the API key is valid, false otherwise
  */
-export function validateGoogleApiKey(
-  apiKey: string | undefined,
-  isDebugMode: boolean = false
-): boolean {
+export function validateGoogleApiKey(apiKey: string | undefined, isDebugMode = false): boolean {
   if (!apiKey) {
     logger.error('No Google API key found.');
     logger.error('Please add the following to your .env file:');
@@ -62,16 +54,11 @@ export function validateGoogleApiKey(
  * @param isDebugMode Whether debug mode is enabled
  * @returns True if the API key is valid, false otherwise
  */
-export function validateOpenRouterApiKey(
-  apiKey: string | undefined,
-  isDebugMode: boolean = false
-): boolean {
+export function validateOpenRouterApiKey(apiKey: string | undefined, isDebugMode = false): boolean {
   if (!apiKey) {
     logger.error('No OpenRouter API key found.');
     logger.error('Please add the following to your .env file:');
-    logger.error(
-      '- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here'
-    );
+    logger.error('- AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here');
     return false;
   }
 
@@ -88,10 +75,7 @@ export function validateOpenRouterApiKey(
  * @param isDebugMode Whether debug mode is enabled
  * @returns True if the API key is valid, false otherwise
  */
-export function validateOpenAIApiKey(
-  apiKey: string | undefined,
-  isDebugMode: boolean = false
-): boolean {
+export function validateOpenAIApiKey(apiKey: string | undefined, isDebugMode = false): boolean {
   if (!apiKey) {
     logger.error('No OpenAI API key found.');
     logger.error('Please add the following to your .env file:');

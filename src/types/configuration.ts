@@ -10,7 +10,7 @@ import { z } from 'zod';
 /**
  * Environment source for a configuration value
  */
-export type EnvSource = 
+export type EnvSource =
   // Primary environment variables
   | 'AI_CODE_REVIEW_GOOGLE_API_KEY'
   | 'AI_CODE_REVIEW_OPENROUTER_API_KEY'
@@ -127,22 +127,22 @@ export interface ApplicationConfig {
   apiKeys: ApiKeysConfig;
   apiEndpoints: ApiEndpointsConfig;
   apiVersions: ApiVersionsConfig;
-  
+
   // Model configuration
   selectedModel: ConfigValue<string>;
   writerModel?: ConfigValue<string>;
   modelProvider: ConfigValue<ApiProvider>;
-  
+
   // Logging and debugging
   debug: ConfigValue<boolean>;
   logLevel: ConfigValue<LogLevel>;
-  
+
   // File system
   paths: PathsConfig;
-  
+
   // Rate limiting and performance
   rateLimit: RateLimitConfig;
-  
+
   // Token management
   tokens: TokenConfig;
 }
@@ -157,51 +157,53 @@ export const applicationConfigSchema = z.object({
     anthropic: z.object({ value: z.string().optional(), source: z.string() }).optional(),
     openai: z.object({ value: z.string().optional(), source: z.string() }).optional(),
   }),
-  
+
   apiEndpoints: z.object({
     gemini: z.object({ value: z.string(), source: z.string() }),
     openRouter: z.object({ value: z.string(), source: z.string() }),
     anthropic: z.object({ value: z.string(), source: z.string() }),
     openai: z.object({ value: z.string(), source: z.string() }),
   }),
-  
+
   apiVersions: z.object({
     gemini: z.object({ value: z.string(), source: z.string() }),
     openRouter: z.object({ value: z.string(), source: z.string() }),
     anthropic: z.object({ value: z.string(), source: z.string() }),
     openai: z.object({ value: z.string(), source: z.string() }),
   }),
-  
+
   selectedModel: z.object({ value: z.string(), source: z.string() }),
   writerModel: z.object({ value: z.string(), source: z.string() }).optional(),
-  modelProvider: z.object({ 
+  modelProvider: z.object({
     value: z.enum(['gemini', 'openrouter', 'anthropic', 'openai']),
-    source: z.string()
+    source: z.string(),
   }),
-  
+
   debug: z.object({ value: z.boolean(), source: z.string() }),
-  logLevel: z.object({ 
-    value: z.enum(['debug', 'info', 'warn', 'error', 'none']), 
-    source: z.string() 
+  logLevel: z.object({
+    value: z.enum(['debug', 'info', 'warn', 'error', 'none']),
+    source: z.string(),
   }),
-  
+
   paths: z.object({
     outputDir: z.object({ value: z.string(), source: z.string() }),
     promptsDir: z.object({ value: z.string(), source: z.string() }),
     templatesDir: z.object({ value: z.string(), source: z.string() }),
-    contextPaths: z.object({ 
-      value: z.array(z.string()), 
-      source: z.string() 
-    }).optional(),
+    contextPaths: z
+      .object({
+        value: z.array(z.string()),
+        source: z.string(),
+      })
+      .optional(),
   }),
-  
+
   rateLimit: z.object({
     tokensPerSecond: z.object({ value: z.number(), source: z.string() }),
     maxConcurrentRequests: z.object({ value: z.number(), source: z.string() }),
     retryDelayMs: z.object({ value: z.number(), source: z.string() }),
     maxRetries: z.object({ value: z.number(), source: z.string() }),
   }),
-  
+
   tokens: z.object({
     maxTokensPerRequest: z.object({ value: z.number(), source: z.string() }),
     contextWindowSize: z.object({

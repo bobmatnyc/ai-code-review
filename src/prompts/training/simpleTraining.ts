@@ -1,14 +1,15 @@
 #!/usr/bin/env node
+
 /**
  * @fileoverview Simple training script for extract-patterns prompt
- * 
+ *
  * This script demonstrates the training approach without LangChain template issues
  */
 
-import { PATTERN_TRAINING_EXAMPLES } from './patternTrainingExamples';
-import logger from '../../utils/logger';
 import fs from 'fs/promises';
 import path from 'path';
+import logger from '../../utils/logger';
+import { PATTERN_TRAINING_EXAMPLES } from './patternTrainingExamples';
 
 /**
  * Simple training approach without LangChain templates
@@ -19,7 +20,7 @@ async function runSimpleTraining(): Promise<void> {
   // Step 1: Analyze our training examples
   logger.info('\n📚 Step 1: Training Examples Analysis');
   logger.info(`Total training examples: ${PATTERN_TRAINING_EXAMPLES.length}`);
-  
+
   for (let i = 0; i < PATTERN_TRAINING_EXAMPLES.length; i++) {
     const example = PATTERN_TRAINING_EXAMPLES[i];
     logger.info(`\nExample ${i + 1}: ${example.description}`);
@@ -31,7 +32,7 @@ async function runSimpleTraining(): Promise<void> {
   // Step 2: Create few-shot prompt manually
   logger.info('\n🔧 Step 2: Creating Few-Shot Prompt');
   const fewShotPrompt = createManualFewShotPrompt();
-  
+
   // Step 3: Test current prompt effectiveness
   logger.info('\n🧪 Step 3: Testing Current Prompt');
   const currentPromptScore = await evaluateCurrentPrompt();
@@ -124,13 +125,14 @@ async function evaluateCurrentPrompt(): Promise<number> {
   // Simulate evaluation based on our recent successful test
   const metrics = {
     patternIdentification: 9, // Successfully identified Factory, Strategy, Decorator patterns
-    quantitativeMetrics: 8,   // Provided file size distributions, type metrics
-    structuredOutput: 9,      // Followed exact format requirements
-    codeExamples: 8,         // Included specific code examples
-    qualityAssessment: 8     // Provided quality ratings for patterns
+    quantitativeMetrics: 8, // Provided file size distributions, type metrics
+    structuredOutput: 9, // Followed exact format requirements
+    codeExamples: 8, // Included specific code examples
+    qualityAssessment: 8, // Provided quality ratings for patterns
   };
 
-  const averageScore = Object.values(metrics).reduce((sum, score) => sum + score, 0) / Object.values(metrics).length;
+  const averageScore =
+    Object.values(metrics).reduce((sum, score) => sum + score, 0) / Object.values(metrics).length;
   return Math.round(averageScore * 10) / 10;
 }
 
@@ -181,12 +183,14 @@ From our latest test on \`src/clients/implementations/openaiClient.ts\`:
 
 ## Training Examples Analysis
 
-${PATTERN_TRAINING_EXAMPLES.map((example, index) => `
+${PATTERN_TRAINING_EXAMPLES.map(
+  (example, index) => `
 ### Example ${index + 1}: ${example.description}
 - **Expected Patterns**: ${example.expectedPatterns.designPatterns.length} design patterns
 - **Code Metrics**: ${example.expectedPatterns.codeMetrics.averageFileSize} avg file size, ${example.expectedPatterns.codeMetrics.complexityLevel} complexity
 - **Composition**: ${example.expectedPatterns.compositionRatios.originalCodePercentage}% original, ${example.expectedPatterns.compositionRatios.libraryCodePercentage}% library
-`).join('')}
+`,
+).join('')}
 
 ## Recommendations for Further Improvement
 

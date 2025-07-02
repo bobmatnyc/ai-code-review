@@ -1,6 +1,6 @@
 /**
  * @fileoverview Training examples for extract-patterns prompt optimization
- * 
+ *
  * These examples demonstrate the specific patterns we want the AI to identify:
  * - Design patterns (Factory, Strategy, Observer, Dispatch models)
  * - Code structure metrics (file sizes, function sizes, inheritance)
@@ -8,7 +8,7 @@
  * - Architectural patterns and implementation patterns
  */
 
-import { PatternTrainingExample } from './ExtractPatternsTrainer';
+import type { PatternTrainingExample } from './ExtractPatternsTrainer';
 
 /**
  * Example 1: Factory Pattern with Strategy Pattern
@@ -84,29 +84,30 @@ export class CodeReviewer {
       'Factory Pattern - ApiClientFactory creates different client types',
       'Strategy Pattern - ReviewStrategy interface with multiple implementations',
       'Singleton Pattern - Client caching in factory',
-      'Template Method Pattern - buildArchitecturalPrompt as template method'
+      'Template Method Pattern - buildArchitecturalPrompt as template method',
     ],
     architecturalPatterns: [
       'Layered Architecture - Factory -> Strategy -> Client layers',
       'Plugin Architecture - Extensible review strategies',
-      'Dependency Injection - Strategy receives client via constructor'
+      'Dependency Injection - Strategy receives client via constructor',
     ],
     codeMetrics: {
       averageFileSize: 32, // (45 + 35 + 15) / 3
       averageFunctionSize: 8, // Estimated average
-      complexityLevel: 'medium'
+      complexityLevel: 'medium',
     },
     compositionRatios: {
       originalCodePercentage: 95, // Mostly original business logic
-      libraryCodePercentage: 5   // Minimal external dependencies
+      libraryCodePercentage: 5, // Minimal external dependencies
     },
     implementationPatterns: [
       'Interface Segregation - Single-purpose ReviewStrategy interface',
       'Composition over Inheritance - Strategy composition rather than inheritance',
-      'Dependency Inversion - Depends on ApiClient abstraction'
-    ]
+      'Dependency Inversion - Depends on ApiClient abstraction',
+    ],
   },
-  description: 'Classic example showing Factory + Strategy patterns with clean separation of concerns'
+  description:
+    'Classic example showing Factory + Strategy patterns with clean separation of concerns',
 };
 
 /**
@@ -188,29 +189,29 @@ export class ReviewEventSystem {
       'Observer Pattern - EventDispatcher with subscribe/dispatch mechanism',
       'Command Pattern - Event dispatch as command execution',
       'Chain of Responsibility - Middleware processing chain',
-      'Facade Pattern - ReviewEventSystem as facade over EventDispatcher'
+      'Facade Pattern - ReviewEventSystem as facade over EventDispatcher',
     ],
     architecturalPatterns: [
       'Event-Driven Architecture - Decoupled communication via events',
       'Middleware Pattern - Pluggable event processing',
-      'Publish-Subscribe Pattern - Event subscription system'
+      'Publish-Subscribe Pattern - Event subscription system',
     ],
     codeMetrics: {
       averageFileSize: 53, // (65 + 40) / 2
       averageFunctionSize: 12, // Estimated average
-      complexityLevel: 'medium'
+      complexityLevel: 'medium',
     },
     compositionRatios: {
       originalCodePercentage: 90, // Custom event system implementation
-      libraryCodePercentage: 10  // Basic Promise/Map usage
+      libraryCodePercentage: 10, // Basic Promise/Map usage
     },
     implementationPatterns: [
       'Composition Pattern - EventDispatcher composed into ReviewEventSystem',
       'Error Handling Pattern - Safe execution with try/catch',
-      'Resource Management - Unsubscribe function returns for cleanup'
-    ]
+      'Resource Management - Unsubscribe function returns for cleanup',
+    ],
   },
-  description: 'Event-driven system showing Observer pattern with middleware and error handling'
+  description: 'Event-driven system showing Observer pattern with middleware and error handling',
 };
 
 /**
@@ -311,30 +312,30 @@ export class OpenAIClient extends CacheMixin(MetricsMixin(BaseClient)) {
       'Template Method Pattern - BaseClient with abstract makeRequest',
       'Mixin Pattern - CacheMixin and MetricsMixin for cross-cutting concerns',
       'Decorator Pattern - Mixins decorating base functionality',
-      'Strategy Pattern - Different client implementations'
+      'Strategy Pattern - Different client implementations',
     ],
     architecturalPatterns: [
       'Inheritance Hierarchy - BaseClient -> Mixed -> OpenAIClient (3 levels)',
       'Cross-cutting Concerns - Caching and metrics as mixins',
-      'Layered Architecture - Base -> Mixins -> Concrete implementation'
+      'Layered Architecture - Base -> Mixins -> Concrete implementation',
     ],
     codeMetrics: {
       averageFileSize: 102, // (120 + 85) / 2 (excluding mixin definitions)
       averageFunctionSize: 15, // Larger functions due to implementation details
-      complexityLevel: 'high'
+      complexityLevel: 'high',
     },
     compositionRatios: {
       originalCodePercentage: 85, // Complex custom client implementation
-      libraryCodePercentage: 15  // External API calls, Map, Date usage
+      libraryCodePercentage: 15, // External API calls, Map, Date usage
     },
     implementationPatterns: [
       'Multiple Inheritance via Mixins - TypeScript mixin pattern',
       'Abstract Base Class - BaseClient defines contract',
       'Protected Interface - Protected methods for subclass access',
-      'Generic Constraints - Constructor type constraints in mixins'
-    ]
+      'Generic Constraints - Constructor type constraints in mixins',
+    ],
   },
-  description: 'Complex inheritance hierarchy with mixins showing advanced TypeScript patterns'
+  description: 'Complex inheritance hierarchy with mixins showing advanced TypeScript patterns',
 };
 
 /**
@@ -343,25 +344,27 @@ export class OpenAIClient extends CacheMixin(MetricsMixin(BaseClient)) {
 export const PATTERN_TRAINING_EXAMPLES: PatternTrainingExample[] = [
   factoryStrategyExample,
   observerDispatchExample,
-  inheritanceMixinExample
+  inheritanceMixinExample,
 ];
 
 /**
  * Get examples by pattern type
  */
 export function getExamplesByPattern(patternType: string): PatternTrainingExample[] {
-  return PATTERN_TRAINING_EXAMPLES.filter(example =>
-    example.expectedPatterns.designPatterns.some(pattern =>
-      pattern.toLowerCase().includes(patternType.toLowerCase())
-    )
+  return PATTERN_TRAINING_EXAMPLES.filter((example) =>
+    example.expectedPatterns.designPatterns.some((pattern) =>
+      pattern.toLowerCase().includes(patternType.toLowerCase()),
+    ),
   );
 }
 
 /**
  * Get examples by complexity level
  */
-export function getExamplesByComplexity(level: 'low' | 'medium' | 'high'): PatternTrainingExample[] {
-  return PATTERN_TRAINING_EXAMPLES.filter(example =>
-    example.expectedPatterns.codeMetrics.complexityLevel === level
+export function getExamplesByComplexity(
+  level: 'low' | 'medium' | 'high',
+): PatternTrainingExample[] {
+  return PATTERN_TRAINING_EXAMPLES.filter(
+    (example) => example.expectedPatterns.codeMetrics.complexityLevel === level,
   );
 }

@@ -6,20 +6,29 @@
  * consolidated reviews across multiple files, and architectural reviews.
  */
 
-import { ApiError } from '../../utils/apiErrorHandler';
-import logger from '../../utils/logger';
-import { ProjectDocs } from '../../utils/projectDocs';
-import { getCostInfoFromText } from '../utils/tokenCounter';
-import {
-  ReviewType,
+import type {
+  CostInfo,
+  FileInfo,
   ReviewOptions,
   ReviewResult,
-  CostInfo,
-  FileInfo
+  ReviewType,
 } from '../../types/review';
-import { loadPromptTemplate, formatSingleFileReviewPrompt, formatConsolidatedReviewPrompt } from '../utils';
+import { ApiError } from '../../utils/apiErrorHandler';
+import logger from '../../utils/logger';
+import type { ProjectDocs } from '../../utils/projectDocs';
+import {
+  formatConsolidatedReviewPrompt,
+  formatSingleFileReviewPrompt,
+  loadPromptTemplate,
+} from '../utils';
+import { getCostInfoFromText } from '../utils/tokenCounter';
 import { makeAnthropicRequest } from './anthropicApiClient';
-import { getApiModelName, parseJsonResponse, isAnthropicModel, initializeAnthropicClient } from './anthropicModelHelpers';
+import {
+  getApiModelName,
+  initializeAnthropicClient,
+  isAnthropicModel,
+  parseJsonResponse,
+} from './anthropicModelHelpers';
 
 /**
  * System prompt for structured review output
@@ -69,7 +78,7 @@ export async function generateAnthropicReview(
   filePath: string,
   reviewType: ReviewType,
   projectDocs?: ProjectDocs | null,
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): Promise<ReviewResult> {
   const { isCorrect, adapter, modelName } = isAnthropicModel();
 
@@ -78,7 +87,7 @@ export async function generateAnthropicReview(
   if (!isCorrect) {
     throw new Error(
       `Anthropic client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-        `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`,
     );
   }
 
@@ -100,7 +109,7 @@ export async function generateAnthropicReview(
       promptTemplate,
       fileContent,
       filePath,
-      projectDocs
+      projectDocs,
     );
 
     try {
@@ -108,17 +117,17 @@ export async function generateAnthropicReview(
 
       // Get the API model name
       const apiModelName = await getApiModelName(modelName);
-      
+
       // Make the API request (null check handled by validateApiKey)
       if (!apiKey) {
         throw new Error('Anthropic API key is missing');
       }
-      
+
       const data = await makeAnthropicRequest(
         apiKey,
         apiModelName,
         STRUCTURED_REVIEW_SYSTEM_PROMPT,
-        userPrompt
+        userPrompt,
       );
 
       if (data.content && data.content.length > 0) {
@@ -135,22 +144,21 @@ export async function generateAnthropicReview(
         logger.warn(
           `Failed to calculate cost information: ${
             error instanceof Error ? error.message : String(error)
-          }`
+          }`,
         );
       }
-      
+
       // Try to parse the response as JSON
       structuredData = parseJsonResponse(content);
     } catch (error) {
       if (error instanceof ApiError) {
         throw error; // Already has context
-      } else {
-        throw new ApiError(
-          `Failed to generate review with Anthropic ${modelName}: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
       }
+      throw new ApiError(
+        `Failed to generate review with Anthropic ${modelName}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
     }
 
     // Return the review result
@@ -162,13 +170,13 @@ export async function generateAnthropicReview(
       filePath,
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData
+      structuredData,
     };
   } catch (error) {
     logger.error(
       `Error generating review for ${filePath}: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
 
     throw error;
@@ -189,7 +197,7 @@ export async function generateAnthropicConsolidatedReview(
   projectName: string,
   reviewType: ReviewType,
   projectDocs?: ProjectDocs | null,
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): Promise<ReviewResult> {
   const { isCorrect, adapter, modelName } = isAnthropicModel();
 
@@ -198,7 +206,7 @@ export async function generateAnthropicConsolidatedReview(
   if (!isCorrect) {
     throw new Error(
       `Anthropic client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-        `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`,
     );
   }
 
@@ -216,12 +224,11 @@ export async function generateAnthropicConsolidatedReview(
     const promptTemplate = await loadPromptTemplate(reviewType, options);
 
     // Prepare file summaries for the consolidated review
-    const fileInfos = files.map(file => ({
+    const fileInfos = files.map((file) => ({
       relativePath: file.relativePath,
       content:
-        file.content.substring(0, 1000) +
-        (file.content.length > 1000 ? '\n... (truncated)' : ''),
-      sizeInBytes: file.content.length
+        file.content.substring(0, 1000) + (file.content.length > 1000 ? '\n... (truncated)' : ''),
+      sizeInBytes: file.content.length,
     }));
 
     // Format the user prompt using the utility function
@@ -229,7 +236,7 @@ export async function generateAnthropicConsolidatedReview(
       promptTemplate,
       projectName,
       fileInfos,
-      projectDocs
+      projectDocs,
     );
 
     try {
@@ -237,17 +244,17 @@ export async function generateAnthropicConsolidatedReview(
 
       // Make the API request
       const apiModelName = await getApiModelName(modelName);
-      
+
       // Ensure API key is present
       if (!apiKey) {
         throw new Error('Anthropic API key is missing');
       }
-      
+
       const data = await makeAnthropicRequest(
         apiKey,
         apiModelName,
         STRUCTURED_REVIEW_SYSTEM_PROMPT,
-        userPrompt
+        userPrompt,
       );
 
       if (data.content && data.content.length > 0) {
@@ -264,7 +271,7 @@ export async function generateAnthropicConsolidatedReview(
         logger.warn(
           `Failed to calculate cost information: ${
             error instanceof Error ? error.message : String(error)
-          }`
+          }`,
         );
       }
 
@@ -274,7 +281,7 @@ export async function generateAnthropicConsolidatedReview(
       throw new Error(
         `Failed to generate consolidated review with Anthropic ${modelName}: ${
           error instanceof Error ? error.message : String(error)
-        }`
+        }`,
       );
     }
 
@@ -287,13 +294,13 @@ export async function generateAnthropicConsolidatedReview(
       filePath: 'consolidated',
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData
+      structuredData,
     };
   } catch (error) {
     logger.error(
       `Error generating consolidated review: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
     throw error;
   }

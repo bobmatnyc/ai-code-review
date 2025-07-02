@@ -7,8 +7,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import type { ReviewType } from '../../types/review';
 import logger from '../../utils/logger';
-import { ReviewType } from '../../types/review';
 
 /**
  * Interface for a cached prompt
@@ -62,9 +62,9 @@ export class PromptCache {
       PromptCache.instance = new PromptCache(cacheDir || defaultCacheDir);
 
       // Initialize the cache
-      PromptCache.instance.initialize().catch(error => {
+      PromptCache.instance.initialize().catch((error) => {
         logger.error(
-          `Error initializing prompt cache: ${error instanceof Error ? error.message : String(error)}`
+          `Error initializing prompt cache: ${error instanceof Error ? error.message : String(error)}`,
         );
       });
     }
@@ -85,7 +85,7 @@ export class PromptCache {
       logger.debug(`Initialized prompt cache in ${this.cacheDir}`);
     } catch (error) {
       logger.error(
-        `Error initializing prompt cache: ${error instanceof Error ? error.message : String(error)}`
+        `Error initializing prompt cache: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -117,14 +117,14 @@ export class PromptCache {
             logger.debug(`Loaded cached prompts from ${filePath}`);
           } catch (error) {
             logger.error(
-              `Error loading cache file ${file}: ${error instanceof Error ? error.message : String(error)}`
+              `Error loading cache file ${file}: ${error instanceof Error ? error.message : String(error)}`,
             );
           }
         }
       }
     } catch (error) {
       logger.error(
-        `Error loading cached prompts: ${error instanceof Error ? error.message : String(error)}`
+        `Error loading cached prompts: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -149,7 +149,7 @@ export class PromptCache {
       logger.debug(`Saved prompt cache to ${filePath}`);
     } catch (error) {
       logger.error(
-        `Error saving prompt cache: ${error instanceof Error ? error.message : String(error)}`
+        `Error saving prompt cache: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -160,18 +160,14 @@ export class PromptCache {
    * @param promptContent Content of the prompt
    * @param rating Rating of the prompt (1-5)
    */
-  async cachePrompt(
-    reviewType: ReviewType,
-    promptContent: string,
-    rating: number
-  ): Promise<void> {
+  async cachePrompt(reviewType: ReviewType, promptContent: string, rating: number): Promise<void> {
     try {
       // Create a cached prompt object
       const cachedPrompt: CachedPrompt = {
         content: promptContent,
         rating,
         timestamp: new Date().toISOString(),
-        usageCount: 0
+        usageCount: 0,
       };
 
       // Get the key for the review type
@@ -195,12 +191,10 @@ export class PromptCache {
       // Save the cache to disk
       await this.saveCacheToDisk();
 
-      logger.debug(
-        `Cached prompt for ${reviewType} review type with rating ${rating}`
-      );
+      logger.debug(`Cached prompt for ${reviewType} review type with rating ${rating}`);
     } catch (error) {
       logger.error(
-        `Error caching prompt: ${error instanceof Error ? error.message : String(error)}`
+        `Error caching prompt: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -230,16 +224,16 @@ export class PromptCache {
       bestPrompt.usageCount++;
 
       // Save the cache to disk
-      this.saveCacheToDisk().catch(error => {
+      this.saveCacheToDisk().catch((error) => {
         logger.error(
-          `Error saving prompt cache: ${error instanceof Error ? error.message : String(error)}`
+          `Error saving prompt cache: ${error instanceof Error ? error.message : String(error)}`,
         );
       });
 
       return bestPrompt;
     } catch (error) {
       logger.error(
-        `Error getting best prompt: ${error instanceof Error ? error.message : String(error)}`
+        `Error getting best prompt: ${error instanceof Error ? error.message : String(error)}`,
       );
       return undefined;
     }
@@ -259,7 +253,7 @@ export class PromptCache {
       return this.memoryCache.get(key) || [];
     } catch (error) {
       logger.error(
-        `Error getting all prompts: ${error instanceof Error ? error.message : String(error)}`
+        `Error getting all prompts: ${error instanceof Error ? error.message : String(error)}`,
       );
       return [];
     }
@@ -283,7 +277,7 @@ export class PromptCache {
       logger.debug(`Cleared cache for ${reviewType} review type`);
     } catch (error) {
       logger.error(
-        `Error clearing cache: ${error instanceof Error ? error.message : String(error)}`
+        `Error clearing cache: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -302,7 +296,7 @@ export class PromptCache {
       logger.debug('Cleared all prompt caches');
     } catch (error) {
       logger.error(
-        `Error clearing all caches: ${error instanceof Error ? error.message : String(error)}`
+        `Error clearing all caches: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

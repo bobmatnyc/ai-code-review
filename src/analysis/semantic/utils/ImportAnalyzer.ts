@@ -1,13 +1,13 @@
 /**
  * @fileoverview Import analysis utilities for semantic analysis
- * 
+ *
  * This module provides functions to extract and analyze import relationships
  * from AST nodes for different programming languages.
  */
 
-import Parser from 'tree-sitter';
+import type Parser from 'tree-sitter';
 import logger from '../../../utils/logger';
-import { ImportRelationship, ImportType } from '../types';
+import type { ImportRelationship, ImportType } from '../types';
 import { traverseNode } from './NodeAnalyzer';
 
 /**
@@ -18,12 +18,12 @@ import { traverseNode } from './NodeAnalyzer';
  * @returns Array of import relationships
  */
 export function extractImports(
-  node: Parser.SyntaxNode, 
-  lines: string[], 
-  language: string
+  node: Parser.SyntaxNode,
+  lines: string[],
+  language: string,
 ): ImportRelationship[] {
   const imports: ImportRelationship[] = [];
-  
+
   traverseNode(node, (child) => {
     if (isImportNode(child, language)) {
       const importRel = createImportRelationship(child, lines);
@@ -32,7 +32,7 @@ export function extractImports(
       }
     }
   });
-  
+
   return imports;
 }
 
@@ -48,9 +48,9 @@ export function isImportNode(node: Parser.SyntaxNode, language: string): boolean
     javascript: ['import_statement', 'import_clause'],
     python: ['import_statement', 'import_from_statement'],
     ruby: ['call'], // require statements
-    php: ['include_expression', 'require_expression']
+    php: ['include_expression', 'require_expression'],
   };
-  
+
   return importTypes[language]?.includes(node.type) || false;
 }
 
@@ -61,8 +61,8 @@ export function isImportNode(node: Parser.SyntaxNode, language: string): boolean
  * @returns Import relationship or null if creation fails
  */
 export function createImportRelationship(
-  node: Parser.SyntaxNode, 
-  _lines: string[]
+  node: Parser.SyntaxNode,
+  _lines: string[],
 ): ImportRelationship | null {
   try {
     return {
@@ -70,7 +70,7 @@ export function createImportRelationship(
       from: extractImportSource(node) || 'unknown',
       importType: determineImportType(node),
       line: node.startPosition.row + 1,
-      isUsed: false // TODO: Implement usage analysis
+      isUsed: false, // TODO: Implement usage analysis
     };
   } catch (error) {
     logger.warn(`Failed to create import relationship: ${error}`);
@@ -114,10 +114,10 @@ export function extractImportSource(node: Parser.SyntaxNode): string | null {
  */
 export function determineImportType(node: Parser.SyntaxNode): ImportType {
   const text = node.text;
-  
+
   if (text.includes('* as ')) return 'namespace';
   if (text.includes('import(')) return 'dynamic';
   if (text.includes('{')) return 'named';
-  
+
   return 'default';
 }

@@ -29,7 +29,7 @@ import logger from './logger';
  */
 export async function logError(
   error: unknown,
-  context: Record<string, unknown> = {}
+  context: Record<string, unknown> = {},
 ): Promise<string> {
   try {
     // Create error logs directory
@@ -45,7 +45,7 @@ export async function logError(
       timestamp: new Date().toISOString(),
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      context
+      context,
     };
 
     // Write error to file

@@ -8,10 +8,10 @@
 
 // import { z } from 'zod'; // Not currently used
 import {
-  ReviewSchema,
-  ReviewIssue,
   IssuePriority,
-  reviewSchema
+  type ReviewIssue,
+  type ReviewSchema,
+  reviewSchema,
 } from '../types/reviewSchema';
 import logger from './logger';
 
@@ -29,15 +29,18 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
         // Try to parse directly first - this is the ideal case and should work with the
         // updated model instructions that request structured JSON
         const directJson = JSON.parse(jsonString);
-        
+
         // Validate using Zod schema
         const directValidation = reviewSchema.safeParse(directJson);
         if (directValidation.success) {
           logger.debug('Successfully parsed direct JSON response');
           return directValidation.data;
-        } else if (directJson.review) {
+        }
+        if (directJson.review) {
           // Basic validation passed
-          logger.debug('Direct JSON has review property but failed schema validation, using fallback');
+          logger.debug(
+            'Direct JSON has review property but failed schema validation, using fallback',
+          );
           return directJson as ReviewSchema;
         }
       } catch (e) {
@@ -45,7 +48,7 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
         logger.debug('Direct parsing failed, attempting extraction patterns');
       }
     }
-    
+
     // Step 2: If direct parsing fails, try various extraction patterns
     // Try to extract JSON from the response with improved language marker handling
     // Handle various formats:
@@ -53,23 +56,27 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
     // 2. ```typescript {...}``` or other language markers
     // 3. ```{...}```
     // 4. Plain JSON outside code blocks
-    
+
     // First try to find code blocks with JSON content
     const jsonBlockMatch = jsonString.match(/```(?:json)?\s*({[\s\S]*?})\s*```/);
-    
+
     // If no JSON block, look for any code block (could have typescript or other language marker)
-    const anyCodeBlockMatch = !jsonBlockMatch ? 
-      jsonString.match(/```(?:[\w]*)?[\s\n]*({[\s\S]*?})[\s\n]*```/) : null;
-      
+    const anyCodeBlockMatch = !jsonBlockMatch
+      ? jsonString.match(/```(?:[\w]*)?[\s\n]*({[\s\S]*?})[\s\n]*```/)
+      : null;
+
     // Check for code blocks with language markers that aren't proper JSON
-    const languageBlockRegex = /```(typescript|javascript|js|ts|jsx|tsx|java|python|ruby|go|rust|c|cpp|csharp|php)\s*([\s\S]*?)\s*```/;
-    const languageBlockMatch = !jsonBlockMatch && !anyCodeBlockMatch ?
-      jsonString.match(languageBlockRegex) : null;
-    
+    const languageBlockRegex =
+      /```(typescript|javascript|js|ts|jsx|tsx|java|python|ruby|go|rust|c|cpp|csharp|php)\s*([\s\S]*?)\s*```/;
+    const languageBlockMatch =
+      !jsonBlockMatch && !anyCodeBlockMatch ? jsonString.match(languageBlockRegex) : null;
+
     if (languageBlockMatch) {
       // Don't treat language-specific code blocks as JSON - log a warning
       const language = languageBlockMatch[1];
-      logger.warn(`Found ${language} code block but not valid JSON. Skipping JSON parsing attempt for this block.`);
+      logger.warn(
+        `Found ${language} code block but not valid JSON. Skipping JSON parsing attempt for this block.`,
+      );
       // Return early with null to avoid trying to parse code as JSON
       return null;
     }
@@ -78,14 +85,14 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
     // First look for review patterns - the most likely structure
     const reviewJsonPattern = /({[\s\S]*?"review"[\s\S]*?})/;
     const reviewJsonMatch = jsonString.match(reviewJsonPattern);
-    
+
     // Then fall back to any JSON-like patterns
     const anyJsonPattern = /({[\s\S]*?})/;
     const anyJsonMatch = !reviewJsonMatch ? jsonString.match(anyJsonPattern) : null;
 
     // Determine which match to use
     let jsonContent = jsonString; // default to full string
-    
+
     if (jsonBlockMatch) {
       logger.debug('Found JSON code block, extracting content');
       jsonContent = jsonBlockMatch[1];
@@ -110,12 +117,12 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
       .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
       .replace(/,\s*}/g, '}') // Fix trailing commas that might appear after removing comments
       .replace(/,\s*]/g, ']'); // Fix trailing commas in arrays
-      
+
     // Additional cleanup for specific JSON parsing issues
     jsonContent = jsonContent
       .replace(/([{,])\s*"(\w+)":\s*"([^"]*)",\s*\/\/.*?(?=\n|$)/g, '$1"$2":"$3",') // Clean inline comments after values
       .replace(/([{,])\s*"(\w+)":\s*(\d+),\s*\/\/.*?(?=\n|$)/g, '$1"$2":$3,'); // Clean inline comments after numeric values
-    
+
     // Parse the JSON
     const parsedJson = JSON.parse(jsonContent);
 
@@ -125,21 +132,17 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
     if (validationResult.success) {
       logger.debug('Successfully validated review JSON with Zod schema');
       return validationResult.data;
-    } else {
-      logger.warn(
-        'Failed to validate review JSON schema:',
-        validationResult.error.errors
-      );
-
-      // Fallback to basic validation if the schema doesn't match exactly
-      // This helps with backward compatibility
-      if (parsedJson.review) {
-        logger.warn('Using fallback validation for review JSON');
-        return parsedJson as ReviewSchema;
-      }
-
-      return null;
     }
+    logger.warn('Failed to validate review JSON schema:', validationResult.error.errors);
+
+    // Fallback to basic validation if the schema doesn't match exactly
+    // This helps with backward compatibility
+    if (parsedJson.review) {
+      logger.warn('Using fallback validation for review JSON');
+      return parsedJson as ReviewSchema;
+    }
+
+    return null;
   } catch (error) {
     logger.error('Error parsing review JSON:', error);
     return null;
@@ -176,16 +179,15 @@ export function formatIssueForDisplay(
   issue: ReviewIssue,
   filePath: string,
   fileIndex: number,
-  issueIndex: number
+  issueIndex: number,
 ): string {
   const priorityColors: Record<IssuePriority, string> = {
     [IssuePriority.HIGH]: '\x1b[31m', // Red
     [IssuePriority.MEDIUM]: '\x1b[33m', // Yellow
-    [IssuePriority.LOW]: '\x1b[32m' // Green
+    [IssuePriority.LOW]: '\x1b[32m', // Green
   };
 
-  const priorityColor =
-    priorityColors[issue.priority as IssuePriority] || '\x1b[37m'; // Default to white
+  const priorityColor = priorityColors[issue.priority as IssuePriority] || '\x1b[37m'; // Default to white
   const reset = '\x1b[0m';
   const bold = '\x1b[1m';
 
@@ -235,12 +237,7 @@ export function displayStructuredReview(parsedReview: ReviewSchema): void {
 
     // Display issues for this file
     file.issues.forEach((issue, issueIndex) => {
-      const formattedIssue = formatIssueForDisplay(
-        issue,
-        file.filePath,
-        fileIndex,
-        issueIndex
-      );
+      const formattedIssue = formatIssueForDisplay(issue, file.filePath, fileIndex, issueIndex);
       logger.info(formattedIssue);
     });
   });

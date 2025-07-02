@@ -7,15 +7,11 @@
  * estimating review-specific token usage patterns.
  */
 
-import path from 'path';
 import fs from 'fs/promises';
-import {
-  estimateTokenCount,
-  formatCost,
-  getCostInfo
-} from '../estimators';
+import path from 'path';
+import { estimateTokenCount, formatCost, getCostInfo } from '../estimators';
+import type { FileInfo } from '../types/review';
 import logger from './logger';
-import { FileInfo } from '../types/review';
 
 /**
  * Ratio of output tokens to input tokens based on empirical observations
@@ -26,7 +22,7 @@ const OUTPUT_TO_INPUT_RATIO = {
   'quick-fixes': 0.8, // Quick fixes often include code snippets
   security: 0.7, // Security reviews are moderately detailed
   performance: 0.7, // Performance reviews are similar to security
-  default: 0.75 // Default ratio if review type is not specified
+  default: 0.75, // Default ratio if review type is not specified
 };
 
 /**
@@ -53,10 +49,7 @@ const MULTI_PASS_OVERHEAD_PER_PASS = 800;
  * @param reviewType Type of review
  * @returns Estimated number of output tokens
  */
-export function estimateOutputTokens(
-  inputTokens: number,
-  reviewType: string
-): number {
+export function estimateOutputTokens(inputTokens: number, reviewType: string): number {
   const ratio =
     OUTPUT_TO_INPUT_RATIO[reviewType as keyof typeof OUTPUT_TO_INPUT_RATIO] ||
     OUTPUT_TO_INPUT_RATIO.default;
@@ -90,8 +83,7 @@ export function estimateOutputTokens(
 export async function estimateReviewCost(
   files: FileInfo[],
   reviewType: string,
-  modelName: string = process.env.AI_CODE_REVIEW_MODEL ||
-    'gemini:gemini-1.5-pro'
+  modelName: string = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro',
 ): Promise<{
   inputTokens: number;
   outputTokens: number;
@@ -112,22 +104,15 @@ export async function estimateReviewCost(
   }
 
   // Estimate output tokens based on input tokens and review type
-  const estimatedOutputTokens = estimateOutputTokens(
-    totalInputTokens,
-    reviewType
-  );
+  const estimatedOutputTokens = estimateOutputTokens(totalInputTokens, reviewType);
 
   // Calculate cost information
-  const costInfo = getCostInfo(
-    totalInputTokens,
-    estimatedOutputTokens,
-    modelName
-  );
+  const costInfo = getCostInfo(totalInputTokens, estimatedOutputTokens, modelName);
 
   return {
     ...costInfo,
     fileCount: files.length,
-    totalFileSize
+    totalFileSize,
   };
 }
 
@@ -159,16 +144,12 @@ export async function estimateReviewCost(
  * // - Estimated Cost: $0.015 USD
  */
 export function formatEstimation(
-  estimation: ReturnType<typeof estimateReviewCost> extends Promise<infer T>
-    ? T
-    : never,
+  estimation: ReturnType<typeof estimateReviewCost> extends Promise<infer T> ? T : never,
   reviewType: string,
-  modelName: string
+  modelName: string,
 ): string {
   // Extract provider and model if available
-  const [provider, model] = modelName.includes(':')
-    ? modelName.split(':')
-    : [undefined, modelName];
+  const [provider, model] = modelName.includes(':') ? modelName.split(':') : [undefined, modelName];
   const displayModel = model || modelName;
   const displayProvider = provider
     ? `${provider.charAt(0).toUpperCase() + provider.slice(1)}`
@@ -219,11 +200,8 @@ Note: This is an estimate based on approximate token counts and may vary
 export async function estimateFromFilePaths(
   filePaths: string[],
   reviewType: string,
-  modelName: string = process.env.AI_CODE_REVIEW_MODEL ||
-    'gemini:gemini-1.5-pro'
-): Promise<
-  ReturnType<typeof estimateReviewCost> extends Promise<infer T> ? T : never
-> {
+  modelName: string = process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro',
+): Promise<ReturnType<typeof estimateReviewCost> extends Promise<infer T> ? T : never> {
   // Read file contents
   const files: FileInfo[] = [];
 
@@ -233,11 +211,11 @@ export async function estimateFromFilePaths(
       files.push({
         path: filePath,
         relativePath: path.basename(filePath),
-        content
+        content,
       });
     } catch (error) {
       logger.error(
-        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -268,7 +246,7 @@ export async function estimateMultiPassReviewCost(
   options: {
     passCount?: number;
     contextMaintenanceFactor?: number;
-  } = {}
+  } = {},
 ): Promise<{
   inputTokens: number;
   outputTokens: number;
@@ -297,8 +275,9 @@ export async function estimateMultiPassReviewCost(
   }
 
   // Calculate or determine the number of passes
-  const contextMaintenanceFactor = options.contextMaintenanceFactor || MULTI_PASS_CONTEXT_MAINTENANCE_FACTOR;
-  
+  const contextMaintenanceFactor =
+    options.contextMaintenanceFactor || MULTI_PASS_CONTEXT_MAINTENANCE_FACTOR;
+
   // Get a rough estimate of context window size based on the model
   // This is a simplified approach - in production we'd get this from modelMaps.ts
   const getContextWindow = (model: string): number => {
@@ -308,50 +287,53 @@ export async function estimateMultiPassReviewCost(
     if (model.includes('gemini')) return 1000000;
     return 100000; // Default
   };
-  
+
   const contextWindow = getContextWindow(modelName);
   const effectiveContextSize = Math.floor(contextWindow * (1 - contextMaintenanceFactor));
-  
+
   // Determine number of passes if not provided
-  const passCount = options.passCount || Math.max(1, Math.ceil(totalFileTokens / effectiveContextSize));
-  
+  const passCount =
+    options.passCount || Math.max(1, Math.ceil(totalFileTokens / effectiveContextSize));
+
   // Calculate tokens per pass (roughly equal distribution for estimation)
   const tokensPerPass = totalFileTokens / passCount;
-  
+
   // Calculate per-pass costs
   const perPassCosts = [];
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
   let totalEstimatedCost = 0;
-  
+
   for (let i = 0; i < passCount; i++) {
     // Each pass has standard overhead plus context maintenance overhead
-    const passInputTokens = Math.ceil(tokensPerPass + REVIEW_OVERHEAD_TOKENS + MULTI_PASS_OVERHEAD_PER_PASS);
-    
+    const passInputTokens = Math.ceil(
+      tokensPerPass + REVIEW_OVERHEAD_TOKENS + MULTI_PASS_OVERHEAD_PER_PASS,
+    );
+
     // For passes after the first, add context from previous passes
     const contextTokens = i > 0 ? Math.ceil(i * MULTI_PASS_OVERHEAD_PER_PASS * 1.5) : 0;
     const totalPassInputTokens = passInputTokens + contextTokens;
-    
+
     // Estimate output tokens
     const passOutputTokens = estimateOutputTokens(totalPassInputTokens, reviewType);
-    
+
     // Calculate cost for this pass
     const passCostInfo = getCostInfo(totalPassInputTokens, passOutputTokens, modelName);
-    
+
     perPassCosts.push({
       passNumber: i + 1,
       inputTokens: totalPassInputTokens,
       outputTokens: passOutputTokens,
       totalTokens: totalPassInputTokens + passOutputTokens,
-      estimatedCost: passCostInfo.estimatedCost
+      estimatedCost: passCostInfo.estimatedCost,
     });
-    
+
     // Accumulate totals
     totalInputTokens += totalPassInputTokens;
     totalOutputTokens += passOutputTokens;
     totalEstimatedCost += passCostInfo.estimatedCost;
   }
-  
+
   return {
     inputTokens: totalInputTokens,
     outputTokens: totalOutputTokens,
@@ -361,7 +343,7 @@ export async function estimateMultiPassReviewCost(
     fileCount: files.length,
     totalFileSize,
     passCount,
-    perPassCosts
+    perPassCosts,
   };
 }
 
@@ -374,16 +356,12 @@ export async function estimateMultiPassReviewCost(
  * @returns Formatted estimation string
  */
 export function formatMultiPassEstimation(
-  estimation: ReturnType<typeof estimateMultiPassReviewCost> extends Promise<infer T>
-    ? T
-    : never,
+  estimation: ReturnType<typeof estimateMultiPassReviewCost> extends Promise<infer T> ? T : never,
   reviewType: string,
-  modelName: string
+  modelName: string,
 ): string {
   // Extract provider and model if available
-  const [provider, model] = modelName.includes(':')
-    ? modelName.split(':')
-    : [undefined, modelName];
+  const [provider, model] = modelName.includes(':') ? modelName.split(':') : [undefined, modelName];
   const displayModel = model || modelName;
   const displayProvider = provider
     ? `${provider.charAt(0).toUpperCase() + provider.slice(1)}`
@@ -413,7 +391,7 @@ Estimated Total Cost: ${estimation.formattedCost}
 Per-Pass Breakdown:
 `;
 
-  estimation.perPassCosts.forEach(passCost => {
+  estimation.perPassCosts.forEach((passCost) => {
     output += `  Pass ${passCost.passNumber}:
     Input Tokens: ${passCost.inputTokens.toLocaleString()}
     Output Tokens: ${passCost.outputTokens.toLocaleString()}

@@ -11,9 +11,9 @@ declare module '../analysis/context' {
     Import = 'import',
     ExportedItem = 'exported',
     Component = 'component',
-    EntryPoint = 'entryPoint'
+    EntryPoint = 'entryPoint',
   }
-  
+
   export interface CodeElement {
     type: CodeElementType;
     name: string;
@@ -21,7 +21,7 @@ declare module '../analysis/context' {
     signature?: string;
     importance: number;
   }
-  
+
   export interface ReviewFinding {
     type: string;
     description: string;
@@ -29,7 +29,7 @@ declare module '../analysis/context' {
     severity: number;
     passNumber: number;
   }
-  
+
   export interface FileSummary {
     path: string;
     type: string;
@@ -37,10 +37,14 @@ declare module '../analysis/context' {
     keyElements: string[];
     passNumber: number;
   }
-  
+
   export class ReviewContext {
-    constructor(projectName: string, reviewType: string, files: import('../types/review').FileInfo[]);
-    
+    constructor(
+      projectName: string,
+      reviewType: string,
+      files: import('../types/review').FileInfo[],
+    );
+
     startPass(): number;
     getCurrentPass(): number;
     addCodeElement(element: CodeElement): void;

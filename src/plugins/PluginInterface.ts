@@ -5,7 +5,7 @@
  * plugin manager to provide custom review strategies.
  */
 
-import { IReviewStrategy } from '../strategies/ReviewStrategy';
+import type { IReviewStrategy } from '../strategies/ReviewStrategy';
 
 /**
  * Interface for plugin registration

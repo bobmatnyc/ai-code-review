@@ -5,21 +5,14 @@
  * that focuses specifically on security issues.
  */
 
-import {
-  BaseReviewStrategy
-} from '../../strategies/ReviewStrategy';
-import {
-  FileInfo,
-  ReviewOptions,
-  ReviewResult,
-  ReviewType
-} from '../../types/review';
-import { ProjectDocs } from '../../utils/projectDocs';
-import { ApiClientConfig } from '../../core/ApiClientSelector';
+import type { ApiClientConfig } from '../../core/ApiClientSelector';
 import { generateReview } from '../../core/ReviewGenerator';
+import { BaseReviewStrategy } from '../../strategies/ReviewStrategy';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../../types/review';
 import logger from '../../utils/logger';
-import { PluginManager } from '../PluginManager';
-import { PluginRegistration } from '../PluginInterface';
+import type { ProjectDocs } from '../../utils/projectDocs';
+import type { PluginRegistration } from '../PluginInterface';
+import type { PluginManager } from '../PluginManager';
 
 /**
  * Security-focused review strategy
@@ -46,14 +39,14 @@ class SecurityFocusedStrategy extends BaseReviewStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult> {
     logger.info('Executing security-focused review strategy...');
 
     // Override the review type to ensure we're using the security review type
     const securityOptions = {
       ...options,
-      type: 'security' as ReviewType
+      type: 'security' as ReviewType,
     };
 
     // Generate the review using the selected API client
@@ -63,7 +56,7 @@ class SecurityFocusedStrategy extends BaseReviewStrategy {
       this.reviewType,
       projectDocs,
       securityOptions,
-      apiClientConfig
+      apiClientConfig,
     );
   }
 }
@@ -79,9 +72,8 @@ const SecurityFocusedPlugin = {
   register: (pluginManager: PluginManager): void => {
     const registration: PluginRegistration = {
       name: 'security-focused',
-      description:
-        'A review strategy that focuses specifically on security issues',
-      strategy: new SecurityFocusedStrategy()
+      description: 'A review strategy that focuses specifically on security issues',
+      strategy: new SecurityFocusedStrategy(),
     };
 
     pluginManager.registerPlugin(registration);
@@ -93,11 +85,10 @@ const SecurityFocusedPlugin = {
    */
   getInfo: () => ({
     name: 'security-focused',
-    description:
-      'A review strategy that focuses specifically on security issues',
+    description: 'A review strategy that focuses specifically on security issues',
     version: '1.0.0',
-    author: 'AI Code Review Team'
-  })
+    author: 'AI Code Review Team',
+  }),
 };
 
 export default SecurityFocusedPlugin;

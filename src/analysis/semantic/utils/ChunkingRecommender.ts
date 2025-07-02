@@ -1,18 +1,18 @@
 /**
  * @fileoverview Chunking recommendation utilities for semantic analysis
- * 
+ *
  * This module provides functions to generate chunking recommendations
  * for code review, including AI-guided and rule-based approaches.
  */
 
 import logger from '../../../utils/logger';
-import { 
-  ChunkingRecommendation, 
-  Declaration, 
-  ComplexityMetrics, 
-  SemanticAnalysis,
+import type {
+  ChunkingRecommendation,
   ChunkingStrategy,
-  ImportRelationship
+  ComplexityMetrics,
+  Declaration,
+  ImportRelationship,
+  SemanticAnalysis,
 } from '../types';
 
 /**
@@ -28,14 +28,20 @@ import {
  * @returns Chunking recommendation
  */
 export async function generateChunkingRecommendation(
-  aiGuidedChunking: { isAvailable: () => boolean; generateChunkingRecommendation: (analysis: SemanticAnalysis, reviewType: string) => Promise<ChunkingRecommendation> },
+  aiGuidedChunking: {
+    isAvailable: () => boolean;
+    generateChunkingRecommendation: (
+      analysis: SemanticAnalysis,
+      reviewType: string,
+    ) => Promise<ChunkingRecommendation>;
+  },
   declarations: Declaration[],
   imports: ImportRelationship[],
   complexity: ComplexityMetrics,
   totalLines: number,
   filePath: string,
   language: string,
-  reviewType: string = 'quick-fixes'
+  reviewType = 'quick-fixes',
 ): Promise<ChunkingRecommendation> {
   try {
     // Create a semantic analysis object for AI-guided chunking
@@ -51,25 +57,23 @@ export async function generateChunkingRecommendation(
         crossReferences: [],
         reasoning: '',
         estimatedTokens: 0,
-        estimatedChunks: 0
+        estimatedChunks: 0,
       },
       filePath,
-      analyzedAt: new Date()
+      analyzedAt: new Date(),
     };
 
     // Use AI-guided chunking if available
     if (aiGuidedChunking.isAvailable()) {
       logger.debug('Using AI-guided chunking recommendation');
-      return await aiGuidedChunking.generateChunkingRecommendation(
-        analysisForChunking,
-        reviewType
-      );
-    } else {
-      logger.debug('AI-guided chunking not available, using rule-based fallback');
-      return generateRuleBasedChunking(declarations, complexity, totalLines);
+      return await aiGuidedChunking.generateChunkingRecommendation(analysisForChunking, reviewType);
     }
+    logger.debug('AI-guided chunking not available, using rule-based fallback');
+    return generateRuleBasedChunking(declarations, complexity, totalLines);
   } catch (error) {
-    logger.warn(`AI-guided chunking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.warn(
+      `AI-guided chunking failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
     logger.debug('Falling back to rule-based chunking');
     return generateRuleBasedChunking(declarations, complexity, totalLines);
   }
@@ -87,10 +91,10 @@ export function generateRuleBasedChunking(
   declarations: Declaration[],
   complexity: ComplexityMetrics,
   totalLines: number,
-  maxChunkSize: number = 500
+  maxChunkSize = 500,
 ): ChunkingRecommendation {
   let strategy: ChunkingStrategy = 'individual';
-  
+
   if (complexity.classCount > 0) {
     strategy = 'hierarchical';
   } else if (declarations.length > 10) {
@@ -98,7 +102,7 @@ export function generateRuleBasedChunking(
   } else if (complexity.cyclomaticComplexity > 20) {
     strategy = 'functional';
   }
-  
+
   // Estimate number of chunks based on strategy and code size
   let estimatedChunks = 1;
   if (strategy === 'hierarchical') {
@@ -117,6 +121,6 @@ export function generateRuleBasedChunking(
     crossReferences: [], // Will be analyzed by ChunkGenerator
     reasoning: `Rule-based: Selected ${strategy} strategy based on ${declarations.length} declarations and complexity ${complexity.cyclomaticComplexity}`,
     estimatedTokens: totalLines * 4, // Rough estimate
-    estimatedChunks
+    estimatedChunks,
   };
 }

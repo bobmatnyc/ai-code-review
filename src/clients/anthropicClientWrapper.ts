@@ -4,13 +4,8 @@
  * This module provides a wrapper for the Anthropic client to handle dynamic imports.
  */
 
-import {
-  ReviewType,
-  ReviewOptions,
-  ReviewResult,
-  FileInfo
-} from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import type { ProjectDocs } from '../utils/projectDocs';
 
 // Import the Anthropic client directly
 import * as anthropicClient from './anthropicClient';
@@ -37,14 +32,14 @@ export async function generateAnthropicConsolidatedReview(
   project: string,
   reviewType: ReviewType,
   projectDocs: ProjectDocs | null,
-  options: ReviewOptions
+  options: ReviewOptions,
 ): Promise<ReviewResult> {
   return anthropicClient.generateAnthropicConsolidatedReview(
     fileInfos,
     project,
     reviewType,
     projectDocs,
-    options
+    options,
   );
 }
 
@@ -60,12 +55,12 @@ export async function generateArchitecturalAnthropicReview(
   fileInfos: FileInfo[],
   project: string,
   projectDocs: ProjectDocs | null,
-  options: ReviewOptions
+  options: ReviewOptions,
 ): Promise<ReviewResult> {
   return anthropicClient.generateArchitecturalAnthropicReview(
     fileInfos,
     project,
     projectDocs,
-    options
+    options,
   );
 }

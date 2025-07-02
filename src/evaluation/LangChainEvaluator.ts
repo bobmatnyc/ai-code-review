@@ -6,9 +6,12 @@
  * of pattern extraction results.
  */
 
-import { ExtractPatternsReview } from '../prompts/schemas/extract-patterns-schema';
-import { ValidationResult, ExtractPatternsValidator } from '../validation/ExtractPatternsValidator';
+import type { ExtractPatternsReview } from '../prompts/schemas/extract-patterns-schema';
 import logger from '../utils/logger';
+import {
+  ExtractPatternsValidator,
+  type ValidationResult,
+} from '../validation/ExtractPatternsValidator';
 
 /**
  * Evaluation criteria for pattern extraction
@@ -53,32 +56,32 @@ export class LangChainEvaluator {
       name: 'Strategy Pattern',
       description: 'Different algorithms/behaviors encapsulated in separate classes',
       expectedIndicators: ['interface', 'implements', 'strategy', 'algorithm'],
-      weight: 0.9
+      weight: 0.9,
     },
     {
       name: 'Factory Pattern',
       description: 'Object creation abstracted through factory methods',
       expectedIndicators: ['factory', 'create', 'builder', 'new'],
-      weight: 0.8
+      weight: 0.8,
     },
     {
       name: 'Observer Pattern',
       description: 'Event-driven communication between objects',
       expectedIndicators: ['event', 'listener', 'subscribe', 'notify', 'emit'],
-      weight: 0.7
+      weight: 0.7,
     },
     {
       name: 'Dependency Injection',
       description: 'Dependencies provided externally rather than created internally',
       expectedIndicators: ['inject', 'dependency', 'container', 'provider'],
-      weight: 0.8
+      weight: 0.8,
     },
     {
       name: 'Repository Pattern',
       description: 'Data access abstraction layer',
       expectedIndicators: ['repository', 'data', 'persistence', 'storage'],
-      weight: 0.7
-    }
+      weight: 0.7,
+    },
   ];
 
   /**
@@ -86,7 +89,7 @@ export class LangChainEvaluator {
    */
   static async evaluate(
     patterns: ExtractPatternsReview,
-    sourceCodeContext?: string[]
+    sourceCodeContext?: string[],
   ): Promise<EvaluationResult> {
     logger.info('Starting LangChain-based evaluation of extract-patterns result');
 
@@ -94,20 +97,24 @@ export class LangChainEvaluator {
     const validationResult = ExtractPatternsValidator.validate({ patterns });
 
     // Calculate evaluation criteria
-    const criteria = this.evaluateCriteria(patterns, sourceCodeContext);
-    
+    const criteria = LangChainEvaluator.evaluateCriteria(patterns, sourceCodeContext);
+
     // Calculate overall score
-    const overallScore = this.calculateOverallScore(criteria);
-    
+    const overallScore = LangChainEvaluator.calculateOverallScore(criteria);
+
     // Determine grade
-    const grade = this.determineGrade(overallScore);
-    
+    const grade = LangChainEvaluator.determineGrade(overallScore);
+
     // Identify strengths and weaknesses
-    const strengths = this.identifyStrengths(patterns, criteria);
-    const weaknesses = this.identifyWeaknesses(patterns, criteria);
-    
+    const strengths = LangChainEvaluator.identifyStrengths(patterns, criteria);
+    const weaknesses = LangChainEvaluator.identifyWeaknesses(patterns, criteria);
+
     // Generate recommendations
-    const recommendations = this.generateRecommendations(patterns, criteria, validationResult);
+    const recommendations = LangChainEvaluator.generateRecommendations(
+      patterns,
+      criteria,
+      validationResult,
+    );
 
     const result: EvaluationResult = {
       criteria,
@@ -116,7 +123,7 @@ export class LangChainEvaluator {
       strengths,
       weaknesses,
       recommendations,
-      validationResult
+      validationResult,
     };
 
     logger.info(`Evaluation completed with grade ${grade} (${overallScore}/100)`);
@@ -128,14 +135,14 @@ export class LangChainEvaluator {
    */
   private static evaluateCriteria(
     patterns: ExtractPatternsReview,
-    sourceCodeContext?: string[]
+    sourceCodeContext?: string[],
   ): EvaluationCriteria {
     return {
-      relevance: this.evaluateRelevance(patterns, sourceCodeContext),
-      completeness: this.evaluateCompleteness(patterns),
-      actionability: this.evaluateActionability(patterns),
-      specificity: this.evaluateSpecificity(patterns),
-      novelty: this.evaluateNovelty(patterns)
+      relevance: LangChainEvaluator.evaluateRelevance(patterns, sourceCodeContext),
+      completeness: LangChainEvaluator.evaluateCompleteness(patterns),
+      actionability: LangChainEvaluator.evaluateActionability(patterns),
+      specificity: LangChainEvaluator.evaluateSpecificity(patterns),
+      novelty: LangChainEvaluator.evaluateNovelty(patterns),
     };
   }
 
@@ -144,27 +151,31 @@ export class LangChainEvaluator {
    */
   private static evaluateRelevance(
     patterns: ExtractPatternsReview,
-    _sourceCodeContext?: string[]
+    _sourceCodeContext?: string[],
   ): number {
     let score = 100;
 
     // Check if identified patterns match expected patterns for the codebase
-    const identifiedPatterns = patterns.architecturalPatterns.map(p => p.patternName.toLowerCase());
-    
+    const identifiedPatterns = patterns.architecturalPatterns.map((p) =>
+      p.patternName.toLowerCase(),
+    );
+
     // Penalty for generic or vague pattern names
     const genericPatterns = ['pattern', 'structure', 'organization', 'approach'];
-    const hasGenericPatterns = identifiedPatterns.some(name => 
-      genericPatterns.some(generic => name.includes(generic))
+    const hasGenericPatterns = identifiedPatterns.some((name) =>
+      genericPatterns.some((generic) => name.includes(generic)),
     );
-    
+
     if (hasGenericPatterns) score -= 20;
 
     // Bonus for identifying specific, well-known patterns
-    const wellKnownPatterns = this.REFERENCE_PATTERNS.map(p => p.name.toLowerCase());
-    const identifiedWellKnown = identifiedPatterns.filter(name =>
-      wellKnownPatterns.some(known => name.includes(known.split(' ')[0]))
+    const wellKnownPatterns = LangChainEvaluator.REFERENCE_PATTERNS.map((p) =>
+      p.name.toLowerCase(),
     );
-    
+    const identifiedWellKnown = identifiedPatterns.filter((name) =>
+      wellKnownPatterns.some((known) => name.includes(known.split(' ')[0])),
+    );
+
     score += identifiedWellKnown.length * 10;
 
     // Check if technology stack is accurately identified
@@ -190,12 +201,12 @@ export class LangChainEvaluator {
       { field: 'codeStyle', weight: 15 },
       { field: 'testingStrategy', weight: 10 },
       { field: 'exemplarCharacteristics', weight: 10 },
-      { field: 'replicationGuide', weight: 5 }
+      { field: 'replicationGuide', weight: 5 },
     ];
 
-    sections.forEach(section => {
+    sections.forEach((section) => {
       const value = (patterns as any)[section.field];
-      if (value && this.hasSubstantialContent(value)) {
+      if (value && LangChainEvaluator.hasSubstantialContent(value)) {
         score += section.weight;
       }
     });
@@ -229,25 +240,27 @@ export class LangChainEvaluator {
     let score = 100;
 
     // Check for concrete examples in architectural patterns
-    const patternsWithoutExamples = patterns.architecturalPatterns.filter(p => p.examples.length === 0);
+    const patternsWithoutExamples = patterns.architecturalPatterns.filter(
+      (p) => p.examples.length === 0,
+    );
     score -= patternsWithoutExamples.length * 15;
 
     // Check for vague language
     const textFields = [
       patterns.projectOverview.purpose,
       patterns.summary,
-      ...patterns.exemplarCharacteristics.strengths
+      ...patterns.exemplarCharacteristics.strengths,
     ];
 
     const vagueWords = ['good', 'nice', 'well', 'proper', 'appropriate', 'suitable'];
-    const hasVagueLanguage = textFields.some(text =>
-      vagueWords.some(word => text.toLowerCase().includes(word))
+    const hasVagueLanguage = textFields.some((text) =>
+      vagueWords.some((word) => text.toLowerCase().includes(word)),
     );
 
     if (hasVagueLanguage) score -= 25;
 
     // Check for specific technology versions
-    const hasVersions = patterns.technologyStack.coreLanguages.some(tech => tech.version);
+    const hasVersions = patterns.technologyStack.coreLanguages.some((tech) => tech.version);
     if (!hasVersions) score -= 10;
 
     return Math.max(0, score);
@@ -261,18 +274,24 @@ export class LangChainEvaluator {
 
     // Bonus for identifying less common but valuable patterns
     const advancedPatterns = ['decorator', 'adapter', 'facade', 'proxy', 'command', 'mediator'];
-    const identifiedAdvanced = patterns.architecturalPatterns.filter(p =>
-      advancedPatterns.some(advanced => p.patternName.toLowerCase().includes(advanced))
+    const identifiedAdvanced = patterns.architecturalPatterns.filter((p) =>
+      advancedPatterns.some((advanced) => p.patternName.toLowerCase().includes(advanced)),
     );
-    
+
     score += identifiedAdvanced.length * 15;
 
     // Bonus for insightful lessons learned
-    const insightfulKeywords = ['performance', 'scalability', 'maintainability', 'testing', 'deployment'];
-    const hasInsights = patterns.exemplarCharacteristics.lessonsLearned.some(lesson =>
-      insightfulKeywords.some(keyword => lesson.toLowerCase().includes(keyword))
+    const insightfulKeywords = [
+      'performance',
+      'scalability',
+      'maintainability',
+      'testing',
+      'deployment',
+    ];
+    const hasInsights = patterns.exemplarCharacteristics.lessonsLearned.some((lesson) =>
+      insightfulKeywords.some((keyword) => lesson.toLowerCase().includes(keyword)),
     );
-    
+
     if (hasInsights) score += 20;
 
     // Bonus for comprehensive pitfall identification
@@ -287,18 +306,18 @@ export class LangChainEvaluator {
   private static calculateOverallScore(criteria: EvaluationCriteria): number {
     const weights = {
       relevance: 0.25,
-      completeness: 0.20,
+      completeness: 0.2,
       actionability: 0.25,
-      specificity: 0.20,
-      novelty: 0.10
+      specificity: 0.2,
+      novelty: 0.1,
     };
 
     return Math.round(
       criteria.relevance * weights.relevance +
-      criteria.completeness * weights.completeness +
-      criteria.actionability * weights.actionability +
-      criteria.specificity * weights.specificity +
-      criteria.novelty * weights.novelty
+        criteria.completeness * weights.completeness +
+        criteria.actionability * weights.actionability +
+        criteria.specificity * weights.specificity +
+        criteria.novelty * weights.novelty,
     );
   }
 
@@ -316,7 +335,10 @@ export class LangChainEvaluator {
   /**
    * Identify strengths in the analysis
    */
-  private static identifyStrengths(patterns: ExtractPatternsReview, criteria: EvaluationCriteria): string[] {
+  private static identifyStrengths(
+    patterns: ExtractPatternsReview,
+    criteria: EvaluationCriteria,
+  ): string[] {
     const strengths: string[] = [];
 
     if (criteria.relevance >= 80) {
@@ -349,7 +371,10 @@ export class LangChainEvaluator {
   /**
    * Identify weaknesses in the analysis
    */
-  private static identifyWeaknesses(patterns: ExtractPatternsReview, criteria: EvaluationCriteria): string[] {
+  private static identifyWeaknesses(
+    patterns: ExtractPatternsReview,
+    criteria: EvaluationCriteria,
+  ): string[] {
     const weaknesses: string[] = [];
 
     if (criteria.relevance < 70) {
@@ -381,7 +406,7 @@ export class LangChainEvaluator {
   private static generateRecommendations(
     patterns: ExtractPatternsReview,
     criteria: EvaluationCriteria,
-    validationResult: ValidationResult
+    validationResult: ValidationResult,
   ): string[] {
     const recommendations: string[] = [];
 
@@ -394,7 +419,9 @@ export class LangChainEvaluator {
     }
 
     if (patterns.architecturalPatterns.length < 2) {
-      recommendations.push('Look for additional design patterns like Factory, Observer, or Decorator');
+      recommendations.push(
+        'Look for additional design patterns like Factory, Observer, or Decorator',
+      );
     }
 
     if (validationResult.issues.length > 0) {

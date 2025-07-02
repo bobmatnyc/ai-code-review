@@ -6,7 +6,7 @@
  * arguments and review options.
  */
 
-import { ReviewOptions } from '../types/review';
+import type { ReviewOptions } from '../types/review';
 
 /**
  * Get the priority filter from command line arguments or options
@@ -33,7 +33,7 @@ import { ReviewOptions } from '../types/review';
  * // filter === 'h'
  */
 export function getPriorityFilterFromArgs(
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): 'h' | 'm' | 'l' | 'a' | undefined {
   // First check if the interactive option is a string (priority filter)
   if (
@@ -46,9 +46,7 @@ export function getPriorityFilterFromArgs(
 
   // Otherwise check if there's a priority filter argument after --interactive
   const args = process.argv;
-  const interactiveIndex = args.findIndex(
-    arg => arg === '--interactive' || arg === '-i'
-  );
+  const interactiveIndex = args.findIndex((arg) => arg === '--interactive' || arg === '-i');
 
   if (interactiveIndex !== -1 && interactiveIndex < args.length - 1) {
     const nextArg = args[interactiveIndex + 1];

@@ -17,33 +17,24 @@
  * to ensure reliability even when specific models are unavailable.
  */
 
-import {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold
-} from '@google/generative-ai';
-import { globalRateLimiter } from '../utils/rateLimiter';
+import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
 import { ApiError } from '../utils/apiErrorHandler';
+import { getApiKeyForProvider, getConfig } from '../utils/config';
 import logger from '../utils/logger';
-import {
-  ReviewType,
-  ReviewResult,
-  FileInfo,
-  ReviewOptions
-} from '../types/review';
-import { getCostInfoFromText } from './utils/tokenCounter';
-import { ProjectDocs } from '../utils/projectDocs';
-// import { formatProjectDocs } from '../utils/projectDocs'; // Not used in this specific implementation
-import { loadPromptTemplate } from './utils/promptLoader';
+import type { ProjectDocs } from '../utils/projectDocs';
+import { globalRateLimiter } from '../utils/rateLimiter';
+import { getModelMapping } from './utils/modelMaps';
 // import { getLanguageFromExtension } from './utils/languageDetection'; // Not used in this file
 // import { generateDirectoryStructure } from './utils'; // Not used in this specific implementation
 // Model mapping has been removed; using raw model name as API name
 import {
+  formatConsolidatedReviewPrompt,
   formatSingleFileReviewPrompt,
-  formatConsolidatedReviewPrompt
 } from './utils/promptFormatter';
-import { getConfig, getApiKeyForProvider } from '../utils/config';
-import { getModelMapping } from './utils/modelMaps';
+// import { formatProjectDocs } from '../utils/projectDocs'; // Not used in this specific implementation
+import { loadPromptTemplate } from './utils/promptLoader';
+import { getCostInfoFromText } from './utils/tokenCounter';
 
 /**
  * Default safety settings for Gemini API calls
@@ -51,20 +42,20 @@ import { getModelMapping } from './utils/modelMaps';
 const DEFAULT_SAFETY_SETTINGS = [
   {
     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
   },
   {
     category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
   },
   {
     category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
   },
   {
     category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-  }
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
 ];
 
 const MAX_OUTPUT_TOKENS = 8192;
@@ -111,7 +102,7 @@ function isGeminiModel(): {
   return {
     isCorrect: adapter === 'gemini',
     adapter,
-    modelName
+    modelName,
   };
 }
 
@@ -155,19 +146,17 @@ function initializeGeminiClient(): void {
 
   // Set the model to use
   if (!modelName) {
-    throw new Error(
-      'No Gemini model specified. Set AI_CODE_REVIEW_MODEL=gemini:<model_name>.'
-    );
+    throw new Error('No Gemini model specified. Set AI_CODE_REVIEW_MODEL=gemini:<model_name>.');
   }
   // Get the actual API identifier from the model mapping
   let apiIdentifier = modelName;
-  
+
   // Try to get the API identifier from the model mapping
   try {
     // Use the imported getModelMapping function
     const fullModelKey = `gemini:${modelName}`;
     const modelMapping = getModelMapping(fullModelKey);
-    
+
     if (modelMapping?.apiIdentifier) {
       apiIdentifier = modelMapping.apiIdentifier;
       logger.debug(`Using API identifier from mapping: ${modelName} → ${apiIdentifier}`);
@@ -177,12 +166,12 @@ function initializeGeminiClient(): void {
   } catch (error) {
     logger.debug(`Error getting model mapping: ${error}`);
   }
-  
+
   logger.info(`Initializing Gemini model: ${apiIdentifier}...`);
   // Set the selected model
   selectedGeminiModel = {
     name: apiIdentifier,
-    displayName: modelName
+    displayName: modelName,
   };
 }
 
@@ -200,7 +189,7 @@ export async function generateReview(
   filePath: string,
   reviewType: ReviewType,
   projectDocs?: ProjectDocs | null,
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): Promise<ReviewResult> {
   const { isCorrect, adapter, modelName } = isGeminiModel();
 
@@ -209,7 +198,7 @@ export async function generateReview(
   if (!isCorrect) {
     throw new Error(
       `Gemini client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-        `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`,
     );
   }
 
@@ -228,22 +217,13 @@ export async function generateReview(
     const promptTemplate = await loadPromptTemplate(reviewType, options);
 
     // Format the prompt
-    const prompt = formatSingleFileReviewPrompt(
-      promptTemplate,
-      fileContent,
-      filePath,
-      projectDocs
-    );
+    const prompt = formatSingleFileReviewPrompt(promptTemplate, fileContent, filePath, projectDocs);
 
     // Generate the review
     const response = await generateGeminiResponse(prompt, options);
 
     // Calculate cost information
-    const cost = getCostInfoFromText(
-      prompt,
-      response,
-      `gemini:${selectedGeminiModel?.name}`
-    );
+    const cost = getCostInfoFromText(prompt, response, `gemini:${selectedGeminiModel?.name}`);
 
     // Try to parse the response as JSON
     let structuredData = null;
@@ -257,13 +237,11 @@ export async function generateReview(
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn(
-          'Response is valid JSON but does not have the expected structure'
-        );
+        logger.warn('Response is valid JSON but does not have the expected structure');
       }
     } catch (parseError) {
       logger.warn(
-        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
       );
       // Keep the original response as content
     }
@@ -276,13 +254,13 @@ export async function generateReview(
       filePath,
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData
+      structuredData,
     };
   } catch (error) {
     logger.error(
       `Error generating review for ${filePath}: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
     throw error;
   }
@@ -302,7 +280,7 @@ export async function generateConsolidatedReview(
   projectName: string,
   reviewType: ReviewType,
   projectDocs?: ProjectDocs | null,
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): Promise<ReviewResult> {
   const { isCorrect, adapter, modelName } = isGeminiModel();
 
@@ -311,7 +289,7 @@ export async function generateConsolidatedReview(
   if (!isCorrect) {
     throw new Error(
       `Gemini client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
-        `This is likely a bug in the client selection logic.`
+        `This is likely a bug in the client selection logic.`,
     );
   }
 
@@ -330,23 +308,19 @@ export async function generateConsolidatedReview(
     const prompt = formatConsolidatedReviewPrompt(
       promptTemplate,
       projectName,
-      files.map(file => ({
+      files.map((file) => ({
         relativePath: file.relativePath || '',
         content: file.content,
-        sizeInBytes: file.content.length
+        sizeInBytes: file.content.length,
       })),
-      projectDocs
+      projectDocs,
     );
 
     // Generate the review
     const response = await generateGeminiResponse(prompt, options);
 
     // Calculate cost information
-    const cost = getCostInfoFromText(
-      prompt,
-      response,
-      `gemini:${selectedGeminiModel?.name}`
-    );
+    const cost = getCostInfoFromText(prompt, response, `gemini:${selectedGeminiModel?.name}`);
 
     // Try to parse the response as JSON
     let structuredData = null;
@@ -360,13 +334,11 @@ export async function generateConsolidatedReview(
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn(
-          'Response is valid JSON but does not have the expected structure'
-        );
+        logger.warn('Response is valid JSON but does not have the expected structure');
       }
     } catch (parseError) {
       logger.warn(
-        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
       );
       // Keep the original response as content
     }
@@ -379,13 +351,13 @@ export async function generateConsolidatedReview(
       filePath: `${reviewType}`,
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData
+      structuredData,
     };
   } catch (error) {
     logger.error(
       `Error generating consolidated review: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
     throw error;
   }
@@ -403,16 +375,10 @@ export async function generateArchitecturalReview(
   files: FileInfo[],
   projectName: string,
   projectDocs?: ProjectDocs | null,
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): Promise<ReviewResult> {
   // Architectural reviews are just consolidated reviews with the architectural review type
-  return generateConsolidatedReview(
-    files,
-    projectName,
-    'architectural',
-    projectDocs,
-    options
-  );
+  return generateConsolidatedReview(files, projectName, 'architectural', projectDocs, options);
 }
 
 // The formatPrompt function has been replaced with formatSingleFileReviewPrompt from promptFormatter.ts
@@ -426,11 +392,8 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
     } catch (e: unknown) {
       // Type assertion for error with status property
       const err = e as { status?: number };
-      if (
-        (err.status === 429 || (err.status && err.status >= 500)) &&
-        i < retries - 1
-      ) {
-        await new Promise(res => setTimeout(res, 1000 * (i + 1)));
+      if ((err.status === 429 || (err.status && err.status >= 500)) && i < retries - 1) {
+        await new Promise((res) => setTimeout(res, 1000 * (i + 1)));
       } else {
         throw e;
       }
@@ -447,7 +410,7 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
  */
 async function generateGeminiResponse(
   prompt: string,
-  _options?: ReviewOptions // Unused parameter, prefixed with underscore
+  _options?: ReviewOptions, // Unused parameter, prefixed with underscore
 ): Promise<string> {
   if (!genAI || !selectedGeminiModel) {
     throw new Error('Gemini client not initialized');
@@ -458,7 +421,7 @@ async function generateGeminiResponse(
     const modelOptions = {
       model: selectedGeminiModel.name,
       safetySettings: DEFAULT_SAFETY_SETTINGS,
-      apiVersion: selectedGeminiModel.useV1Beta ? 'v1beta' : undefined
+      apiVersion: selectedGeminiModel.useV1Beta ? 'v1beta' : undefined,
     };
 
     const model = genAI.getGenerativeModel(modelOptions);
@@ -509,16 +472,16 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
         contents: [
           {
             role: 'user',
-            parts: [{ text: modifiedPrompt }]
-          }
+            parts: [{ text: modifiedPrompt }],
+          },
         ],
         generationConfig: {
           temperature: 0.2,
           topP: 0.8,
           topK: 40,
-          maxOutputTokens: MAX_OUTPUT_TOKENS
-        }
-      })
+          maxOutputTokens: MAX_OUTPUT_TOKENS,
+        },
+      }),
     );
 
     // Extract the response text
@@ -530,8 +493,7 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
     // Handle API errors
     if (error instanceof Error) {
       throw new ApiError(`Gemini API error: ${error.message}`);
-    } else {
-      throw new ApiError(`Unknown Gemini API error: ${String(error)}`);
     }
+    throw new ApiError(`Unknown Gemini API error: ${String(error)}`);
   }
 }

@@ -10,7 +10,7 @@
 
 // The Google Generative AI library doesn't currently expose a tokenizer
 // import { countTokens as geminiCountTokens } from '@google/generative-ai';
-import { Tokenizer, TokenizerRegistry } from './baseTokenizer';
+import { type Tokenizer, TokenizerRegistry } from './baseTokenizer';
 
 /**
  * Tokenizer for Google Gemini models
@@ -46,7 +46,7 @@ export class GeminiTokenizer implements Tokenizer {
   supportsModel(modelName: string): boolean {
     // Convert to lowercase for case-insensitive matching
     const lowerModelName = modelName.toLowerCase();
-    return this.modelPatterns.some(pattern => pattern.test(lowerModelName));
+    return this.modelPatterns.some((pattern) => pattern.test(lowerModelName));
   }
 }
 

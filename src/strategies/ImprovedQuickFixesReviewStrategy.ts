@@ -5,17 +5,17 @@
  * integration for enhanced prompt management and structured output.
  */
 
-import { ConsolidatedReviewStrategy } from './ConsolidatedReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
-import { ApiClientConfig } from '../core/ApiClientSelector';
-import logger from '../utils/logger';
-import { PromptStrategyFactory } from '../prompts/strategies/PromptStrategyFactory';
-import { PromptManager } from '../prompts/PromptManager';
-import { PromptCache } from '../prompts/cache/PromptCache';
-import { getQuickFixesReviewFormatInstructions } from '../prompts/schemas/quick-fixes-schema';
 import path from 'path';
+import type { ApiClientConfig } from '../core/ApiClientSelector';
+import { PromptCache } from '../prompts/cache/PromptCache';
+import { PromptManager } from '../prompts/PromptManager';
+import { getQuickFixesReviewFormatInstructions } from '../prompts/schemas/quick-fixes-schema';
+import { PromptStrategyFactory } from '../prompts/strategies/PromptStrategyFactory';
+import type { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
 import { collectCIData } from '../utils/ciDataCollector';
+import logger from '../utils/logger';
+import type { ProjectDocs } from '../utils/projectDocs';
+import { ConsolidatedReviewStrategy } from './ConsolidatedReviewStrategy';
 
 /**
  * Strategy for improved quick fixes review using LangChain
@@ -42,15 +42,16 @@ export class ImprovedQuickFixesReviewStrategy extends ConsolidatedReviewStrategy
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult> {
-    logger.info(
-      `Executing improved quick fixes review strategy for ${files.length} files...`
-    );
+    logger.info(`Executing improved quick fixes review strategy for ${files.length} files...`);
 
     // Collect CI data if reviewing TypeScript files
-    let ciData = undefined;
-    if (options.language === 'typescript' || files.some(f => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))) {
+    let ciData;
+    if (
+      options.language === 'typescript' ||
+      files.some((f) => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))
+    ) {
       logger.info('Collecting CI data for TypeScript project...');
       ciData = await collectCIData(process.cwd());
     }
@@ -63,25 +64,21 @@ export class ImprovedQuickFixesReviewStrategy extends ConsolidatedReviewStrategy
         process.cwd(),
         'prompts',
         options.language.toLowerCase(),
-        'improved-quick-fixes-review.md'
+        'improved-quick-fixes-review.md',
       );
 
       // Fallback to general improved prompt
       const fallbackPromptFile = path.resolve(
         process.cwd(),
         'prompts',
-        'improved-quick-fixes-review.md'
+        'improved-quick-fixes-review.md',
       );
 
       // Set final promptFile value
       promptFile = promptFile || fallbackPromptFile;
     } else {
       // Default to general improved prompt
-      promptFile = path.resolve(
-        process.cwd(),
-        'prompts',
-        'improved-quick-fixes-review.md'
-      );
+      promptFile = path.resolve(process.cwd(), 'prompts', 'improved-quick-fixes-review.md');
     }
 
     // Enhance options with LangChain-specific settings
@@ -90,7 +87,7 @@ export class ImprovedQuickFixesReviewStrategy extends ConsolidatedReviewStrategy
       type: this.reviewType,
       schemaInstructions: getQuickFixesReviewFormatInstructions(),
       promptFile: promptFile,
-      ciData: ciData
+      ciData: ciData,
     };
 
     // Use LangChain prompt strategy if available
@@ -100,24 +97,12 @@ export class ImprovedQuickFixesReviewStrategy extends ConsolidatedReviewStrategy
       // Get LangChain prompt strategy
       const promptManager = PromptManager.getInstance();
       const promptCache = PromptCache.getInstance();
-      PromptStrategyFactory.createStrategy(
-        'langchain',
-        promptManager,
-        promptCache
-      );
+      PromptStrategyFactory.createStrategy('langchain', promptManager, promptCache);
 
-      logger.info(
-        'Using LangChain prompt strategy for improved quick fixes review'
-      );
+      logger.info('Using LangChain prompt strategy for improved quick fixes review');
     }
 
     // Generate the review
-    return super.execute(
-      files,
-      projectName,
-      projectDocs,
-      enhancedOptions,
-      apiClientConfig
-    );
+    return super.execute(files, projectName, projectDocs, enhancedOptions, apiClientConfig);
   }
 }

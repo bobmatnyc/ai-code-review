@@ -6,8 +6,8 @@
  */
 
 import path from 'path';
-import { FixPriority, FixSuggestion } from './types';
 import logger from '../logger';
+import { FixPriority, type FixSuggestion } from './types';
 
 /**
  * Extract fix suggestions from review content
@@ -19,7 +19,7 @@ import logger from '../logger';
 export async function extractFixSuggestions(
   reviewContent: string,
   projectPath: string,
-  priorityLevel?: FixPriority
+  priorityLevel?: FixPriority,
 ): Promise<FixSuggestion[]> {
   const suggestions: FixSuggestion[] = [];
 
@@ -29,18 +29,10 @@ export async function extractFixSuggestions(
 
     switch (priorityLevel) {
       case FixPriority.HIGH:
-        section = extractSection(
-          reviewContent,
-          '### 🟥 High Priority',
-          '### 🟧 Medium Priority'
-        );
+        section = extractSection(reviewContent, '### 🟥 High Priority', '### 🟧 Medium Priority');
         break;
       case FixPriority.MEDIUM:
-        section = extractSection(
-          reviewContent,
-          '### 🟧 Medium Priority',
-          '### 🟩 Low Priority'
-        );
+        section = extractSection(reviewContent, '### 🟧 Medium Priority', '### 🟩 Low Priority');
         break;
       case FixPriority.LOW:
         section = extractSection(reviewContent, '### 🟩 Low Priority', '---');
@@ -48,11 +40,7 @@ export async function extractFixSuggestions(
     }
 
     if (section) {
-      const prioritySuggestions = await parseSuggestions(
-        section,
-        priorityLevel,
-        projectPath
-      );
+      const prioritySuggestions = await parseSuggestions(section, priorityLevel, projectPath);
       suggestions.push(...prioritySuggestions);
     }
 
@@ -64,13 +52,13 @@ export async function extractFixSuggestions(
   const highPrioritySection = extractSection(
     reviewContent,
     '### 🟥 High Priority',
-    '### 🟧 Medium Priority'
+    '### 🟧 Medium Priority',
   );
   if (highPrioritySection) {
     const highPrioritySuggestions = await parseSuggestions(
       highPrioritySection,
       FixPriority.HIGH,
-      projectPath
+      projectPath,
     );
     suggestions.push(...highPrioritySuggestions);
   }
@@ -79,28 +67,24 @@ export async function extractFixSuggestions(
   const mediumPrioritySection = extractSection(
     reviewContent,
     '### 🟧 Medium Priority',
-    '### 🟩 Low Priority'
+    '### 🟩 Low Priority',
   );
   if (mediumPrioritySection) {
     const mediumPrioritySuggestions = await parseSuggestions(
       mediumPrioritySection,
       FixPriority.MEDIUM,
-      projectPath
+      projectPath,
     );
     suggestions.push(...mediumPrioritySuggestions);
   }
 
   // Extract low priority issues
-  const lowPrioritySection = extractSection(
-    reviewContent,
-    '### 🟩 Low Priority',
-    '---'
-  );
+  const lowPrioritySection = extractSection(reviewContent, '### 🟩 Low Priority', '---');
   if (lowPrioritySection) {
     const lowPrioritySuggestions = await parseSuggestions(
       lowPrioritySection,
       FixPriority.LOW,
-      projectPath
+      projectPath,
     );
     suggestions.push(...lowPrioritySuggestions);
   }
@@ -118,7 +102,7 @@ export async function extractFixSuggestions(
 export function extractSection(
   content: string,
   startMarker: string,
-  endMarker: string
+  endMarker: string,
 ): string | null {
   // Try exact match first
   let startIndex = content.indexOf(startMarker);
@@ -151,10 +135,7 @@ export function extractSection(
             : '';
 
       if (priorityLevel) {
-        const regex = new RegExp(
-          `[#]{1,3}\\s*(?:🟥|🟧|🟩)?\\s*${priorityLevel}\\s*priority`,
-          'i'
-        );
+        const regex = new RegExp(`[#]{1,3}\\s*(?:🟥|🟧|🟩)?\\s*${priorityLevel}\\s*priority`, 'i');
         const match = content.match(regex);
         if (match && match.index !== undefined) {
           startIndex = match.index;
@@ -187,9 +168,7 @@ export function extractSection(
 
     // If we still can't find the end marker, look for the next heading
     if (endIndex === -1) {
-      const nextHeadingMatch = content
-        .substring(startIndex)
-        .match(/\n[#]{1,3}\s/);
+      const nextHeadingMatch = content.substring(startIndex).match(/\n[#]{1,3}\s/);
       if (nextHeadingMatch && nextHeadingMatch.index !== undefined) {
         endIndex = startIndex + nextHeadingMatch.index;
       }
@@ -211,7 +190,7 @@ export function extractSection(
 export async function parseSuggestions(
   sectionContent: string,
   priority: FixPriority,
-  projectPath: string
+  projectPath: string,
 ): Promise<FixSuggestion[]> {
   const suggestions: FixSuggestion[] = [];
 
@@ -222,35 +201,35 @@ export async function parseSuggestions(
   // Pattern 1: **Issue**: format
   const pattern1Blocks = sectionContent
     .split(/(?=\*\*Issue\*\*:)/)
-    .filter(block => block.trim().startsWith('**Issue**:'));
+    .filter((block) => block.trim().startsWith('**Issue**:'));
   if (pattern1Blocks.length > 0) {
     issueBlocks = pattern1Blocks;
   } else {
     // Pattern 2: 1. **Issue**: format (numbered list)
     const pattern2Blocks = sectionContent
       .split(/(?=\d+\.\s*\*\*Issue\*\*:)/)
-      .filter(block => block.trim().match(/^\d+\.\s*\*\*Issue\*\*/));
+      .filter((block) => block.trim().match(/^\d+\.\s*\*\*Issue\*\*/));
     if (pattern2Blocks.length > 0) {
       issueBlocks = pattern2Blocks;
     } else {
       // Pattern 3: ### Issue: format (heading)
       const pattern3Blocks = sectionContent
         .split(/(?=[#]{1,3}\s+Issue:)/)
-        .filter(block => block.trim().match(/^[#]{1,3}\s+Issue:/));
+        .filter((block) => block.trim().match(/^[#]{1,3}\s+Issue:/));
       if (pattern3Blocks.length > 0) {
         issueBlocks = pattern3Blocks;
       } else {
         // Pattern 4: **Finding**: format (security reviews)
         const pattern4Blocks = sectionContent
           .split(/(?=\*\*Finding\*\*:)/)
-          .filter(block => block.trim().startsWith('**Finding**:'));
+          .filter((block) => block.trim().startsWith('**Finding**:'));
         if (pattern4Blocks.length > 0) {
           issueBlocks = pattern4Blocks;
         } else {
           // Pattern 5: **Performance Issue**: format (performance reviews)
           const pattern5Blocks = sectionContent
             .split(/(?=\*\*Performance Issue\*\*:)/)
-            .filter(block => block.trim().startsWith('**Performance Issue**:'));
+            .filter((block) => block.trim().startsWith('**Performance Issue**:'));
           if (pattern5Blocks.length > 0) {
             issueBlocks = pattern5Blocks;
           }
@@ -295,7 +274,7 @@ export async function parseSuggestions(
       if (!fileMatch) {
         // Try to find any path-like string in the issue block
         const pathMatch = issueBlock.match(
-          /(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-./_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/
+          /(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-./_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/,
         );
         if (pathMatch) {
           filePath = pathMatch[0].trim();
@@ -309,19 +288,14 @@ export async function parseSuggestions(
       let cleanFilePath = filePath.replace(/`/g, '').replace(/\*/g, '').trim();
 
       // Extract the actual file path from common patterns
-      const filePathMatch = cleanFilePath.match(
-        /(?:src|\/)\S+\.(ts|js|tsx|jsx|json)/
-      );
+      const filePathMatch = cleanFilePath.match(/(?:src|\/)\S+\.(ts|js|tsx|jsx|json)/);
       if (filePathMatch) {
         cleanFilePath = filePathMatch[0];
       } else {
         // If we can't extract a clear file path, try to find the most likely path
         const possiblePaths = cleanFilePath
           .split(/[\s,()]/)
-          .filter(
-            part =>
-              part.includes('/') || part.includes('.ts') || part.includes('.js')
-          );
+          .filter((part) => part.includes('/') || part.includes('.ts') || part.includes('.js'));
 
         if (possiblePaths.length > 0) {
           cleanFilePath = possiblePaths[0];
@@ -337,8 +311,7 @@ export async function parseSuggestions(
 
       // Extract code blocks with more flexible pattern matching
       // Match code blocks with or without language specifier
-      const codeBlockMatches =
-        issueBlock.match(/```(?:[a-zA-Z0-9_-]*)?\s*([\s\S]*?)```/g) || [];
+      const codeBlockMatches = issueBlock.match(/```(?:[a-zA-Z0-9_-]*)?\s*([\s\S]*?)```/g) || [];
 
       // If no code blocks found with triple backticks, try alternative formats
       let codeBlocks: string[] = [];
@@ -352,7 +325,7 @@ export async function parseSuggestions(
       } else {
         // Try to find code blocks with indentation (4 spaces or tab)
         const indentedCodeBlockMatch = issueBlock.match(
-/(?:^|\n)(?: {4}|\t)([^\n]+(?:\n(?: {4}|\t)[^\n]+)*)/g
+          /(?:^|\n)(?: {4}|\t)([^\n]+(?:\n(?: {4}|\t)[^\n]+)*)/g,
         );
         if (indentedCodeBlockMatch) {
           codeBlocks = indentedCodeBlockMatch.map((block: string) => {
@@ -362,12 +335,8 @@ export async function parseSuggestions(
         }
 
         // Try to find code blocks with 'Current code:' and 'Suggested code:' markers
-        const currentCodeMatch = issueBlock.match(
-          /Current code:([\s\S]*?)(?:Suggested code:|$)/i
-        );
-        const suggestedCodeMatch = issueBlock.match(
-          /Suggested code:([\s\S]*?)(?:Impact:|$)/i
-        );
+        const currentCodeMatch = issueBlock.match(/Current code:([\s\S]*?)(?:Suggested code:|$)/i);
+        const suggestedCodeMatch = issueBlock.match(/Suggested code:([\s\S]*?)(?:Impact:|$)/i);
 
         if (currentCodeMatch && currentCodeMatch[1].trim()) {
           codeBlocks.push(currentCodeMatch[1].trim());
@@ -382,7 +351,7 @@ export async function parseSuggestions(
       const suggestion: FixSuggestion = {
         priority,
         file: fullFilePath,
-        description: issueDescription
+        description: issueDescription,
       };
 
       // If we have code blocks, assume the first is current code and second is suggested code
@@ -398,9 +367,7 @@ export async function parseSuggestions(
       const lineNumberMatch = location.match(/lines? (\d+)(?:-(\d+))?/i);
       if (lineNumberMatch) {
         const startLine = parseInt(lineNumberMatch[1], 10);
-        const endLine = lineNumberMatch[2]
-          ? parseInt(lineNumberMatch[2], 10)
-          : startLine;
+        const endLine = lineNumberMatch[2] ? parseInt(lineNumberMatch[2], 10) : startLine;
         suggestion.lineNumbers = { start: startLine, end: endLine };
       }
 

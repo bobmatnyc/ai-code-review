@@ -1,32 +1,28 @@
 /**
  * @fileoverview OpenRouter client implementation using the abstract client interface.
- * 
+ *
  * This module implements the OpenRouter client using the abstract client base class.
  * It provides functionality for interacting with OpenRouter's API, which gives access
  * to a variety of AI models from different providers.
  */
 
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../../types/review';
+import logger from '../../utils/logger';
+import type { ProjectDocs } from '../../utils/projectDocs';
 import {
   AbstractClient,
-  detectModelProvider,
-  validateApiKey,
-  fetchWithRetry,
   createStandardReviewResult,
-  handleApiError
+  detectModelProvider,
+  fetchWithRetry,
+  handleApiError,
+  validateApiKey,
 } from '../base';
 import {
-  ReviewType,
-  ReviewResult,
-  FileInfo,
-  ReviewOptions
-} from '../../types/review';
-import { ProjectDocs } from '../../utils/projectDocs';
-import logger from '../../utils/logger';
-import {
+  formatConsolidatedReviewPrompt,
   formatSingleFileReviewPrompt,
-  formatConsolidatedReviewPrompt
 } from '../utils/promptFormatter';
 import { loadPromptTemplate } from '../utils/promptLoader';
+
 // import { getLanguageFromExtension } from '../utils/languageDetection'; // Not used in this implementation
 
 const MAX_TOKENS_PER_REQUEST = 4000;
@@ -36,7 +32,7 @@ const MAX_TOKENS_PER_REQUEST = 4000;
  */
 export class OpenRouterClient extends AbstractClient {
   protected apiKey: string | undefined;
-  
+
   /**
    * Initialize with default values
    */
@@ -46,7 +42,7 @@ export class OpenRouterClient extends AbstractClient {
     this.isInitialized = false;
     this.apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY;
   }
-  
+
   /**
    * Check if the provided model name is supported by this client
    * @param modelName The full model name (potentially with provider prefix)
@@ -59,7 +55,7 @@ export class OpenRouterClient extends AbstractClient {
   } {
     return detectModelProvider('openrouter', modelName);
   }
-  
+
   /**
    * Get the provider name for this client
    * @returns The provider name
@@ -67,7 +63,7 @@ export class OpenRouterClient extends AbstractClient {
   protected getProviderName(): string {
     return 'openrouter';
   }
-  
+
   /**
    * Initialize the OpenRouter client
    * @returns Promise resolving to a boolean indicating success
@@ -77,26 +73,26 @@ export class OpenRouterClient extends AbstractClient {
     if (this.isInitialized) {
       return true;
     }
-    
+
     // Get model information
     const { isCorrect, modelName } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
-    
+
     // If this is not an OpenRouter model, just return true without initializing
     if (!isCorrect) {
       return true;
     }
-    
+
     // Set the model name
     this.modelName = modelName;
-    
+
     // Validate the API key
     if (!validateApiKey('openrouter', 'AI_CODE_REVIEW_OPENROUTER_API_KEY')) {
       process.exit(1);
     }
-    
+
     try {
       logger.info(`Initializing OpenRouter model: ${this.modelName}...`);
-      
+
       // Mark as initialized
       this.isInitialized = true;
       logger.info(`Successfully initialized OpenRouter model: ${this.modelName}`);
@@ -105,12 +101,12 @@ export class OpenRouterClient extends AbstractClient {
       logger.error(
         `Error initializing OpenRouter model ${this.modelName}: ${
           error instanceof Error ? error.message : String(error)
-        }`
+        }`,
       );
       return false;
     }
   }
-  
+
   /**
    * Generate a review for a single file
    * @param fileContent Content of the file to review
@@ -125,57 +121,55 @@ export class OpenRouterClient extends AbstractClient {
     filePath: string,
     reviewType: ReviewType,
     projectDocs?: ProjectDocs | null,
-    options?: ReviewOptions
+    options?: ReviewOptions,
   ): Promise<ReviewResult> {
     const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
-    
+
     // Make sure this is the correct client
     if (!isCorrect) {
       throw new Error(
-        `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`
+        `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`,
       );
     }
-    
+
     try {
       // Initialize if needed
       if (!this.isInitialized) {
         await this.initialize();
       }
-      
+
       // Get the language from file extension
       // const language = getLanguageFromExtension(filePath); // Currently unused
-      
+
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);
-      
+
       // Format the prompt
       const prompt = formatSingleFileReviewPrompt(
         promptTemplate,
         fileContent,
         filePath,
-        projectDocs
+        projectDocs,
       );
-      
+
       try {
         logger.info(`Generating review with OpenRouter ${this.modelName}...`);
-        
+
         // Make the API request
-        const response = await fetchWithRetry(
-          'https://openrouter.ai/api/v1/chat/completions',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${this.apiKey}`,
-              'HTTP-Referer': 'https://ai-code-review.app', // Required by OpenRouter
-              'X-Title': 'AI Code Review' // Optional for OpenRouter stats
-            },
-            body: JSON.stringify({
-              model: this.modelName,
-              messages: [
-                {
-                  role: 'system',
-                  content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+        const response = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.apiKey}`,
+            'HTTP-Referer': 'https://ai-code-review.app', // Required by OpenRouter
+            'X-Title': 'AI Code Review', // Optional for OpenRouter stats
+          },
+          body: JSON.stringify({
+            model: this.modelName,
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
 
 IMPORTANT: Your response MUST be in the following JSON format:
 
@@ -204,27 +198,26 @@ IMPORTANT: Your response MUST be in the following JSON format:
   ]
 }
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
-                },
-                {
-                  role: 'user',
-                  content: prompt
-                }
-              ],
-              temperature: 0.2,
-              max_tokens: MAX_TOKENS_PER_REQUEST
-            })
-          }
-        );
-        
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.`,
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.2,
+            max_tokens: MAX_TOKENS_PER_REQUEST,
+          }),
+        });
+
         const data = await response.json();
         if (!Array.isArray(data.choices) || !data.choices[0]?.message?.content) {
           throw new Error(`Invalid response format from OpenRouter ${this.modelName}`);
         }
-        
+
         const content = data.choices[0].message.content;
         logger.info(`Successfully generated review with OpenRouter ${this.modelName}`);
-        
+
         // Create and return the review result
         return createStandardReviewResult(
           content,
@@ -232,7 +225,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           this.getFullModelName(),
           filePath,
           reviewType,
-          options
+          options,
         );
       } catch (error) {
         throw handleApiError(error, 'generate review', this.getFullModelName());
@@ -241,7 +234,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       this.handleApiError(error, 'generating review', filePath);
     }
   }
-  
+
   /**
    * Generate a consolidated review for multiple files
    * @param files Array of file information objects
@@ -256,58 +249,56 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
     projectName: string,
     reviewType: ReviewType,
     projectDocs?: ProjectDocs | null,
-    options?: ReviewOptions
+    options?: ReviewOptions,
   ): Promise<ReviewResult> {
     const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
-    
+
     // Make sure this is the correct client
     if (!isCorrect) {
       throw new Error(
-        `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`
+        `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`,
       );
     }
-    
+
     try {
       // Initialize if needed
       if (!this.isInitialized) {
         await this.initialize();
       }
-      
+
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);
-      
+
       // Format the prompt
       const prompt = formatConsolidatedReviewPrompt(
         promptTemplate,
         projectName,
-        files.map(file => ({
+        files.map((file) => ({
           relativePath: file.relativePath || '',
           content: file.content,
-          sizeInBytes: file.content.length
+          sizeInBytes: file.content.length,
         })),
-        projectDocs
+        projectDocs,
       );
-      
+
       try {
         logger.info(`Generating consolidated review with OpenRouter ${this.modelName}...`);
-        
+
         // Make the API request
-        const response = await fetchWithRetry(
-          'https://openrouter.ai/api/v1/chat/completions',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${this.apiKey}`,
-              'HTTP-Referer': 'https://ai-code-review.app', // Required by OpenRouter
-              'X-Title': 'AI Code Review' // Optional for OpenRouter stats
-            },
-            body: JSON.stringify({
-              model: this.modelName,
-              messages: [
-                {
-                  role: 'system',
-                  content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+        const response = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.apiKey}`,
+            'HTTP-Referer': 'https://ai-code-review.app', // Required by OpenRouter
+            'X-Title': 'AI Code Review', // Optional for OpenRouter stats
+          },
+          body: JSON.stringify({
+            model: this.modelName,
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
 
 IMPORTANT: Your response MUST be in the following JSON format:
 
@@ -336,27 +327,26 @@ IMPORTANT: Your response MUST be in the following JSON format:
   ]
 }
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
-                },
-                {
-                  role: 'user',
-                  content: prompt
-                }
-              ],
-              temperature: 0.2,
-              max_tokens: MAX_TOKENS_PER_REQUEST
-            })
-          }
-        );
-        
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.`,
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.2,
+            max_tokens: MAX_TOKENS_PER_REQUEST,
+          }),
+        });
+
         const data = await response.json();
         if (!Array.isArray(data.choices) || !data.choices[0]?.message?.content) {
           throw new Error(`Invalid response format from OpenRouter ${this.modelName}`);
         }
-        
+
         const content = data.choices[0].message.content;
         logger.info(`Successfully generated consolidated review with OpenRouter ${this.modelName}`);
-        
+
         // Create and return the review result
         return createStandardReviewResult(
           content,
@@ -364,20 +354,16 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           this.getFullModelName(),
           'consolidated',
           reviewType,
-          options
+          options,
         );
       } catch (error) {
-        throw handleApiError(
-          error, 
-          'generate consolidated review', 
-          this.getFullModelName()
-        );
+        throw handleApiError(error, 'generate consolidated review', this.getFullModelName());
       }
     } catch (error) {
       this.handleApiError(error, 'generating consolidated review', projectName);
     }
   }
-  
+
   /**
    * Generate an architectural review for a project
    * @param files Array of file information objects
@@ -390,7 +376,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
     files: FileInfo[],
     projectName: string,
     projectDocs?: ProjectDocs | null,
-    options?: ReviewOptions
+    options?: ReviewOptions,
   ): Promise<ReviewResult> {
     // For OpenRouter, architectural reviews are handled by the consolidated review function
     // with the review type set to 'architectural'
@@ -399,7 +385,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       projectName,
       'architectural',
       projectDocs,
-      options
+      options,
     );
   }
 }

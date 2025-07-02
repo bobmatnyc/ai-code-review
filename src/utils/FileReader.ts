@@ -7,7 +7,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { FileInfo } from '../types/review';
+import type { FileInfo } from '../types/review';
 import logger from './logger';
 
 /**
@@ -21,7 +21,7 @@ export async function readFile(filePath: string): Promise<string> {
     return await fs.readFile(filePath, 'utf-8');
   } catch (error) {
     logger.error(
-      `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
     );
     throw error;
   }
@@ -40,11 +40,11 @@ export async function readFileWithInfo(filePath: string): Promise<FileInfo> {
     return {
       path: filePath,
       content,
-      extension
+      extension,
     };
   } catch (error) {
     logger.error(
-      `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
     );
     throw error;
   }
@@ -55,12 +55,8 @@ export async function readFileWithInfo(filePath: string): Promise<FileInfo> {
  * @param filePaths Array of file paths
  * @returns Promise resolving to an array of FileInfo objects
  */
-export async function readFilesWithInfo(
-  filePaths: string[]
-): Promise<FileInfo[]> {
-  const fileInfoPromises = filePaths.map(filePath =>
-    readFileWithInfo(filePath)
-  );
+export async function readFilesWithInfo(filePaths: string[]): Promise<FileInfo[]> {
+  const fileInfoPromises = filePaths.map((filePath) => readFileWithInfo(filePath));
   return Promise.all(fileInfoPromises);
 }
 
@@ -72,7 +68,7 @@ export async function readFilesWithInfo(
  */
 export async function readFilesInDirectory(
   dirPath: string,
-  filter?: (filePath: string) => boolean
+  filter?: (filePath: string) => boolean,
 ): Promise<string[]> {
   const result: string[] = [];
 

@@ -6,30 +6,24 @@
  */
 
 import * as path from 'path';
-import { createDirectory } from '../utils/fileSystem';
-import { ReviewOptions } from '../types/review';
-import logger from '../utils/logger';
-import { getApiKeyType } from '../utils/api/apiUtils';
 import { runApiConnectionTests } from '../__tests__/apiConnection.test';
+import { listModelConfigs, listModels } from '../clients/utils/modelLister';
+import type { ProgrammingLanguage } from '../types/common';
+import type { ReviewOptions } from '../types/review';
+import { getApiKeyType } from '../utils/api/apiUtils';
 import { getConfig } from '../utils/config';
-import { ProgrammingLanguage } from '../types/common';
-
 import configManager from '../utils/configManager';
-import {
-  listModels,
-  listModelConfigs
-} from '../clients/utils/modelLister';
-
-// Import handlers
-import { discoverFilesForReview, readFilesForReview } from './handlers/FileProcessingHandler';
-import { performEstimation } from './handlers/EstimationHandler';
-import { performSemanticAnalysis } from './handlers/SemanticAnalysisHandler';
-import { executeReview } from './handlers/ReviewExecutor';
-import { handleReviewOutput, createOutputDirectory } from './handlers/OutputHandler';
-
+import { createDirectory } from '../utils/fileSystem';
+import logger from '../utils/logger';
+import { readProjectDocs } from '../utils/projectDocs';
 // Import other dependencies
 import { selectApiClient } from './ApiClientSelector';
-import { readProjectDocs } from '../utils/projectDocs';
+import { performEstimation } from './handlers/EstimationHandler';
+// Import handlers
+import { discoverFilesForReview, readFilesForReview } from './handlers/FileProcessingHandler';
+import { createOutputDirectory, handleReviewOutput } from './handlers/OutputHandler';
+import { executeReview } from './handlers/ReviewExecutor';
+import { performSemanticAnalysis } from './handlers/SemanticAnalysisHandler';
 
 /**
  * Orchestrate the code review process
@@ -47,26 +41,23 @@ import { readProjectDocs } from '../utils/projectDocs';
  * @param options Review options including type, output format, and interactive mode
  * @throws Error if the review process fails for any reason
  */
-export async function orchestrateReview(
-  target: string,
-  options: ReviewOptions
-): Promise<void> {
-  // Initialize configuration 
+export async function orchestrateReview(target: string, options: ReviewOptions): Promise<void> {
+  // Initialize configuration
   getConfig();
   try {
     // Validate input parameters
     if (options === undefined) {
       throw new Error('Review options object must be provided');
     }
-    
+
     // Validate that options contains a review type
     if (!options.type) {
       throw new Error('Review type must be specified in options');
     }
-    
+
     // Ensure target is defined with a default of "." for current directory
     const effectiveTarget = target || '.';
-    
+
     // Log if we're using the default target
     if (!target || target.trim() === '') {
       logger.info('No target path provided, defaulting to current directory (".")');
@@ -75,10 +66,10 @@ export async function orchestrateReview(
     // Add debug information if debug mode is enabled
     if (options.debug) {
       logger.debug(`Review options: ${JSON.stringify(options, null, 2)}`);
-      logger.debug(`Target path: ${effectiveTarget}${(!target || target.trim() === '') ? ' (defaulted to ".")' : ''}`);
       logger.debug(
-        `Selected model: ${process.env.AI_CODE_REVIEW_MODEL || 'not set'}`
+        `Target path: ${effectiveTarget}${!target || target.trim() === '' ? ' (defaulted to ".")' : ''}`,
       );
+      logger.debug(`Selected model: ${process.env.AI_CODE_REVIEW_MODEL || 'not set'}`);
       logger.debug(`API key type: ${getApiKeyType() || 'None'}`);
     }
 
@@ -91,9 +82,7 @@ export async function orchestrateReview(
 
     // If models flag is set, list all supported models and their configuration names
     if (options.models) {
-      logger.info(
-        'Listing all supported models and their configuration names...'
-      );
+      logger.info('Listing all supported models and their configuration names...');
       listModelConfigs();
       return; // Exit after listing models
     }
@@ -109,9 +98,7 @@ export async function orchestrateReview(
     if (options.type === 'architectural') {
       logger.info(`Starting architectural review for ${effectiveTarget}...`);
     } else {
-      logger.info(
-        `Starting consolidated ${options.type} review for ${effectiveTarget}...`
-      );
+      logger.info(`Starting consolidated ${options.type} review for ${effectiveTarget}...`);
     }
 
     // Determine the project path
@@ -122,7 +109,7 @@ export async function orchestrateReview(
     const configOutputDir = configManager.getPathsConfig().outputDir;
     const outputBaseDir = createOutputDirectory(projectPath, {
       outputDir: options.outputDir,
-      configOutputDir: configOutputDir
+      configOutputDir: configOutputDir,
     });
 
     // Create the directory
@@ -131,59 +118,75 @@ export async function orchestrateReview(
     // Log project information
     logger.info(`Project: ${projectName}`);
     logger.info(`Project path: ${projectPath}`);
-    
+
     // Detect language and framework
     let frameworkDetectionResult = null;
     if (!options.language) {
       try {
         const { detectFramework } = await import('../utils/detection');
         frameworkDetectionResult = await detectFramework(projectPath);
-        
+
         if (frameworkDetectionResult) {
           options.language = frameworkDetectionResult.language as ProgrammingLanguage;
           options.framework = frameworkDetectionResult.framework;
-          
-          if (frameworkDetectionResult.framework !== 'none' && frameworkDetectionResult.confidence > 0.6) {
-            logger.info(`Detected language: ${frameworkDetectionResult.language}, framework: ${frameworkDetectionResult.framework} (confidence: ${frameworkDetectionResult.confidence.toFixed(2)})`);
-            
+
+          if (
+            frameworkDetectionResult.framework !== 'none' &&
+            frameworkDetectionResult.confidence > 0.6
+          ) {
+            logger.info(
+              `Detected language: ${frameworkDetectionResult.language}, framework: ${frameworkDetectionResult.framework} (confidence: ${frameworkDetectionResult.confidence.toFixed(2)})`,
+            );
+
             if (frameworkDetectionResult.frameworkVersion) {
               logger.info(`Framework version: ${frameworkDetectionResult.frameworkVersion}`);
             }
-            
-            if (frameworkDetectionResult.additionalFrameworks && frameworkDetectionResult.additionalFrameworks.length > 0) {
-              logger.info(`Additional frameworks detected: ${frameworkDetectionResult.additionalFrameworks.join(', ')}`);
+
+            if (
+              frameworkDetectionResult.additionalFrameworks &&
+              frameworkDetectionResult.additionalFrameworks.length > 0
+            ) {
+              logger.info(
+                `Additional frameworks detected: ${frameworkDetectionResult.additionalFrameworks.join(', ')}`,
+              );
             }
-            
-            if (frameworkDetectionResult.cssFrameworks && frameworkDetectionResult.cssFrameworks.length > 0) {
-              const cssFrameworksStr = frameworkDetectionResult.cssFrameworks.map(cf => 
-                cf.version ? `${cf.name} (${cf.version})` : cf.name
-              ).join(', ');
+
+            if (
+              frameworkDetectionResult.cssFrameworks &&
+              frameworkDetectionResult.cssFrameworks.length > 0
+            ) {
+              const cssFrameworksStr = frameworkDetectionResult.cssFrameworks
+                .map((cf) => (cf.version ? `${cf.name} (${cf.version})` : cf.name))
+                .join(', ');
               logger.info(`CSS frameworks detected: ${cssFrameworksStr}`);
             }
           } else {
-            logger.info(`Detected language: ${frameworkDetectionResult.language}, no specific framework detected`);
-            
+            logger.info(
+              `Detected language: ${frameworkDetectionResult.language}, no specific framework detected`,
+            );
+
             // Still log CSS frameworks if detected
-            if (frameworkDetectionResult.cssFrameworks && frameworkDetectionResult.cssFrameworks.length > 0) {
-              const cssFrameworksStr = frameworkDetectionResult.cssFrameworks.map(cf => 
-                cf.version ? `${cf.name} (${cf.version})` : cf.name
-              ).join(', ');
+            if (
+              frameworkDetectionResult.cssFrameworks &&
+              frameworkDetectionResult.cssFrameworks.length > 0
+            ) {
+              const cssFrameworksStr = frameworkDetectionResult.cssFrameworks
+                .map((cf) => (cf.version ? `${cf.name} (${cf.version})` : cf.name))
+                .join(', ');
               logger.info(`CSS frameworks detected: ${cssFrameworksStr}`);
             }
           }
         }
       } catch (error) {
-        logger.debug(`Error detecting language/framework: ${error instanceof Error ? error.message : String(error)}`);
+        logger.debug(
+          `Error detecting language/framework: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
 
     // Discover files to review
-    const filesToReview = await discoverFilesForReview(
-      effectiveTarget,
-      projectPath,
-      options
-    );
-    
+    const filesToReview = await discoverFilesForReview(effectiveTarget, projectPath, options);
+
     if (filesToReview.length === 0) {
       return; // No files to review, exit early
     }
@@ -193,11 +196,11 @@ export async function orchestrateReview(
       // Get the model name from options or environment variables
       const modelName =
         options.model || process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
-      
+
       try {
         // Read file contents for token analysis
         const { fileInfos, errors } = await readFilesForReview(filesToReview, projectPath);
-        
+
         // If we have errors reading files, report them but continue
         if (errors.length > 0) {
           console.warn(`Warning: Failed to read ${errors.length} file(s):`);
@@ -205,18 +208,22 @@ export async function orchestrateReview(
             console.warn(`  - ${error.path}: ${error.error}`);
           }
         }
-        
+
         // Ensure we have at least some files to analyze
         if (fileInfos.length === 0) {
-          throw new Error('No files could be read for review. Please check file permissions and paths.');
+          throw new Error(
+            'No files could be read for review. Please check file permissions and paths.',
+          );
         }
-        
+
         // Perform estimation
         await performEstimation(fileInfos, filesToReview, options, modelName);
       } catch (error) {
-        logger.error(`Estimation failed: ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(
+          `Estimation failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
-      
+
       return; // Exit after displaying the estimation
     }
 
@@ -229,75 +236,80 @@ export async function orchestrateReview(
       logger.info('Reading project documentation...');
       projectDocs = await readProjectDocs(projectPath);
     }
-    
+
     // Get the API client configuration
     const apiClientConfig = await selectApiClient(options);
-    
+
     // Log writer model if configured
     const config = getConfig(options as any);
     logger.debug(`Config writerModel: ${config.writerModel}`);
     if (config.writerModel) {
       logger.info(`Using writer model for consolidation: ${config.writerModel}`);
     }
-    
+
     // Perform token analysis to check if content exceeds context window
     let tokenAnalysis = null;
-    
+
     if (!options.multiPass) {
       try {
         logger.info('Analyzing token usage to determine review strategy...');
-        
+
         // Use the new TokenAnalyzer for more comprehensive analysis
         const { TokenAnalyzer } = await import('../analysis/tokens');
-        
+
         const tokenAnalysisOptions = {
           reviewType: options.type,
           modelName: apiClientConfig.modelName,
           contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15,
-          forceSinglePass: options.forceSinglePass
+          forceSinglePass: options.forceSinglePass,
         };
-        
+
         // Log if forceSinglePass is enabled
         if (options.forceSinglePass) {
-          logger.info('Force single-pass mode is enabled. This will override the chunking recommendation.');
-          logger.info('Note: This may result in token limit errors if the content exceeds the model\'s context window.');
-          
+          logger.info(
+            'Force single-pass mode is enabled. This will override the chunking recommendation.',
+          );
+          logger.info(
+            "Note: This may result in token limit errors if the content exceeds the model's context window.",
+          );
+
           // Special note for Gemini models
           if (apiClientConfig.modelName.includes('gemini-1.5')) {
             logger.info('Using Gemini 1.5 model with 1M token context window in single-pass mode.');
           }
         }
-        
+
         tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);
-        
+
         // Try semantic chunking for intelligent code analysis
         await performSemanticAnalysis(fileInfos, options);
       } catch (error) {
-        logger.warn(`Token analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        logger.warn(
+          `Token analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
         logger.info('Proceeding with review without token analysis');
       }
     }
-    
+
     // Execute the review
     const reviewResult = await executeReview(
       fileInfos,
       options,
       apiClientConfig as any,
       projectDocs,
-      tokenAnalysis
+      tokenAnalysis,
     );
-    
+
     // Handle review output
     await handleReviewOutput(reviewResult, options, outputBaseDir);
-    
   } catch (error) {
     // Handle any uncaught errors
     logger.error(`Review failed: ${error instanceof Error ? error.message : String(error)}`);
-    
+
     if (error instanceof Error && error.stack && options.debug) {
       logger.debug(`Error stack trace: ${error.stack}`);
     }
-    
+
     throw error;
   }
 }

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+
 /**
  * @fileoverview Training script for extract-patterns prompt optimization
- * 
+ *
  * This script uses LangChain and the training examples to systematically
  * improve the extract-patterns prompt to better identify:
  * - Specific design patterns (Factory, Strategy, Observer, etc.)
@@ -10,13 +11,13 @@
  * - Architectural and implementation patterns
  */
 
-import { ExtractPatternsTrainer } from './ExtractPatternsTrainer';
-import { PATTERN_TRAINING_EXAMPLES } from './patternTrainingExamples';
-import { PromptManager } from '../PromptManager';
-import { ReviewOptions } from '../../types/review';
-import logger from '../../utils/logger';
 import fs from 'fs/promises';
 import path from 'path';
+import type { ReviewOptions } from '../../types/review';
+import logger from '../../utils/logger';
+import { PromptManager } from '../PromptManager';
+import { ExtractPatternsTrainer } from './ExtractPatternsTrainer';
+import { PATTERN_TRAINING_EXAMPLES } from './patternTrainingExamples';
 
 /**
  * Enhanced base prompt for pattern extraction
@@ -102,15 +103,18 @@ interface TrainingConfig {
  */
 async function trainExtractPatternsPrompt(config: TrainingConfig): Promise<void> {
   logger.info('Starting extract-patterns prompt training...');
-  
+
   const trainer = new ExtractPatternsTrainer();
   const promptManager = PromptManager.getInstance();
-  
+
   // Get the current prompt or use the enhanced base prompt
   let currentPrompt: string;
   if (config.useExistingPrompt) {
     try {
-      currentPrompt = await promptManager.getPromptTemplate('extract-patterns', { type: 'extract-patterns', language: 'typescript' });
+      currentPrompt = await promptManager.getPromptTemplate('extract-patterns', {
+        type: 'extract-patterns',
+        language: 'typescript',
+      });
       logger.info('Using existing extract-patterns prompt as starting point');
     } catch (error) {
       logger.warn('Could not load existing prompt, using enhanced base prompt');
@@ -127,15 +131,12 @@ async function trainExtractPatternsPrompt(config: TrainingConfig): Promise<void>
     language: 'typescript',
     includeTests: true,
     output: 'json',
-    schemaInstructions: 'Use the extract-patterns schema for structured output'
+    schemaInstructions: 'Use the extract-patterns schema for structured output',
   };
 
   // Phase 1: Create few-shot prompt with training examples
   logger.info('Phase 1: Creating few-shot prompt with training examples...');
-  const fewShotPrompt = await trainer.trainWithExamples(
-    PATTERN_TRAINING_EXAMPLES,
-    currentPrompt
-  );
+  const fewShotPrompt = await trainer.trainWithExamples(PATTERN_TRAINING_EXAMPLES, currentPrompt);
 
   // Phase 2: Iterative improvement based on evaluation
   logger.info('Phase 2: Starting iterative improvement...');
@@ -143,7 +144,7 @@ async function trainExtractPatternsPrompt(config: TrainingConfig): Promise<void>
     fewShotPrompt,
     PATTERN_TRAINING_EXAMPLES,
     reviewOptions,
-    config.maxIterations
+    config.maxIterations,
   );
 
   // Phase 3: Final evaluation
@@ -151,10 +152,11 @@ async function trainExtractPatternsPrompt(config: TrainingConfig): Promise<void>
   const finalFeedbacks = await trainer.evaluatePrompt(
     optimizedPrompt,
     PATTERN_TRAINING_EXAMPLES,
-    reviewOptions
+    reviewOptions,
   );
 
-  const finalScore = finalFeedbacks.reduce((sum, f) => sum + f.overallScore, 0) / finalFeedbacks.length;
+  const finalScore =
+    finalFeedbacks.reduce((sum, f) => sum + f.overallScore, 0) / finalFeedbacks.length;
   logger.info(`Final training score: ${finalScore.toFixed(2)}/10`);
 
   // Save the optimized prompt
@@ -172,10 +174,10 @@ async function trainExtractPatternsPrompt(config: TrainingConfig): Promise<void>
 async function saveOptimizedPrompt(
   prompt: string,
   outputPath: string,
-  score: number
+  score: number,
 ): Promise<void> {
   const promptPath = path.join(outputPath, 'optimized-extract-patterns-prompt.md');
-  
+
   const promptContent = `---
 name: Optimized Extract Patterns Review
 description: AI-trained prompt for extracting coding patterns and architectural decisions
@@ -201,10 +203,10 @@ ${prompt}
 async function generateTrainingReport(
   feedbacks: any[],
   outputPath: string,
-  finalScore: number
+  finalScore: number,
 ): Promise<void> {
   const reportPath = path.join(outputPath, 'training-report.md');
-  
+
   const report = `# Extract Patterns Prompt Training Report
 
 ## Training Summary
@@ -213,21 +215,27 @@ async function generateTrainingReport(
 - **Training Date**: ${new Date().toISOString()}
 
 ## Training Examples Used
-${PATTERN_TRAINING_EXAMPLES.map((example, index) => `
+${PATTERN_TRAINING_EXAMPLES.map(
+  (example, index) => `
 ### Example ${index + 1}: ${example.description}
 - **Expected Patterns**: ${example.expectedPatterns.designPatterns.length} design patterns
 - **Code Metrics**: ${example.expectedPatterns.codeMetrics.averageFileSize} avg file size
 - **Complexity**: ${example.expectedPatterns.codeMetrics.complexityLevel}
-`).join('')}
+`,
+).join('')}
 
 ## Performance Metrics
-${feedbacks.map((feedback, index) => `
+${feedbacks
+  .map(
+    (feedback, index) => `
 ### Example ${index + 1} Results
 - **Pattern Identification**: ${feedback.patternIdentificationScore}/10
 - **Metrics Accuracy**: ${feedback.metricsAccuracyScore}/10
 - **Architectural Analysis**: ${feedback.architecturalAnalysisScore}/10
 - **Overall Score**: ${feedback.overallScore}/10
-`).join('')}
+`,
+  )
+  .join('')}
 
 ## Next Steps
 1. Test the optimized prompt on real codebases
@@ -248,7 +256,7 @@ async function main(): Promise<void> {
     maxIterations: parseInt(process.env.MAX_ITERATIONS || '3'),
     targetScore: parseFloat(process.env.TARGET_SCORE || '8.0'),
     outputPath: process.env.OUTPUT_PATH || './ai-code-review-docs/training',
-    useExistingPrompt: process.env.USE_EXISTING_PROMPT === 'true'
+    useExistingPrompt: process.env.USE_EXISTING_PROMPT === 'true',
   };
 
   // Ensure output directory exists

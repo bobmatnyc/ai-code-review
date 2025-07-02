@@ -1,23 +1,23 @@
 /**
  * @fileoverview Intelligent chunk generator for semantic code analysis
- * 
+ *
  * This module generates optimal code chunks based on semantic analysis results,
  * implementing AI-guided chunking strategies that understand code structure
  * and relationships for more effective code review.
  */
 
 import logger from '../../utils/logger';
-import {
-  SemanticAnalysis,
+import type {
+  ChunkingRecommendation,
+  ChunkRelationship,
+  CodeChunk,
   Declaration,
   DeclarationType,
-  CodeChunk,
-  ChunkingRecommendation,
-  ReviewUnit,
-  ReviewPriority,
+  ImportRelationship,
   ReviewFocus,
-  ChunkRelationship,
-  ImportRelationship
+  ReviewPriority,
+  ReviewUnit,
+  SemanticAnalysis,
 } from './types';
 
 /**
@@ -50,7 +50,7 @@ const DEFAULT_CONFIG: ChunkGeneratorConfig = {
   maxContextDeclarations: 5,
   tokensPerLine: 4,
   highComplexityThreshold: 15,
-  mediumComplexityThreshold: 8
+  mediumComplexityThreshold: 8,
 };
 
 /**
@@ -69,9 +69,11 @@ export class ChunkGenerator {
   public generateChunks(
     analysis: SemanticAnalysis,
     fileContent: string,
-    reviewType: string = 'quick-fixes'
+    reviewType = 'quick-fixes',
   ): ChunkingRecommendation {
-    logger.debug(`Generating chunks for ${analysis.filePath} using ${analysis.suggestedChunkingStrategy.strategy} strategy`);
+    logger.debug(
+      `Generating chunks for ${analysis.filePath} using ${analysis.suggestedChunkingStrategy.strategy} strategy`,
+    );
 
     const lines = fileContent.split('\n');
     const chunks: CodeChunk[] = [];
@@ -111,9 +113,8 @@ export class ChunkGenerator {
         crossReferences,
         reasoning: this.generateReasoningExplanation(analysis, chunks),
         estimatedTokens,
-        estimatedChunks: chunks.length
+        estimatedChunks: chunks.length,
       };
-
     } catch (error) {
       logger.error(`Failed to generate chunks: ${error}`);
       // Fallback to simple line-based chunking
@@ -128,7 +129,7 @@ export class ChunkGenerator {
     analysis: SemanticAnalysis,
     lines: string[],
     chunks: CodeChunk[],
-    reviewType: string
+    reviewType: string,
   ): void {
     let chunkId = 1;
 
@@ -144,7 +145,7 @@ export class ChunkGenerator {
         `chunk_${chunkId++}`,
         lines,
         analysis,
-        reviewType
+        reviewType,
       );
 
       if (chunk) {
@@ -154,7 +155,11 @@ export class ChunkGenerator {
 
     // Handle imports separately if significant
     if (analysis.importGraph.length > 5) {
-      const importChunk = this.createImportChunk(analysis.importGraph, `chunk_${chunkId++}`, reviewType);
+      const importChunk = this.createImportChunk(
+        analysis.importGraph,
+        `chunk_${chunkId++}`,
+        reviewType,
+      );
       if (importChunk) {
         chunks.push(importChunk);
       }
@@ -168,14 +173,14 @@ export class ChunkGenerator {
     analysis: SemanticAnalysis,
     lines: string[],
     chunks: CodeChunk[],
-    reviewType: string
+    reviewType: string,
   ): void {
     const groups = this.groupRelatedDeclarations(analysis.topLevelDeclarations);
     let chunkId = 1;
 
     for (const group of groups) {
       const groupSize = group.reduce((size, decl) => size + (decl.endLine - decl.startLine + 1), 0);
-      
+
       if (groupSize <= this.config.maxChunkSize) {
         // Group fits in one chunk
         const chunk = this.createChunkFromDeclarations(
@@ -183,7 +188,7 @@ export class ChunkGenerator {
           `group_${chunkId++}`,
           lines,
           analysis,
-          reviewType
+          reviewType,
         );
         if (chunk) {
           chunks.push(chunk);
@@ -203,18 +208,18 @@ export class ChunkGenerator {
     analysis: SemanticAnalysis,
     lines: string[],
     chunks: CodeChunk[],
-    reviewType: string
+    reviewType: string,
   ): void {
     let chunkId = 1;
 
     // Separate classes from other declarations
-    const classes = analysis.topLevelDeclarations.filter(d => d.type === 'class');
-    const nonClasses = analysis.topLevelDeclarations.filter(d => d.type !== 'class');
+    const classes = analysis.topLevelDeclarations.filter((d) => d.type === 'class');
+    const nonClasses = analysis.topLevelDeclarations.filter((d) => d.type !== 'class');
 
     // Process classes hierarchically
     for (const classDecl of classes) {
       const classSize = classDecl.endLine - classDecl.startLine + 1;
-      
+
       if (classSize <= this.config.maxChunkSize) {
         // Small class: review as a unit
         const chunk = this.createChunkFromDeclaration(
@@ -222,7 +227,7 @@ export class ChunkGenerator {
           `class_${chunkId++}`,
           lines,
           analysis,
-          reviewType
+          reviewType,
         );
         if (chunk) {
           chunks.push(chunk);
@@ -240,7 +245,7 @@ export class ChunkGenerator {
         { ...analysis, topLevelDeclarations: nonClasses },
         lines,
         chunks,
-        reviewType
+        reviewType,
       );
     }
   }
@@ -252,7 +257,7 @@ export class ChunkGenerator {
     analysis: SemanticAnalysis,
     lines: string[],
     chunks: CodeChunk[],
-    reviewType: string
+    reviewType: string,
   ): void {
     const functionalGroups = this.groupByDependencies(analysis.topLevelDeclarations);
     let chunkId = 1;
@@ -263,7 +268,7 @@ export class ChunkGenerator {
         `functional_${chunkId++}`,
         lines,
         analysis,
-        reviewType
+        reviewType,
       );
       if (chunk) {
         chunks.push(chunk);
@@ -278,7 +283,7 @@ export class ChunkGenerator {
     analysis: SemanticAnalysis,
     lines: string[],
     chunks: CodeChunk[],
-    reviewType: string
+    reviewType: string,
   ): void {
     // Similar to functional but considers broader context
     const contextGroups = this.groupByContext(analysis.topLevelDeclarations, analysis.importGraph);
@@ -290,7 +295,7 @@ export class ChunkGenerator {
         `context_${chunkId++}`,
         lines,
         analysis,
-        reviewType
+        reviewType,
       );
       if (chunk) {
         chunks.push(chunk);
@@ -305,7 +310,7 @@ export class ChunkGenerator {
     analysis: SemanticAnalysis,
     lines: string[],
     chunks: CodeChunk[],
-    reviewType: string
+    reviewType: string,
   ): void {
     // Simple line-based chunking as fallback
     const chunkSize = Math.min(this.config.maxChunkSize, Math.max(50, lines.length / 4));
@@ -313,7 +318,7 @@ export class ChunkGenerator {
 
     for (let i = 0; i < lines.length; i += chunkSize) {
       const endLine = Math.min(i + chunkSize, lines.length);
-      
+
       const chunk: CodeChunk = {
         id: `fallback_${chunkId++}`,
         type: 'module',
@@ -323,7 +328,7 @@ export class ChunkGenerator {
         priority: 'medium',
         reviewFocus: this.getReviewFocusForType(reviewType),
         estimatedTokens: (endLine - i) * this.config.tokensPerLine,
-        dependencies: []
+        dependencies: [],
       };
 
       chunks.push(chunk);
@@ -338,11 +343,12 @@ export class ChunkGenerator {
     id: string,
     lines: string[],
     analysis: SemanticAnalysis,
-    reviewType: string
+    reviewType: string,
   ): CodeChunk | null {
     try {
-      const context = this.config.includeContext ? 
-        this.findContextDeclarations(declaration, analysis.topLevelDeclarations) : [];
+      const context = this.config.includeContext
+        ? this.findContextDeclarations(declaration, analysis.topLevelDeclarations)
+        : [];
 
       return {
         id,
@@ -353,7 +359,7 @@ export class ChunkGenerator {
         priority: this.calculatePriority(declaration, reviewType),
         reviewFocus: this.getReviewFocusForDeclaration(declaration, reviewType),
         estimatedTokens: this.estimateTokens(declaration.startLine, declaration.endLine),
-        dependencies: declaration.dependencies
+        dependencies: declaration.dependencies,
       };
     } catch (error) {
       logger.warn(`Failed to create chunk from declaration ${declaration.name}: ${error}`);
@@ -369,19 +375,20 @@ export class ChunkGenerator {
     id: string,
     lines: string[],
     analysis: SemanticAnalysis,
-    reviewType: string
+    reviewType: string,
   ): CodeChunk | null {
     if (declarations.length === 0) return null;
 
     try {
-      const startLine = Math.min(...declarations.map(d => d.startLine));
-      const endLine = Math.max(...declarations.map(d => d.endLine));
-      
-      const allDependencies = new Set<string>();
-      declarations.forEach(d => d.dependencies.forEach(dep => allDependencies.add(dep)));
+      const startLine = Math.min(...declarations.map((d) => d.startLine));
+      const endLine = Math.max(...declarations.map((d) => d.endLine));
 
-      const context = this.config.includeContext ? 
-        this.findContextDeclarations(declarations[0], analysis.topLevelDeclarations) : [];
+      const allDependencies = new Set<string>();
+      declarations.forEach((d) => d.dependencies.forEach((dep) => allDependencies.add(dep)));
+
+      const context = this.config.includeContext
+        ? this.findContextDeclarations(declarations[0], analysis.topLevelDeclarations)
+        : [];
 
       return {
         id,
@@ -392,7 +399,7 @@ export class ChunkGenerator {
         priority: this.calculateGroupPriority(declarations, reviewType),
         reviewFocus: this.getReviewFocusForDeclarations(declarations, reviewType),
         estimatedTokens: this.estimateTokens(startLine, endLine),
-        dependencies: Array.from(allDependencies)
+        dependencies: Array.from(allDependencies),
       };
     } catch (error) {
       logger.warn(`Failed to create chunk from declarations: ${error}`);
@@ -409,10 +416,14 @@ export class ChunkGenerator {
     chunks: CodeChunk[],
     analysis: SemanticAnalysis,
     reviewType: string,
-    baseId: number
+    baseId: number,
   ): void {
     // Create chunk for class declaration itself
-    const classHeaderChunk = this.createClassHeaderChunk(classDecl, `class_header_${baseId}`, reviewType);
+    const classHeaderChunk = this.createClassHeaderChunk(
+      classDecl,
+      `class_header_${baseId}`,
+      reviewType,
+    );
     if (classHeaderChunk) {
       chunks.push(classHeaderChunk);
     }
@@ -420,14 +431,14 @@ export class ChunkGenerator {
     // Create chunks for methods/properties
     if (classDecl.children) {
       const methodGroups = this.groupClassMethods(classDecl.children);
-      
+
       for (let i = 0; i < methodGroups.length; i++) {
         const methodChunk = this.createChunkFromDeclarations(
           methodGroups[i],
           `class_methods_${baseId}_${i + 1}`,
           lines,
           analysis,
-          reviewType
+          reviewType,
         );
         if (methodChunk) {
           chunks.push(methodChunk);
@@ -442,7 +453,7 @@ export class ChunkGenerator {
   private createClassHeaderChunk(
     classDecl: Declaration,
     id: string,
-    reviewType: string
+    reviewType: string,
   ): CodeChunk | null {
     // Find the end of class declaration (before first method)
     const firstMethodLine = classDecl.children?.[0]?.startLine || classDecl.endLine;
@@ -457,7 +468,7 @@ export class ChunkGenerator {
       priority: this.calculatePriority(classDecl, reviewType),
       reviewFocus: ['architecture', 'type_safety'],
       estimatedTokens: this.estimateTokens(classDecl.startLine, headerEndLine),
-      dependencies: classDecl.dependencies
+      dependencies: classDecl.dependencies,
     };
   }
 
@@ -467,12 +478,12 @@ export class ChunkGenerator {
   private createImportChunk(
     imports: ImportRelationship[],
     id: string,
-    _reviewType: string
+    _reviewType: string,
   ): CodeChunk | null {
     if (imports.length === 0) return null;
 
-    const startLine = Math.min(...imports.map(i => i.line));
-    const endLine = Math.max(...imports.map(i => i.line));
+    const startLine = Math.min(...imports.map((i) => i.line));
+    const endLine = Math.max(...imports.map((i) => i.line));
 
     return {
       id,
@@ -483,7 +494,7 @@ export class ChunkGenerator {
       priority: 'low',
       reviewFocus: ['architecture', 'maintainability'],
       estimatedTokens: this.estimateTokens(startLine, endLine),
-      dependencies: imports.map(i => i.from)
+      dependencies: imports.map((i) => i.from),
     };
   }
 
@@ -524,15 +535,18 @@ export class ChunkGenerator {
     if (decl1.type === decl2.type) return true;
 
     // Shared dependencies
-    const sharedDeps = decl1.dependencies.filter(dep => decl2.dependencies.includes(dep));
+    const sharedDeps = decl1.dependencies.filter((dep) => decl2.dependencies.includes(dep));
     if (sharedDeps.length > 0) return true;
 
     // Similar naming
     if (this.haveSimilarNames(decl1.name, decl2.name)) return true;
 
     // Adjacent in code
-    if (Math.abs(decl1.startLine - decl2.endLine) < 5 || 
-        Math.abs(decl2.startLine - decl1.endLine) < 5) return true;
+    if (
+      Math.abs(decl1.startLine - decl2.endLine) < 5 ||
+      Math.abs(decl2.startLine - decl1.endLine) < 5
+    )
+      return true;
 
     return false;
   }
@@ -558,17 +572,17 @@ export class ChunkGenerator {
 
     for (const [, declarations] of dependencyMap) {
       if (declarations.length > 1) {
-        const unprocessed = declarations.filter(d => !processed.has(d));
+        const unprocessed = declarations.filter((d) => !processed.has(d));
         if (unprocessed.length > 0) {
           groups.push(unprocessed);
-          unprocessed.forEach(d => processed.add(d));
+          unprocessed.forEach((d) => processed.add(d));
         }
       }
     }
 
     // Add remaining individual declarations
-    const remaining = declarations.filter(d => !processed.has(d));
-    remaining.forEach(d => groups.push([d]));
+    const remaining = declarations.filter((d) => !processed.has(d));
+    remaining.forEach((d) => groups.push([d]));
 
     return groups;
   }
@@ -578,7 +592,7 @@ export class ChunkGenerator {
    */
   private groupByContext(
     declarations: Declaration[],
-    _imports: ImportRelationship[]
+    _imports: ImportRelationship[],
   ): Declaration[][] {
     // Implementation similar to groupByDependencies but considers imports and broader context
     return this.groupByDependencies(declarations);
@@ -589,8 +603,8 @@ export class ChunkGenerator {
    */
   private groupClassMethods(methods: Declaration[]): Declaration[][] {
     const groups: Declaration[][] = [];
-    const publicMethods = methods.filter(m => !m.modifiers?.includes('private'));
-    const privateMethods = methods.filter(m => m.modifiers?.includes('private'));
+    const publicMethods = methods.filter((m) => !m.modifiers?.includes('private'));
+    const privateMethods = methods.filter((m) => m.modifiers?.includes('private'));
 
     // Group public methods
     if (publicMethods.length > 0) {
@@ -614,14 +628,14 @@ export class ChunkGenerator {
     chunks: CodeChunk[],
     analysis: SemanticAnalysis,
     reviewType: string,
-    baseId: number
+    baseId: number,
   ): void {
     let currentGroup: Declaration[] = [];
     let currentSize = 0;
 
     for (const declaration of group) {
       const declSize = declaration.endLine - declaration.startLine + 1;
-      
+
       if (currentSize + declSize > this.config.maxChunkSize && currentGroup.length > 0) {
         // Create chunk from current group
         const chunk = this.createChunkFromDeclarations(
@@ -629,7 +643,7 @@ export class ChunkGenerator {
           `split_${baseId}_${chunks.length + 1}`,
           lines,
           analysis,
-          reviewType
+          reviewType,
         );
         if (chunk) {
           chunks.push(chunk);
@@ -650,7 +664,7 @@ export class ChunkGenerator {
         `split_${baseId}_${chunks.length + 1}`,
         lines,
         analysis,
-        reviewType
+        reviewType,
       );
       if (chunk) {
         chunks.push(chunk);
@@ -663,7 +677,7 @@ export class ChunkGenerator {
    */
   private findContextDeclarations(
     declaration: Declaration,
-    allDeclarations: Declaration[]
+    allDeclarations: Declaration[],
   ): Declaration[] {
     const context: Declaration[] = [];
     let added = 0;
@@ -687,7 +701,7 @@ export class ChunkGenerator {
   private generateCrossReferences(
     chunks: CodeChunk[],
     analysis: SemanticAnalysis,
-    crossReferences: ChunkRelationship[]
+    crossReferences: ChunkRelationship[],
   ): void {
     for (let i = 0; i < chunks.length; i++) {
       for (let j = i + 1; j < chunks.length; j++) {
@@ -704,14 +718,14 @@ export class ChunkGenerator {
    */
   private analyzeChunkRelationship(chunk1: CodeChunk, chunk2: CodeChunk): ChunkRelationship | null {
     // Check for dependencies
-    const sharedDeps = chunk1.dependencies.filter(dep => chunk2.dependencies.includes(dep));
+    const sharedDeps = chunk1.dependencies.filter((dep) => chunk2.dependencies.includes(dep));
     if (sharedDeps.length > 0) {
       return {
         from: chunk1.id,
         to: chunk2.id,
         relationship: 'depends_on',
         strength: sharedDeps.length / Math.max(chunk1.dependencies.length, 1),
-        description: `Shares dependencies: ${sharedDeps.join(', ')}`
+        description: `Shares dependencies: ${sharedDeps.join(', ')}`,
       };
     }
 
@@ -724,7 +738,7 @@ export class ChunkGenerator {
             to: chunk2.id,
             relationship: 'depends_on',
             strength: 0.8,
-            description: `${decl1.name} depends on ${decl2.name}`
+            description: `${decl1.name} depends on ${decl2.name}`,
           };
         }
       }
@@ -738,19 +752,19 @@ export class ChunkGenerator {
    */
   private mapDeclarationToReviewUnit(type: DeclarationType): ReviewUnit {
     const mapping: Record<DeclarationType, ReviewUnit> = {
-      'function': 'function',
-      'method': 'function',
-      'class': 'class',
-      'interface': 'interface',
-      'type': 'type_definitions',
-      'const': 'module',
-      'let': 'module',
-      'var': 'module',
-      'enum': 'type_definitions',
-      'namespace': 'module',
-      'property': 'module',
-      'import': 'imports',
-      'export': 'exports'
+      function: 'function',
+      method: 'function',
+      class: 'class',
+      interface: 'interface',
+      type: 'type_definitions',
+      const: 'module',
+      let: 'module',
+      var: 'module',
+      enum: 'type_definitions',
+      namespace: 'module',
+      property: 'module',
+      import: 'imports',
+      export: 'exports',
     };
 
     return mapping[type] || 'module';
@@ -761,15 +775,15 @@ export class ChunkGenerator {
    */
   private determineGroupReviewUnit(declarations: Declaration[]): ReviewUnit {
     // If all declarations are the same type, use that type's review unit
-    const types = new Set(declarations.map(d => d.type));
+    const types = new Set(declarations.map((d) => d.type));
     if (types.size === 1) {
       return this.mapDeclarationToReviewUnit(declarations[0].type);
     }
 
     // Mixed types - determine the most appropriate unit
-    if (declarations.some(d => d.type === 'class')) return 'class';
-    if (declarations.some(d => d.type === 'function')) return 'function';
-    if (declarations.some(d => d.type === 'interface')) return 'interface';
+    if (declarations.some((d) => d.type === 'class')) return 'class';
+    if (declarations.some((d) => d.type === 'function')) return 'function';
+    if (declarations.some((d) => d.type === 'interface')) return 'interface';
 
     return 'module';
   }
@@ -779,11 +793,13 @@ export class ChunkGenerator {
    */
   private calculatePriority(declaration: Declaration, reviewType: string): ReviewPriority {
     const complexity = declaration.cyclomaticComplexity || 1;
-    
+
     // High priority for complex or exported declarations
-    if (complexity >= this.config.highComplexityThreshold || 
-        declaration.exportStatus === 'exported' ||
-        declaration.exportStatus === 'default_export') {
+    if (
+      complexity >= this.config.highComplexityThreshold ||
+      declaration.exportStatus === 'exported' ||
+      declaration.exportStatus === 'default_export'
+    ) {
       return 'high';
     }
 
@@ -804,24 +820,27 @@ export class ChunkGenerator {
    * Calculate priority for a group of declarations
    */
   private calculateGroupPriority(declarations: Declaration[], reviewType: string): ReviewPriority {
-    const priorities = declarations.map(d => this.calculatePriority(d, reviewType));
-    
-    if (priorities.some(p => p === 'high')) return 'high';
-    if (priorities.some(p => p === 'medium')) return 'medium';
+    const priorities = declarations.map((d) => this.calculatePriority(d, reviewType));
+
+    if (priorities.some((p) => p === 'high')) return 'high';
+    if (priorities.some((p) => p === 'medium')) return 'medium';
     return 'low';
   }
 
   /**
    * Get review focus for a declaration
    */
-  private getReviewFocusForDeclaration(declaration: Declaration, reviewType: string): ReviewFocus[] {
+  private getReviewFocusForDeclaration(
+    declaration: Declaration,
+    reviewType: string,
+  ): ReviewFocus[] {
     const focus: ReviewFocus[] = this.getReviewFocusForType(reviewType);
 
     // Add specific focuses based on declaration characteristics
     if (declaration.type === 'class') {
       focus.push('architecture', 'type_safety');
     }
-    
+
     if (declaration.cyclomaticComplexity && declaration.cyclomaticComplexity > 10) {
       focus.push('maintainability');
     }
@@ -836,8 +855,11 @@ export class ChunkGenerator {
   /**
    * Get review focus for multiple declarations
    */
-  private getReviewFocusForDeclarations(declarations: Declaration[], reviewType: string): ReviewFocus[] {
-    const allFocus = declarations.flatMap(d => this.getReviewFocusForDeclaration(d, reviewType));
+  private getReviewFocusForDeclarations(
+    declarations: Declaration[],
+    reviewType: string,
+  ): ReviewFocus[] {
+    const allFocus = declarations.flatMap((d) => this.getReviewFocusForDeclaration(d, reviewType));
     return [...new Set(allFocus)];
   }
 
@@ -847,10 +869,10 @@ export class ChunkGenerator {
   private getReviewFocusForType(reviewType: string): ReviewFocus[] {
     const focusMapping: Record<string, ReviewFocus[]> = {
       'quick-fixes': ['maintainability', 'performance'],
-      'architectural': ['architecture', 'type_safety', 'maintainability'],
-      'security': ['security', 'error_handling'],
-      'performance': ['performance', 'architecture'],
-      'unused-code': ['maintainability', 'architecture']
+      architectural: ['architecture', 'type_safety', 'maintainability'],
+      security: ['security', 'error_handling'],
+      performance: ['performance', 'architecture'],
+      'unused-code': ['maintainability', 'architecture'],
     };
 
     return focusMapping[reviewType] || ['maintainability'];
@@ -867,10 +889,12 @@ export class ChunkGenerator {
    * Check if declaration is important (shouldn't be skipped even if small)
    */
   private isImportantDeclaration(declaration: Declaration): boolean {
-    return declaration.exportStatus !== 'internal' ||
-           declaration.type === 'class' ||
-           declaration.type === 'interface' ||
-           (declaration.cyclomaticComplexity || 0) > 5;
+    return (
+      declaration.exportStatus !== 'internal' ||
+      declaration.type === 'class' ||
+      declaration.type === 'interface' ||
+      (declaration.cyclomaticComplexity || 0) > 5
+    );
   }
 
   /**
@@ -879,8 +903,8 @@ export class ChunkGenerator {
   private isSecurityCritical(declaration: Declaration): boolean {
     const securityKeywords = ['auth', 'login', 'password', 'token', 'security', 'crypto', 'hash'];
     const name = declaration.name.toLowerCase();
-    
-    return securityKeywords.some(keyword => name.includes(keyword));
+
+    return securityKeywords.some((keyword) => name.includes(keyword));
   }
 
   /**
@@ -909,17 +933,21 @@ export class ChunkGenerator {
   private generateReasoningExplanation(analysis: SemanticAnalysis, chunks: CodeChunk[]): string {
     const reasons = [];
 
-    reasons.push(`Generated ${chunks.length} chunks using ${analysis.suggestedChunkingStrategy.strategy} strategy`);
-    
+    reasons.push(
+      `Generated ${chunks.length} chunks using ${analysis.suggestedChunkingStrategy.strategy} strategy`,
+    );
+
     if (analysis.complexity.cyclomaticComplexity > 20) {
-      reasons.push('High complexity detected, used semantic chunking to preserve function boundaries');
+      reasons.push(
+        'High complexity detected, used semantic chunking to preserve function boundaries',
+      );
     }
 
-    if (analysis.topLevelDeclarations.some(d => d.type === 'class')) {
+    if (analysis.topLevelDeclarations.some((d) => d.type === 'class')) {
       reasons.push('Classes detected, used hierarchical chunking to group related methods');
     }
 
-    const highPriorityChunks = chunks.filter(c => c.priority === 'high').length;
+    const highPriorityChunks = chunks.filter((c) => c.priority === 'high').length;
     if (highPriorityChunks > 0) {
       reasons.push(`${highPriorityChunks} high-priority chunks identified for focused review`);
     }
@@ -933,17 +961,17 @@ export class ChunkGenerator {
   private generateFallbackRecommendation(
     analysis: SemanticAnalysis,
     lines: string[],
-    reviewType: string
+    reviewType: string,
   ): ChunkingRecommendation {
     logger.warn('Generating fallback chunking recommendation due to semantic analysis failure');
-    
+
     const chunks: CodeChunk[] = [];
     const chunkSize = Math.min(this.config.maxChunkSize, Math.max(50, lines.length / 4));
     let chunkId = 1;
 
     for (let i = 0; i < lines.length; i += chunkSize) {
       const endLine = Math.min(i + chunkSize, lines.length);
-      
+
       const chunk: CodeChunk = {
         id: `fallback_${chunkId++}`,
         type: 'module',
@@ -953,7 +981,7 @@ export class ChunkGenerator {
         priority: 'medium',
         reviewFocus: this.getReviewFocusForType(reviewType),
         estimatedTokens: (endLine - i) * this.config.tokensPerLine,
-        dependencies: []
+        dependencies: [],
       };
 
       chunks.push(chunk);
@@ -965,7 +993,7 @@ export class ChunkGenerator {
       crossReferences: [],
       reasoning: 'Used fallback line-based chunking due to semantic analysis failure',
       estimatedTokens: lines.length * this.config.tokensPerLine,
-      estimatedChunks: chunks.length
+      estimatedChunks: chunks.length,
     };
   }
 
@@ -995,7 +1023,7 @@ export const chunkGenerator = new ChunkGenerator();
 export function generateSemanticChunks(
   analysis: SemanticAnalysis,
   fileContent: string,
-  reviewType: string = 'quick-fixes'
+  reviewType = 'quick-fixes',
 ): ChunkingRecommendation {
   return chunkGenerator.generateChunks(analysis, fileContent, reviewType);
 }

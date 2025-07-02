@@ -5,8 +5,8 @@
  * detailed evidence for why each element is considered unused.
  */
 
-import { z } from 'zod';
 import { StructuredOutputParser } from '@langchain/core/output_parsers';
+import { z } from 'zod';
 
 /**
  * Confidence level for an unused code finding
@@ -53,7 +53,7 @@ export const TraceEvidenceSchema = z.object({
     /**
      * Code snippet showing the definition
      */
-    codeSnippet: z.string().describe('Code snippet showing the definition')
+    codeSnippet: z.string().describe('Code snippet showing the definition'),
   }),
 
   /**
@@ -75,10 +75,8 @@ export const TraceEvidenceSchema = z.object({
         /**
          * Export type (default, named, re-export, etc.)
          */
-        exportType: z
-          .string()
-          .describe('Export type (default, named, re-export, etc.)')
-      })
+        exportType: z.string().describe('Export type (default, named, re-export, etc.)'),
+      }),
     )
     .optional()
     .describe('Export information if the element is exported'),
@@ -90,21 +88,17 @@ export const TraceEvidenceSchema = z.object({
     /**
      * Areas searched for imports
      */
-    searchedIn: z
-      .array(z.string())
-      .describe('Areas searched for imports of this element'),
+    searchedIn: z.array(z.string()).describe('Areas searched for imports of this element'),
 
     /**
      * Verification that no imports were found
      */
-    noImportsFound: z
-      .boolean()
-      .describe('Verification that no imports were found'),
+    noImportsFound: z.boolean().describe('Verification that no imports were found'),
 
     /**
      * Search method used
      */
-    searchMethod: z.string().describe('Search method used to look for imports')
+    searchMethod: z.string().describe('Search method used to look for imports'),
   }),
 
   /**
@@ -114,23 +108,17 @@ export const TraceEvidenceSchema = z.object({
     /**
      * Areas searched for references
      */
-    searchedIn: z
-      .array(z.string())
-      .describe('Areas searched for references to this element'),
+    searchedIn: z.array(z.string()).describe('Areas searched for references to this element'),
 
     /**
      * Verification that no references were found
      */
-    noReferencesFound: z
-      .boolean()
-      .describe('Verification that no references were found'),
+    noReferencesFound: z.boolean().describe('Verification that no references were found'),
 
     /**
      * Search method used
      */
-    searchMethod: z
-      .string()
-      .describe('Search method used to look for references')
+    searchMethod: z.string().describe('Search method used to look for references'),
   }),
 
   /**
@@ -147,8 +135,8 @@ export const TraceEvidenceSchema = z.object({
         /**
          * How this edge case was verified
          */
-        verification: z.string().describe('How this edge case was verified')
-      })
+        verification: z.string().describe('How this edge case was verified'),
+      }),
     )
     .describe('Edge cases considered during analysis'),
 
@@ -158,7 +146,7 @@ export const TraceEvidenceSchema = z.object({
   additionalEvidence: z
     .string()
     .optional()
-    .describe('Additional evidence supporting this conclusion')
+    .describe('Additional evidence supporting this conclusion'),
 });
 
 /**
@@ -183,7 +171,7 @@ export const TracedUnusedElementSchema = z.object({
       'enum',
       'export',
       'hook',
-      'component'
+      'component',
     ])
     .describe('Type of unused code element'),
 
@@ -202,7 +190,7 @@ export const TracedUnusedElementSchema = z.object({
    */
   location: z.object({
     startLine: z.number().describe('Starting line number'),
-    endLine: z.number().optional().describe('Ending line number')
+    endLine: z.number().optional().describe('Ending line number'),
   }),
 
   /**
@@ -225,17 +213,12 @@ export const TracedUnusedElementSchema = z.object({
   /**
    * Evidence of why this element is unused
    */
-  evidence: TraceEvidenceSchema.describe(
-    'Evidence of why this element is unused'
-  ),
+  evidence: TraceEvidenceSchema.describe('Evidence of why this element is unused'),
 
   /**
    * Potential risks of removing this element
    */
-  removalRisks: z
-    .string()
-    .optional()
-    .describe('Potential risks of removing this element')
+  removalRisks: z.string().optional().describe('Potential risks of removing this element'),
 });
 
 /**
@@ -247,9 +230,9 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
    */
   unusedFiles: z
     .array(
-      TracedUnusedElementSchema.refine(val => val.elementType === 'file', {
-        message: 'Element must be a file'
-      })
+      TracedUnusedElementSchema.refine((val) => val.elementType === 'file', {
+        message: 'Element must be a file',
+      }),
     )
     .describe('Files that are never imported or used'),
 
@@ -259,11 +242,11 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
   unusedFunctions: z
     .array(
       TracedUnusedElementSchema.refine(
-        val => ['function', 'hook'].includes(val.elementType as string),
+        (val) => ['function', 'hook'].includes(val.elementType as string),
         {
-          message: 'Element must be a function or hook'
-        }
-      )
+          message: 'Element must be a function or hook',
+        },
+      ),
     )
     .describe('Functions that are never called'),
 
@@ -273,11 +256,11 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
   unusedClasses: z
     .array(
       TracedUnusedElementSchema.refine(
-        val => ['class', 'component'].includes(val.elementType as string),
+        (val) => ['class', 'component'].includes(val.elementType as string),
         {
-          message: 'Element must be a class or component'
-        }
-      )
+          message: 'Element must be a class or component',
+        },
+      ),
     )
     .describe('Classes that are never instantiated'),
 
@@ -287,12 +270,11 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
   unusedTypesAndInterfaces: z
     .array(
       TracedUnusedElementSchema.refine(
-        val =>
-          ['interface', 'type', 'enum'].includes(val.elementType as string),
+        (val) => ['interface', 'type', 'enum'].includes(val.elementType as string),
         {
-          message: 'Element must be an interface, type, or enum'
-        }
-      )
+          message: 'Element must be an interface, type, or enum',
+        },
+      ),
     )
     .describe('Types and interfaces that are never used'),
 
@@ -301,12 +283,9 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
    */
   deadCodeBranches: z
     .array(
-      TracedUnusedElementSchema.refine(
-        val => val.elementType === 'dead-branch',
-        {
-          message: 'Element must be a dead branch'
-        }
-      )
+      TracedUnusedElementSchema.refine((val) => val.elementType === 'dead-branch', {
+        message: 'Element must be a dead branch',
+      }),
     )
     .describe('Code branches that can never execute'),
 
@@ -316,15 +295,14 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
   unusedVariablesAndImports: z
     .array(
       TracedUnusedElementSchema.refine(
-        val =>
+        (val) =>
           ['variable', 'import', 'parameter', 'property', 'export'].includes(
-            val.elementType as string
+            val.elementType as string,
           ),
         {
-          message:
-            'Element must be a variable, import, parameter, property, or export'
-        }
-      )
+          message: 'Element must be a variable, import, parameter, property, or export',
+        },
+      ),
     )
     .describe('Variables and imports that are never used'),
 
@@ -336,9 +314,7 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
       /**
        * Entry points considered
        */
-      entryPoints: z
-        .array(z.string())
-        .describe('Entry points considered in the analysis'),
+      entryPoints: z.array(z.string()).describe('Entry points considered in the analysis'),
 
       /**
        * Module resolution strategy
@@ -348,14 +324,12 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
       /**
        * Reference tracking approach
        */
-      referenceTracking: z
-        .string()
-        .describe('Reference tracking approach used'),
+      referenceTracking: z.string().describe('Reference tracking approach used'),
 
       /**
        * Limitations of the analysis
        */
-      limitations: z.array(z.string()).describe('Limitations of the analysis')
+      limitations: z.array(z.string()).describe('Limitations of the analysis'),
     })
     .describe('Analysis methodology used to detect unused code'),
 
@@ -364,20 +338,14 @@ export const CodeTracingUnusedCodeReviewSchema = z.object({
    */
   summary: z
     .object({
-      totalUnusedElements: z
-        .number()
-        .describe('Total number of unused elements found'),
-      highConfidenceCount: z
-        .number()
-        .describe('Number of high-confidence findings'),
-      filesWithUnusedCode: z
-        .number()
-        .describe('Number of files containing unused code'),
+      totalUnusedElements: z.number().describe('Total number of unused elements found'),
+      highConfidenceCount: z.number().describe('Number of high-confidence findings'),
+      filesWithUnusedCode: z.number().describe('Number of files containing unused code'),
       potentialCodeReduction: z
         .string()
-        .describe('Estimated percentage of code that could be removed')
+        .describe('Estimated percentage of code that could be removed'),
     })
-    .describe('Summary statistics of the unused code findings')
+    .describe('Summary statistics of the unused code findings'),
 });
 
 /**
@@ -388,15 +356,14 @@ export type TracedUnusedElement = z.infer<typeof TracedUnusedElementSchema>;
 /**
  * Type for the code tracing unused code review result
  */
-export type CodeTracingUnusedCodeReview = z.infer<
-  typeof CodeTracingUnusedCodeReviewSchema
->;
+export type CodeTracingUnusedCodeReview = z.infer<typeof CodeTracingUnusedCodeReviewSchema>;
 
 /**
  * LangChain parser for code tracing unused code review
  */
-export const codeTracingUnusedCodeReviewParser =
-  StructuredOutputParser.fromZodSchema(CodeTracingUnusedCodeReviewSchema);
+export const codeTracingUnusedCodeReviewParser = StructuredOutputParser.fromZodSchema(
+  CodeTracingUnusedCodeReviewSchema,
+);
 
 /**
  * Get format instructions for the code tracing unused code review parser

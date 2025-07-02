@@ -10,18 +10,18 @@
  * registering custom templates programmatically.
  */
 
-import path from 'path';
 import fs from 'fs/promises';
-import { ReviewType, ReviewOptions } from '../types/review';
-import logger from '../utils/logger';
+import path from 'path';
+import type { ReviewOptions, ReviewType } from '../types/review';
 import { getSchemaInstructions } from '../types/reviewSchema';
+import logger from '../utils/logger';
+import { getBundledPrompt } from './bundledPrompts';
+import { PromptCache } from './cache/PromptCache';
+import { PromptBuilder } from './PromptBuilder';
 import { getConsolidatedSchemaInstructions } from './schemas/consolidated-review-schema';
 import { getEvaluationSchemaInstructions } from './schemas/evaluation-schema';
 import { getExtractPatternsSchemaInstructions } from './schemas/extract-patterns-schema';
-import { PromptBuilder } from './PromptBuilder';
-import { PromptCache } from './cache/PromptCache';
 import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
-import { getBundledPrompt } from './bundledPrompts';
 
 /**
  * Interface for prompt template metadata
@@ -125,10 +125,7 @@ export class PromptManager {
    * @param template Prompt template to register
    */
   registerCustomTemplate(template: PromptTemplate): void {
-    const key = this.getTemplateKey(
-      template.metadata.reviewType,
-      template.metadata.language
-    );
+    const key = this.getTemplateKey(template.metadata.reviewType, template.metadata.language);
     this.customTemplates.set(key, template);
     logger.info(`Registered custom prompt template: ${template.metadata.name}`);
   }
@@ -140,18 +137,14 @@ export class PromptManager {
    * @param framework Framework (optional)
    * @returns Template key
    */
-  private getTemplateKey(
-    reviewType: ReviewType, 
-    language?: string, 
-    framework?: string
-  ): string {
+  private getTemplateKey(reviewType: ReviewType, language?: string, framework?: string): string {
     if (language && framework) {
       return `${reviewType}:${language.toLowerCase()}:${framework.toLowerCase()}`;
-    } else if (language) {
-      return `${reviewType}:${language.toLowerCase()}`;
-    } else {
-      return `${reviewType}`;
     }
+    if (language) {
+      return `${reviewType}:${language.toLowerCase()}`;
+    }
+    return `${reviewType}`;
   }
 
   /**
@@ -199,33 +192,28 @@ export class PromptManager {
             const template: PromptTemplate = {
               content,
               metadata,
-              path: fullPath
+              path: fullPath,
             };
 
             // Register the template
-            const key = this.getTemplateKey(
-              metadata.reviewType,
-              metadata.language
-            );
+            const key = this.getTemplateKey(metadata.reviewType, metadata.language);
             this.templates.set(key, template);
             customTemplatesLoaded++;
             logger.debug(`Loaded custom prompt template: ${fullPath}`);
           } catch (error) {
             logger.error(
-              `Error loading custom prompt template ${fullPath}: ${error instanceof Error ? error.message : String(error)}`
+              `Error loading custom prompt template ${fullPath}: ${error instanceof Error ? error.message : String(error)}`,
             );
           }
         }
       }
 
       if (customTemplatesLoaded > 0) {
-        logger.info(
-          `Loaded ${customTemplatesLoaded} custom prompt templates from ${templatesDir}`
-        );
+        logger.info(`Loaded ${customTemplatesLoaded} custom prompt templates from ${templatesDir}`);
       }
     } catch (error) {
       logger.error(
-        `Error loading custom prompt templates: ${error instanceof Error ? error.message : String(error)}`
+        `Error loading custom prompt templates: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -236,17 +224,14 @@ export class PromptManager {
    * @param fileName Name of the template file
    * @returns Prompt template metadata
    */
-  private extractMetadata(
-    content: string,
-    fileName: string
-  ): PromptTemplateMetadata {
+  private extractMetadata(content: string, fileName: string): PromptTemplateMetadata {
     // Default metadata
     const defaultMetadata: PromptTemplateMetadata = {
       name: path.basename(fileName, '.md'),
       description: 'Prompt template for code review',
       version: '1.0.0',
       author: 'AI Code Review Tool',
-      reviewType: this.getReviewTypeFromFileName(fileName)
+      reviewType: this.getReviewTypeFromFileName(fileName),
     };
 
     // Try to extract metadata from the content
@@ -261,7 +246,7 @@ export class PromptManager {
           if (match) {
             const [, key, value] = match;
             if (key.trim() === 'tags') {
-              metadata[key.trim()] = value.split(',').map(tag => tag.trim());
+              metadata[key.trim()] = value.split(',').map((tag) => tag.trim());
             } else {
               metadata[key.trim()] = value.trim();
             }
@@ -272,12 +257,11 @@ export class PromptManager {
         return {
           ...defaultMetadata,
           ...metadata,
-          reviewType: ((metadata.reviewType as string) ||
-            defaultMetadata.reviewType) as ReviewType
+          reviewType: ((metadata.reviewType as string) || defaultMetadata.reviewType) as ReviewType,
         };
       } catch (error) {
         logger.warn(
-          `Error parsing metadata from ${fileName}: ${error instanceof Error ? error.message : String(error)}`
+          `Error parsing metadata from ${fileName}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -295,23 +279,29 @@ export class PromptManager {
 
     if (baseName.includes('quick-fixes')) {
       return 'quick-fixes';
-    } else if (baseName.includes('security')) {
-      return 'security';
-    } else if (baseName.includes('performance')) {
-      return 'performance';
-    } else if (baseName.includes('architectural')) {
-      return 'architectural';
-    } else if (baseName.includes('consolidated')) {
-      return 'consolidated';
-    } else if (baseName.includes('best-practices')) {
-      return 'best-practices';
-    } else if (baseName.includes('unused-code')) {
-      return 'unused-code';
-    } else if (baseName.includes('code-tracing-unused-code')) {
-      return 'code-tracing-unused-code';
-    } else {
-      return 'quick-fixes'; // Default to quick-fixes
     }
+    if (baseName.includes('security')) {
+      return 'security';
+    }
+    if (baseName.includes('performance')) {
+      return 'performance';
+    }
+    if (baseName.includes('architectural')) {
+      return 'architectural';
+    }
+    if (baseName.includes('consolidated')) {
+      return 'consolidated';
+    }
+    if (baseName.includes('best-practices')) {
+      return 'best-practices';
+    }
+    if (baseName.includes('unused-code')) {
+      return 'unused-code';
+    }
+    if (baseName.includes('code-tracing-unused-code')) {
+      return 'code-tracing-unused-code';
+    }
+    return 'quick-fixes'; // Default to quick-fixes
   }
 
   /**
@@ -329,10 +319,7 @@ export class PromptManager {
    * Core functionality should ALWAYS use bundled prompts to ensure
    * the system works correctly regardless of installation environment.
    */
-  async getPromptTemplate(
-    reviewType: ReviewType,
-    options?: ReviewOptions
-  ): Promise<string> {
+  async getPromptTemplate(reviewType: ReviewType, options?: ReviewOptions): Promise<string> {
     // Get the language from options or default to typescript
     let language = 'typescript';
     const framework = options?.framework || 'generic';
@@ -346,7 +333,7 @@ export class PromptManager {
       const cachedPrompt = this.promptCache.getBestPrompt(reviewType);
       if (cachedPrompt) {
         logger.info(
-          `Using cached prompt for ${reviewType} review type (rating: ${cachedPrompt.rating})`
+          `Using cached prompt for ${reviewType} review type (rating: ${cachedPrompt.rating})`,
         );
         return await this.processPromptTemplate(cachedPrompt.content, options);
       }
@@ -361,7 +348,7 @@ export class PromptManager {
         return await this.processPromptTemplate(promptTemplate, options);
       } catch (error) {
         logger.error(
-          `Error loading custom prompt template: ${error instanceof Error ? error.message : String(error)}`
+          `Error loading custom prompt template: ${error instanceof Error ? error.message : String(error)}`,
         );
         logger.warn('Falling back to bundled prompt template');
       }
@@ -374,19 +361,17 @@ export class PromptManager {
       const frameworkCustomTemplate = this.customTemplates.get(frameworkCustomKey);
       if (frameworkCustomTemplate) {
         logger.info(
-          `Using framework-specific custom prompt template: ${frameworkCustomTemplate.metadata.name}`
+          `Using framework-specific custom prompt template: ${frameworkCustomTemplate.metadata.name}`,
         );
         return await this.processPromptTemplate(frameworkCustomTemplate.content, options);
       }
     }
-    
+
     // Fall back to language-only template
     const customKey = this.getTemplateKey(reviewType, language);
     const customTemplate = this.customTemplates.get(customKey);
     if (customTemplate) {
-      logger.info(
-        `Using custom prompt template: ${customTemplate.metadata.name}`
-      );
+      logger.info(`Using custom prompt template: ${customTemplate.metadata.name}`);
       return await this.processPromptTemplate(customTemplate.content, options);
     }
 
@@ -395,11 +380,13 @@ export class PromptManager {
     if (framework && framework !== 'none') {
       const frameworkBundledPrompt = getBundledPrompt(reviewType, language, framework);
       if (frameworkBundledPrompt) {
-        logger.info(`Using bundled framework-specific prompt template for ${reviewType} (language: ${language}, framework: ${framework})`);
+        logger.info(
+          `Using bundled framework-specific prompt template for ${reviewType} (language: ${language}, framework: ${framework})`,
+        );
         return await this.processPromptTemplate(frameworkBundledPrompt, options);
       }
     }
-    
+
     // Fall back to language-only bundled template
     const bundledPrompt = getBundledPrompt(reviewType, language);
     if (bundledPrompt) {
@@ -423,7 +410,9 @@ export class PromptManager {
       const frameworkKey = this.getTemplateKey(reviewType, language, framework);
       const frameworkTemplate = this.templates.get(frameworkKey);
       if (frameworkTemplate) {
-        logger.warn(`Using framework-specific custom prompt template from file system: ${frameworkTemplate.path}`);
+        logger.warn(
+          `Using framework-specific custom prompt template from file system: ${frameworkTemplate.path}`,
+        );
         return await this.processPromptTemplate(frameworkTemplate.content, options);
       }
     }
@@ -446,7 +435,9 @@ export class PromptManager {
 
     // If we still don't have a template, throw an error
     logger.error(`No prompt template found for ${reviewType} (language: ${language})`);
-    throw new Error(`No prompt template found for ${reviewType} (language: ${language}). Please ensure bundled prompts are properly included in the package.`);
+    throw new Error(
+      `No prompt template found for ${reviewType} (language: ${language}). Please ensure bundled prompts are properly included in the package.`,
+    );
   }
 
   /**
@@ -461,10 +452,10 @@ export class PromptManager {
    */
   private async loadPromptTemplateFromFileSystem(
     _reviewType: ReviewType,
-    _options?: ReviewOptions
+    _options?: ReviewOptions,
   ): Promise<string> {
     throw new Error(
-      `The loadPromptTemplateFromFileSystem method has been removed. We now use bundled prompts as the PRIMARY AND ONLY SOURCE for prompts. All prompts are defined in the bundledPrompts.ts file and accessed through the getBundledPrompt function.`
+      `The loadPromptTemplateFromFileSystem method has been removed. We now use bundled prompts as the PRIMARY AND ONLY SOURCE for prompts. All prompts are defined in the bundledPrompts.ts file and accessed through the getBundledPrompt function.`,
     );
   }
 
@@ -476,17 +467,18 @@ export class PromptManager {
    */
   private async processPromptTemplate(
     promptTemplate: string,
-    options?: ReviewOptions
+    options?: ReviewOptions,
   ): Promise<string> {
     // Check if this is a Handlebars template (from the new template system)
-    const isHandlebarsTemplate = promptTemplate.includes('{{#if') || 
-                                 promptTemplate.includes('{{/if') || 
-                                 promptTemplate.includes('{{languageInstructions}}') ||
-                                 promptTemplate.includes('{{schemaInstructions}}');
-                                 
-    // Prepare variables for templates                             
+    const isHandlebarsTemplate =
+      promptTemplate.includes('{{#if') ||
+      promptTemplate.includes('{{/if') ||
+      promptTemplate.includes('{{languageInstructions}}') ||
+      promptTemplate.includes('{{schemaInstructions}}');
+
+    // Prepare variables for templates
     const templateVars: Record<string, any> = {};
-    
+
     // If in interactive mode, include the schema instructions
     if (options?.interactive) {
       // Use specific schema based on review type
@@ -500,17 +492,14 @@ export class PromptManager {
       } else {
         schemaInstructions = getSchemaInstructions();
       }
-      
+
       if (isHandlebarsTemplate) {
         // For Handlebars templates, add as a variable
         templateVars.schemaInstructions = schemaInstructions;
         templateVars.SCHEMA_INSTRUCTIONS = schemaInstructions; // For backward compatibility
       } else {
         // For legacy templates, use string replacement
-        promptTemplate = promptTemplate.replace(
-          '{{SCHEMA_INSTRUCTIONS}}',
-          schemaInstructions
-        );
+        promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', schemaInstructions);
       }
     } else {
       // Otherwise, remove the schema instructions placeholder for legacy templates
@@ -522,23 +511,20 @@ export class PromptManager {
     // Add language and framework-specific instructions if available
     if (options?.language) {
       let languageInstructions = `This code is written in ${options.language.toUpperCase()}.`;
-      
+
       if (options?.framework && options.framework !== 'none') {
         languageInstructions += ` It uses the ${options.framework.toUpperCase()} framework. Please provide framework-specific advice.`;
       } else {
         languageInstructions += ` Please provide language-specific advice.`;
       }
-      
+
       if (isHandlebarsTemplate) {
         // For Handlebars templates, add as a variable
         templateVars.languageInstructions = languageInstructions;
         templateVars.LANGUAGE_INSTRUCTIONS = languageInstructions; // For backward compatibility
       } else {
         // For legacy templates, use string replacement
-        promptTemplate = promptTemplate.replace(
-          '{{LANGUAGE_INSTRUCTIONS}}',
-          languageInstructions
-        );
+        promptTemplate = promptTemplate.replace('{{LANGUAGE_INSTRUCTIONS}}', languageInstructions);
       }
     } else {
       // Remove placeholder from legacy templates
@@ -546,7 +532,7 @@ export class PromptManager {
         promptTemplate = promptTemplate.replace('{{LANGUAGE_INSTRUCTIONS}}', '');
       }
     }
-    
+
     // If this is a Handlebars template and we have variables, render it
     if (isHandlebarsTemplate && Object.keys(templateVars).length > 0) {
       try {
@@ -565,13 +551,11 @@ export class PromptManager {
       const strategy = PromptStrategyFactory.createStrategy(
         options.promptStrategy,
         this,
-        this.promptCache
+        this.promptCache,
       );
 
       // Format the prompt using the strategy
-      promptTemplate = await Promise.resolve(
-        strategy.formatPrompt(promptTemplate, options)
-      );
+      promptTemplate = await Promise.resolve(strategy.formatPrompt(promptTemplate, options));
 
       logger.debug(`Applied ${options.promptStrategy} prompt strategy`);
     }
@@ -585,16 +569,12 @@ export class PromptManager {
       this.promptBuilder.addComponent({
         content: promptTemplate,
         position: 'middle',
-        priority: 10
+        priority: 10,
       });
 
       // Add each fragment
       for (const fragment of options.promptFragments) {
-        this.promptBuilder.addFragment(
-          fragment.content,
-          fragment.position,
-          fragment.priority
-        );
+        this.promptBuilder.addFragment(fragment.content, fragment.position, fragment.priority);
       }
 
       // Build the final prompt
@@ -602,7 +582,7 @@ export class PromptManager {
         options.type || 'quick-fixes',
         options,
         null,
-        promptTemplate
+        promptTemplate,
       );
 
       logger.debug(`Added ${options.promptFragments.length} prompt fragments`);
@@ -648,18 +628,16 @@ export class PromptManager {
     rating: number,
     _comments?: string,
     _positiveAspects?: string[],
-    _negativeAspects?: string[]
+    _negativeAspects?: string[],
   ): Promise<void> {
     try {
       // Cache the prompt with the feedback
       await this.promptCache.cachePrompt(reviewType, promptContent, rating);
 
-      logger.info(
-        `Cached prompt for ${reviewType} review type with rating ${rating}`
-      );
+      logger.info(`Cached prompt for ${reviewType} review type with rating ${rating}`);
     } catch (error) {
       logger.error(
-        `Error caching prompt: ${error instanceof Error ? error.message : String(error)}`
+        `Error caching prompt: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

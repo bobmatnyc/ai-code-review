@@ -5,18 +5,13 @@
  * together to provide a comprehensive review of the codebase.
  */
 
-import { BaseReviewStrategy } from './ReviewStrategy';
-import {
-  FileInfo,
-  ReviewOptions,
-  ReviewResult,
-  ReviewType
-} from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
-import { ApiClientConfig } from '../core/ApiClientSelector';
+import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
-import logger from '../utils/logger';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
 import { collectCIData } from '../utils/ciDataCollector';
+import logger from '../utils/logger';
+import type { ProjectDocs } from '../utils/projectDocs';
+import { BaseReviewStrategy } from './ReviewStrategy';
 
 /**
  * Strategy for consolidated reviews of multiple files
@@ -44,13 +39,16 @@ export class ConsolidatedReviewStrategy extends BaseReviewStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult> {
     logger.info(`Executing consolidated ${this.reviewType} review strategy...`);
 
     // Collect CI data if we're reviewing TypeScript files
-    let ciData = undefined;
-    if (options.language === 'typescript' || files.some(f => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))) {
+    let ciData;
+    if (
+      options.language === 'typescript' ||
+      files.some((f) => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))
+    ) {
       logger.info('Collecting CI data for TypeScript project...');
       ciData = await collectCIData(process.cwd());
       options.ciData = ciData;
@@ -63,7 +61,7 @@ export class ConsolidatedReviewStrategy extends BaseReviewStrategy {
       this.reviewType,
       projectDocs,
       options,
-      apiClientConfig
+      apiClientConfig,
     );
   }
 }

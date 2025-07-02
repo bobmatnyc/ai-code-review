@@ -6,8 +6,8 @@
  * syncing PROJECT.md content with GitHub Projects, and managing project items.
  */
 
-import fetch from 'node-fetch';
 import fs from 'fs/promises';
+import fetch from 'node-fetch';
 // import path from 'path'; // TODO: Remove if not needed
 import logger from './logger';
 
@@ -52,14 +52,16 @@ export function getGitHubProjectsConfig(): GitHubProjectsConfig {
   }
 
   if (!projectId && !projectNumber) {
-    throw new Error('Either GITHUB_PROJECT_ID or GITHUB_PROJECT_NUMBER environment variable is required');
+    throw new Error(
+      'Either GITHUB_PROJECT_ID or GITHUB_PROJECT_NUMBER environment variable is required',
+    );
   }
 
   return {
     token,
     projectId,
     projectNumber,
-    owner
+    owner,
   };
 }
 
@@ -75,14 +77,14 @@ async function executeGraphQLQuery(query: string, variables: any, token: string)
     const response = await fetch(GITHUB_GRAPHQL_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github.v4+json'
+        Accept: 'application/vnd.github.v4+json',
       },
       body: JSON.stringify({
         query,
-        variables
-      })
+        variables,
+      }),
     });
 
     if (!response.ok) {
@@ -90,7 +92,7 @@ async function executeGraphQLQuery(query: string, variables: any, token: string)
       throw new Error(`GitHub API error: ${response.status} ${errorText}`);
     }
 
-    const data = await response.json() as any;
+    const data = (await response.json()) as any;
 
     if (data.errors) {
       throw new Error(`GraphQL error: ${JSON.stringify(data.errors)}`);
@@ -98,7 +100,9 @@ async function executeGraphQLQuery(query: string, variables: any, token: string)
 
     return data.data;
   } catch (error) {
-    logger.error(`Error executing GraphQL query: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error executing GraphQL query: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }
@@ -187,13 +191,13 @@ export async function getProjectInfo(config: GitHubProjectsConfig): Promise<any>
     const result = await executeGraphQLQuery(query, variables, config.token);
 
     // Extract the project data from the result
-    const project = config.projectId
-      ? result.node
-      : result.user.projectV2;
+    const project = config.projectId ? result.node : result.user.projectV2;
 
     return project;
   } catch (error) {
-    logger.error(`Error getting project info: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error getting project info: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }
@@ -262,21 +266,23 @@ export async function getProjectItems(config: GitHubProjectsConfig): Promise<Pro
     // Extract and format the items
     const items = result.node.items.nodes.map((item: any) => {
       // Find the status field value
-      const statusField = item.fieldValues.nodes.find((fieldValue: any) =>
-        fieldValue.field && fieldValue.field.name === 'Status'
+      const statusField = item.fieldValues.nodes.find(
+        (fieldValue: any) => fieldValue.field && fieldValue.field.name === 'Status',
       );
 
       return {
         id: item.id,
         title: item.content.title,
         body: item.content.body,
-        status: statusField ? statusField.name : undefined
+        status: statusField ? statusField.name : undefined,
       };
     });
 
     return items;
   } catch (error) {
-    logger.error(`Error getting project items: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error getting project items: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }
@@ -291,7 +297,7 @@ export async function getProjectItems(config: GitHubProjectsConfig): Promise<Pro
 export async function createProjectItem(
   config: GitHubProjectsConfig,
   title: string,
-  body: string
+  body: string,
 ): Promise<ProjectItem> {
   try {
     // First, get the project ID if we only have the number
@@ -326,21 +332,19 @@ export async function createProjectItem(
       }
     `;
 
-    const result = await executeGraphQLQuery(
-      query,
-      { projectId, title, body },
-      config.token
-    );
+    const result = await executeGraphQLQuery(query, { projectId, title, body }, config.token);
 
     const createdItem = result.addProjectV2DraftIssue.projectItem;
 
     return {
       id: createdItem.id,
       title: createdItem.content.title,
-      body: createdItem.content.body
+      body: createdItem.content.body,
     };
   } catch (error) {
-    logger.error(`Error creating project item: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error creating project item: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }
@@ -357,7 +361,7 @@ export async function updateProjectItem(
   config: GitHubProjectsConfig,
   itemId: string,
   title: string,
-  body: string
+  body: string,
 ): Promise<ProjectItem> {
   try {
     // Update the draft issue
@@ -377,21 +381,19 @@ export async function updateProjectItem(
       }
     `;
 
-    const result = await executeGraphQLQuery(
-      query,
-      { itemId, title, body },
-      config.token
-    );
+    const result = await executeGraphQLQuery(query, { itemId, title, body }, config.token);
 
     const updatedItem = result.updateProjectV2DraftIssue.draftIssue;
 
     return {
       id: updatedItem.id,
       title: updatedItem.title,
-      body: updatedItem.body
+      body: updatedItem.body,
     };
   } catch (error) {
-    logger.error(`Error updating project item: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error updating project item: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }
@@ -424,7 +426,7 @@ export function parseProjectMd(content: string): { [key: string]: string } {
  */
 export async function updateProjectDescription(
   projectMdPath: string,
-  config: GitHubProjectsConfig
+  config: GitHubProjectsConfig,
 ): Promise<void> {
   try {
     // Read PROJECT.md content
@@ -453,15 +455,13 @@ export async function updateProjectDescription(
       }
     `;
 
-    await executeGraphQLQuery(
-      query,
-      { projectId, readme: content },
-      config.token
-    );
+    await executeGraphQLQuery(query, { projectId, readme: content }, config.token);
 
     logger.info('Successfully updated GitHub Project readme with PROJECT.md content');
   } catch (error) {
-    logger.error(`Error updating project readme: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error updating project readme: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }
@@ -475,7 +475,7 @@ export async function updateProjectDescription(
 export async function syncProjectMdToGitHub(
   projectMdPath: string,
   config: GitHubProjectsConfig,
-  updateDescriptionOnly: boolean = false
+  updateDescriptionOnly = false,
 ): Promise<void> {
   try {
     if (updateDescriptionOnly) {
@@ -496,7 +496,7 @@ export async function syncProjectMdToGitHub(
     // Process each section
     for (const [title, body] of Object.entries(sections)) {
       // Check if an item with this title already exists
-      const existingItem = existingItems.find(item => item.title === title);
+      const existingItem = existingItems.find((item) => item.title === title);
 
       if (existingItem) {
         // Update existing item
@@ -511,7 +511,9 @@ export async function syncProjectMdToGitHub(
 
     logger.info('Successfully synced PROJECT.md to GitHub Projects');
   } catch (error) {
-    logger.error(`Error syncing PROJECT.md to GitHub: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error syncing PROJECT.md to GitHub: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }
@@ -521,9 +523,7 @@ export async function syncProjectMdToGitHub(
  * @param config GitHub Projects configuration
  * @returns Generated PROJECT.md content
  */
-export async function generateProjectMdFromGitHub(
-  config: GitHubProjectsConfig
-): Promise<string> {
+export async function generateProjectMdFromGitHub(config: GitHubProjectsConfig): Promise<string> {
   try {
     // Get project info
     const projectInfo = await getProjectInfo(config);
@@ -541,7 +541,9 @@ export async function generateProjectMdFromGitHub(
 
     return content;
   } catch (error) {
-    logger.error(`Error generating PROJECT.md from GitHub: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error generating PROJECT.md from GitHub: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }
@@ -553,7 +555,7 @@ export async function generateProjectMdFromGitHub(
  */
 export async function syncGitHubToProjectMd(
   projectMdPath: string,
-  config: GitHubProjectsConfig
+  config: GitHubProjectsConfig,
 ): Promise<void> {
   try {
     // Generate content
@@ -564,7 +566,9 @@ export async function syncGitHubToProjectMd(
 
     logger.info('Successfully synced GitHub Projects to PROJECT.md');
   } catch (error) {
-    logger.error(`Error syncing GitHub to PROJECT.md: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error syncing GitHub to PROJECT.md: ${error instanceof Error ? error.message : String(error)}`,
+    );
     throw error;
   }
 }

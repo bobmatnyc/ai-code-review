@@ -6,21 +6,16 @@
  * which AI provider to use for code reviews.
  */
 
-import logger from '../utils/logger';
-import { getApiKeyType } from '../utils/api/apiUtils';
+import type { AbstractClient } from '../clients/base/abstractClient';
 // Import the client wrappers directly
 import { initializeAnyOpenRouterModel } from '../clients/openRouterClientWrapper';
-import { AbstractClient } from '../clients/base/abstractClient';
+import { getApiKeyType } from '../utils/api/apiUtils';
+import logger from '../utils/logger';
 
 /**
  * API client types supported by the application
  */
-export type ApiClientType =
-  | 'OpenRouter'
-  | 'Google'
-  | 'Anthropic'
-  | 'OpenAI'
-  | 'None';
+export type ApiClientType = 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI' | 'None';
 
 /**
  * API client configuration
@@ -65,7 +60,7 @@ export async function selectApiClient(cliOptions?: any): Promise<ApiClientConfig
     modelName: '',
     initialized: false,
     provider: 'none',
-    apiKey: ''
+    apiKey: '',
   };
   logger.debug(`selectApiClient: initial config=${JSON.stringify(config)}`);
 
@@ -76,16 +71,12 @@ export async function selectApiClient(cliOptions?: any): Promise<ApiClientConfig
     if (!envModelName) {
       logger.error('No OpenRouter model specified in environment variables.');
       logger.error('Please set AI_CODE_REVIEW_MODEL in your .env.local file.');
-      logger.error(
-        'Example: AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus'
-      );
+      logger.error('Example: AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus');
       process.exit(1);
     }
     // Build OpenRouter model identifier: if envProvider is openrouter, use raw name; else prefix
     const openrouterModel =
-      envProvider === 'openrouter'
-        ? envModelName
-        : `${envProvider}/${envModelName}`;
+      envProvider === 'openrouter' ? envModelName : `${envProvider}/${envModelName}`;
     logger.info(`Using OpenRouter model: ${openrouterModel}`);
     // Initialize OpenRouter model if needed
     await initializeAnyOpenRouterModel();
@@ -106,9 +97,7 @@ export async function selectApiClient(cliOptions?: any): Promise<ApiClientConfig
     // Check if we have a valid API key
     if (!process.env.AI_CODE_REVIEW_GOOGLE_API_KEY) {
       logger.error('No Google API key found.');
-      logger.error(
-        'Please set AI_CODE_REVIEW_GOOGLE_API_KEY in your .env.local file.'
-      );
+      logger.error('Please set AI_CODE_REVIEW_GOOGLE_API_KEY in your .env.local file.');
       process.exit(1);
     }
 
@@ -131,9 +120,7 @@ export async function selectApiClient(cliOptions?: any): Promise<ApiClientConfig
     // Check if we have a valid API key
     if (!process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY) {
       logger.error('No Anthropic API key found.');
-      logger.error(
-        'Please set AI_CODE_REVIEW_ANTHROPIC_API_KEY in your .env.local file.'
-      );
+      logger.error('Please set AI_CODE_REVIEW_ANTHROPIC_API_KEY in your .env.local file.');
       process.exit(1);
     }
 

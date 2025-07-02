@@ -7,7 +7,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { ReviewResult } from '../types/review';
+import type { ReviewResult } from '../types/review';
 import logger from './logger';
 
 /**
@@ -18,7 +18,7 @@ import logger from './logger';
  */
 export async function saveRemovalScript(
   reviewResult: ReviewResult,
-  outputDir: string
+  outputDir: string,
 ): Promise<string | null> {
   try {
     // Check if the review result has a removal script
@@ -31,16 +31,13 @@ export async function saveRemovalScript(
     await fs.mkdir(outputDir, { recursive: true });
 
     // Generate a filename based on review info
-    const timestamp = new Date()
-      .toISOString()
-      .replace(/:/g, '-')
-      .replace(/\./g, '-');
+    const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
     const filename = `unused-code-removal-script-${timestamp}.sh`;
     const scriptPath = path.join(outputDir, filename);
 
     // Write the script to file
     await fs.writeFile(scriptPath, reviewResult.metadata.removalScript as string, {
-      mode: 0o755
+      mode: 0o755,
     }); // Make it executable
 
     logger.info(`Generated removal script: ${scriptPath}`);
@@ -56,46 +53,30 @@ export async function saveRemovalScript(
  * Print instructions for using the removal script
  * @param scriptPath Path to the removal script
  */
-export function printRemovalScriptInstructions(
-  scriptPath: string | null
-): void {
+export function printRemovalScriptInstructions(scriptPath: string | null): void {
   if (!scriptPath) {
     return;
   }
 
-  console.log(
-    '\n----------------------------------------------------------------------'
-  );
+  console.log('\n----------------------------------------------------------------------');
   console.log('UNUSED CODE REMOVAL SCRIPT GENERATED');
-  console.log(
-    '----------------------------------------------------------------------'
-  );
-  console.log(
-    'A script has been generated to help you remove unused files and functions:'
-  );
+  console.log('----------------------------------------------------------------------');
+  console.log('A script has been generated to help you remove unused files and functions:');
   console.log(`  ${scriptPath}`);
   console.log('\nBefore running this script:');
-  console.log(
-    '1. REVIEW the script carefully to ensure it only removes code you want to remove'
-  );
-  console.log(
-    '2. MAKE A BACKUP of your codebase or commit your current changes'
-  );
-  console.log(
-    '3. Run in a clean git working directory to easily see the changes'
-  );
+  console.log('1. REVIEW the script carefully to ensure it only removes code you want to remove');
+  console.log('2. MAKE A BACKUP of your codebase or commit your current changes');
+  console.log('3. Run in a clean git working directory to easily see the changes');
   console.log('\nTo run the script:');
   console.log(`  chmod +x ${scriptPath}`);
   console.log(`  ${scriptPath}`);
   console.log('\nAfter running:');
   console.log('  git diff               # To see what was removed');
   console.log('  git checkout -- <file> # To restore any files if needed');
-  console.log(
-    '----------------------------------------------------------------------\n'
-  );
+  console.log('----------------------------------------------------------------------\n');
 }
 
 export default {
   saveRemovalScript,
-  printRemovalScriptInstructions
+  printRemovalScriptInstructions,
 };

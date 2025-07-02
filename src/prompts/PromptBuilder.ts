@@ -5,12 +5,12 @@
  * including templates, user-provided fragments, and model-specific optimizations.
  */
 
-import { ReviewOptions, ReviewType } from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
-import { PromptManager } from './PromptManager';
-import { PromptCache } from './cache/PromptCache';
-import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
+import type { ReviewOptions, ReviewType } from '../types/review';
 import logger from '../utils/logger';
+import type { ProjectDocs } from '../utils/projectDocs';
+import type { PromptCache } from './cache/PromptCache';
+import type { PromptManager } from './PromptManager';
+import { PromptStrategyFactory } from './strategies/PromptStrategyFactory';
 
 /**
  * Interface for a prompt component
@@ -70,12 +70,12 @@ export class PromptBuilder {
   addFragment(
     content: string,
     position: 'start' | 'middle' | 'end' = 'middle',
-    priority: number = 5
+    priority = 5,
   ): PromptBuilder {
     return this.addComponent({
       content,
       position,
-      priority
+      priority,
     });
   }
 
@@ -91,7 +91,7 @@ export class PromptBuilder {
     reviewType: ReviewType,
     options: ReviewOptions,
     projectDocs?: ProjectDocs | null,
-    basePrompt?: string
+    basePrompt?: string,
   ): Promise<string> {
     try {
       // Get the base prompt template if not provided
@@ -101,7 +101,7 @@ export class PromptBuilder {
       this.addComponent({
         content: basePromptContent,
         position: 'middle',
-        priority: 10
+        priority: 10,
       });
 
       // Apply model-specific optimizations if a model is specified
@@ -114,49 +114,47 @@ export class PromptBuilder {
         const strategy = PromptStrategyFactory.createStrategy(
           provider,
           this.promptManager,
-          this.promptCache
+          this.promptCache,
         );
 
         // Format the prompt using the strategy
         const formattedPrompt = await Promise.resolve(
-          strategy.formatPrompt(basePromptContent, options)
+          strategy.formatPrompt(basePromptContent, options),
         );
 
         // Replace the base prompt with the formatted prompt
-        this.components = this.components.filter(
-          c => c.content !== basePromptContent
-        );
+        this.components = this.components.filter((c) => c.content !== basePromptContent);
         this.addComponent({
           content: formattedPrompt,
           position: 'middle',
-          priority: 10
+          priority: 10,
         });
       }
 
       // Sort components by position and priority
       const startComponents = this.components
-        .filter(c => c.position === 'start')
+        .filter((c) => c.position === 'start')
         .sort((a, b) => b.priority - a.priority);
 
       const middleComponents = this.components
-        .filter(c => c.position === 'middle')
+        .filter((c) => c.position === 'middle')
         .sort((a, b) => b.priority - a.priority);
 
       const endComponents = this.components
-        .filter(c => c.position === 'end')
+        .filter((c) => c.position === 'end')
         .sort((a, b) => b.priority - a.priority);
 
       // Combine components into a single prompt
       const finalPrompt = [
-        ...startComponents.map(c => c.content),
-        ...middleComponents.map(c => c.content),
-        ...endComponents.map(c => c.content)
+        ...startComponents.map((c) => c.content),
+        ...middleComponents.map((c) => c.content),
+        ...endComponents.map((c) => c.content),
       ].join('\n\n');
 
       return finalPrompt;
     } catch (error) {
       logger.error(
-        `Error building prompt: ${error instanceof Error ? error.message : String(error)}`
+        `Error building prompt: ${error instanceof Error ? error.message : String(error)}`,
       );
       throw error;
     }

@@ -1,17 +1,13 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
+import { getModelsByProvider, MODEL_MAP, type Provider } from '../clients/utils/modelMaps';
 import {
-  getModelsByProvider,
-  MODEL_MAP,
-  Provider
-} from '../clients/utils/modelMaps';
-import {
-  testGeminiModel,
   testAnthropicModel,
+  testGeminiModel,
   testOpenAIModel,
-  testOpenRouterModel
+  testOpenRouterModel,
 } from '../clients/utils/modelTester';
 import logger from '../utils/logger';
 
@@ -19,16 +15,11 @@ import logger from '../utils/logger';
  * Command for testing all AI models on build
  */
 export const testBuildCommand = new Command('test-build')
-  .description(
-    'Test all AI models to verify API keys and model availability during build'
-  )
+  .description('Test all AI models to verify API keys and model availability during build')
   .option('--fail-on-error', 'Exit with error code if any model test fails')
   .option('--json', 'Output results in JSON format')
-  .option(
-    '-p, --provider <provider>',
-    'Test only models for a specific provider'
-  )
-  .action(async options => {
+  .option('-p, --provider <provider>', 'Test only models for a specific provider')
+  .action(async (options) => {
     try {
       if (options.provider) {
         await testProviderModels(options.provider as Provider, options);
@@ -57,9 +48,7 @@ async function testAllModels(options: any): Promise<void> {
     const modelKeys = getModelsByProvider(provider);
 
     if (!options.json) {
-      logger.info(
-        chalk.bold(`\nTesting ${modelKeys.length} ${provider} models:`)
-      );
+      logger.info(chalk.bold(`\nTesting ${modelKeys.length} ${provider} models:`));
     }
 
     for (const modelKey of modelKeys) {
@@ -67,7 +56,7 @@ async function testAllModels(options: any): Promise<void> {
 
       if (!options.json) {
         process.stdout.write(
-          `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `
+          `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `,
         );
       }
 
@@ -98,7 +87,7 @@ async function testAllModels(options: any): Promise<void> {
         apiIdentifier: modelMapping.apiIdentifier,
         success: result.success,
         message: result.message,
-        response: result.response
+        response: result.response,
       });
 
       if (!options.json) {
@@ -119,17 +108,17 @@ async function testAllModels(options: any): Promise<void> {
           results,
           summary: {
             total: results.length,
-            successful: results.filter(r => r.success).length,
-            failed: results.filter(r => !r.success).length
-          }
+            successful: results.filter((r) => r.success).length,
+            failed: results.filter((r) => !r.success).length,
+          },
         },
         null,
-        2
-      )
+        2,
+      ),
     );
   } else {
     // Print summary
-    const successful = results.filter(r => r.success).length;
+    const successful = results.filter((r) => r.success).length;
     const failed = results.length - successful;
 
     logger.info(chalk.bold('\nSummary:'));
@@ -139,10 +128,10 @@ async function testAllModels(options: any): Promise<void> {
     if (failed > 0) {
       logger.info(chalk.bold('\nFailed models:'));
       results
-        .filter(r => !r.success)
-        .forEach(r => {
+        .filter((r) => !r.success)
+        .forEach((r) => {
           logger.info(
-            `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.message)}`
+            `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.message)}`,
           );
         });
     }
@@ -167,9 +156,7 @@ async function testProviderModels(provider: Provider, options: any): Promise<voi
   }
 
   if (!options.json) {
-    logger.info(
-      chalk.bold(`Testing ${modelKeys.length} ${provider} models:\n`)
-    );
+    logger.info(chalk.bold(`Testing ${modelKeys.length} ${provider} models:\n`));
   }
 
   for (const modelKey of modelKeys) {
@@ -177,7 +164,7 @@ async function testProviderModels(provider: Provider, options: any): Promise<voi
 
     if (!options.json) {
       process.stdout.write(
-        `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `
+        `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `,
       );
     }
 
@@ -208,7 +195,7 @@ async function testProviderModels(provider: Provider, options: any): Promise<voi
       apiIdentifier: modelMapping.apiIdentifier,
       success: result.success,
       message: result.message,
-      response: result.response
+      response: result.response,
     });
 
     if (!options.json) {
@@ -229,17 +216,17 @@ async function testProviderModels(provider: Provider, options: any): Promise<voi
           results,
           summary: {
             total: results.length,
-            successful: results.filter(r => r.success).length,
-            failed: results.filter(r => !r.success).length
-          }
+            successful: results.filter((r) => r.success).length,
+            failed: results.filter((r) => !r.success).length,
+          },
         },
         null,
-        2
-      )
+        2,
+      ),
     );
   } else {
     // Print summary
-    const successful = results.filter(r => r.success).length;
+    const successful = results.filter((r) => r.success).length;
     const failed = results.length - successful;
 
     logger.info(chalk.bold('\nSummary:'));
@@ -249,10 +236,10 @@ async function testProviderModels(provider: Provider, options: any): Promise<voi
     if (failed > 0) {
       logger.info(chalk.bold('\nFailed models:'));
       results
-        .filter(r => !r.success)
-        .forEach(r => {
+        .filter((r) => !r.success)
+        .forEach((r) => {
           logger.info(
-            `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.message)}`
+            `  ${chalk.cyan(r.displayName)} (${chalk.gray(r.modelKey)}): ${chalk.red(r.message)}`,
           );
         });
     }

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Semantic analysis integration layer
- * 
+ *
  * This module provides the main entry point for TreeSitter-based semantic
  * code analysis, exposing a unified API for intelligent chunking and
  * context-aware code review processing.
@@ -10,18 +10,23 @@
 export * from './types';
 
 // Import the types we need
-import { SemanticAnalysisResult, SemanticAnalysisError, ChunkingRecommendation, ReviewFocus } from './types';
+import type {
+  ChunkingRecommendation,
+  ReviewFocus,
+  SemanticAnalysisError,
+  SemanticAnalysisResult,
+} from './types';
 
-// Export main classes
-export { SemanticAnalyzer, semanticAnalyzer, analyzeCodeSemantics } from './SemanticAnalyzer';
-export { ChunkGenerator, chunkGenerator, generateSemanticChunks } from './ChunkGenerator';
-export { SemanticChunkingIntegration } from './SemanticChunkingIntegration';
 export { AiGuidedChunking, aiGuidedChunking } from './AiGuidedChunking';
+export { ChunkGenerator, chunkGenerator, generateSemanticChunks } from './ChunkGenerator';
+// Export main classes
+export { analyzeCodeSemantics, SemanticAnalyzer, semanticAnalyzer } from './SemanticAnalyzer';
+export { SemanticChunkingIntegration } from './SemanticChunkingIntegration';
 
-import { SemanticAnalyzer } from './SemanticAnalyzer';
-import { ChunkGenerator } from './ChunkGenerator';
-import { SemanticAnalysisConfig } from './types';
 import logger from '../../utils/logger';
+import { ChunkGenerator } from './ChunkGenerator';
+import { SemanticAnalyzer } from './SemanticAnalyzer';
+import type { SemanticAnalysisConfig } from './types';
 
 /**
  * Configuration for the integrated semantic analysis system
@@ -72,7 +77,7 @@ export class SemanticAnalysisSystem {
     this.config = {
       enableFallback: true,
       enableCaching: true,
-      ...config
+      ...config,
     };
 
     this.analyzer = new SemanticAnalyzer(config.analyzer);
@@ -89,13 +94,9 @@ export class SemanticAnalysisSystem {
       language?: string;
       reviewType?: string;
       useCache?: boolean;
-    } = {}
+    } = {},
   ): Promise<SemanticAnalysisSystemResult> {
-    const {
-      language,
-      reviewType = 'quick-fixes',
-      useCache = this.config.enableCaching
-    } = options;
+    const { language, reviewType = 'quick-fixes', useCache = this.config.enableCaching } = options;
 
     // Check cache if enabled
     const cacheKey = this.generateCacheKey(content, filePath, language, reviewType);
@@ -106,25 +107,27 @@ export class SemanticAnalysisSystem {
 
     try {
       logger.debug(`Starting semantic analysis for ${filePath}`);
-      
+
       // Perform semantic analysis
       const analysisResult = await this.analyzer.analyzeCode(content, filePath, language);
-      
+
       if (!analysisResult.success) {
         logger.warn(`Semantic analysis failed for ${filePath}, errors:`, analysisResult.errors);
-        
+
         if (this.config.enableFallback && analysisResult.fallbackUsed) {
           return this.generateFallbackResult(content, filePath, reviewType, analysisResult.errors);
         }
-        
-        throw new Error(`Semantic analysis failed: ${analysisResult.errors.map(e => e.message).join(', ')}`);
+
+        throw new Error(
+          `Semantic analysis failed: ${analysisResult.errors.map((e) => e.message).join(', ')}`,
+        );
       }
 
       // Generate intelligent chunks
       const chunkingRecommendation = this.chunkGenerator.generateChunks(
         analysisResult.analysis!,
         content,
-        reviewType
+        reviewType,
       );
 
       const result = {
@@ -139,8 +142,8 @@ export class SemanticAnalysisSystem {
           reviewType,
           analyzedAt: new Date(),
           totalChunks: chunkingRecommendation.chunks.length,
-          totalTokens: chunkingRecommendation.estimatedTokens
-        }
+          totalTokens: chunkingRecommendation.estimatedTokens,
+        },
       };
 
       // Cache result if enabled
@@ -148,23 +151,24 @@ export class SemanticAnalysisSystem {
         this.cache.set(cacheKey, result);
       }
 
-      logger.info(`Semantic analysis completed for ${filePath}: ${chunkingRecommendation.chunks.length} chunks, ${chunkingRecommendation.estimatedTokens} tokens`);
-      
-      return result;
+      logger.info(
+        `Semantic analysis completed for ${filePath}: ${chunkingRecommendation.chunks.length} chunks, ${chunkingRecommendation.estimatedTokens} tokens`,
+      );
 
+      return result;
     } catch (error) {
       logger.error(`Semantic analysis system error for ${filePath}:`, error);
-      
+
       if (this.config.enableFallback) {
         logger.info(`Falling back to line-based chunking for ${filePath}`);
         return this.generateFallbackResult(content, filePath, reviewType, [
           {
             type: 'analysis_failed' as const,
-            message: error instanceof Error ? error.message : 'Unknown error'
-          }
+            message: error instanceof Error ? error.message : 'Unknown error',
+          },
         ]);
       }
-      
+
       throw error;
     }
   }
@@ -176,7 +180,7 @@ export class SemanticAnalysisSystem {
     content: string,
     filePath: string,
     reviewType: string,
-    errors: SemanticAnalysisError[]
+    errors: SemanticAnalysisError[],
   ): SemanticAnalysisSystemResult {
     const lines = content.split('\n');
     const chunkSize = Math.min(500, Math.max(50, lines.length / 4));
@@ -185,7 +189,7 @@ export class SemanticAnalysisSystem {
 
     for (let i = 0; i < lines.length; i += chunkSize) {
       const endLine = Math.min(i + chunkSize, lines.length);
-      
+
       chunks.push({
         id: `fallback_${chunkId++}`,
         type: 'module' as const,
@@ -195,7 +199,7 @@ export class SemanticAnalysisSystem {
         priority: 'medium' as const,
         reviewFocus: this.getDefaultReviewFocus(reviewType),
         estimatedTokens: (endLine - i) * 4,
-        dependencies: []
+        dependencies: [],
       });
     }
 
@@ -207,7 +211,7 @@ export class SemanticAnalysisSystem {
         crossReferences: [],
         reasoning: 'Used fallback line-based chunking due to semantic analysis failure',
         estimatedTokens: lines.length * 4,
-        estimatedChunks: chunks.length
+        estimatedChunks: chunks.length,
       },
       errors,
       success: false,
@@ -217,8 +221,8 @@ export class SemanticAnalysisSystem {
         language: 'unknown',
         reviewType,
         analyzedAt: new Date(),
-        fallbackReason: 'Semantic analysis failed'
-      }
+        fallbackReason: 'Semantic analysis failed',
+      },
     };
   }
 
@@ -228,10 +232,10 @@ export class SemanticAnalysisSystem {
   private getDefaultReviewFocus(reviewType: string): ReviewFocus[] {
     const focusMap: Record<string, ReviewFocus[]> = {
       'quick-fixes': ['maintainability', 'performance'],
-      'architectural': ['architecture', 'type_safety', 'maintainability'],
-      'security': ['security', 'error_handling'],
-      'performance': ['performance', 'architecture'],
-      'unused-code': ['maintainability', 'architecture']
+      architectural: ['architecture', 'type_safety', 'maintainability'],
+      security: ['security', 'error_handling'],
+      performance: ['performance', 'architecture'],
+      'unused-code': ['maintainability', 'architecture'],
     };
 
     return focusMap[reviewType] || ['maintainability'];
@@ -244,7 +248,7 @@ export class SemanticAnalysisSystem {
     content: string,
     filePath: string,
     language?: string,
-    reviewType?: string
+    reviewType?: string,
   ): string {
     // Create a hash-like key based on content and parameters
     const contentHash = this.simpleHash(content);
@@ -258,7 +262,7 @@ export class SemanticAnalysisSystem {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash).toString(36);
@@ -278,7 +282,7 @@ export class SemanticAnalysisSystem {
   public getCacheStats(): { size: number; enabled: boolean } {
     return {
       size: this.cache.size,
-      enabled: this.config.enableCaching ?? true
+      enabled: this.config.enableCaching ?? true,
     };
   }
 
@@ -287,11 +291,11 @@ export class SemanticAnalysisSystem {
    */
   public updateConfig(config: Partial<SemanticAnalysisSystemConfig>): void {
     this.config = { ...this.config, ...config };
-    
+
     if (config.analyzer) {
       this.analyzer.updateConfig(config.analyzer);
     }
-    
+
     if (config.chunkGenerator) {
       this.chunkGenerator.updateConfig(config.chunkGenerator);
     }
@@ -327,7 +331,7 @@ export async function analyzeAndChunkCode(
     language?: string;
     reviewType?: string;
     useCache?: boolean;
-  } = {}
+  } = {},
 ) {
   return semanticAnalysisSystem.analyzeAndChunk(content, filePath, options);
 }
@@ -346,16 +350,16 @@ export function canAnalyzeFile(filePath: string): boolean {
  */
 export function detectLanguageFromPath(filePath: string): string | null {
   const extension = filePath.split('.').pop()?.toLowerCase();
-  
+
   const extensionMap: Record<string, string> = {
-    'ts': 'typescript',
-    'tsx': 'typescript',
-    'js': 'javascript',
-    'jsx': 'javascript',
-    'py': 'python',
-    'rb': 'ruby',
-    'php': 'php'
+    ts: 'typescript',
+    tsx: 'typescript',
+    js: 'javascript',
+    jsx: 'javascript',
+    py: 'python',
+    rb: 'ruby',
+    php: 'php',
   };
-  
+
   return extensionMap[extension || ''] || null;
 }

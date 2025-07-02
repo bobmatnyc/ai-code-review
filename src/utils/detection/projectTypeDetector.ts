@@ -1,15 +1,15 @@
 /**
  * @fileoverview Project type detection utilities.
- * 
+ *
  * This module provides functions to automatically detect project types
  * and programming languages from project files and structure. It's used
  * to set default language options without requiring manual specification.
  */
 
+import { existsSync } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
-import { existsSync } from 'fs';
-import { ProgrammingLanguage, DEFAULT_LANGUAGE } from '../../types/common';
+import { DEFAULT_LANGUAGE, type ProgrammingLanguage } from '../../types/common';
 import logger from '../logger';
 
 /**
@@ -27,7 +27,7 @@ export interface ProjectDetectionResult {
 }
 
 /**
- * Project type signature defining files that are checked 
+ * Project type signature defining files that are checked
  * to identify a project's language and type
  */
 interface ProjectTypeSignature {
@@ -55,41 +55,41 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
     requiredFiles: ['Gemfile'],
     optionalFiles: ['config/routes.rb', 'app/controllers'],
     projectType: 'Ruby on Rails',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'ruby',
     requiredFiles: ['config/routes.rb'],
     projectType: 'Ruby on Rails',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'ruby',
     requiredFiles: ['config/application.rb'],
     projectType: 'Ruby on Rails',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'ruby',
     requiredFiles: ['Rakefile', 'Gemfile'],
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'ruby',
     requiredFiles: ['config.ru'],
     projectType: 'Rack',
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     language: 'ruby',
     requiredFiles: ['bin/rails'],
     projectType: 'Ruby on Rails',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'ruby',
     requiredFiles: ['.ruby-version'],
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     language: 'ruby',
@@ -98,12 +98,12 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       // Check for .rb files
       try {
         const files = await fs.readdir(projectPath);
-        return files.some(file => file.endsWith('.rb'));
+        return files.some((file) => file.endsWith('.rb'));
       } catch {
         return false;
       }
     },
-    confidence: 'low'
+    confidence: 'low',
   },
 
   // Python signatures
@@ -111,40 +111,40 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
     language: 'python',
     requiredFiles: ['requirements.txt'],
     optionalFiles: ['setup.py', 'pyproject.toml'],
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'python',
     requiredFiles: ['setup.py'],
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'python',
     requiredFiles: ['pyproject.toml'],
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'python',
     requiredFiles: ['Pipfile'],
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'python',
     requiredFiles: ['manage.py'],
     projectType: 'Django',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'python',
     requiredFiles: ['app.py'],
     optionalFiles: ['wsgi.py', 'templates/'],
     projectType: 'Flask',
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     language: 'python',
     requiredFiles: ['__init__.py'],
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     language: 'python',
@@ -153,12 +153,12 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       // Check for .py files
       try {
         const files = await fs.readdir(projectPath);
-        return files.some(file => file.endsWith('.py'));
+        return files.some((file) => file.endsWith('.py'));
       } catch {
         return false;
       }
     },
-    confidence: 'low'
+    confidence: 'low',
   },
 
   // Go signatures
@@ -166,19 +166,19 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
     language: 'go',
     requiredFiles: ['go.mod'],
     optionalFiles: ['go.sum', 'main.go'],
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'go',
     requiredFiles: ['main.go'],
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     language: 'go',
     requiredFiles: ['cmd/'],
     optionalFiles: ['internal/', 'pkg/'],
     projectType: 'Go CLI Application',
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     language: 'go',
@@ -194,7 +194,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       }
     },
     projectType: 'Go Docker Application',
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     language: 'go',
@@ -203,37 +203,37 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       // Check for .go files
       try {
         const files = await fs.readdir(projectPath);
-        return files.some(file => file.endsWith('.go'));
+        return files.some((file) => file.endsWith('.go'));
       } catch {
         return false;
       }
     },
-    confidence: 'low'
+    confidence: 'low',
   },
 
   // PHP signatures
   {
     language: 'php',
     requiredFiles: ['composer.json'],
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'php',
     requiredFiles: ['artisan'],
     optionalFiles: ['app/Http/Controllers/'],
     projectType: 'Laravel',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'php',
     requiredFiles: ['vendor/autoload.php'],
-    confidence: 'medium'
+    confidence: 'medium',
   },
   {
     language: 'php',
     requiredFiles: ['wp-config.php'],
     projectType: 'WordPress',
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'php',
@@ -242,19 +242,19 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       // Check for .php files
       try {
         const files = await fs.readdir(projectPath);
-        return files.some(file => file.endsWith('.php'));
+        return files.some((file) => file.endsWith('.php'));
       } catch {
         return false;
       }
     },
-    confidence: 'low'
+    confidence: 'low',
   },
 
   // TypeScript signatures
   {
     language: 'typescript',
     requiredFiles: ['tsconfig.json'],
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'typescript',
@@ -272,7 +272,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
         return false;
       }
     },
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'typescript',
@@ -281,12 +281,12 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       // Check for .ts files
       try {
         const files = await fs.readdir(projectPath);
-        return files.some(file => file.endsWith('.ts') || file.endsWith('.tsx'));
+        return files.some((file) => file.endsWith('.ts') || file.endsWith('.tsx'));
       } catch {
         return false;
       }
     },
-    confidence: 'medium'
+    confidence: 'medium',
   },
 
   // JavaScript signatures
@@ -298,15 +298,15 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       // TypeScript check to ensure this isn't a TypeScript project
       try {
         const files = await fs.readdir(projectPath);
-        const hasTypeScriptFiles = files.some(file => 
-          file.endsWith('.ts') || file.endsWith('.tsx') || file === 'tsconfig.json'
+        const hasTypeScriptFiles = files.some(
+          (file) => file.endsWith('.ts') || file.endsWith('.tsx') || file === 'tsconfig.json',
         );
         return !hasTypeScriptFiles;
       } catch {
         return true; // If we can't check, assume it's JavaScript
       }
     },
-    confidence: 'high'
+    confidence: 'high',
   },
   {
     language: 'javascript',
@@ -315,13 +315,13 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       // Check for .js files
       try {
         const files = await fs.readdir(projectPath);
-        return files.some(file => file.endsWith('.js') || file.endsWith('.jsx'));
+        return files.some((file) => file.endsWith('.js') || file.endsWith('.jsx'));
       } catch {
         return false;
       }
     },
-    confidence: 'low'
-  }
+    confidence: 'low',
+  },
 ];
 
 /**
@@ -330,15 +330,12 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
  * @param files Array of files to check
  * @returns True if all specified files exist
  */
-async function checkFilesExist(
-  projectPath: string,
-  files: string[]
-): Promise<boolean> {
+async function checkFilesExist(projectPath: string, files: string[]): Promise<boolean> {
   if (files.length === 0) return true;
-  
+
   for (const file of files) {
     const filePath = path.join(projectPath, file);
-    
+
     try {
       if (!existsSync(filePath)) {
         return false;
@@ -347,7 +344,7 @@ async function checkFilesExist(
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -357,31 +354,25 @@ async function checkFilesExist(
  * @param extensions Array of file extensions to count (e.g., ['.py', '.js'])
  * @returns Number of files with the specified extensions
  */
-async function countFilesByExtension(
-  projectPath: string,
-  extensions: string[]
-): Promise<number> {
+async function countFilesByExtension(projectPath: string, extensions: string[]): Promise<number> {
   try {
     let count = 0;
     const files = await fs.readdir(projectPath);
-    
+
     for (const file of files) {
       const filePath = path.join(projectPath, file);
       try {
         const stats = await fs.stat(filePath);
-        
-        if (stats.isFile() && extensions.some(ext => file.endsWith(ext))) {
+
+        if (stats.isFile() && extensions.some((ext) => file.endsWith(ext))) {
           count++;
         } else if (stats.isDirectory() && file !== 'node_modules' && file !== '.git') {
           // Recursively count files in subdirectories, excluding node_modules and .git
           count += await countFilesByExtension(filePath, extensions);
         }
-      } catch {
-        // Skip files we can't stat
-        continue;
-      }
+      } catch {}
     }
-    
+
     return count;
   } catch {
     return 0;
@@ -394,7 +385,7 @@ async function countFilesByExtension(
  * @returns Object with counts of files by language
  */
 async function getLanguageFileStats(
-  projectPath: string
+  projectPath: string,
 ): Promise<Record<ProgrammingLanguage, number>> {
   const extensionMap: Record<ProgrammingLanguage, string[]> = {
     typescript: ['.ts', '.tsx'],
@@ -409,9 +400,9 @@ async function getLanguageFileStats(
     csharp: ['.cs'],
     ruby: ['.rb'],
     swift: ['.swift'],
-    kotlin: ['.kt']
+    kotlin: ['.kt'],
   };
-  
+
   const result: Record<ProgrammingLanguage, number> = {
     typescript: 0,
     javascript: 0,
@@ -425,16 +416,13 @@ async function getLanguageFileStats(
     csharp: 0,
     ruby: 0,
     swift: 0,
-    kotlin: 0
+    kotlin: 0,
   };
-  
+
   for (const [language, extensions] of Object.entries(extensionMap)) {
-    result[language as ProgrammingLanguage] = await countFilesByExtension(
-      projectPath,
-      extensions
-    );
+    result[language as ProgrammingLanguage] = await countFilesByExtension(projectPath, extensions);
   }
-  
+
   return result;
 }
 
@@ -443,19 +431,14 @@ async function getLanguageFileStats(
  * @param projectPath Project directory path
  * @returns Detection result with language and confidence
  */
-export async function detectProjectType(
-  projectPath: string
-): Promise<ProjectDetectionResult> {
+export async function detectProjectType(projectPath: string): Promise<ProjectDetectionResult> {
   try {
     // Check project signatures in order (most specific first)
     for (const signature of PROJECT_SIGNATURES) {
-      const requiredFilesExist = await checkFilesExist(
-        projectPath,
-        signature.requiredFiles
-      );
-      
+      const requiredFilesExist = await checkFilesExist(projectPath, signature.requiredFiles);
+
       if (!requiredFilesExist) continue;
-      
+
       // Check optional files if specified
       // No longer using this score in calculations, but keeping the logic for future enhancements
       if (signature.optionalFiles && signature.optionalFiles.length > 0) {
@@ -465,75 +448,74 @@ export async function detectProjectType(
           }
         }
       }
-      
+
       // Run additional check if specified
       if (signature.additionalCheck) {
         const additionalCheckPassed = await signature.additionalCheck(projectPath);
         if (!additionalCheckPassed) continue;
       }
-      
+
       // Calculate additional languages
       const languageStats = await getLanguageFileStats(projectPath);
-      
+
       // Filter languages with significant presence (more than 3 files)
       const additionalLanguages = Object.entries(languageStats)
         .filter(
-          ([lang, count]) => 
-            count > 3 && lang !== signature.language && lang !== 'typescript'
+          ([lang, count]) => count > 3 && lang !== signature.language && lang !== 'typescript',
         )
         .sort((a, b) => b[1] - a[1]) // Sort by file count (descending)
         .map(([lang]) => lang as ProgrammingLanguage);
-      
+
       return {
         language: signature.language,
         confidence: signature.confidence,
         projectType: signature.projectType,
-        additionalLanguages: additionalLanguages.length > 0 ? additionalLanguages : undefined
+        additionalLanguages: additionalLanguages.length > 0 ? additionalLanguages : undefined,
       };
     }
-    
+
     // Fallback to statistical detection if no signature matched
     const languageStats = await getLanguageFileStats(projectPath);
-    
+
     // Get language with most files
     const entries = Object.entries(languageStats);
     if (entries.length === 0 || entries.every(([_, count]) => count === 0)) {
       // No files with known extensions found
       return {
         language: DEFAULT_LANGUAGE,
-        confidence: 'low'
+        confidence: 'low',
       };
     }
-    
+
     const sortedLanguages = entries.sort((a, b) => b[1] - a[1]);
     const primaryLanguage = sortedLanguages[0][0] as ProgrammingLanguage;
     const primaryCount = sortedLanguages[0][1];
-    
+
     // If very few files, confidence is low
     if (primaryCount < 3) {
       return {
         language: primaryLanguage,
-        confidence: 'low'
+        confidence: 'low',
       };
     }
-    
+
     // Filter additional languages (more than 3 files, not the primary language)
     const additionalLanguages = sortedLanguages
       .filter(([lang, count]) => count > 3 && lang !== primaryLanguage)
       .map(([lang]) => lang as ProgrammingLanguage);
-    
+
     return {
       language: primaryLanguage,
       confidence: 'medium',
-      additionalLanguages: additionalLanguages.length > 0 ? additionalLanguages : undefined
+      additionalLanguages: additionalLanguages.length > 0 ? additionalLanguages : undefined,
     };
   } catch (error) {
     logger.error(
-      `Error detecting project type: ${error instanceof Error ? error.message : String(error)}`
+      `Error detecting project type: ${error instanceof Error ? error.message : String(error)}`,
     );
     return {
       language: DEFAULT_LANGUAGE,
-      confidence: 'low'
+      confidence: 'low',
     };
   }
 }

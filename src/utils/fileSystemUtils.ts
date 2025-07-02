@@ -8,7 +8,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { ReviewType } from '../types/review';
+import type { ReviewType } from '../types/review';
 import logger from './logger';
 
 /**
@@ -30,10 +30,7 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
  * @param filePath Path of the file being reviewed
  * @returns Versioned output path
  */
-export function generateVersionedOutputPath(
-  reviewType: ReviewType,
-  filePath: string
-): string {
+export function generateVersionedOutputPath(reviewType: ReviewType, filePath: string): string {
   // Get the current date
   const now = new Date();
   const dateStr = now.toISOString().split('T')[0].replace(/-/g, '-');
@@ -57,17 +54,14 @@ export function generateVersionedOutputPath(
  * @param sourceDir Directory being reviewed
  * @returns Versioned output path
  */
-export function generateConsolidatedOutputPath(
-  reviewType: ReviewType,
-  sourceDir: string
-): string {
+export function generateConsolidatedOutputPath(reviewType: ReviewType, sourceDir: string): string {
   // Get the current date
   const now = new Date();
   const dateStr = now
     .toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'numeric',
-      day: 'numeric'
+      day: 'numeric',
     })
     .replace(/\//g, '-');
 
@@ -89,10 +83,7 @@ export function generateConsolidatedOutputPath(
  * @param outputPath Output file path
  * @param content Review content
  */
-export async function writeReviewToFile(
-  outputPath: string,
-  content: string
-): Promise<void> {
+export async function writeReviewToFile(outputPath: string, content: string): Promise<void> {
   try {
     // Ensure the output directory exists
     await ensureDirectoryExists(path.dirname(outputPath));

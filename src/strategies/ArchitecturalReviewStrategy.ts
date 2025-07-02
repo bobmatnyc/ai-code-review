@@ -5,12 +5,12 @@
  * codebase structure and design patterns to provide high-level feedback.
  */
 
-import { BaseReviewStrategy } from './ReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewResult /* , ReviewType */ } from '../types/review'; // ReviewType not used
-import { ProjectDocs } from '../utils/projectDocs';
-import { ApiClientConfig } from '../core/ApiClientSelector';
+import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
+import type { FileInfo, ReviewOptions, ReviewResult /* , ReviewType */ } from '../types/review'; // ReviewType not used
 import logger from '../utils/logger';
+import type { ProjectDocs } from '../utils/projectDocs';
+import { BaseReviewStrategy } from './ReviewStrategy';
 
 /**
  * Strategy for architectural reviews
@@ -37,10 +37,10 @@ export class ArchitecturalReviewStrategy extends BaseReviewStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult> {
     logger.info('Executing architectural review strategy...');
-    
+
     // Generate the review using the selected API client
     return generateReview(
       files,
@@ -48,7 +48,7 @@ export class ArchitecturalReviewStrategy extends BaseReviewStrategy {
       this.reviewType,
       projectDocs,
       options,
-      apiClientConfig
+      apiClientConfig,
     );
   }
 }

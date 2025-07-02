@@ -11,19 +11,19 @@
  * New code should use getUnifiedConfig() from './unifiedConfig' instead.
  */
 
+import fs from 'fs';
+import path from 'path';
+import { z } from 'zod';
+import type { CliOptions } from '../cli/argumentParser';
+import type { ReviewOptions } from '../types/review';
+import { applyConfigToOptions, loadConfigFile } from './configFileManager';
 import {
-  getGoogleApiKey,
-  getOpenRouterApiKey,
   getAnthropicApiKey,
-  getOpenAIApiKey
+  getGoogleApiKey,
+  getOpenAIApiKey,
+  getOpenRouterApiKey,
 } from './envLoader';
 import logger from './logger';
-import path from 'path';
-import fs from 'fs';
-import { z } from 'zod';
-import { CliOptions } from '../cli/argumentParser';
-import { loadConfigFile, applyConfigToOptions } from './configFileManager';
-import { ReviewOptions } from '../types/review';
 // Import the new unified configuration system
 import { getUnifiedConfig } from './unifiedConfig';
 
@@ -64,7 +64,7 @@ export function displayConfigError(result: ConfigErrorResult): void {
   }
 
   console.log('\n💡 How to fix this:');
-  result.suggestions.forEach(suggestion => {
+  result.suggestions.forEach((suggestion) => {
     console.log(`   ${suggestion}`);
   });
 
@@ -93,7 +93,7 @@ export const appConfigSchema = z.object({
   debug: z.boolean(),
   logLevel: z.enum(['debug', 'info', 'warn', 'error', 'none']).default('info'),
   contextPaths: z.array(z.string()).optional(),
-  outputDir: z.string().default('ai-code-review-docs')
+  outputDir: z.string().default('ai-code-review-docs'),
 });
 
 /**
@@ -103,10 +103,6 @@ export type AppConfig = z.infer<typeof appConfigSchema>;
 
 // Singleton instance of the configuration
 let config: AppConfig | null = null;
-
-
-
-
 
 /**
  * Build configuration object from various sources
@@ -148,24 +144,26 @@ function buildConfigObject(cliOptions?: CliOptions) {
   const openAIApiKeyResult = getOpenAIApiKey();
 
   // Override API keys with merged options if provided (support both apiKey and apiKeys)
-  const googleApiKey = mergedOptions?.apiKey?.google || mergedOptions?.apiKeys?.google || googleApiKeyResult.apiKey;
+  const googleApiKey =
+    mergedOptions?.apiKey?.google || mergedOptions?.apiKeys?.google || googleApiKeyResult.apiKey;
   const openRouterApiKey =
-    mergedOptions?.apiKey?.openrouter || mergedOptions?.apiKeys?.openrouter || openRouterApiKeyResult.apiKey;
+    mergedOptions?.apiKey?.openrouter ||
+    mergedOptions?.apiKeys?.openrouter ||
+    openRouterApiKeyResult.apiKey;
   const anthropicApiKey =
-    mergedOptions?.apiKey?.anthropic || mergedOptions?.apiKeys?.anthropic || anthropicApiKeyResult.apiKey;
-  const openAIApiKey = mergedOptions?.apiKey?.openai || mergedOptions?.apiKeys?.openai || openAIApiKeyResult.apiKey;
+    mergedOptions?.apiKey?.anthropic ||
+    mergedOptions?.apiKeys?.anthropic ||
+    anthropicApiKeyResult.apiKey;
+  const openAIApiKey =
+    mergedOptions?.apiKey?.openai || mergedOptions?.apiKeys?.openai || openAIApiKeyResult.apiKey;
 
   // Get selected model (merged options take precedence)
   const selectedModel =
-    mergedOptions?.model ||
-    process.env.AI_CODE_REVIEW_MODEL ||
-    'gemini:gemini-2.5-pro-preview';
+    mergedOptions?.model || process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-2.5-pro-preview';
 
   // Get writer model (merged options take precedence)
   const writerModel =
-    mergedOptions?.writerModel ||
-    process.env.AI_CODE_REVIEW_WRITER_MODEL ||
-    undefined;
+    mergedOptions?.writerModel || process.env.AI_CODE_REVIEW_WRITER_MODEL || undefined;
 
   // Get debug mode
   const debug =
@@ -181,14 +179,12 @@ function buildConfigObject(cliOptions?: CliOptions) {
   // Get context paths
   const contextPathsStr = process.env.AI_CODE_REVIEW_CONTEXT;
   const contextPaths = contextPathsStr
-    ? contextPathsStr.split(',').map(p => p.trim())
+    ? contextPathsStr.split(',').map((p) => p.trim())
     : undefined;
 
   // Get output directory (merged options take precedence)
   const outputDir =
-    mergedOptions?.outputDir ||
-    process.env.AI_CODE_REVIEW_OUTPUT_DIR ||
-    'ai-code-review-docs';
+    mergedOptions?.outputDir || process.env.AI_CODE_REVIEW_OUTPUT_DIR || 'ai-code-review-docs';
 
   return {
     googleApiKey,
@@ -200,7 +196,7 @@ function buildConfigObject(cliOptions?: CliOptions) {
     debug,
     logLevel,
     contextPaths,
-    outputDir
+    outputDir,
   };
 }
 
@@ -222,7 +218,7 @@ function loadConfig(cliOptions?: CliOptions): AppConfig {
       // Log configuration validation errors
       logger.error('Configuration validation failed:', error.errors);
       throw new Error(
-        `Configuration validation failed: ${error.errors.map(e => e.message).join(', ')}`
+        `Configuration validation failed: ${error.errors.map((e) => e.message).join(', ')}`,
       );
     }
     throw error;
@@ -252,14 +248,8 @@ export function getConfig(cliOptions?: CliOptions): AppConfig {
  * @returns True if at least one API key is available
  */
 export function hasAnyApiKey(): boolean {
-  const { googleApiKey, openRouterApiKey, anthropicApiKey, openAIApiKey } =
-    getConfig();
-  return !!(
-    googleApiKey ||
-    openRouterApiKey ||
-    anthropicApiKey ||
-    openAIApiKey
-  );
+  const { googleApiKey, openRouterApiKey, anthropicApiKey, openAIApiKey } = getConfig();
+  return !!(googleApiKey || openRouterApiKey || anthropicApiKey || openAIApiKey);
 }
 
 /**
@@ -270,20 +260,22 @@ export function hasAnyApiKey(): boolean {
 export function loadConfigSafe(cliOptions?: CliOptions): ConfigResult {
   try {
     // Convert CLI options to unified config format
-    const unifiedCliOptions = cliOptions ? {
-      model: cliOptions.model,
-      writerModel: cliOptions.writerModel,
-      outputDir: cliOptions.outputDir,
-      outputFormat: cliOptions.output as 'markdown' | 'json' | undefined,
-      debug: cliOptions.debug,
-      logLevel: cliOptions.logLevel as 'debug' | 'info' | 'warn' | 'error' | 'none' | undefined,
-      interactive: cliOptions.interactive,
-      includeTests: cliOptions.includeTests,
-      includeProjectDocs: cliOptions.includeProjectDocs,
-      includeDependencyAnalysis: cliOptions.includeDependencyAnalysis,
-      enableSemanticChunking: cliOptions.enableSemanticChunking,
-      config: cliOptions.config
-    } : undefined;
+    const unifiedCliOptions = cliOptions
+      ? {
+          model: cliOptions.model,
+          writerModel: cliOptions.writerModel,
+          outputDir: cliOptions.outputDir,
+          outputFormat: cliOptions.output as 'markdown' | 'json' | undefined,
+          debug: cliOptions.debug,
+          logLevel: cliOptions.logLevel as 'debug' | 'info' | 'warn' | 'error' | 'none' | undefined,
+          interactive: cliOptions.interactive,
+          includeTests: cliOptions.includeTests,
+          includeProjectDocs: cliOptions.includeProjectDocs,
+          includeDependencyAnalysis: cliOptions.includeDependencyAnalysis,
+          enableSemanticChunking: cliOptions.enableSemanticChunking,
+          config: cliOptions.config,
+        }
+      : undefined;
 
     // Try the new unified configuration system first
     const unifiedConfig = getUnifiedConfig(unifiedCliOptions);
@@ -299,12 +291,12 @@ export function loadConfigSafe(cliOptions?: CliOptions): ConfigResult {
       debug: unifiedConfig.debug,
       logLevel: unifiedConfig.logLevel,
       contextPaths: unifiedConfig.contextPaths,
-      outputDir: unifiedConfig.outputDir
+      outputDir: unifiedConfig.outputDir,
     };
 
     return {
       success: true,
-      config: legacyConfig
+      config: legacyConfig,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -313,12 +305,16 @@ export function loadConfigSafe(cliOptions?: CliOptions): ConfigResult {
     const suggestions: string[] = [];
 
     if (errorMessage.includes('API key')) {
-      suggestions.push('Set at least one API key using AI_CODE_REVIEW_*_API_KEY environment variables');
+      suggestions.push(
+        'Set at least one API key using AI_CODE_REVIEW_*_API_KEY environment variables',
+      );
       suggestions.push('Check your .env.local file for correct API key format');
     }
 
     if (errorMessage.includes('model')) {
-      suggestions.push('Set AI_CODE_REVIEW_MODEL environment variable (e.g., "gemini:gemini-1.5-pro")');
+      suggestions.push(
+        'Set AI_CODE_REVIEW_MODEL environment variable (e.g., "gemini:gemini-1.5-pro")',
+      );
       suggestions.push('Ensure the model format is "provider:model-name"');
     }
 
@@ -331,7 +327,7 @@ export function loadConfigSafe(cliOptions?: CliOptions): ConfigResult {
       success: false,
       error: errorMessage,
       suggestions,
-      details: error instanceof Error ? error.stack : undefined
+      details: error instanceof Error ? error.stack : undefined,
     };
   }
 }
@@ -380,7 +376,7 @@ export function validateConfigForSelectedModel(): {
   if (!provider) {
     return {
       valid: false,
-      message: `Invalid model format: ${config.selectedModel}. Expected format: provider:model-name`
+      message: `Invalid model format: ${config.selectedModel}. Expected format: provider:model-name`,
     };
   }
 
@@ -390,7 +386,7 @@ export function validateConfigForSelectedModel(): {
       if (!config.googleApiKey) {
         return {
           valid: false,
-          message: `Missing Google API key for model ${config.selectedModel}. Set AI_CODE_REVIEW_GOOGLE_API_KEY in your .env.local file.`
+          message: `Missing Google API key for model ${config.selectedModel}. Set AI_CODE_REVIEW_GOOGLE_API_KEY in your .env.local file.`,
         };
       }
       break;
@@ -398,7 +394,7 @@ export function validateConfigForSelectedModel(): {
       if (!config.openRouterApiKey) {
         return {
           valid: false,
-          message: `Missing OpenRouter API key for model ${config.selectedModel}. Set AI_CODE_REVIEW_OPENROUTER_API_KEY in your .env.local file.`
+          message: `Missing OpenRouter API key for model ${config.selectedModel}. Set AI_CODE_REVIEW_OPENROUTER_API_KEY in your .env.local file.`,
         };
       }
       break;
@@ -406,7 +402,7 @@ export function validateConfigForSelectedModel(): {
       if (!config.anthropicApiKey) {
         return {
           valid: false,
-          message: `Missing Anthropic API key for model ${config.selectedModel}. Set AI_CODE_REVIEW_ANTHROPIC_API_KEY in your .env.local file.`
+          message: `Missing Anthropic API key for model ${config.selectedModel}. Set AI_CODE_REVIEW_ANTHROPIC_API_KEY in your .env.local file.`,
         };
       }
       break;
@@ -414,20 +410,20 @@ export function validateConfigForSelectedModel(): {
       if (!config.openAIApiKey) {
         return {
           valid: false,
-          message: `Missing OpenAI API key for model ${config.selectedModel}. Set AI_CODE_REVIEW_OPENAI_API_KEY in your .env.local file.`
+          message: `Missing OpenAI API key for model ${config.selectedModel}. Set AI_CODE_REVIEW_OPENAI_API_KEY in your .env.local file.`,
         };
       }
       break;
     default:
       return {
         valid: false,
-        message: `Unknown provider: ${provider}. Supported providers are: gemini, openrouter, anthropic, openai`
+        message: `Unknown provider: ${provider}. Supported providers are: gemini, openrouter, anthropic, openai`,
       };
   }
 
   return {
     valid: true,
-    message: 'Configuration is valid for the selected model'
+    message: 'Configuration is valid for the selected model',
   };
 }
 
@@ -443,7 +439,7 @@ export function getPromptsPath(): string {
     // For npm package
     path.resolve(__dirname, '..', '..', 'prompts'),
     // For global installation
-    path.resolve(__dirname, '..', '..', '..', 'prompts')
+    path.resolve(__dirname, '..', '..', '..', 'prompts'),
   ];
 
   for (const p of possiblePaths) {

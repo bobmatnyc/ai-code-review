@@ -6,8 +6,8 @@
  * implementation as automatic fixes are not fully supported.
  */
 
-import { FixSuggestion } from './types';
 import readline from 'readline';
+import type { FixSuggestion } from './types';
 
 /**
  * Create a readline interface for user input
@@ -15,7 +15,7 @@ import readline from 'readline';
 export function createReadlineInterface(): readline.Interface {
   return readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 }
 
@@ -27,8 +27,8 @@ export function createReadlineInterface(): readline.Interface {
 export async function promptForConfirmation(message: string): Promise<boolean> {
   const rl = createReadlineInterface();
 
-  return new Promise(resolve => {
-    rl.question(`${message} (y/n): `, answer => {
+  return new Promise((resolve) => {
+    rl.question(`${message} (y/n): `, (answer) => {
       rl.close();
       resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
     });
@@ -46,7 +46,7 @@ export async function promptForConfirmation(message: string): Promise<boolean> {
 export async function applyFixToFile(suggestion: FixSuggestion): Promise<boolean> {
   console.log(`\n⚠️ Automatic fixes are not supported.`);
   console.log(
-    `The AI code review tool only provides suggestions that you must implement manually.`
+    `The AI code review tool only provides suggestions that you must implement manually.`,
   );
   console.log(`Review the suggested fix and apply it yourself if appropriate.`);
 

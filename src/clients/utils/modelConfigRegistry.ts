@@ -1,11 +1,11 @@
 /**
  * @fileoverview Model configuration registry for centralizing model-specific parameters and behaviors.
- * 
+ *
  * This module provides a centralized location for all model-specific configurations,
  * including API parameter mappings, constraints, and pricing information.
  */
 
-import { Provider } from './modelMaps';
+import type { Provider } from './modelMaps';
 
 /**
  * Model-specific API parameter configuration
@@ -13,22 +13,22 @@ import { Provider } from './modelMaps';
 export interface ModelApiConfig {
   /** The parameter name for max tokens (e.g., 'max_tokens' or 'max_completion_tokens') */
   maxTokensParam?: 'max_tokens' | 'max_completion_tokens' | 'maxOutputTokens';
-  
+
   /** Whether the model supports temperature parameter */
   supportsTemperature?: boolean;
-  
+
   /** Default temperature value if supported */
   defaultTemperature?: number;
-  
+
   /** Whether the model supports top_p parameter */
   supportsTopP?: boolean;
-  
+
   /** Whether the model supports frequency_penalty parameter */
   supportsFrequencyPenalty?: boolean;
-  
+
   /** Whether the model supports presence_penalty parameter */
   supportsPresencePenalty?: boolean;
-  
+
   /** Custom parameter mappings */
   customParams?: Record<string, any>;
 }
@@ -39,10 +39,10 @@ export interface ModelApiConfig {
 export interface ModelPricingConfig {
   /** Price per 1K input tokens in USD */
   inputPricePer1K: number;
-  
+
   /** Price per 1K output tokens in USD */
   outputPricePer1K: number;
-  
+
   /** Tiered pricing if applicable */
   tiers?: Array<{
     threshold: number;
@@ -57,24 +57,24 @@ export interface ModelPricingConfig {
 export interface ModelConfig {
   /** Model identifier */
   modelId: string;
-  
+
   /** Provider */
   provider: Provider;
-  
+
   /** API-specific configuration */
   apiConfig: ModelApiConfig;
-  
+
   /** Pricing configuration */
   pricing?: ModelPricingConfig;
-  
+
   /** Additional constraints or requirements */
   constraints?: {
     /** Maximum tokens per request */
     maxTokensPerRequest?: number;
-    
+
     /** Maximum requests per minute */
     maxRequestsPerMinute?: number;
-    
+
     /** Whether the model requires specific headers */
     requiredHeaders?: Record<string, string>;
   };
@@ -94,17 +94,17 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       defaultTemperature: 0.2,
       supportsTopP: true,
       supportsFrequencyPenalty: true,
-      supportsPresencePenalty: true
+      supportsPresencePenalty: true,
     },
     pricing: {
       inputPricePer1K: 0.0025,
-      outputPricePer1K: 0.01
+      outputPricePer1K: 0.01,
     },
     constraints: {
-      maxTokensPerRequest: 4000
-    }
+      maxTokensPerRequest: 4000,
+    },
   },
-  
+
   'openai:gpt-4o-mini': {
     modelId: 'gpt-4o-mini',
     provider: 'openai',
@@ -114,17 +114,17 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       defaultTemperature: 0.2,
       supportsTopP: true,
       supportsFrequencyPenalty: true,
-      supportsPresencePenalty: true
+      supportsPresencePenalty: true,
     },
     pricing: {
       inputPricePer1K: 0.00015,
-      outputPricePer1K: 0.0006
+      outputPricePer1K: 0.0006,
     },
     constraints: {
-      maxTokensPerRequest: 4000
-    }
+      maxTokensPerRequest: 4000,
+    },
   },
-  
+
   'openai:o3': {
     modelId: 'o3',
     provider: 'openai',
@@ -133,17 +133,17 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       supportsTemperature: false,
       supportsTopP: false,
       supportsFrequencyPenalty: false,
-      supportsPresencePenalty: false
+      supportsPresencePenalty: false,
     },
     pricing: {
       inputPricePer1K: 0.015,
-      outputPricePer1K: 0.06
+      outputPricePer1K: 0.06,
     },
     constraints: {
-      maxTokensPerRequest: 100000
-    }
+      maxTokensPerRequest: 100000,
+    },
   },
-  
+
   'openai:o3-mini': {
     modelId: 'o3-mini',
     provider: 'openai',
@@ -152,17 +152,17 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       supportsTemperature: false,
       supportsTopP: false,
       supportsFrequencyPenalty: false,
-      supportsPresencePenalty: false
+      supportsPresencePenalty: false,
     },
     pricing: {
       inputPricePer1K: 0.003,
-      outputPricePer1K: 0.012
+      outputPricePer1K: 0.012,
     },
     constraints: {
-      maxTokensPerRequest: 65000
-    }
+      maxTokensPerRequest: 65000,
+    },
   },
-  
+
   // Anthropic models
   'anthropic:claude-3-opus': {
     modelId: 'claude-3-opus-20240229',
@@ -171,17 +171,17 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       maxTokensParam: 'max_tokens',
       supportsTemperature: true,
       defaultTemperature: 0.2,
-      supportsTopP: true
+      supportsTopP: true,
     },
     pricing: {
       inputPricePer1K: 0.015,
-      outputPricePer1K: 0.075
+      outputPricePer1K: 0.075,
     },
     constraints: {
-      maxTokensPerRequest: 4000
-    }
+      maxTokensPerRequest: 4000,
+    },
   },
-  
+
   'anthropic:claude-3.7-sonnet': {
     modelId: 'claude-3-7-sonnet-20250219',
     provider: 'anthropic',
@@ -189,17 +189,17 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       maxTokensParam: 'max_tokens',
       supportsTemperature: true,
       defaultTemperature: 0.2,
-      supportsTopP: true
+      supportsTopP: true,
     },
     pricing: {
       inputPricePer1K: 0.003,
-      outputPricePer1K: 0.015
+      outputPricePer1K: 0.015,
     },
     constraints: {
-      maxTokensPerRequest: 4000
-    }
+      maxTokensPerRequest: 4000,
+    },
   },
-  
+
   'anthropic:claude-3.5-sonnet': {
     modelId: 'claude-3-5-sonnet-20241022',
     provider: 'anthropic',
@@ -207,17 +207,17 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       maxTokensParam: 'max_tokens',
       supportsTemperature: true,
       defaultTemperature: 0.2,
-      supportsTopP: true
+      supportsTopP: true,
     },
     pricing: {
       inputPricePer1K: 0.003,
-      outputPricePer1K: 0.015
+      outputPricePer1K: 0.015,
     },
     constraints: {
-      maxTokensPerRequest: 4000
-    }
+      maxTokensPerRequest: 4000,
+    },
   },
-  
+
   'anthropic:claude-3-haiku': {
     modelId: 'claude-3-haiku-20240307',
     provider: 'anthropic',
@@ -225,17 +225,17 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       maxTokensParam: 'max_tokens',
       supportsTemperature: true,
       defaultTemperature: 0.2,
-      supportsTopP: true
+      supportsTopP: true,
     },
     pricing: {
       inputPricePer1K: 0.00025,
-      outputPricePer1K: 0.00125
+      outputPricePer1K: 0.00125,
     },
     constraints: {
-      maxTokensPerRequest: 4000
-    }
+      maxTokensPerRequest: 4000,
+    },
   },
-  
+
   // Gemini models
   'gemini:gemini-2.5-pro-preview': {
     modelId: 'gemini-2.5-pro-preview-05-06',
@@ -246,21 +246,19 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       defaultTemperature: 0.2,
       supportsTopP: true,
       customParams: {
-        generationConfig: true // Gemini uses generationConfig wrapper
-      }
+        generationConfig: true, // Gemini uses generationConfig wrapper
+      },
     },
     pricing: {
       inputPricePer1K: 0.001,
       outputPricePer1K: 0.004,
-      tiers: [
-        { threshold: 128000, inputPricePer1K: 0.002, outputPricePer1K: 0.008 }
-      ]
+      tiers: [{ threshold: 128000, inputPricePer1K: 0.002, outputPricePer1K: 0.008 }],
     },
     constraints: {
-      maxTokensPerRequest: 8192
-    }
+      maxTokensPerRequest: 8192,
+    },
   },
-  
+
   'gemini:gemini-2.0-flash': {
     modelId: 'gemini-2.0-flash',
     provider: 'gemini',
@@ -270,20 +268,18 @@ export const MODEL_CONFIGS: Record<string, ModelConfig> = {
       defaultTemperature: 0.2,
       supportsTopP: true,
       customParams: {
-        generationConfig: true
-      }
+        generationConfig: true,
+      },
     },
     pricing: {
       inputPricePer1K: 0.0001,
       outputPricePer1K: 0.0004,
-      tiers: [
-        { threshold: 128000, inputPricePer1K: 0.0002, outputPricePer1K: 0.0008 }
-      ]
+      tiers: [{ threshold: 128000, inputPricePer1K: 0.0002, outputPricePer1K: 0.0008 }],
     },
     constraints: {
-      maxTokensPerRequest: 8192
-    }
-  }
+      maxTokensPerRequest: 8192,
+    },
+  },
 };
 
 /**
@@ -305,7 +301,7 @@ export function getModelApiConfig(fullModelName: string): ModelApiConfig {
   if (config?.apiConfig) {
     return config.apiConfig;
   }
-  
+
   // Return default configuration
   return {
     maxTokensParam: 'max_tokens',
@@ -313,7 +309,7 @@ export function getModelApiConfig(fullModelName: string): ModelApiConfig {
     defaultTemperature: 0.2,
     supportsTopP: true,
     supportsFrequencyPenalty: true,
-    supportsPresencePenalty: true
+    supportsPresencePenalty: true,
   };
 }
 
@@ -337,32 +333,32 @@ export function getModelPricing(fullModelName: string): ModelPricingConfig | und
 export function buildModelRequestParams(
   fullModelName: string,
   baseParams: Record<string, any>,
-  maxTokens: number = 4000
+  maxTokens = 4000,
 ): Record<string, any> {
   const apiConfig = getModelApiConfig(fullModelName);
   const params = { ...baseParams };
-  
+
   // Set max tokens parameter
   if (apiConfig.maxTokensParam) {
     params[apiConfig.maxTokensParam] = maxTokens;
   }
-  
+
   // Handle temperature
-  if (apiConfig.supportsTemperature && !Object.prototype.hasOwnProperty.call(params, 'temperature')) {
+  if (apiConfig.supportsTemperature && !Object.hasOwn(params, 'temperature')) {
     params.temperature = apiConfig.defaultTemperature || 0.2;
-  } else if (!apiConfig.supportsTemperature && Object.prototype.hasOwnProperty.call(params, 'temperature')) {
+  } else if (!apiConfig.supportsTemperature && Object.hasOwn(params, 'temperature')) {
     delete params.temperature;
   }
-  
+
   // Remove unsupported parameters
   if (!apiConfig.supportsTopP) delete params.top_p;
   if (!apiConfig.supportsFrequencyPenalty) delete params.frequency_penalty;
   if (!apiConfig.supportsPresencePenalty) delete params.presence_penalty;
-  
+
   // Apply custom parameters
   if (apiConfig.customParams) {
     Object.assign(params, apiConfig.customParams);
   }
-  
+
   return params;
 }

@@ -5,8 +5,8 @@
  * during multi-pass reviews.
  */
 
-import logger from '../logger';
 import readline from 'readline';
+import logger from '../logger';
 
 /**
  * Progress state for a multi-pass review
@@ -29,7 +29,13 @@ export interface MultiPassProgress {
   /** Whether the review is complete */
   isComplete: boolean;
   /** Current phase of the review */
-  currentPhase: 'preparing' | 'analyzing' | 'reviewing' | 'processing' | 'consolidating' | 'complete';
+  currentPhase:
+    | 'preparing'
+    | 'analyzing'
+    | 'reviewing'
+    | 'processing'
+    | 'consolidating'
+    | 'complete';
 }
 
 /**
@@ -48,12 +54,12 @@ export class MultiPassProgressTracker {
    * @param options Options for the progress tracker
    */
   constructor(
-    totalPasses: number = 1,
-    totalFiles: number = 0,
+    totalPasses = 1,
+    totalFiles = 0,
     options: {
       useAnsiEscapes?: boolean;
       quiet?: boolean;
-    } = {}
+    } = {},
   ) {
     this.progress = {
       totalPasses,
@@ -63,17 +69,17 @@ export class MultiPassProgressTracker {
       processedFiles: 0,
       startTime: new Date(),
       isComplete: false,
-      currentPhase: 'preparing'
+      currentPhase: 'preparing',
     };
-    
+
     this.useAnsiEscapes = options.useAnsiEscapes !== false;
-    
+
     // Start the progress update interval if not in quiet mode
     if (!options.quiet) {
       this.startProgressUpdates();
     }
   }
-  
+
   /**
    * Initialize the progress tracker with a total file count
    * @param totalFiles Total number of files
@@ -82,7 +88,7 @@ export class MultiPassProgressTracker {
     this.progress.totalFiles = totalFiles;
     logger.info(`Initialized progress tracker with ${totalFiles} total files`);
   }
-  
+
   /**
    * Start the progress update interval
    */
@@ -92,7 +98,7 @@ export class MultiPassProgressTracker {
       this.updateProgressDisplay();
     }, 1000);
   }
-  
+
   /**
    * Stop the progress update interval
    */
@@ -102,7 +108,7 @@ export class MultiPassProgressTracker {
       this.updateInterval = null;
     }
   }
-  
+
   /**
    * Update the progress display
    */
@@ -110,23 +116,23 @@ export class MultiPassProgressTracker {
     if (this.progress.isComplete) {
       return;
     }
-    
+
     const { currentPass, totalPasses, currentPhase, startTime } = this.progress;
-    
+
     // Calculate elapsed time
     const elapsed = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
     const elapsedMinutes = Math.floor(elapsed / 60);
     const elapsedSeconds = elapsed % 60;
-    
+
     // Clear the previous line if terminal supports ANSI escapes
     if (this.useAnsiEscapes) {
       readline.clearLine(process.stdout, 0);
       readline.cursorTo(process.stdout, 0);
     }
-    
+
     // Create the progress message
     let progressMessage = '';
-    
+
     if (currentPhase === 'preparing') {
       progressMessage = `Preparing multi-pass review...`;
     } else if (currentPhase === 'analyzing') {
@@ -134,9 +140,9 @@ export class MultiPassProgressTracker {
     } else if (currentPhase === 'reviewing') {
       const passProgress = (currentPass / totalPasses) * 100;
       progressMessage = `Pass ${currentPass}/${totalPasses} (${passProgress.toFixed(1)}%)`;
-      
+
       if (this.progress.currentFiles.length > 0) {
-        const fileNames = this.progress.currentFiles.map(f => f.split('/').pop()).join(', ');
+        const fileNames = this.progress.currentFiles.map((f) => f.split('/').pop()).join(', ');
         progressMessage += ` | Processing: ${fileNames.length > 50 ? fileNames.substring(0, 50) + '...' : fileNames}`;
       }
     } else if (currentPhase === 'processing') {
@@ -144,10 +150,10 @@ export class MultiPassProgressTracker {
     } else if (currentPhase === 'consolidating') {
       progressMessage = `Consolidating multi-pass review and generating final graded report...`;
     }
-    
+
     // Add timing information
     progressMessage += ` | Elapsed: ${elapsedMinutes}m ${elapsedSeconds}s`;
-    
+
     // Print the progress message without a newline if terminal supports ANSI escapes
     if (this.useAnsiEscapes) {
       process.stdout.write(progressMessage);
@@ -156,7 +162,7 @@ export class MultiPassProgressTracker {
       logger.info(progressMessage);
     }
   }
-  
+
   /**
    * Start a new pass
    * @param passNumber Pass number
@@ -166,15 +172,17 @@ export class MultiPassProgressTracker {
     this.progress.currentPass = passNumber;
     this.progress.currentFiles = files;
     this.progress.currentPhase = 'reviewing';
-    
+
     // Log the start of a new pass (with a newline to avoid overwriting the progress bar)
     if (this.useAnsiEscapes) {
       process.stdout.write('\n');
     }
-    
-    logger.info(`Starting pass ${passNumber}/${this.progress.totalPasses} with ${files.length} files`);
+
+    logger.info(
+      `Starting pass ${passNumber}/${this.progress.totalPasses} with ${files.length} files`,
+    );
   }
-  
+
   /**
    * Complete a pass
    * @param passNumber Pass number
@@ -183,60 +191,60 @@ export class MultiPassProgressTracker {
     if (passNumber !== this.progress.currentPass) {
       logger.warn(`Completed pass ${passNumber} but current pass is ${this.progress.currentPass}`);
     }
-    
+
     this.progress.processedFiles += this.progress.currentFiles.length;
     this.progress.currentFiles = [];
-    
+
     // Log the completion of a pass (with a newline to avoid overwriting the progress bar)
     if (this.useAnsiEscapes) {
       process.stdout.write('\n');
     }
-    
+
     logger.info(`Completed pass ${passNumber}/${this.progress.totalPasses}`);
-    
+
     // If this was the last pass, mark the review as complete
     if (passNumber === this.progress.totalPasses) {
       this.complete();
     }
   }
-  
+
   /**
    * Set the current phase
    * @param phase Current phase
    */
   public setPhase(phase: MultiPassProgress['currentPhase']): void {
     this.progress.currentPhase = phase;
-    
+
     if (phase === 'complete') {
       this.complete();
     }
   }
-  
+
   /**
    * Complete the review
    */
   public complete(): void {
     this.progress.isComplete = true;
     this.progress.currentPhase = 'complete';
-    
+
     // Calculate total time
     const elapsed = Math.floor((new Date().getTime() - this.progress.startTime.getTime()) / 1000);
     const elapsedMinutes = Math.floor(elapsed / 60);
     const elapsedSeconds = elapsed % 60;
-    
+
     // Clear the progress bar
     if (this.useAnsiEscapes) {
       readline.clearLine(process.stdout, 0);
       readline.cursorTo(process.stdout, 0);
     }
-    
+
     // Log the completion message
     logger.info(`Multi-pass review completed in ${elapsedMinutes}m ${elapsedSeconds}s`);
-    
+
     // Stop the progress updates
     this.stopProgressUpdates();
   }
-  
+
   /**
    * Mark a file as completed
    * @param filePath Path to the file that was completed
@@ -246,13 +254,13 @@ export class MultiPassProgressTracker {
     if (!this.completedFiles.includes(filePath)) {
       this.completedFiles.push(filePath);
     }
-    
+
     // Remove from current files if it's there
     const fileIndex = this.progress.currentFiles.indexOf(filePath);
     if (fileIndex !== -1) {
       this.progress.currentFiles.splice(fileIndex, 1);
     }
-    
+
     // Update processed files count
     const progressPercent = (this.completedFiles.length / this.progress.totalFiles) * 100;
     logger.debug(`File completed: ${filePath} (${progressPercent.toFixed(1)}% complete)`);
@@ -265,13 +273,13 @@ export class MultiPassProgressTracker {
   public getProgress(): MultiPassProgress {
     return { ...this.progress };
   }
-  
+
   /**
    * Get the full state including completed files
    * @returns Full state object
    */
-  public getState(): { 
-    progressData: MultiPassProgress; 
+  public getState(): {
+    progressData: MultiPassProgress;
     completedFiles: string[];
     progress: number;
     completed: boolean;
@@ -282,7 +290,7 @@ export class MultiPassProgressTracker {
       completedFiles: [...this.completedFiles],
       progress: this.completedFiles.length / this.progress.totalFiles,
       completed: this.progress.isComplete,
-      currentPass: this.progress.currentPass
+      currentPass: this.progress.currentPass,
     };
   }
 }

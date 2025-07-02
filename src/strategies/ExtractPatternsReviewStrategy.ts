@@ -6,12 +6,12 @@
  * for creating exemplar project libraries.
  */
 
-import { BaseReviewStrategy } from './ReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
-import { ApiClientConfig } from '../core/ApiClientSelector';
+import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
+import type { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
 import logger from '../utils/logger';
+import type { ProjectDocs } from '../utils/projectDocs';
+import { BaseReviewStrategy } from './ReviewStrategy';
 
 /**
  * Strategy for extracting code patterns and architectural insights
@@ -38,10 +38,10 @@ export class ExtractPatternsReviewStrategy extends BaseReviewStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult> {
     logger.info('Executing extract patterns review strategy...');
-    
+
     // Enhance options for pattern extraction
     const enhancedOptions: ReviewOptions = {
       ...options,
@@ -51,7 +51,7 @@ export class ExtractPatternsReviewStrategy extends BaseReviewStrategy {
       includeDependencyAnalysis: true,
       enableSemanticChunking: true,
     };
-    
+
     // Generate the review using the selected API client
     return generateReview(
       files,
@@ -59,7 +59,7 @@ export class ExtractPatternsReviewStrategy extends BaseReviewStrategy {
       this.reviewType,
       projectDocs,
       enhancedOptions,
-      apiClientConfig
+      apiClientConfig,
     );
   }
 }

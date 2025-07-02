@@ -1,13 +1,13 @@
 /**
  * @fileoverview Unused dependency detection for AI Code Review
- * 
+ *
  * This module provides functionality to detect unused dependencies
  * using tools like depcheck and provides actionable information.
  */
 
-import path from 'path';
-import fs from 'fs/promises';
 import { execSync, spawnSync } from 'child_process';
+import fs from 'fs/promises';
+import path from 'path';
 import logger from '../logger';
 
 /**
@@ -17,12 +17,12 @@ import logger from '../logger';
  */
 export async function findUnusedDependencies(projectPath: string): Promise<string[]> {
   logger.info('Detecting unused dependencies...');
-  
+
   try {
     // Check if depcheck is installed locally
     const depcheckPath = path.join(projectPath, 'node_modules', '.bin', 'depcheck');
     let useLocalDepcheck = false;
-    
+
     try {
       await fs.access(depcheckPath);
       useLocalDepcheck = true;
@@ -36,12 +36,12 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
       } catch (globalError) {
         logger.error('depcheck not installed globally either');
         logger.info('Installing depcheck temporarily for analysis...');
-        
+
         try {
           // Try to install depcheck temporarily using npm
-          execSync('npm install --no-save depcheck', { 
+          execSync('npm install --no-save depcheck', {
             cwd: projectPath,
-            stdio: 'inherit'
+            stdio: 'inherit',
           });
           // Use the newly installed depcheck
           useLocalDepcheck = true;
@@ -52,33 +52,25 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
         }
       }
     }
-    
+
     // Run depcheck with JSON output
     let result;
     if (useLocalDepcheck) {
       logger.info(`Running depcheck from: ${depcheckPath}`);
-      result = spawnSync(
-        'node',
-        [depcheckPath, '--json'],
-        {
-          cwd: projectPath,
-          encoding: 'utf-8',
-          shell: true
-        }
-      );
+      result = spawnSync('node', [depcheckPath, '--json'], {
+        cwd: projectPath,
+        encoding: 'utf-8',
+        shell: true,
+      });
     } else {
       logger.info('Running global depcheck');
-      result = spawnSync(
-        'depcheck',
-        ['--json'],
-        {
-          cwd: projectPath,
-          encoding: 'utf-8',
-          shell: true
-        }
-      );
+      result = spawnSync('depcheck', ['--json'], {
+        cwd: projectPath,
+        encoding: 'utf-8',
+        shell: true,
+      });
     }
-    
+
     if (result.status !== 0) {
       logger.error(`depcheck failed with status ${result.status}: ${result.stderr}`);
       // Still try to parse output if available
@@ -87,45 +79,47 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
         return ['Error running depcheck'];
       }
     }
-    
+
     // Parse the JSON output
     try {
       // Debug the output to see what we're getting
       logger.debug(`Raw depcheck output type: ${typeof result.stdout}`);
       logger.debug(`Raw depcheck output sample: ${result.stdout.substring(0, 100)}...`);
-      
+
       // Handle special case with depcheck's output which might be array notation
       if (result.stdout.trim().startsWith('[')) {
         // This might be just an array of unused dependencies in string format
         try {
           // Try parsing as an array of strings
           const parsedArray = JSON.parse(result.stdout);
-          if (Array.isArray(parsedArray) && parsedArray.every(item => typeof item === 'string')) {
-            logger.info(`Found ${parsedArray.length} unused dependencies directly from array output`);
+          if (Array.isArray(parsedArray) && parsedArray.every((item) => typeof item === 'string')) {
+            logger.info(
+              `Found ${parsedArray.length} unused dependencies directly from array output`,
+            );
             return parsedArray;
           }
         } catch (arrayParseError) {
           logger.warn(`Could not parse as direct array: ${arrayParseError}`);
         }
       }
-      
+
       // Regular case - try to parse full JSON object output
       const outputData = JSON.parse(result.stdout);
-      
+
       if (!outputData || typeof outputData !== 'object') {
         logger.warn('Depcheck returned invalid JSON structure');
         return ['Error: Invalid depcheck output format'];
       }
-      
+
       // Get the list of unused dependencies
       let unusedDeps: string[] = [];
-      
+
       // Handle possible output formats
       if (outputData.dependencies && typeof outputData.dependencies === 'object') {
         // Normal format with dependencies and devDependencies objects
         unusedDeps = [
           ...Object.keys(outputData.dependencies || {}),
-          ...Object.keys(outputData.devDependencies || {})
+          ...Object.keys(outputData.devDependencies || {}),
         ];
       } else if (Array.isArray(outputData)) {
         // Simple array of dependency names
@@ -137,23 +131,23 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
           if (typeof value === 'object' && value !== null) {
             unusedDeps.push(...Object.keys(value));
           } else if (Array.isArray(value)) {
-            unusedDeps.push(...value.filter(item => typeof item === 'string'));
+            unusedDeps.push(...value.filter((item) => typeof item === 'string'));
           }
         }
       }
-      
+
       // Filter out empty or non-string entries
-      unusedDeps = unusedDeps.filter(dep => dep && typeof dep === 'string');
-      
+      unusedDeps = unusedDeps.filter((dep) => dep && typeof dep === 'string');
+
       // Log the full list for debugging
       logger.debug(`Unused dependencies: ${JSON.stringify(unusedDeps)}`);
       logger.info(`Found ${unusedDeps.length} unused dependencies`);
-      
+
       return unusedDeps;
     } catch (parseError) {
       logger.error(`Error parsing depcheck output: ${parseError}`);
       logger.debug(`Raw depcheck output: ${result.stdout.substring(0, 200)}...`);
-      
+
       // Try a simple fallback parsing method for common depcheck output formats
       try {
         // Some versions of depcheck output a simple list of names
@@ -165,7 +159,7 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
       } catch (fallbackError) {
         logger.error(`Fallback parsing also failed: ${fallbackError}`);
       }
-      
+
       return ['Error parsing depcheck output'];
     }
   } catch (error) {

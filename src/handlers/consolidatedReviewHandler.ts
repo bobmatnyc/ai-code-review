@@ -7,18 +7,17 @@
  * and interactive display.
  */
 
-import path from 'path';
 import fs from 'fs/promises';
-import { ReviewOptions, ReviewType, FileInfo } from '../types/review';
-import { readProjectDocs } from '../utils/projectDocs';
-import logger from '../utils/logger';
-import { logError } from '../utils/errorLogger';
-
+import path from 'path';
 // Import the new modules
 import { selectApiClient } from '../core/ApiClientSelector';
-import { generateReview } from '../core/ReviewGenerator';
-import { saveReviewOutput } from '../core/OutputManager';
 import { displayReviewInteractively } from '../core/InteractiveDisplayManager';
+import { saveReviewOutput } from '../core/OutputManager';
+import { generateReview } from '../core/ReviewGenerator';
+import type { FileInfo, ReviewOptions, ReviewType } from '../types/review';
+import { logError } from '../utils/errorLogger';
+import logger from '../utils/logger';
+import { readProjectDocs } from '../utils/projectDocs';
 
 /**
  * Handle consolidated review for multiple files
@@ -36,11 +35,9 @@ export async function handleConsolidatedReview(
   filesToReview: string[],
   outputBaseDir: string,
   options: ReviewOptions,
-  originalTarget: string = ''
+  originalTarget = '',
 ): Promise<void> {
-  logger.info(
-    `Generating consolidated review for ${filesToReview.length} files...`
-  );
+  logger.info(`Generating consolidated review for ${filesToReview.length} files...`);
 
   // Read project documentation if enabled
   let projectDocs = null;
@@ -64,11 +61,11 @@ export async function handleConsolidatedReview(
       fileInfos.push({
         path: filePath,
         relativePath,
-        content: fileContent
+        content: fileContent,
       });
     } catch (error) {
       logger.error(
-        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+        `Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -84,7 +81,7 @@ export async function handleConsolidatedReview(
       options.type as ReviewType,
       projectDocs,
       options,
-      apiClientConfig
+      apiClientConfig,
     );
 
     // Get the target name (last part of the path)
@@ -97,7 +94,7 @@ export async function handleConsolidatedReview(
       outputBaseDir,
       apiClientConfig.modelName,
       targetName,
-      fileInfos
+      fileInfos,
     );
 
     // If interactive mode is enabled, display the review results
@@ -111,30 +108,21 @@ export async function handleConsolidatedReview(
         project,
         reviewType: options.type,
         operation: 'generateConsolidatedReview',
-        fileCount: fileInfos.length
+        fileCount: fileInfos.length,
       });
 
       // Check if it's a rate limit error
-      if (
-        apiError.message &&
-        apiError.message.includes('Rate limit exceeded')
-      ) {
-        logger.error(
-          'Rate limit exceeded. The review will continue with a fallback model.'
-        );
+      if (apiError.message && apiError.message.includes('Rate limit exceeded')) {
+        logger.error('Rate limit exceeded. The review will continue with a fallback model.');
         logger.error(`Error details logged to: ${errorLogPath}`);
-        logger.error(
-          'You can try again later or reduce the number of files being reviewed.'
-        );
+        logger.error('You can try again later or reduce the number of files being reviewed.');
       } else {
         logger.error(`Error generating consolidated review:`);
         logger.error(`  Message: ${apiError.message}`);
         logger.error(`  Error details logged to: ${errorLogPath}`);
       }
     } else {
-      logger.error(
-        `Unknown error generating consolidated review: ${String(apiError)}`
-      );
+      logger.error(`Unknown error generating consolidated review: ${String(apiError)}`);
     }
   }
 }

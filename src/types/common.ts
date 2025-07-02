@@ -5,7 +5,7 @@
  * Centralizing these definitions ensures consistency and type safety.
  */
 
-import { ReviewType } from './review';
+import type { ReviewType } from './review';
 
 /**
  * Output format options for the review results
@@ -51,7 +51,7 @@ export const VALID_LANGUAGES: ProgrammingLanguage[] = [
   'php',
   'ruby',
   'swift',
-  'kotlin'
+  'kotlin',
 ];
 
 /**
@@ -76,7 +76,7 @@ export const PRIORITY_FILTER_DESCRIPTIONS: Record<PriorityFilter, string> = {
   h: 'High priority issues only',
   m: 'Medium priority issues only',
   l: 'Low priority issues only',
-  a: 'All issues'
+  a: 'All issues',
 };
 
 /**
@@ -92,35 +92,23 @@ export const VALID_REVIEW_TYPES: ReviewType[] = [
   'code-tracing-unused-code',
   'best-practices',
   'focused-unused-code',
-  'improved-quick-fixes'
+  'improved-quick-fixes',
 ];
 
 /**
  * Review type descriptions
  */
-export const REVIEW_TYPE_DESCRIPTIONS: Record<
-  Exclude<ReviewType, 'consolidated'>,
-  string
-> = {
-  architectural:
-    'Architectural review focusing on design patterns and structure',
-  'quick-fixes':
-    'Quick fixes review focusing on common issues and best practices',
-  security:
-    'Security review focusing on vulnerabilities and security best practices',
+export const REVIEW_TYPE_DESCRIPTIONS: Record<Exclude<ReviewType, 'consolidated'>, string> = {
+  architectural: 'Architectural review focusing on design patterns and structure',
+  'quick-fixes': 'Quick fixes review focusing on common issues and best practices',
+  security: 'Security review focusing on vulnerabilities and security best practices',
   performance: 'Performance review focusing on optimization opportunities',
-  'unused-code':
-    'Unused code review focusing on identifying and removing dead code',
-  'code-tracing-unused-code':
-    'Deep code tracing for high-confidence unused code detection',
-  'best-practices':
-    'Best practices review focusing on language-specific idioms and patterns',
-  'focused-unused-code':
-    'Focused unused code review with targeted analysis',
-  'improved-quick-fixes':
-    'Enhanced quick fixes review with more comprehensive suggestions',
-  'evaluation':
-    'Developer skill and AI assistance assessment without code improvement suggestions',
+  'unused-code': 'Unused code review focusing on identifying and removing dead code',
+  'code-tracing-unused-code': 'Deep code tracing for high-confidence unused code detection',
+  'best-practices': 'Best practices review focusing on language-specific idioms and patterns',
+  'focused-unused-code': 'Focused unused code review with targeted analysis',
+  'improved-quick-fixes': 'Enhanced quick fixes review with more comprehensive suggestions',
+  evaluation: 'Developer skill and AI assistance assessment without code improvement suggestions',
   'extract-patterns':
-    'Extract detailed code patterns, architecture, and design decisions for creating exemplar project libraries'
+    'Extract detailed code patterns, architecture, and design decisions for creating exemplar project libraries',
 };

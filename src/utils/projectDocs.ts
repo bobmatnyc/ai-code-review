@@ -44,12 +44,9 @@ async function readDocFile(filePath: string): Promise<string | undefined> {
       // Truncate if too large
       if (content.length > MAX_DOC_SIZE) {
         logger.warn(
-          `Documentation file ${filePath} is too large, truncating to ${MAX_DOC_SIZE} characters.`
+          `Documentation file ${filePath} is too large, truncating to ${MAX_DOC_SIZE} characters.`,
         );
-        return (
-          content.substring(0, MAX_DOC_SIZE) +
-          '\n\n[Content truncated due to size]'
-        );
+        return content.substring(0, MAX_DOC_SIZE) + '\n\n[Content truncated due to size]';
       }
 
       return content;
@@ -66,23 +63,17 @@ async function readDocFile(filePath: string): Promise<string | undefined> {
  * @param projectDir Project directory
  * @returns Project documentation
  */
-export async function readProjectDocs(
-  projectDir: string
-): Promise<ProjectDocs> {
+export async function readProjectDocs(projectDir: string): Promise<ProjectDocs> {
   const docs: ProjectDocs = {
-    custom: {}
+    custom: {},
   };
 
   // Read standard documentation files
   docs.readme = await readDocFile(path.join(projectDir, 'README.md'));
   docs.project = await readDocFile(path.join(projectDir, 'PROJECT.md'));
   docs.progress = await readDocFile(path.join(projectDir, 'PROGRESS.md'));
-  docs.contributing = await readDocFile(
-    path.join(projectDir, 'CONTRIBUTING.md')
-  );
-  docs.architecture = await readDocFile(
-    path.join(projectDir, 'ARCHITECTURE.md')
-  );
+  docs.contributing = await readDocFile(path.join(projectDir, 'CONTRIBUTING.md'));
+  docs.architecture = await readDocFile(path.join(projectDir, 'ARCHITECTURE.md'));
 
   // Read custom documentation files from the docs directory
   try {
@@ -115,7 +106,11 @@ export async function readProjectDocs(
  * @param value Metadata value
  * @returns Project documentation with added metadata
  */
-export function addMetadataToProjectDocs(docs: ProjectDocs, key: string, value: string): ProjectDocs {
+export function addMetadataToProjectDocs(
+  docs: ProjectDocs,
+  key: string,
+  value: string,
+): ProjectDocs {
   if (!docs.metadata) {
     docs.metadata = {};
   }
@@ -157,7 +152,7 @@ export function formatProjectDocs(docs: ProjectDocs): string {
       sections.push(`# docs/${file}\n\n${content}`);
     }
   }
-  
+
   // Add metadata if present
   if (docs.metadata) {
     for (const [key, content] of Object.entries(docs.metadata)) {
@@ -180,19 +175,15 @@ export function formatProjectDocs(docs: ProjectDocs): string {
  * @param docs Project documentation object
  * @returns The prompt with documentation added
  */
-export function addProjectDocsToPrompt(
-  prompt: string,
-  docs: ProjectDocs
-): string {
+export function addProjectDocsToPrompt(prompt: string, docs: ProjectDocs): string {
   const docsText = formatProjectDocs(docs);
   if (docsText) {
     // Try to replace a placeholder if it exists
     if (prompt.includes('{{PROJECT_DOCS}}')) {
       return prompt.replace('{{PROJECT_DOCS}}', docsText);
-    } else {
-      // Otherwise, append to the end
-      return `${prompt}\n\n${docsText}`;
     }
+    // Otherwise, append to the end
+    return `${prompt}\n\n${docsText}`;
   }
   return prompt;
 }

@@ -7,8 +7,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import logger from '../utils/logger';
 import { generateSampleConfig, generateSampleConfigJSON } from '../utils/configFileManager';
+import logger from '../utils/logger';
 
 /**
  * Generate a sample configuration file with enhanced content
@@ -17,18 +17,22 @@ import { generateSampleConfig, generateSampleConfigJSON } from '../utils/configF
  * @param format Format to use ('yaml' or 'json')
  * @returns Promise that resolves when the file is created
  */
-export async function generateConfigCommand(outputPath: string, force: boolean = false, format: 'yaml' | 'json' = 'yaml'): Promise<void> {
+export async function generateConfigCommand(
+  outputPath: string,
+  force = false,
+  format: 'yaml' | 'json' = 'yaml',
+): Promise<void> {
   try {
     // Resolve the output path
     const resolvedPath = path.resolve(process.cwd(), outputPath);
-    
+
     // Check if file already exists
     if (fs.existsSync(resolvedPath) && !force) {
       logger.error(`Configuration file already exists at ${resolvedPath}`);
       logger.info('Use --force to overwrite the existing file');
       process.exit(1);
     }
-    
+
     // Generate sample configuration in the specified format
     const sampleConfig = format === 'json' ? generateSampleConfigJSON() : generateSampleConfig();
 
@@ -47,14 +51,13 @@ export async function generateConfigCommand(outputPath: string, force: boolean =
     logger.info('2. JSON configuration file');
     logger.info('3. Environment variables');
     logger.info('4. Default values (lowest priority)');
-    
   } catch (error) {
-    logger.error(`Failed to generate configuration file: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Failed to generate configuration file: ${error instanceof Error ? error.message : String(error)}`,
+    );
     process.exit(1);
   }
 }
-
-
 
 /**
  * Handle the generate-config command from CLI

@@ -5,8 +5,8 @@
  * using Zod for schema validation and LangChain for parsing.
  */
 
-import { z } from 'zod';
 import { StructuredOutputParser } from '@langchain/core/output_parsers';
+import { z } from 'zod';
 
 /**
  * Risk level for removing unused code
@@ -51,9 +51,7 @@ export const ImprovedUnusedCodeIssueSchema = z.object({
   /**
    * Detailed description of the unused code issue
    */
-  description: z
-    .string()
-    .describe('Detailed description of the unused code issue'),
+  description: z.string().describe('Detailed description of the unused code issue'),
 
   /**
    * Location information (file and line numbers)
@@ -62,10 +60,7 @@ export const ImprovedUnusedCodeIssueSchema = z.object({
     file: z.string().optional().describe('File path'),
     lineStart: z.number().optional().describe('Starting line number'),
     lineEnd: z.number().optional().describe('Ending line number'),
-    codeSnippet: z
-      .string()
-      .optional()
-      .describe('Small code snippet showing the unused code')
+    codeSnippet: z.string().optional().describe('Small code snippet showing the unused code'),
   }),
 
   /**
@@ -77,9 +72,7 @@ export const ImprovedUnusedCodeIssueSchema = z.object({
     staticAnalysisHint: z
       .string()
       .optional()
-      .describe(
-        'Hint for static analysis tool configuration that could catch this'
-      )
+      .describe('Hint for static analysis tool configuration that could catch this'),
   }),
 
   /**
@@ -91,22 +84,18 @@ export const ImprovedUnusedCodeIssueSchema = z.object({
       .string()
       .optional()
       .describe('Suggested replacement code if refactoring is recommended'),
-    explanation: z.string().describe('Explanation for the suggested action')
+    explanation: z.string().describe('Explanation for the suggested action'),
   }),
 
   /**
    * Risk level of removing this code
    */
-  riskLevel: z
-    .enum(['high', 'medium', 'low'])
-    .describe('Risk level of removing this code'),
+  riskLevel: z.enum(['high', 'medium', 'low']).describe('Risk level of removing this code'),
 
   /**
    * Impact level of the issue
    */
-  impactLevel: z
-    .enum(['high', 'medium', 'low'])
-    .describe('Impact level of the issue'),
+  impactLevel: z.enum(['high', 'medium', 'low']).describe('Impact level of the issue'),
 
   /**
    * Category of unused code (more detailed than before)
@@ -128,7 +117,7 @@ export const ImprovedUnusedCodeIssueSchema = z.object({
       'unusedParameter',
       'unusedProperty',
       'unusedType',
-      'other'
+      'other',
     ])
     .describe('Detailed category of unused code'),
 
@@ -138,7 +127,7 @@ export const ImprovedUnusedCodeIssueSchema = z.object({
   isCompleteElement: z
     .boolean()
     .describe(
-      'True if this is a complete element like a file, function, or class that can be removed entirely'
+      'True if this is a complete element like a file, function, or class that can be removed entirely',
     ),
 
   /**
@@ -148,8 +137,8 @@ export const ImprovedUnusedCodeIssueSchema = z.object({
     .array(z.string())
     .optional()
     .describe(
-      'Additional files or components that should be checked to confirm this is truly unused'
-    )
+      'Additional files or components that should be checked to confirm this is truly unused',
+    ),
 });
 
 /**
@@ -173,25 +162,19 @@ export const ImprovedUnusedCodeReviewSchema = z.object({
   /**
    * Array of low impact unused code issues
    */
-  lowImpactIssues: z
-    .array(ImprovedUnusedCodeIssueSchema)
-    .describe('Low impact unused code issues'),
+  lowImpactIssues: z.array(ImprovedUnusedCodeIssueSchema).describe('Low impact unused code issues'),
 
   /**
    * Summary of the unused code review
    */
-  summary: z
-    .string()
-    .describe('Overall summary of the unused code review findings'),
+  summary: z.string().describe('Overall summary of the unused code review findings'),
 
   /**
    * General recommendations for preventing unused code
    */
   recommendations: z
     .array(z.string())
-    .describe(
-      'General recommendations for preventing unused code in the future'
-    ),
+    .describe('General recommendations for preventing unused code in the future'),
 
   /**
    * Project-wide patterns observed
@@ -201,8 +184,8 @@ export const ImprovedUnusedCodeReviewSchema = z.object({
       z.object({
         pattern: z.string().describe('Description of the pattern'),
         impact: z.string().describe('Impact of the pattern on code quality'),
-        suggestion: z.string().describe('Suggestion to improve the pattern')
-      })
+        suggestion: z.string().describe('Suggestion to improve the pattern'),
+      }),
     )
     .optional()
     .describe('Project-wide patterns related to unused code'),
@@ -215,32 +198,29 @@ export const ImprovedUnusedCodeReviewSchema = z.object({
       z.object({
         tool: z.string().describe('Tool name'),
         description: z.string().describe('Brief description of the tool'),
-        configuration: z.string().optional().describe('Suggested configuration')
-      })
+        configuration: z.string().optional().describe('Suggested configuration'),
+      }),
     )
     .optional()
-    .describe('Recommended static analysis tools for preventing unused code')
+    .describe('Recommended static analysis tools for preventing unused code'),
 });
 
 /**
  * Type for an improved unused code issue
  */
-export type ImprovedUnusedCodeIssue = z.infer<
-  typeof ImprovedUnusedCodeIssueSchema
->;
+export type ImprovedUnusedCodeIssue = z.infer<typeof ImprovedUnusedCodeIssueSchema>;
 
 /**
  * Type for the complete improved unused code review result
  */
-export type ImprovedUnusedCodeReview = z.infer<
-  typeof ImprovedUnusedCodeReviewSchema
->;
+export type ImprovedUnusedCodeReview = z.infer<typeof ImprovedUnusedCodeReviewSchema>;
 
 /**
  * LangChain parser for improved unused code review output
  */
-export const improvedUnusedCodeReviewParser =
-  StructuredOutputParser.fromZodSchema(ImprovedUnusedCodeReviewSchema);
+export const improvedUnusedCodeReviewParser = StructuredOutputParser.fromZodSchema(
+  ImprovedUnusedCodeReviewSchema,
+);
 
 /**
  * Get format instructions for the improved unused code review parser

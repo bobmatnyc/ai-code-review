@@ -10,23 +10,22 @@
  * in recommendations for removal.
  */
 
-import { BaseReviewStrategy, IReviewStrategy } from './ReviewStrategy';
-import {
-  FileInfo,
-  ReviewOptions,
-  ReviewResult
-  // ReviewType // Not used in this file
-} from '../types/review';
-import { StructuredReview } from '../types/structuredReview';
-import { ProjectDocs } from '../utils/projectDocs';
-import { ApiClientConfig } from '../core/ApiClientSelector';
-import { CodeTracingUnusedCodeReview } from '../prompts/schemas/code-tracing-unused-code-schema';
+import type { ApiClientConfig } from '../core/ApiClientSelector';
 import {
   formatCodeTracingUnusedCodeReviewAsMarkdown,
-  generateCodeTracingRemovalScript
+  generateCodeTracingRemovalScript,
 } from '../formatters/codeTracingUnusedCodeFormatter';
-import { formatProjectDocs } from '../utils/projectDocs';
+import type { CodeTracingUnusedCodeReview } from '../prompts/schemas/code-tracing-unused-code-schema';
+import type {
+  FileInfo,
+  ReviewOptions,
+  ReviewResult,
+  // ReviewType // Not used in this file
+} from '../types/review';
+import type { StructuredReview } from '../types/structuredReview';
 import logger from '../utils/logger';
+import { formatProjectDocs, type ProjectDocs } from '../utils/projectDocs';
+import { BaseReviewStrategy, type IReviewStrategy } from './ReviewStrategy';
 
 /**
  * Strategy for performing code tracing based unused code review
@@ -54,7 +53,7 @@ export class CodeTracingUnusedCodeReviewStrategy
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult> {
     logger.info('Generating code tracing unused code review...');
 
@@ -107,18 +106,16 @@ export class CodeTracingUnusedCodeReviewStrategy
           entryPoints: [],
           moduleResolution: '',
           referenceTracking: '',
-          limitations: []
+          limitations: [],
         },
         summary: {
           totalUnusedElements: 0,
           highConfidenceCount: 0,
           filesWithUnusedCode: 0,
-          potentialCodeReduction: '0%'
-        }
+          potentialCodeReduction: '0%',
+        },
       };
-      logger.info(
-        'Using mock response for code tracing review (for compilation)'
-      );
+      logger.info('Using mock response for code tracing review (for compilation)');
     } catch (error) {
       logger.error('Error getting completion:', error);
       throw error;
@@ -132,12 +129,10 @@ export class CodeTracingUnusedCodeReviewStrategy
     if (options.output === 'json') {
       formattedResponse = JSON.stringify(response, null, 2);
     } else {
-      formattedResponse =
-        formatCodeTracingUnusedCodeReviewAsMarkdown(typedResponse);
+      formattedResponse = formatCodeTracingUnusedCodeReviewAsMarkdown(typedResponse);
 
       // Add removal script if there are high confidence unused elements
-      const hasHighConfidenceUnused =
-        this.hasHighConfidenceUnusedElements(typedResponse);
+      const hasHighConfidenceUnused = this.hasHighConfidenceUnusedElements(typedResponse);
       if (hasHighConfidenceUnused) {
         formattedResponse += '\n\n## Removal Script\n\n';
         formattedResponse += '```bash\n';
@@ -155,7 +150,7 @@ export class CodeTracingUnusedCodeReviewStrategy
       content: formattedResponse,
       timestamp: new Date().toISOString(),
       modelUsed: apiClientConfig.modelName,
-      structuredData: response as unknown as StructuredReview | undefined
+      structuredData: response as unknown as StructuredReview | undefined,
     };
   }
 
@@ -164,23 +159,17 @@ export class CodeTracingUnusedCodeReviewStrategy
    * @param review The review to check
    * @returns Whether there are high confidence unused elements
    */
-  private hasHighConfidenceUnusedElements(
-    review: CodeTracingUnusedCodeReview
-  ): boolean {
-    const highConfidenceFiles = review.unusedFiles.filter(
-      file => file.confidence === 'high'
-    );
+  private hasHighConfidenceUnusedElements(review: CodeTracingUnusedCodeReview): boolean {
+    const highConfidenceFiles = review.unusedFiles.filter((file) => file.confidence === 'high');
     const highConfidenceFunctions = review.unusedFunctions.filter(
-      func => func.confidence === 'high'
+      (func) => func.confidence === 'high',
     );
-    const highConfidenceClasses = review.unusedClasses.filter(
-      cls => cls.confidence === 'high'
-    );
+    const highConfidenceClasses = review.unusedClasses.filter((cls) => cls.confidence === 'high');
     const highConfidenceTypes = review.unusedTypesAndInterfaces.filter(
-      type => type.confidence === 'high'
+      (type) => type.confidence === 'high',
     );
     const highConfidenceBranches = review.deadCodeBranches.filter(
-      branch => branch.confidence === 'high'
+      (branch) => branch.confidence === 'high',
     );
 
     return (

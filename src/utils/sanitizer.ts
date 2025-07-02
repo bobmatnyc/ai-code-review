@@ -8,8 +8,8 @@
  * they are safe for use in file systems.
  */
 
-import { JSDOM } from 'jsdom';
 import createDOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
 import logger from './logger';
 
 // Create a DOM window for DOMPurify
@@ -19,23 +19,23 @@ const DOMPurify = createDOMPurify(window);
 
 /**
  * Sanitizes HTML content to prevent Cross-Site Scripting (XSS) attacks.
- * 
+ *
  * This function uses DOMPurify to clean HTML content by:
  * 1. Allowing only safe HTML tags (h1-h6, p, lists, tables, etc.)
  * 2. Allowing only safe attributes (href, class, id, etc.)
  * 3. Explicitly forbidding dangerous tags (script, iframe, svg, etc.)
  * 4. Explicitly forbidding dangerous attributes (onerror, onclick, etc.)
- * 
+ *
  * If sanitization fails for any reason, it returns an empty string for safety.
- * 
+ *
  * @param {string} content - The HTML content to sanitize
  * @returns {string} Sanitized HTML with potentially dangerous content removed
- * 
+ *
  * @example
  * const unsafeHtml = '<div>Safe content</div><script>alert("XSS")</script>';
  * const safeHtml = sanitizeHtml(unsafeHtml);
  * // Returns: "<div>Safe content</div>"
- * 
+ *
  * @throws Catches internally and returns empty string if DOMPurify fails
  */
 export function sanitizeHtml(content: string): string {
@@ -69,7 +69,7 @@ export function sanitizeHtml(content: string): string {
         'tbody',
         'tr',
         'th',
-        'td'
+        'td',
       ],
       ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'id', 'style'],
       FORBID_TAGS: [
@@ -86,7 +86,7 @@ export function sanitizeHtml(content: string): string {
         'base',
         'applet',
         'math',
-        'svg'
+        'svg',
       ],
       FORBID_ATTR: [
         'onerror',
@@ -106,8 +106,8 @@ export function sanitizeHtml(content: string): string {
         'onreset',
         'javascript:',
         'data:',
-        'vbscript:'
-      ]
+        'vbscript:',
+      ],
     });
 
     return sanitized;
@@ -171,26 +171,26 @@ export function sanitizeJson(content: string): string {
 
 /**
  * Sanitizes content based on its type to prevent security vulnerabilities.
- * 
+ *
  * This function acts as a dispatcher that routes the content to the appropriate
  * specialized sanitization function based on the content type. It supports
  * HTML, Markdown, JSON, and plain text formats, each with type-specific
  * sanitization rules.
- * 
+ *
  * @param {string} content - The content to sanitize
  * @param {('html'|'markdown'|'json'|'text')} [contentType='text'] - The type of content
  * @returns {string} Sanitized content safe for rendering or storage
- * 
+ *
  * @example
  * // Sanitize HTML content
  * const safeHtml = sanitizeContent('<script>alert("XSS")</script><p>Hello</p>', 'html');
  * // Returns: "<p>Hello</p>"
- * 
+ *
  * @example
  * // Sanitize Markdown content
  * const safeMarkdown = sanitizeContent('# Title\n<script>alert("XSS")</script>', 'markdown');
  * // Returns: "# Title\n"
- * 
+ *
  * @example
  * // Sanitize JSON content
  * const safeJson = sanitizeContent('{"key": "value"}', 'json');
@@ -198,7 +198,7 @@ export function sanitizeJson(content: string): string {
  */
 export function sanitizeContent(
   content: string,
-  contentType: 'html' | 'markdown' | 'json' | 'text' = 'text'
+  contentType: 'html' | 'markdown' | 'json' | 'text' = 'text',
 ): string {
   switch (contentType) {
     case 'html':

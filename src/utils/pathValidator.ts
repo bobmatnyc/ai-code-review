@@ -75,7 +75,7 @@ export function validateTargetPath(targetPath: string): {
     return {
       isValid: false,
       isDir: false,
-      error: `Path must be within the current directory: ${process.cwd()}`
+      error: `Path must be within the current directory: ${process.cwd()}`,
     };
   }
 
@@ -84,7 +84,7 @@ export function validateTargetPath(targetPath: string): {
     return {
       isValid: false,
       isDir: false,
-      error: `Path does not exist: ${targetPath}`
+      error: `Path does not exist: ${targetPath}`,
     };
   }
 
@@ -93,6 +93,6 @@ export function validateTargetPath(targetPath: string): {
 
   return {
     isValid: true,
-    isDir
+    isDir,
   };
 }

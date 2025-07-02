@@ -6,8 +6,8 @@
  */
 
 import path from 'path';
-import { pathExists } from './pathValidator';
 import { ensureDirectoryExists } from './FileWriter';
+import { pathExists } from './pathValidator';
 
 /**
  * Generate a versioned output path for a file
@@ -23,7 +23,7 @@ export async function generateVersionedOutputPath(
   prefix: string,
   extension: string,
   modelName: string,
-  targetName: string
+  targetName: string,
 ): Promise<string> {
   // Ensure the output directory exists
   await ensureDirectoryExists(baseDir);
@@ -36,12 +36,12 @@ export async function generateVersionedOutputPath(
 
   // Clean up the target name for use in a filename
   let cleanTargetName = targetName.replace(/[^a-zA-Z0-9-]/g, '-');
-  
+
   // Handle special cases for target names
   if (targetName === '.' || cleanTargetName === '-' || cleanTargetName === '') {
     cleanTargetName = 'current-dir';
   }
-  
+
   // Remove any sequential dashes
   cleanTargetName = cleanTargetName.replace(/-+/g, '-').replace(/^-|-$/g, '');
 
@@ -58,10 +58,7 @@ export async function generateVersionedOutputPath(
  * @param filename Desired filename
  * @returns Promise resolving to the generated path
  */
-export async function generateUniqueOutputPath(
-  baseDir: string,
-  filename: string
-): Promise<string> {
+export async function generateUniqueOutputPath(baseDir: string, filename: string): Promise<string> {
   // Ensure the output directory exists
   await ensureDirectoryExists(baseDir);
 
@@ -76,10 +73,7 @@ export async function generateUniqueOutputPath(
 
     // Try different numbers until we find an available filename
     while (await pathExists(outputPath)) {
-      outputPath = path.join(
-        baseDir,
-        `${nameWithoutExtension}-${counter}${extension}`
-      );
+      outputPath = path.join(baseDir, `${nameWithoutExtension}-${counter}${extension}`);
       counter++;
     }
   }
@@ -93,14 +87,11 @@ export async function generateUniqueOutputPath(
  * @param extension File extension (including the dot)
  * @returns Generated temporary file path
  */
-export function generateTempFilePath(
-  prefix: string,
-  extension: string
-): string {
+export function generateTempFilePath(prefix: string, extension: string): string {
   const timestamp = new Date().getTime();
   const randomPart = Math.floor(Math.random() * 10000);
   return path.join(
     process.env.TEMP || process.env.TMP || '/tmp',
-    `${prefix}-${timestamp}-${randomPart}${extension}`
+    `${prefix}-${timestamp}-${randomPart}${extension}`,
   );
 }

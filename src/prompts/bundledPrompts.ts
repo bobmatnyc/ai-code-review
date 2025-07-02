@@ -11,9 +11,9 @@
  * where it's installed or how it's packaged.
  */
 
-import { ReviewType } from '../types/review';
-import { getPromptTemplate, checkTemplatesAvailability } from '../utils/promptTemplateManager';
+import type { ReviewType } from '../types/review';
 import logger from '../utils/logger';
+import { checkTemplatesAvailability, getPromptTemplate } from '../utils/promptTemplateManager';
 
 // Flag to control whether to use the template system (can be configured at runtime)
 export const USE_TEMPLATE_SYSTEM = true;
@@ -21,8 +21,8 @@ export const USE_TEMPLATE_SYSTEM = true;
 // Map of prompt templates by review type and language/framework
 export const bundledPrompts: Record<string, Record<string, string>> = {
   // Generic prompts (no language)
-  'generic': {
-    'architectural': `# Architectural Code Review
+  generic: {
+    architectural: `# Architectural Code Review
 
 You are an expert software architect performing a comprehensive architectural review of a codebase.
 
@@ -94,7 +94,7 @@ IMPORTANT: Include fixes for any TypeScript compilation errors or ESLint violati
 
 {{SCHEMA_INSTRUCTIONS}}`,
 
-    'security': `# Security Code Review
+    security: `# Security Code Review
 
 You are an expert security engineer performing a comprehensive security review of a codebase.
 
@@ -127,7 +127,7 @@ Include a summary section at the beginning with an overall security assessment a
 
 {{SCHEMA_INSTRUCTIONS}}`,
 
-    'performance': `# Performance Code Review
+    performance: `# Performance Code Review
 
 You are an expert performance engineer performing a comprehensive performance review of a codebase.
 
@@ -257,7 +257,7 @@ Prioritize your recommendations by impact, focusing on changes that will signifi
 
 Remember to balance theoretical best practices with pragmatic considerations for the specific codebase context.`,
 
-    'evaluation': `# Candidate Technical Assessment - Developer Evaluation
+    evaluation: `# Candidate Technical Assessment - Developer Evaluation
 
 🚨 CRITICAL: This is a CANDIDATE COMPETENCY EVALUATION, NOT a code review. You are assessing the DEVELOPER'S skills, experience, and readiness based on their code. DO NOT provide code improvement suggestions.
 
@@ -523,12 +523,12 @@ IMPORTANT: You MUST follow this EXACT output format. Do not deviate from these h
 
 NOTE: This assessment is based solely on code analysis patterns. No code improvements or suggestions have been provided as this is a pure developer evaluation.
 
-{{SCHEMA_INSTRUCTIONS}}`
+{{SCHEMA_INSTRUCTIONS}}`,
   },
 
   // TypeScript-specific prompts
-  'typescript': {
-    'architectural': `# TypeScript Architectural Code Review
+  typescript: {
+    architectural: `# TypeScript Architectural Code Review
 
 You are an expert TypeScript architect performing a comprehensive architectural review of a TypeScript codebase.
 
@@ -611,9 +611,9 @@ This code is written in TYPESCRIPT. Please provide language-specific advice.
 
 {{CI_DATA}}
 
-{{SCHEMA_INSTRUCTIONS}}`
+{{SCHEMA_INSTRUCTIONS}}`,
   },
-  
+
   // Framework-specific prompts
   'typescript:react': {
     'best-practices': `# React with TypeScript Best Practices Code Review
@@ -689,49 +689,60 @@ Prioritize your recommendations by impact, focusing on changes that will signifi
 
 This code is written in TYPESCRIPT for a REACT application. Please provide framework-specific advice.
 
-{{SCHEMA_INSTRUCTIONS}}`
+{{SCHEMA_INSTRUCTIONS}}`,
   },
-  
+
   // Additional frameworks and languages follow the same pattern...
 };
 
 /**
  * Get a bundled prompt template with template system integration
- * 
+ *
  * @param reviewType Type of review
  * @param language Programming language
  * @param framework Framework (optional)
  * @returns The prompt template or undefined if not found
- * 
+ *
  * This function checks for templates from the template system first,
  * and falls back to bundled prompts if templates are not available.
  */
 export function getBundledPrompt(
-  reviewType: ReviewType, 
-  language?: string, 
-  framework?: string
+  reviewType: ReviewType,
+  language?: string,
+  framework?: string,
 ): string | undefined {
   // Try using the template system first if available
   if (USE_TEMPLATE_SYSTEM && checkTemplatesAvailability()) {
     const template = getPromptTemplate(reviewType, language, framework);
     if (template) {
-      logger.debug(`Using template for reviewType=${reviewType}, language=${language}, framework=${framework}`);
+      logger.debug(
+        `Using template for reviewType=${reviewType}, language=${language}, framework=${framework}`,
+      );
       return template;
     }
     // Log a warning if template not found but system is available
-    logger.debug(`Template not found in template system for reviewType=${reviewType}, language=${language}, framework=${framework}. Falling back to bundled prompt.`);
+    logger.debug(
+      `Template not found in template system for reviewType=${reviewType}, language=${language}, framework=${framework}. Falling back to bundled prompt.`,
+    );
   }
-  
+
   // Fallback to hard-coded prompts
   // First try framework-specific prompt if framework is provided
-  if (language && framework && 
-      bundledPrompts[`${language.toLowerCase()}:${framework.toLowerCase()}`] && 
-      bundledPrompts[`${language.toLowerCase()}:${framework.toLowerCase()}`][reviewType]) {
+  if (
+    language &&
+    framework &&
+    bundledPrompts[`${language.toLowerCase()}:${framework.toLowerCase()}`] &&
+    bundledPrompts[`${language.toLowerCase()}:${framework.toLowerCase()}`][reviewType]
+  ) {
     return bundledPrompts[`${language.toLowerCase()}:${framework.toLowerCase()}`][reviewType];
   }
-  
+
   // Then try language-specific prompt
-  if (language && bundledPrompts[language.toLowerCase()] && bundledPrompts[language.toLowerCase()][reviewType]) {
+  if (
+    language &&
+    bundledPrompts[language.toLowerCase()] &&
+    bundledPrompts[language.toLowerCase()][reviewType]
+  ) {
     return bundledPrompts[language.toLowerCase()][reviewType];
   }
 

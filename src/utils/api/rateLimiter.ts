@@ -84,7 +84,7 @@ export class RateLimiter {
    * @param timeoutMs Timeout in milliseconds
    * @returns Promise that resolves when a token is acquired
    */
-  async acquire(timeoutMs: number = 30000): Promise<void> {
+  async acquire(timeoutMs = 30000): Promise<void> {
     this.refill();
 
     if (this.tokens >= 1) {
@@ -95,9 +95,7 @@ export class RateLimiter {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         // Remove this request from the queue
-        const index = this.waitQueue.findIndex(
-          item => item.resolve === resolve
-        );
+        const index = this.waitQueue.findIndex((item) => item.resolve === resolve);
         if (index !== -1) {
           this.waitQueue.splice(index, 1);
         }
@@ -137,5 +135,5 @@ export class RateLimiter {
  */
 export const globalRateLimiter = new RateLimiter({
   bucketSize: 10,
-  tokensPerSecond: 2
+  tokensPerSecond: 2,
 });

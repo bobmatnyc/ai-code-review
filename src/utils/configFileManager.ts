@@ -8,9 +8,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as YAML from 'yaml';
+import type { CliOptions } from '../cli/argumentParser';
+import type { ReviewOptions } from '../types/review';
 import logger from './logger';
-import { ReviewOptions } from '../types/review';
-import { CliOptions } from '../cli/argumentParser';
 
 /**
  * Interface for the configuration file structure (supports both YAML and JSON)
@@ -64,7 +64,7 @@ export interface ConfigFile {
 const DEFAULT_CONFIG_FILES = [
   '.ai-code-review.yaml',
   '.ai-code-review.yml',
-  '.ai-code-review.json'
+  '.ai-code-review.json',
 ];
 
 /**
@@ -94,7 +94,7 @@ export function loadConfigFile(configFilePath?: string): ConfigFile | null {
       filePath = path.resolve(process.cwd(), DEFAULT_CONFIG_FILES[0]);
     }
   }
-  
+
   try {
     // Check if the file exists
     if (!fs.existsSync(filePath)) {
@@ -137,12 +137,16 @@ export function loadConfigFile(configFilePath?: string): ConfigFile | null {
 
       return config;
     } catch (parseError) {
-      logger.error(`Error parsing configuration file: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      logger.error(
+        `Error parsing configuration file: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+      );
       logger.error(`Please check the syntax in ${filePath}`);
       return null;
     }
   } catch (error) {
-    logger.error(`Error reading configuration file: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error reading configuration file: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return null;
   }
 }
@@ -156,7 +160,7 @@ export function loadConfigFile(configFilePath?: string): ConfigFile | null {
 export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions): ReviewOptions {
   // Make a copy of the options to avoid modifying the original
   const newOptions = { ...options };
-  
+
   // Apply output configuration
   if (config.output) {
     if (config.output.format && !newOptions.output) {
@@ -166,7 +170,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
       (newOptions as CliOptions).outputDir = config.output.dir;
     }
   }
-  
+
   // Apply review configuration
   if (config.review) {
     if (config.review.type && newOptions.type === undefined) {
@@ -178,10 +182,16 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
     if (config.review.include_tests !== undefined && newOptions.includeTests === undefined) {
       newOptions.includeTests = config.review.include_tests;
     }
-    if (config.review.include_project_docs !== undefined && newOptions.includeProjectDocs === undefined) {
+    if (
+      config.review.include_project_docs !== undefined &&
+      newOptions.includeProjectDocs === undefined
+    ) {
       newOptions.includeProjectDocs = config.review.include_project_docs;
     }
-    if (config.review.include_dependency_analysis !== undefined && newOptions.includeDependencyAnalysis === undefined) {
+    if (
+      config.review.include_dependency_analysis !== undefined &&
+      newOptions.includeDependencyAnalysis === undefined
+    ) {
       newOptions.includeDependencyAnalysis = config.review.include_dependency_analysis;
     }
     if (config.review.consolidated !== undefined && newOptions.consolidated === undefined) {
@@ -207,7 +217,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
       newOptions.noConfirm = !config.review.confirm;
     }
   }
-  
+
   // Apply API configuration
   if (config.api) {
     if (config.api.model && !(newOptions as CliOptions).model) {
@@ -219,7 +229,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
     if (config.api.test_api !== undefined && newOptions.testApi === undefined) {
       newOptions.testApi = config.api.test_api;
     }
-    
+
     // Handle API keys
     if (config.api.keys) {
       // If apiKey doesn't exist on newOptions, create it
@@ -227,7 +237,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
       if (!cliOptions.apiKey) {
         cliOptions.apiKey = {};
       }
-      
+
       // Only set API keys if they are not already set and are non-null in the config
       if (config.api.keys.google && !cliOptions.apiKey.google) {
         cliOptions.apiKey.google = config.api.keys.google;
@@ -243,7 +253,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
       }
     }
   }
-  
+
   // Apply prompts configuration
   if (config.prompts) {
     if (config.prompts.prompt_file && !newOptions.promptFile) {
@@ -251,11 +261,13 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
     }
     if (config.prompts.prompt_fragment && !newOptions.promptFragments) {
       // Create a promptFragments array if it doesn't exist
-      newOptions.promptFragments = [{
-        content: config.prompts.prompt_fragment,
-        position: config.prompts.prompt_fragment_position || 'middle',
-        priority: 5
-      }];
+      newOptions.promptFragments = [
+        {
+          content: config.prompts.prompt_fragment,
+          position: config.prompts.prompt_fragment_position || 'middle',
+          priority: 5,
+        },
+      ];
     }
     if (config.prompts.prompt_strategy && !newOptions.promptStrategy) {
       newOptions.promptStrategy = config.prompts.prompt_strategy;
@@ -264,7 +276,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
       newOptions.useCache = config.prompts.use_cache;
     }
   }
-  
+
   // Apply system configuration
   if (config.system) {
     if (config.system.debug !== undefined && newOptions.debug === undefined) {
@@ -274,7 +286,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
       (newOptions as CliOptions).logLevel = config.system.log_level;
     }
   }
-  
+
   return newOptions;
 }
 
@@ -286,7 +298,7 @@ export function generateSampleConfig(): string {
   const sampleConfig: ConfigFile = {
     output: {
       format: 'markdown',
-      dir: './ai-code-review-docs'
+      dir: './ai-code-review-docs',
     },
     review: {
       type: 'quick-fixes',
@@ -299,7 +311,7 @@ export function generateSampleConfig(): string {
       use_eslint: false,
       auto_fix: false,
       prompt_all: false,
-      confirm: true
+      confirm: true,
     },
     api: {
       model: 'gemini:gemini-1.5-pro',
@@ -307,14 +319,14 @@ export function generateSampleConfig(): string {
         google: 'YOUR_GOOGLE_API_KEY_HERE',
         openrouter: 'YOUR_OPENROUTER_API_KEY_HERE',
         anthropic: 'YOUR_ANTHROPIC_API_KEY_HERE',
-        openai: 'YOUR_OPENAI_API_KEY_HERE'
+        openai: 'YOUR_OPENAI_API_KEY_HERE',
       },
-      test_api: false
+      test_api: false,
     },
     system: {
       debug: false,
-      log_level: 'info'
-    }
+      log_level: 'info',
+    },
   };
 
   // Generate YAML
@@ -352,7 +364,7 @@ export function generateSampleConfigJSON(): string {
   const sampleConfig: ConfigFile = {
     output: {
       format: 'markdown',
-      dir: './ai-code-review-docs'
+      dir: './ai-code-review-docs',
     },
     review: {
       type: 'quick-fixes',
@@ -365,7 +377,7 @@ export function generateSampleConfigJSON(): string {
       use_eslint: false,
       auto_fix: false,
       prompt_all: false,
-      confirm: true
+      confirm: true,
     },
     api: {
       model: 'gemini:gemini-1.5-pro',
@@ -373,14 +385,14 @@ export function generateSampleConfigJSON(): string {
         google: 'YOUR_GOOGLE_API_KEY_HERE',
         openrouter: 'YOUR_OPENROUTER_API_KEY_HERE',
         anthropic: 'YOUR_ANTHROPIC_API_KEY_HERE',
-        openai: 'YOUR_OPENAI_API_KEY_HERE'
+        openai: 'YOUR_OPENAI_API_KEY_HERE',
       },
-      test_api: false
+      test_api: false,
     },
     system: {
       debug: false,
-      log_level: 'info'
-    }
+      log_level: 'info',
+    },
   };
 
   return JSON.stringify(sampleConfig, null, 2);
@@ -398,7 +410,9 @@ export function saveSampleConfig(outputPath: string, format: 'yaml' | 'json' = '
     fs.writeFileSync(outputPath, sampleConfig);
     return true;
   } catch (error) {
-    logger.error(`Error saving sample configuration: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error saving sample configuration: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return false;
   }
 }
@@ -408,5 +422,5 @@ export default {
   applyConfigToOptions,
   generateSampleConfig,
   generateSampleConfigJSON,
-  saveSampleConfig
+  saveSampleConfig,
 };

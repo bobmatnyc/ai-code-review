@@ -22,7 +22,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public details?: unknown
+    public details?: unknown,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -39,7 +39,7 @@ export class RateLimitError extends ApiError {
     message: string,
     public retryAfter?: number,
     statusCode?: number,
-    details?: unknown
+    details?: unknown,
   ) {
     super(message, statusCode, details);
     this.name = 'RateLimitError';
@@ -114,10 +114,7 @@ export class InvalidResponseError extends ApiError {
  *   }
  * }
  */
-export async function handleFetchResponse(
-  response: Response,
-  apiName: string
-): Promise<Response> {
+export async function handleFetchResponse(response: Response, apiName: string): Promise<Response> {
   if (!response.ok) {
     // Try to get the error body
     let errorBody: string | object = 'Unknown error';
@@ -145,11 +142,9 @@ export async function handleFetchResponse(
     } catch (e) {
       // Log body read errors
       console.log(
-        `[DEBUG] Failed to read error body: ${e instanceof Error ? e.message : String(e)}`
+        `[DEBUG] Failed to read error body: ${e instanceof Error ? e.message : String(e)}`,
       );
-      logger.debug(
-        `Failed to read error body: ${e instanceof Error ? e.message : String(e)}`
-      );
+      logger.debug(`Failed to read error body: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     // Create appropriate error based on status code
@@ -163,24 +158,18 @@ export async function handleFetchResponse(
     // Throw appropriate error based on status code
     if (response.status === 401 || response.status === 403) {
       throw new AuthenticationError(errorMessage, response.status, errorBody);
-    } else if (response.status === 404) {
+    }
+    if (response.status === 404) {
       throw new NotFoundError(errorMessage, response.status, errorBody);
-    } else if (response.status === 429) {
+    }
+    if (response.status === 429) {
       // Check for retry-after header
       const retryAfter = response.headers.get('retry-after');
-      const retryAfterSeconds = retryAfter
-        ? parseInt(retryAfter, 10)
-        : undefined;
+      const retryAfterSeconds = retryAfter ? parseInt(retryAfter, 10) : undefined;
 
-      throw new RateLimitError(
-        errorMessage,
-        retryAfterSeconds,
-        response.status,
-        errorBody
-      );
-    } else {
-      throw new ApiError(errorMessage, response.status, errorBody);
+      throw new RateLimitError(errorMessage, retryAfterSeconds, response.status, errorBody);
     }
+    throw new ApiError(errorMessage, response.status, errorBody);
   }
 
   return response;
@@ -193,10 +182,7 @@ export async function handleFetchResponse(
  * @returns The parsed JSON data
  * @throws InvalidResponseError if the response cannot be parsed as JSON
  */
-export async function safeJsonParse<T>(
-  response: Response | any,
-  apiName: string
-): Promise<T> {
+export async function safeJsonParse<T>(response: Response | any, apiName: string): Promise<T> {
   try {
     return (await response.json()) as T;
   } catch (error) {
@@ -241,7 +227,7 @@ export async function safeJsonParse<T>(
  */
 export function logApiError(
   error: unknown,
-  context: { operation: string; url?: string; apiName: string }
+  context: { operation: string; url?: string; apiName: string },
 ): void {
   const { operation, url, apiName } = context;
 
@@ -249,37 +235,35 @@ export function logApiError(
     logger.warn(
       `Rate limit exceeded for ${apiName} API during ${operation}${
         url ? ` (${url})` : ''
-      }. Retry after: ${error.retryAfter || 'unknown'} seconds.`
+      }. Retry after: ${error.retryAfter || 'unknown'} seconds.`,
     );
   } else if (error instanceof AuthenticationError) {
     logger.error(
       `Authentication failed for ${apiName} API during ${operation}${
         url ? ` (${url})` : ''
-      }. Check your API key.`
+      }. Check your API key.`,
     );
   } else if (error instanceof NotFoundError) {
     logger.error(
       `Resource not found on ${apiName} API during ${operation}${
         url ? ` (${url})` : ''
-      }. Check your request parameters.`
+      }. Check your request parameters.`,
     );
   } else if (error instanceof InvalidResponseError) {
     logger.error(
       `Invalid response from ${apiName} API during ${operation}${
         url ? ` (${url})` : ''
-      }. The API may have changed or returned an unexpected format.`
+      }. The API may have changed or returned an unexpected format.`,
     );
   } else if (error instanceof ApiError) {
     logger.error(
-      `API error from ${apiName} during ${operation}${
-        url ? ` (${url})` : ''
-      }: ${error.message}`
+      `API error from ${apiName} during ${operation}${url ? ` (${url})` : ''}: ${error.message}`,
     );
   } else {
     logger.error(
       `Unexpected error during ${apiName} API ${operation}${
         url ? ` (${url})` : ''
-      }: ${error instanceof Error ? error.message : String(error)}`
+      }: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 }

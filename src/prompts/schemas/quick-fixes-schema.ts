@@ -5,8 +5,8 @@
  * using Zod for schema validation and LangChain for parsing.
  */
 
-import { z } from 'zod';
 import { StructuredOutputParser } from '@langchain/core/output_parsers';
+import { z } from 'zod';
 
 /**
  * Priority level for issues
@@ -50,10 +50,7 @@ export const QuickFixIssueSchema = z.object({
     file: z.string().optional().describe('File path'),
     lineStart: z.number().optional().describe('Starting line number'),
     lineEnd: z.number().optional().describe('Ending line number'),
-    codeSnippet: z
-      .string()
-      .optional()
-      .describe('Small code snippet showing the issue')
+    codeSnippet: z.string().optional().describe('Small code snippet showing the issue'),
   }),
 
   /**
@@ -61,7 +58,7 @@ export const QuickFixIssueSchema = z.object({
    */
   suggestedFix: z.object({
     code: z.string().describe('Code snippet showing the fix'),
-    explanation: z.string().describe('Explanation of the fix')
+    explanation: z.string().describe('Explanation of the fix'),
   }),
 
   /**
@@ -81,9 +78,7 @@ export const QuickFixIssueSchema = z.object({
   /**
    * Priority level of the issue
    */
-  priority: z
-    .enum(['high', 'medium', 'low'])
-    .describe('Priority level of the issue'),
+  priority: z.enum(['high', 'medium', 'low']).describe('Priority level of the issue'),
 
   /**
    * Category of the issue
@@ -100,14 +95,14 @@ export const QuickFixIssueSchema = z.object({
       'configuration',
       'typing',
       'error-handling',
-      'other'
+      'other',
     ])
     .describe('Category of the issue'),
 
   /**
    * Tags related to the issue
    */
-  tags: z.array(z.string()).optional().describe('Tags related to the issue')
+  tags: z.array(z.string()).optional().describe('Tags related to the issue'),
 });
 
 /**
@@ -138,16 +133,12 @@ export const QuickFixesReviewSchema = z.object({
   /**
    * Summary of the quick fixes review
    */
-  summary: z
-    .string()
-    .describe('Overall summary of the quick fixes review findings'),
+  summary: z.string().describe('Overall summary of the quick fixes review findings'),
 
   /**
    * General recommendations
    */
-  recommendations: z
-    .array(z.string())
-    .describe('General recommendations for improving the code'),
+  recommendations: z.array(z.string()).describe('General recommendations for improving the code'),
 
   /**
    * Positive aspects of the code
@@ -164,11 +155,11 @@ export const QuickFixesReviewSchema = z.object({
       z.object({
         tool: z.string().describe('Tool name'),
         description: z.string().describe('Brief description of the tool'),
-        configuration: z.string().optional().describe('Suggested configuration')
-      })
+        configuration: z.string().optional().describe('Suggested configuration'),
+      }),
     )
     .optional()
-    .describe('Recommended development tools for preventing these issues')
+    .describe('Recommended development tools for preventing these issues'),
 });
 
 /**
@@ -184,9 +175,7 @@ export type QuickFixesReview = z.infer<typeof QuickFixesReviewSchema>;
 /**
  * LangChain parser for quick fixes review output
  */
-export const quickFixesReviewParser = StructuredOutputParser.fromZodSchema(
-  QuickFixesReviewSchema
-);
+export const quickFixesReviewParser = StructuredOutputParser.fromZodSchema(QuickFixesReviewSchema);
 
 /**
  * Get format instructions for the quick fixes review parser

@@ -1,15 +1,14 @@
 /**
  * @fileoverview Formatter for JSON output of code reviews.
- * 
+ *
  * This module provides functions to format code review results as JSON,
  * including metadata, structured data, and content.
  */
 
-import { ReviewResult } from '../../types/review';
+import type { ReviewResult } from '../../types/review';
 import { sanitizeContent } from '../../utils/sanitizer';
-
-import { extractModelInfo } from './ModelInfoExtractor';
 import { createEnhancedMetadata, parseMetadata } from './MetadataFormatter';
+import { extractModelInfo } from './ModelInfoExtractor';
 
 /**
  * Format the review as JSON
@@ -57,7 +56,7 @@ export function formatAsJson(review: ReviewResult): string {
     review.detectedLanguage,
     review.detectedFramework,
     review.frameworkVersion,
-    review.cssFrameworks
+    review.cssFrameworks,
   );
 
   // Create a copy of the review with enhanced metadata
@@ -70,8 +69,8 @@ export function formatAsJson(review: ReviewResult): string {
     metadata: {
       model: modelInfo,
       generatedAt: new Date(review.timestamp).toISOString(),
-      costEstimation: review.cost
-    }
+      costEstimation: review.cost,
+    },
   };
 
   return JSON.stringify(reviewWithMeta, null, 2);

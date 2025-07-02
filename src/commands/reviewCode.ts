@@ -14,18 +14,15 @@
  * making it easier to test and maintain the codebase.
  */
 
-import { ReviewOptions } from '../types/review';
 import { orchestrateReview } from '../core/reviewOrchestrator';
+import type { ReviewOptions } from '../types/review';
 
 /**
  * Main entry point for the code review command
  * @param target Path to the file or directory to review
  * @param options Review options
  */
-export async function reviewCode(
-  target: string,
-  options: ReviewOptions
-): Promise<void> {
+export async function reviewCode(target: string, options: ReviewOptions): Promise<void> {
   try {
     // Handle prompt-file option if provided
     if ((options as any)['prompt-file']) {
@@ -41,8 +38,8 @@ export async function reviewCode(
       options.promptFragments = [
         {
           content: fragment,
-          position: position as 'start' | 'middle' | 'end'
-        }
+          position: position as 'start' | 'middle' | 'end',
+        },
       ];
 
       delete (options as any)['prompt-fragment'];
@@ -60,13 +57,15 @@ export async function reviewCode(
       options.useCache = (options as any)['use-cache'] as boolean;
       delete (options as any)['use-cache'];
     }
-    
+
     // Handle include-dependency-analysis option if provided
     if ((options as any)['include-dependency-analysis'] !== undefined) {
-      options.includeDependencyAnalysis = (options as any)['include-dependency-analysis'] as boolean;
+      options.includeDependencyAnalysis = (options as any)[
+        'include-dependency-analysis'
+      ] as boolean;
       delete (options as any)['include-dependency-analysis'];
     }
-    
+
     // Handle confirm option if provided (inverse logic for noConfirm)
     if ((options as any)['confirm'] !== undefined) {
       options.noConfirm = !(options as any)['confirm'] as boolean;
@@ -121,7 +120,7 @@ export async function reviewCode(
     // Any unhandled errors will be caught here
     // The orchestrator should handle most errors, but this is a safety net
     console.error(
-      `Unhandled error in reviewCode: ${error instanceof Error ? error.message : String(error)}`
+      `Unhandled error in reviewCode: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }

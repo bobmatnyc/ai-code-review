@@ -15,18 +15,16 @@
  */
 
 // Export model detection and initialization functions
-export { 
-  isAnthropicModel, 
-  initializeAnthropicClient 
+export {
+  initializeAnthropicClient,
+  isAnthropicModel,
 } from './utils/anthropicModelHelpers';
 
 // Export review generation functions
-export { 
+export {
+  generateAnthropicConsolidatedReview,
   generateAnthropicReview,
-  generateAnthropicConsolidatedReview
 } from './utils/anthropicReviewGenerators';
 
 // Export architectural review with tool calling
-export { 
-  generateArchitecturalAnthropicReview 
-} from './utils/anthropicToolCalling';
+export { generateArchitecturalAnthropicReview } from './utils/anthropicToolCalling';

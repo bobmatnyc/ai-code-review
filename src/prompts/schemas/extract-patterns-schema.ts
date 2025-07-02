@@ -32,7 +32,7 @@ export const TechnologySchema = z.object({
   name: z.string().describe('Technology name'),
   version: z.string().optional().describe('Version if available'),
   purpose: z.string().describe('Purpose or role in the project'),
-  configurationNotes: z.string().optional().describe('Notable configuration details')
+  configurationNotes: z.string().optional().describe('Notable configuration details'),
 });
 
 export type Technology = z.infer<typeof TechnologySchema>;
@@ -48,9 +48,9 @@ export const CodeMetricsSchema = z.object({
   complexityDistribution: z.object({
     simple: z.number().describe('Percentage of simple functions/classes'),
     moderate: z.number().describe('Percentage of moderate complexity'),
-    complex: z.number().describe('Percentage of complex functions/classes')
+    complex: z.number().describe('Percentage of complex functions/classes'),
   }),
-  testCoverage: z.number().optional().describe('Test coverage percentage if available')
+  testCoverage: z.number().optional().describe('Test coverage percentage if available'),
 });
 
 export type CodeMetrics = z.infer<typeof CodeMetricsSchema>;
@@ -60,10 +60,14 @@ export type CodeMetrics = z.infer<typeof CodeMetricsSchema>;
  */
 export const ArchitecturalPatternSchema = z.object({
   patternName: z.string().describe('Name of the design pattern'),
-  usage: z.enum(['Primary', 'Secondary', 'Occasional']).describe('How extensively the pattern is used'),
+  usage: z
+    .enum(['Primary', 'Secondary', 'Occasional'])
+    .describe('How extensively the pattern is used'),
   implementation: z.string().describe('How the pattern is implemented'),
   examples: z.array(z.string()).describe('Specific examples or file locations'),
-  effectiveness: z.enum(['Excellent', 'Good', 'Adequate', 'Poor']).describe('How well the pattern is implemented')
+  effectiveness: z
+    .enum(['Excellent', 'Good', 'Adequate', 'Poor'])
+    .describe('How well the pattern is implemented'),
 });
 
 export type ArchitecturalPattern = z.infer<typeof ArchitecturalPatternSchema>;
@@ -77,18 +81,18 @@ export const CodeStyleSchema = z.object({
     functions: z.string().describe('Function naming pattern'),
     classes: z.string().describe('Class naming pattern'),
     files: z.string().describe('File naming pattern'),
-    consistency: ConfidenceLevel.describe('Consistency level of naming')
+    consistency: ConfidenceLevel.describe('Consistency level of naming'),
   }),
   organizationPatterns: z.object({
     fileStructure: z.string().describe('How files are organized'),
     moduleStructure: z.string().describe('How modules are structured'),
-    importExportStyle: z.string().describe('Import/export patterns used')
+    importExportStyle: z.string().describe('Import/export patterns used'),
   }),
   documentationStyle: z.object({
     inlineComments: z.string().describe('Inline comment style and frequency'),
     functionDocumentation: z.string().describe('Function documentation approach'),
-    apiDocumentation: z.string().describe('API documentation style')
-  })
+    apiDocumentation: z.string().describe('API documentation style'),
+  }),
 });
 
 export type CodeStyle = z.infer<typeof CodeStyleSchema>;
@@ -102,7 +106,7 @@ export const TestingStrategySchema = z.object({
   mockingStrategy: z.string().describe('Approach to mocking and test doubles'),
   testNaming: z.string().describe('Test naming conventions'),
   coverageApproach: z.string().describe('What gets tested and testing philosophy'),
-  testUtilities: z.array(z.string()).describe('Shared test helpers and utilities')
+  testUtilities: z.array(z.string()).describe('Shared test helpers and utilities'),
 });
 
 export type TestingStrategy = z.infer<typeof TestingStrategySchema>;
@@ -114,9 +118,11 @@ export const TechnologyStackSchema = z.object({
   coreLanguages: z.array(TechnologySchema).describe('Primary programming languages'),
   frameworks: z.array(TechnologySchema).describe('Frameworks and libraries'),
   buildTools: z.array(TechnologySchema).describe('Build and bundling tools'),
-  developmentTools: z.array(TechnologySchema).describe('Development tools (linters, formatters, etc.)'),
+  developmentTools: z
+    .array(TechnologySchema)
+    .describe('Development tools (linters, formatters, etc.)'),
   testingTools: z.array(TechnologySchema).describe('Testing frameworks and tools'),
-  deploymentTools: z.array(TechnologySchema).optional().describe('Deployment and CI/CD tools')
+  deploymentTools: z.array(TechnologySchema).optional().describe('Deployment and CI/CD tools'),
 });
 
 export type TechnologyStack = z.infer<typeof TechnologyStackSchema>;
@@ -129,13 +135,13 @@ export const ProjectOverviewSchema = z.object({
   scale: z.object({
     size: z.enum(['Small', 'Medium', 'Large', 'Enterprise']).describe('Project size'),
     complexity: ComplexityLevel.describe('Overall complexity level'),
-    maturity: MaturityLevel.describe('Development maturity level')
+    maturity: MaturityLevel.describe('Development maturity level'),
   }),
   architecture: z.object({
     style: z.string().describe('Overall architectural style'),
     layering: z.string().describe('How the application is layered'),
-    modularity: z.string().describe('Approach to modularity and separation')
-  })
+    modularity: z.string().describe('Approach to modularity and separation'),
+  }),
 });
 
 export type ProjectOverview = z.infer<typeof ProjectOverviewSchema>;
@@ -147,7 +153,7 @@ export const ExtractPatternsReviewSchema = z.object({
   version: z.literal('1.0').describe('Schema version'),
   timestamp: z.string().describe('ISO 8601 timestamp'),
   projectName: z.string().describe('Name of the analyzed project'),
-  
+
   // Core analysis sections
   projectOverview: ProjectOverviewSchema,
   technologyStack: TechnologyStackSchema,
@@ -155,24 +161,28 @@ export const ExtractPatternsReviewSchema = z.object({
   architecturalPatterns: z.array(ArchitecturalPatternSchema),
   codeStyle: CodeStyleSchema,
   testingStrategy: TestingStrategySchema,
-  
+
   // Exemplar characteristics
   exemplarCharacteristics: z.object({
     strengths: z.array(z.string()).describe('What makes this codebase exemplary'),
     patternsToEmulate: z.array(z.string()).describe('Specific patterns worth copying'),
-    lessonsLearned: z.array(z.string()).describe('Key insights for similar projects')
+    lessonsLearned: z.array(z.string()).describe('Key insights for similar projects'),
   }),
-  
+
   // Replication guide
   replicationGuide: z.object({
-    setupRequirements: z.array(z.string()).describe('What\'s needed to start a similar project'),
+    setupRequirements: z.array(z.string()).describe("What's needed to start a similar project"),
     keyDecisions: z.array(z.string()).describe('Critical architectural and tooling decisions'),
-    implementationOrder: z.array(z.string()).describe('Suggested order for implementing similar patterns'),
-    commonPitfalls: z.array(z.string()).describe('Potential issues to avoid')
+    implementationOrder: z
+      .array(z.string())
+      .describe('Suggested order for implementing similar patterns'),
+    commonPitfalls: z.array(z.string()).describe('Potential issues to avoid'),
   }),
-  
+
   // Summary
-  summary: z.string().describe('2-3 sentence summary of the project\'s architectural approach and key patterns')
+  summary: z
+    .string()
+    .describe("2-3 sentence summary of the project's architectural approach and key patterns"),
 });
 
 export type ExtractPatternsReview = z.infer<typeof ExtractPatternsReviewSchema>;
@@ -181,7 +191,7 @@ export type ExtractPatternsReview = z.infer<typeof ExtractPatternsReviewSchema>;
  * Root object for the extract patterns review schema
  */
 export const ExtractPatternsReviewRootSchema = z.object({
-  patterns: ExtractPatternsReviewSchema
+  patterns: ExtractPatternsReviewSchema,
 });
 
 export type ExtractPatternsReviewRoot = z.infer<typeof ExtractPatternsReviewRootSchema>;

@@ -1,11 +1,11 @@
 /**
  * @fileoverview Model detection and initialization utilities for AI clients.
- * 
+ *
  * This module provides common functionality for detecting model providers,
  * parsing model names, validating API keys, and initializing client instances.
  */
 
-import { getConfig, getApiKeyForProvider } from '../../utils/config';
+import { getApiKeyForProvider, getConfig } from '../../utils/config';
 import logger from '../../utils/logger';
 
 /**
@@ -28,7 +28,7 @@ export interface ModelDetectionResult {
  */
 export function parseModelName(
   modelNameString: string,
-  defaultProvider: string
+  defaultProvider: string,
 ): { adapter: string; modelName: string } {
   if (!modelNameString) {
     return { adapter: defaultProvider, modelName: '' };
@@ -38,11 +38,11 @@ export function parseModelName(
   return modelNameString.includes(':')
     ? {
         adapter: modelNameString.split(':')[0],
-        modelName: modelNameString.split(':')[1]
+        modelName: modelNameString.split(':')[1],
       }
     : {
         adapter: defaultProvider,
-        modelName: modelNameString
+        modelName: modelNameString,
       };
 }
 
@@ -54,7 +54,7 @@ export function parseModelName(
  */
 export function detectModelProvider(
   providerName: string,
-  modelNameString?: string
+  modelNameString?: string,
 ): ModelDetectionResult {
   // Get the model from configuration if not provided
   const config = getConfig();
@@ -66,7 +66,7 @@ export function detectModelProvider(
   return {
     isCorrect: adapter === providerName,
     adapter,
-    modelName
+    modelName,
   };
 }
 
@@ -76,10 +76,7 @@ export function detectModelProvider(
  * @param apiKeyName Environment variable name for the API key (optional)
  * @returns Whether the API key is valid
  */
-export function validateApiKey(
-  providerName: string,
-  apiKeyName?: string
-): boolean {
+export function validateApiKey(providerName: string, apiKeyName?: string): boolean {
   // Try to get the API key from the config
   const apiKey = getApiKeyForProvider(providerName);
 

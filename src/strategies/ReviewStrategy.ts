@@ -5,14 +5,9 @@
  * which encapsulate the logic for different types of code reviews.
  */
 
-import {
-  FileInfo,
-  ReviewOptions,
-  ReviewResult,
-  ReviewType
-} from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
-import { ApiClientConfig } from '../core/ApiClientSelector';
+import type { ApiClientConfig } from '../core/ApiClientSelector';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import type { ProjectDocs } from '../utils/projectDocs';
 
 /**
  * Interface for review strategies
@@ -32,7 +27,7 @@ export interface IReviewStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult>;
 }
 
@@ -64,6 +59,6 @@ export abstract class BaseReviewStrategy implements IReviewStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult>;
 }

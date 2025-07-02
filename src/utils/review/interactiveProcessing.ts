@@ -6,12 +6,12 @@
  * implementing them automatically with user confirmation.
  */
 
-import { FixPriority, FixSuggestion, SuggestionSummary, FixSummary } from './types';
-import { extractFixSuggestions } from './reviewExtraction';
-import { displayFixSuggestions, displayDetailedFixSuggestion } from './fixDisplay';
-import { applyFixToFile, promptForConfirmation } from './fixImplementation';
-import { parseReviewJson, displayStructuredReview } from '../reviewParser';
 import logger from '../logger';
+import { displayStructuredReview, parseReviewJson } from '../reviewParser';
+import { displayDetailedFixSuggestion, displayFixSuggestions } from './fixDisplay';
+import { applyFixToFile, promptForConfirmation } from './fixImplementation';
+import { extractFixSuggestions } from './reviewExtraction';
+import { FixPriority, type FixSuggestion, type FixSummary, type SuggestionSummary } from './types';
 
 /**
  * Process review results in non-interactive mode, just displaying recommendations
@@ -23,7 +23,7 @@ import logger from '../logger';
 export async function displayReviewResults(
   reviewContent: string,
   projectPath: string,
-  priorityFilter?: 'h' | 'm' | 'l' | 'a'
+  priorityFilter?: 'h' | 'm' | 'l' | 'a',
 ): Promise<SuggestionSummary> {
   // First try to parse the review content as structured JSON
   const parsedReview = parseReviewJson(reviewContent);
@@ -38,8 +38,8 @@ export async function displayReviewResults(
     const lowPrioritySuggestions: FixSuggestion[] = [];
 
     // Process each file and issue
-    parsedReview.review.files.forEach(file => {
-      file.issues.forEach(issue => {
+    parsedReview.review.files.forEach((file) => {
+      file.issues.forEach((issue) => {
         const suggestion: FixSuggestion = {
           priority:
             issue.priority === 'HIGH'
@@ -54,9 +54,9 @@ export async function displayReviewResults(
           lineNumbers: issue.location
             ? {
                 start: issue.location.startLine,
-                end: issue.location.endLine
+                end: issue.location.endLine,
               }
-            : undefined
+            : undefined,
         };
 
         // Add to the appropriate array based on priority
@@ -79,88 +79,83 @@ export async function displayReviewResults(
       highPrioritySuggestions,
       mediumPrioritySuggestions,
       lowPrioritySuggestions,
-      totalSuggestions
-    };
-  } else {
-    // Fall back to the original extraction method if parsing fails
-    logger.info(
-      'Using legacy format for review results (no structured schema detected)'
-    );
-
-    // Extract all suggestions
-    const highPrioritySuggestions = await extractFixSuggestions(
-      reviewContent,
-      projectPath,
-      FixPriority.HIGH
-    );
-    const mediumPrioritySuggestions = await extractFixSuggestions(
-      reviewContent,
-      projectPath,
-      FixPriority.MEDIUM
-    );
-    const lowPrioritySuggestions = await extractFixSuggestions(
-      reviewContent,
-      projectPath,
-      FixPriority.LOW
-    );
-
-    const totalSuggestions =
-      highPrioritySuggestions.length +
-      mediumPrioritySuggestions.length +
-      lowPrioritySuggestions.length;
-
-    // Display summary of all suggestions
-    logger.info('\n=== CODE REVIEW RECOMMENDATIONS ===');
-    logger.info(`Total issues found: ${totalSuggestions}`);
-    logger.info(`🟥 High priority: ${highPrioritySuggestions.length}`);
-    logger.info(`🟧 Medium priority: ${mediumPrioritySuggestions.length}`);
-    logger.info(`🟩 Low priority: ${lowPrioritySuggestions.length}`);
-
-    // Display instructions for interactive mode
-    logger.info(
-      '\nShowing ALL issues by default. To filter by priority, use these options:'
-    );
-    logger.info('  (h) High priority issues only');
-    logger.info('  (m) Medium priority issues only');
-    logger.info('  (l) Low priority issues only');
-    logger.info('  (a) All issues (default)');
-    logger.info('\nExample: ai-code-review src --interactive h');
-
-    // Display suggestions based on priority filter
-    // If no filter is provided, show all issues by default
-    if (!priorityFilter || priorityFilter.toLowerCase() === 'a') {
-      // Show all issues
-      displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
-      displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
-      displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
-    } else {
-      // Show issues based on the specified filter
-      switch (priorityFilter.toLowerCase()) {
-        case 'h':
-          displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
-          break;
-        case 'm':
-          displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
-          break;
-        case 'l':
-          displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
-          break;
-        default:
-          logger.warn('Invalid priority filter. Use h, m, l, or a.');
-          // Show all issues if the filter is invalid
-          displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
-          displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
-          displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
-      }
-    }
-
-    return {
-      highPrioritySuggestions,
-      mediumPrioritySuggestions,
-      lowPrioritySuggestions,
-      totalSuggestions
+      totalSuggestions,
     };
   }
+  // Fall back to the original extraction method if parsing fails
+  logger.info('Using legacy format for review results (no structured schema detected)');
+
+  // Extract all suggestions
+  const highPrioritySuggestions = await extractFixSuggestions(
+    reviewContent,
+    projectPath,
+    FixPriority.HIGH,
+  );
+  const mediumPrioritySuggestions = await extractFixSuggestions(
+    reviewContent,
+    projectPath,
+    FixPriority.MEDIUM,
+  );
+  const lowPrioritySuggestions = await extractFixSuggestions(
+    reviewContent,
+    projectPath,
+    FixPriority.LOW,
+  );
+
+  const totalSuggestions =
+    highPrioritySuggestions.length +
+    mediumPrioritySuggestions.length +
+    lowPrioritySuggestions.length;
+
+  // Display summary of all suggestions
+  logger.info('\n=== CODE REVIEW RECOMMENDATIONS ===');
+  logger.info(`Total issues found: ${totalSuggestions}`);
+  logger.info(`🟥 High priority: ${highPrioritySuggestions.length}`);
+  logger.info(`🟧 Medium priority: ${mediumPrioritySuggestions.length}`);
+  logger.info(`🟩 Low priority: ${lowPrioritySuggestions.length}`);
+
+  // Display instructions for interactive mode
+  logger.info('\nShowing ALL issues by default. To filter by priority, use these options:');
+  logger.info('  (h) High priority issues only');
+  logger.info('  (m) Medium priority issues only');
+  logger.info('  (l) Low priority issues only');
+  logger.info('  (a) All issues (default)');
+  logger.info('\nExample: ai-code-review src --interactive h');
+
+  // Display suggestions based on priority filter
+  // If no filter is provided, show all issues by default
+  if (!priorityFilter || priorityFilter.toLowerCase() === 'a') {
+    // Show all issues
+    displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
+    displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
+    displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
+  } else {
+    // Show issues based on the specified filter
+    switch (priorityFilter.toLowerCase()) {
+      case 'h':
+        displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
+        break;
+      case 'm':
+        displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
+        break;
+      case 'l':
+        displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
+        break;
+      default:
+        logger.warn('Invalid priority filter. Use h, m, l, or a.');
+        // Show all issues if the filter is invalid
+        displayFixSuggestions(highPrioritySuggestions, FixPriority.HIGH);
+        displayFixSuggestions(mediumPrioritySuggestions, FixPriority.MEDIUM);
+        displayFixSuggestions(lowPrioritySuggestions, FixPriority.LOW);
+    }
+  }
+
+  return {
+    highPrioritySuggestions,
+    mediumPrioritySuggestions,
+    lowPrioritySuggestions,
+    totalSuggestions,
+  };
 }
 
 /**
@@ -174,8 +169,8 @@ export async function displayReviewResults(
 export async function processReviewResults(
   reviewContent: string,
   projectPath: string,
-  autoImplementHighPriority: boolean = true,
-  promptForMediumLow: boolean = true
+  autoImplementHighPriority = true,
+  promptForMediumLow = true,
 ): Promise<FixSummary> {
   // Initialize counters
   let highPriorityFixed = 0;
@@ -188,14 +183,12 @@ export async function processReviewResults(
   const highPrioritySuggestions = await extractFixSuggestions(
     reviewContent,
     projectPath,
-    FixPriority.HIGH
+    FixPriority.HIGH,
   );
   totalSuggestions += highPrioritySuggestions.length;
 
   if (highPrioritySuggestions.length > 0) {
-    console.log(
-      `Found ${highPrioritySuggestions.length} high priority issues.`
-    );
+    console.log(`Found ${highPrioritySuggestions.length} high priority issues.`);
 
     if (autoImplementHighPriority) {
       console.log('Automatically implementing high priority fixes...');
@@ -213,9 +206,7 @@ export async function processReviewResults(
         }
       }
     } else {
-      console.log(
-        'Skipping high priority fixes as auto-implementation is disabled.'
-      );
+      console.log('Skipping high priority fixes as auto-implementation is disabled.');
     }
   } else {
     console.log('No high priority issues found.');
@@ -226,22 +217,18 @@ export async function processReviewResults(
   const mediumPrioritySuggestions = await extractFixSuggestions(
     reviewContent,
     projectPath,
-    FixPriority.MEDIUM
+    FixPriority.MEDIUM,
   );
   totalSuggestions += mediumPrioritySuggestions.length;
 
   if (mediumPrioritySuggestions.length > 0) {
-    console.log(
-      `Found ${mediumPrioritySuggestions.length} medium priority issues.`
-    );
+    console.log(`Found ${mediumPrioritySuggestions.length} medium priority issues.`);
 
     if (promptForMediumLow) {
       for (const suggestion of mediumPrioritySuggestions) {
         displayDetailedFixSuggestion(suggestion, 0, FixPriority.MEDIUM);
 
-        const shouldImplement = await promptForConfirmation(
-          'Implement this fix?'
-        );
+        const shouldImplement = await promptForConfirmation('Implement this fix?');
         if (shouldImplement) {
           const success = await applyFixToFile(suggestion);
           if (success) {
@@ -266,7 +253,7 @@ export async function processReviewResults(
   const lowPrioritySuggestions = await extractFixSuggestions(
     reviewContent,
     projectPath,
-    FixPriority.LOW
+    FixPriority.LOW,
   );
   totalSuggestions += lowPrioritySuggestions.length;
 
@@ -277,9 +264,7 @@ export async function processReviewResults(
       for (const suggestion of lowPrioritySuggestions) {
         displayDetailedFixSuggestion(suggestion, 0, FixPriority.LOW);
 
-        const shouldImplement = await promptForConfirmation(
-          'Implement this fix?'
-        );
+        const shouldImplement = await promptForConfirmation('Implement this fix?');
         if (shouldImplement) {
           const success = await applyFixToFile(suggestion);
           if (success) {
@@ -304,6 +289,6 @@ export async function processReviewResults(
     highPriorityFixed,
     mediumPriorityFixed,
     lowPriorityFixed,
-    totalSuggestions
+    totalSuggestions,
   };
 }

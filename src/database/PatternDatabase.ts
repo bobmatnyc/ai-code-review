@@ -7,8 +7,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { ExtractPatternsReview } from '../prompts/schemas/extract-patterns-schema';
-import { EvaluationResult } from '../evaluation/LangChainEvaluator';
+import type { EvaluationResult } from '../evaluation/LangChainEvaluator';
+import type { ExtractPatternsReview } from '../prompts/schemas/extract-patterns-schema';
 import logger from '../utils/logger';
 
 /**
@@ -62,7 +62,7 @@ export class PatternDatabase {
   private dbPath: string;
   private indexPath: string;
 
-  constructor(dbDirectory: string = 'pattern-database') {
+  constructor(dbDirectory = 'pattern-database') {
     this.dbPath = path.resolve(dbDirectory);
     this.indexPath = path.join(this.dbPath, 'index.json');
   }
@@ -73,14 +73,14 @@ export class PatternDatabase {
   async initialize(): Promise<void> {
     try {
       await fs.mkdir(this.dbPath, { recursive: true });
-      
+
       // Create index if it doesn't exist
       try {
         await fs.access(this.indexPath);
       } catch {
         await this.saveIndex([]);
       }
-      
+
       logger.info(`Pattern database initialized at: ${this.dbPath}`);
     } catch (error) {
       logger.error(`Failed to initialize pattern database: ${error}`);
@@ -96,11 +96,11 @@ export class PatternDatabase {
       // Save the entry file
       const entryPath = path.join(this.dbPath, `${entry.id}.json`);
       await fs.writeFile(entryPath, JSON.stringify(entry, null, 2));
-      
+
       // Update index
       const index = await this.loadIndex();
-      const existingIndex = index.findIndex(item => item.id === entry.id);
-      
+      const existingIndex = index.findIndex((item) => item.id === entry.id);
+
       const indexEntry = {
         id: entry.id,
         projectName: entry.projectName,
@@ -109,18 +109,17 @@ export class PatternDatabase {
         extractedAt: entry.extractedAt,
         tags: entry.tags,
         qualityScore: entry.evaluation?.overallScore || 0,
-        patternCount: entry.patterns.architecturalPatterns.length
+        patternCount: entry.patterns.architecturalPatterns.length,
       };
-      
+
       if (existingIndex >= 0) {
         index[existingIndex] = indexEntry;
       } else {
         index.push(indexEntry);
       }
-      
+
       await this.saveIndex(index);
       logger.info(`Stored pattern entry: ${entry.id}`);
-      
     } catch (error) {
       logger.error(`Failed to store pattern entry: ${error}`);
       throw error;
@@ -154,26 +153,24 @@ export class PatternDatabase {
 
       // Apply filters
       if (criteria.projectType) {
-        filteredIndex = filteredIndex.filter(item => 
-          item.projectType === criteria.projectType
-        );
+        filteredIndex = filteredIndex.filter((item) => item.projectType === criteria.projectType);
       }
 
       if (criteria.language) {
-        filteredIndex = filteredIndex.filter(item =>
-          item.language.toLowerCase() === criteria.language!.toLowerCase()
+        filteredIndex = filteredIndex.filter(
+          (item) => item.language.toLowerCase() === criteria.language!.toLowerCase(),
         );
       }
 
       if (criteria.tags && criteria.tags.length > 0) {
-        filteredIndex = filteredIndex.filter(item =>
-          criteria.tags!.some(tag => item.tags.includes(tag))
+        filteredIndex = filteredIndex.filter((item) =>
+          criteria.tags!.some((tag) => item.tags.includes(tag)),
         );
       }
 
       if (criteria.minQualityScore) {
-        filteredIndex = filteredIndex.filter(item =>
-          item.qualityScore >= criteria.minQualityScore!
+        filteredIndex = filteredIndex.filter(
+          (item) => item.qualityScore >= criteria.minQualityScore!,
         );
       }
 
@@ -192,10 +189,10 @@ export class PatternDatabase {
         if (entry) {
           // Additional filtering for architectural patterns
           if (criteria.architecturalPatterns && criteria.architecturalPatterns.length > 0) {
-            const hasMatchingPattern = criteria.architecturalPatterns.some(pattern =>
-              entry.patterns.architecturalPatterns.some(p =>
-                p.patternName.toLowerCase().includes(pattern.toLowerCase())
-              )
+            const hasMatchingPattern = criteria.architecturalPatterns.some((pattern) =>
+              entry.patterns.architecturalPatterns.some((p) =>
+                p.patternName.toLowerCase().includes(pattern.toLowerCase()),
+              ),
             );
             if (hasMatchingPattern) {
               results.push(entry);
@@ -216,7 +213,7 @@ export class PatternDatabase {
   /**
    * Find similar patterns to a given pattern entry
    */
-  async findSimilar(targetEntry: PatternEntry, maxResults: number = 5): Promise<SimilarityResult[]> {
+  async findSimilar(targetEntry: PatternEntry, maxResults = 5): Promise<SimilarityResult[]> {
     try {
       const allEntries = await this.getAllEntries();
       const similarities: SimilarityResult[] = [];
@@ -225,7 +222,8 @@ export class PatternDatabase {
         if (entry.id === targetEntry.id) continue;
 
         const similarity = this.calculateSimilarity(targetEntry, entry);
-        if (similarity.similarityScore > 0.1) { // Minimum threshold
+        if (similarity.similarityScore > 0.1) {
+          // Minimum threshold
           similarities.push(similarity);
         }
       }
@@ -263,7 +261,8 @@ export class PatternDatabase {
         languageDistribution[entry.language] = (languageDistribution[entry.language] || 0) + 1;
 
         // Project type distribution
-        projectTypeDistribution[entry.projectType] = (projectTypeDistribution[entry.projectType] || 0) + 1;
+        projectTypeDistribution[entry.projectType] =
+          (projectTypeDistribution[entry.projectType] || 0) + 1;
 
         // Pattern counts
         for (const pattern of entry.patterns.architecturalPatterns) {
@@ -284,7 +283,7 @@ export class PatternDatabase {
         languageDistribution,
         projectTypeDistribution,
         averageQualityScore: allEntries.length > 0 ? totalQualityScore / allEntries.length : 0,
-        topPatterns
+        topPatterns,
       };
     } catch (error) {
       logger.error(`Failed to get database statistics: ${error}`);
@@ -295,7 +294,11 @@ export class PatternDatabase {
   /**
    * Export patterns to a specific format
    */
-  async export(format: 'json' | 'csv', outputPath: string, criteria?: SearchCriteria): Promise<void> {
+  async export(
+    format: 'json' | 'csv',
+    outputPath: string,
+    criteria?: SearchCriteria,
+  ): Promise<void> {
     try {
       const entries = criteria ? await this.search(criteria) : await this.getAllEntries();
 
@@ -368,9 +371,9 @@ export class PatternDatabase {
     }
 
     // Architectural pattern similarity
-    const patterns1 = entry1.patterns.architecturalPatterns.map(p => p.patternName.toLowerCase());
-    const patterns2 = entry2.patterns.architecturalPatterns.map(p => p.patternName.toLowerCase());
-    
+    const patterns1 = entry1.patterns.architecturalPatterns.map((p) => p.patternName.toLowerCase());
+    const patterns2 = entry2.patterns.architecturalPatterns.map((p) => p.patternName.toLowerCase());
+
     for (const pattern1 of patterns1) {
       for (const pattern2 of patterns2) {
         if (pattern1 === pattern2 || pattern1.includes(pattern2) || pattern2.includes(pattern1)) {
@@ -381,9 +384,9 @@ export class PatternDatabase {
     }
 
     // Technology stack similarity
-    const techs1 = entry1.patterns.technologyStack.frameworks.map(t => t.name.toLowerCase());
-    const techs2 = entry2.patterns.technologyStack.frameworks.map(t => t.name.toLowerCase());
-    
+    const techs1 = entry1.patterns.technologyStack.frameworks.map((t) => t.name.toLowerCase());
+    const techs2 = entry2.patterns.technologyStack.frameworks.map((t) => t.name.toLowerCase());
+
     for (const tech1 of techs1) {
       if (techs2.includes(tech1)) {
         matchingTechnologies.push(tech1);
@@ -392,14 +395,14 @@ export class PatternDatabase {
     }
 
     // Tag similarity
-    const commonTags = entry1.tags.filter(tag => entry2.tags.includes(tag));
+    const commonTags = entry1.tags.filter((tag) => entry2.tags.includes(tag));
     score += commonTags.length * 0.05;
 
     return {
       entry: entry2,
       similarityScore: Math.min(1, score),
       matchingPatterns: [...new Set(matchingPatterns)],
-      matchingTechnologies: [...new Set(matchingTechnologies)]
+      matchingTechnologies: [...new Set(matchingTechnologies)],
     };
   }
 
@@ -408,11 +411,18 @@ export class PatternDatabase {
    */
   private convertToCSV(entries: PatternEntry[]): string {
     const headers = [
-      'ID', 'Project Name', 'Project Type', 'Language', 'Extracted At',
-      'Quality Score', 'Pattern Count', 'Main Patterns', 'Technologies'
+      'ID',
+      'Project Name',
+      'Project Type',
+      'Language',
+      'Extracted At',
+      'Quality Score',
+      'Pattern Count',
+      'Main Patterns',
+      'Technologies',
     ];
 
-    const rows = entries.map(entry => [
+    const rows = entries.map((entry) => [
       entry.id,
       entry.projectName,
       entry.projectType,
@@ -420,10 +430,10 @@ export class PatternDatabase {
       entry.extractedAt,
       entry.evaluation?.overallScore || 0,
       entry.patterns.architecturalPatterns.length,
-      entry.patterns.architecturalPatterns.map(p => p.patternName).join('; '),
-      entry.patterns.technologyStack.frameworks.map(t => t.name).join('; ')
+      entry.patterns.architecturalPatterns.map((p) => p.patternName).join('; '),
+      entry.patterns.technologyStack.frameworks.map((t) => t.name).join('; '),
     ]);
 
-    return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    return [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
   }
 }

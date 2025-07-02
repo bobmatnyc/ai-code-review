@@ -7,8 +7,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { pathExists } from './pathValidator';
 import logger from './logger';
+import { pathExists } from './pathValidator';
 
 /**
  * Create a directory if it doesn't exist
@@ -23,7 +23,7 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
     }
   } catch (error) {
     logger.error(
-      `Error creating directory ${dirPath}: ${error instanceof Error ? error.message : String(error)}`
+      `Error creating directory ${dirPath}: ${error instanceof Error ? error.message : String(error)}`,
     );
     throw error;
   }
@@ -35,10 +35,7 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
  * @param content Content to write
  * @returns Promise resolving when the file is written
  */
-export async function writeFile(
-  filePath: string,
-  content: string
-): Promise<void> {
+export async function writeFile(filePath: string, content: string): Promise<void> {
   try {
     // Ensure the directory exists
     const dirPath = path.dirname(filePath);
@@ -49,7 +46,7 @@ export async function writeFile(
     logger.debug(`Wrote file: ${filePath}`);
   } catch (error) {
     logger.error(
-      `Error writing file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      `Error writing file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
     );
     throw error;
   }
@@ -61,10 +58,7 @@ export async function writeFile(
  * @param content Content to append
  * @returns Promise resolving when the content is appended
  */
-export async function appendFile(
-  filePath: string,
-  content: string
-): Promise<void> {
+export async function appendFile(filePath: string, content: string): Promise<void> {
   try {
     // Ensure the directory exists
     const dirPath = path.dirname(filePath);
@@ -75,7 +69,7 @@ export async function appendFile(
     logger.debug(`Appended to file: ${filePath}`);
   } catch (error) {
     logger.error(
-      `Error appending to file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      `Error appending to file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
     );
     throw error;
   }

@@ -5,13 +5,13 @@
  * management, templating, and chain capabilities.
  */
 
-import { ReviewOptions } from '../../types/review';
-import { PromptStrategy } from './PromptStrategy';
-import { PromptManager } from '../PromptManager';
-import { PromptCache } from '../cache/PromptCache';
-import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
-import logger from '../../utils/logger';
+import { FewShotPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
+import type { ReviewOptions } from '../../types/review';
 import { formatCIDataForPrompt } from '../../utils/ciDataCollector';
+import logger from '../../utils/logger';
+import type { PromptCache } from '../cache/PromptCache';
+import type { PromptManager } from '../PromptManager';
+import { PromptStrategy } from './PromptStrategy';
 
 /**
  * LangChain-based prompt strategy implementation
@@ -40,20 +40,17 @@ export class LangChainPromptStrategy extends PromptStrategy {
       // Create a template
       const template = new PromptTemplate({
         template: prompt,
-        inputVariables: inputVariables
+        inputVariables: inputVariables,
       });
 
       // Create input values from options
-      const inputValues = this.createInputValuesFromOptions(
-        options,
-        inputVariables
-      );
+      const inputValues = this.createInputValuesFromOptions(options, inputVariables);
 
       // Format the prompt
       return await template.format(inputValues);
     } catch (error) {
       logger.error(
-        `Error formatting prompt with LangChain: ${error instanceof Error ? error.message : String(error)}`
+        `Error formatting prompt with LangChain: ${error instanceof Error ? error.message : String(error)}`,
       );
 
       // Fallback to basic string replacement
@@ -73,14 +70,14 @@ export class LangChainPromptStrategy extends PromptStrategy {
     prefix: string,
     examples: Array<Record<string, string>>,
     suffix: string,
-    _options: ReviewOptions
+    _options: ReviewOptions,
   ): FewShotPromptTemplate {
     // Create the example template with variables from the first example
     const exampleVariables = Object.keys(examples[0] || {});
 
     const exampleTemplate = new PromptTemplate({
       template: this.createExampleTemplateString(exampleVariables),
-      inputVariables: exampleVariables
+      inputVariables: exampleVariables,
     });
 
     // Create the few-shot template
@@ -89,7 +86,7 @@ export class LangChainPromptStrategy extends PromptStrategy {
       suffix,
       examplePrompt: exampleTemplate,
       examples,
-      inputVariables: this.extractInputVariables(prefix + suffix)
+      inputVariables: this.extractInputVariables(prefix + suffix),
     });
   }
 
@@ -116,7 +113,7 @@ export class LangChainPromptStrategy extends PromptStrategy {
    */
   private createInputValuesFromOptions(
     options: ReviewOptions,
-    inputVariables: string[]
+    inputVariables: string[],
   ): Record<string, string> {
     const inputValues: Record<string, string> = {};
 
@@ -129,7 +126,7 @@ export class LangChainPromptStrategy extends PromptStrategy {
       MODEL: 'models',
       SCHEMA_INSTRUCTIONS: 'schemaInstructions',
       LANGUAGE_INSTRUCTIONS: 'languageInstructions',
-      CI_DATA: 'ciData'
+      CI_DATA: 'ciData',
     };
 
     // Fill in the input values from the options
@@ -143,16 +140,12 @@ export class LangChainPromptStrategy extends PromptStrategy {
           const filePath = inputValues['FILE_PATH'] || undefined;
           inputValues[variable] = formatCIDataForPrompt(options.ciData, filePath);
         } else {
-          inputValues[variable] = String(
-            options[optionKey as keyof ReviewOptions]
-          );
+          inputValues[variable] = String(options[optionKey as keyof ReviewOptions]);
         }
       } else {
         // Try to look up directly in options
         if (variable in options) {
-          inputValues[variable] = String(
-            options[variable as keyof ReviewOptions]
-          );
+          inputValues[variable] = String(options[variable as keyof ReviewOptions]);
         }
       }
     }
@@ -171,25 +164,19 @@ export class LangChainPromptStrategy extends PromptStrategy {
 
     // Replace common placeholders
     if (options.language) {
-      formattedPrompt = formattedPrompt.replace(
-        /{{LANGUAGE}}/g,
-        options.language
-      );
+      formattedPrompt = formattedPrompt.replace(/{{LANGUAGE}}/g, options.language);
       formattedPrompt = formattedPrompt.replace(
         /{{LANGUAGE_INSTRUCTIONS}}/g,
-        `This code is written in ${options.language.toUpperCase()}. Please provide language-specific advice.`
+        `This code is written in ${options.language.toUpperCase()}. Please provide language-specific advice.`,
       );
     } else {
-      formattedPrompt = formattedPrompt.replace(
-        /{{LANGUAGE_INSTRUCTIONS}}/g,
-        ''
-      );
+      formattedPrompt = formattedPrompt.replace(/{{LANGUAGE_INSTRUCTIONS}}/g, '');
     }
 
     if (options.schemaInstructions) {
       formattedPrompt = formattedPrompt.replace(
         /{{SCHEMA_INSTRUCTIONS}}/g,
-        options.schemaInstructions
+        options.schemaInstructions,
       );
     } else {
       formattedPrompt = formattedPrompt.replace(/{{SCHEMA_INSTRUCTIONS}}/g, '');

@@ -6,7 +6,7 @@
  */
 
 import { countTokens as claudeCountTokens } from '@anthropic-ai/tokenizer';
-import { Tokenizer, TokenizerRegistry } from './baseTokenizer';
+import { type Tokenizer, TokenizerRegistry } from './baseTokenizer';
 
 /**
  * Tokenizer for Anthropic Claude models
@@ -45,7 +45,7 @@ export class ClaudeTokenizer implements Tokenizer {
   supportsModel(modelName: string): boolean {
     // Convert to lowercase for case-insensitive matching
     const lowerModelName = modelName.toLowerCase();
-    return this.modelPatterns.some(pattern => pattern.test(lowerModelName));
+    return this.modelPatterns.some((pattern) => pattern.test(lowerModelName));
   }
 }
 

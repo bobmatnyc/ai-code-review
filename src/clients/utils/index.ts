@@ -5,45 +5,38 @@
  */
 
 export * from './apiKeyValidator';
-export * from './modelInitializer';
-export * from './promptFormatter';
 export * from './directoryStructure';
-export * from './promptLoader';
-// Export everything except the conflicting functions from tokenCounter
-export { 
-  getCostInfoFromText,
-  estimateTokenCount,
-  getCostInfo
-} from './tokenCounter';
-
 export * from './languageDetection';
-
+export * from './modelInitializer';
 // Export everything except the conflicting functions from modelMaps
 export {
+  ENHANCED_MODEL_MAP,
+  getApiNameFromKey,
+  getEnhancedModelMapping,
+  getModelMapping,
+  getModelsByCategory,
+  getModelsByProvider,
+  getProviderFeatures,
+  getRecommendedModelForCodeReview,
   MODEL_MAP,
   MODELS,
-  ENHANCED_MODEL_MAP,
-  getModelMapping,
-  getEnhancedModelMapping,
   parseModelString,
-  getApiNameFromKey,
-  getModelsByProvider,
-  getModelsByCategory,
-  validateModelKey,
   supportsToolCalling,
-  getProviderFeatures,
-  getRecommendedModelForCodeReview
+  validateModelKey,
 } from './modelMaps';
+export * from './promptFormatter';
+export * from './promptLoader';
+// Export everything except the conflicting functions from tokenCounter
+export {
+  estimateTokenCount,
+  getCostInfo,
+  getCostInfoFromText,
+} from './tokenCounter';
 
 // Import and re-export with aliases to avoid conflicts
 import { calculateCost as calculateModelCost, formatCost as formatModelCost } from './modelMaps';
 import { calculateCost as calculateTokenCost, formatCost as formatTokenCost } from './tokenCounter';
 
-export { 
-  calculateModelCost,
-  formatModelCost,
-  calculateTokenCost,
-  formatTokenCost
-};
+export { calculateModelCost, formatModelCost, calculateTokenCost, formatTokenCost };
 export * from './modelLister';
 export * from './modelTester';

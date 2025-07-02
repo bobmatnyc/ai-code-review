@@ -5,14 +5,12 @@
  * for more effective quick fixes review.
  */
 
-import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
+import { FewShotPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
+import logger from '../../utils/logger';
 import { PromptManager } from '../PromptManager';
 // import { PromptStrategyFactory } from '../strategies/PromptStrategyFactory';
 // import { PromptCache } from '../cache/PromptCache';
-import {
-  getQuickFixesReviewFormatInstructions
-} from '../schemas/quick-fixes-schema';
-import logger from '../../utils/logger';
+import { getQuickFixesReviewFormatInstructions } from '../schemas/quick-fixes-schema';
 
 // Sample code with various quick fixes opportunities
 const typescriptSampleWithIssues = `
@@ -114,18 +112,16 @@ async function improvedQuickFixesExample() {
       promptStrategy: 'langchain',
       type: 'quick-fixes',
       includeTests: false,
-      output: 'markdown'
+      output: 'markdown',
     });
   } catch (error) {
-    logger.warn(
-      'Could not find improved prompt template, using standard template'
-    );
+    logger.warn('Could not find improved prompt template, using standard template');
     rawPrompt = await promptManager.getPromptTemplate('quick-fixes', {
       language: 'typescript',
       promptStrategy: 'langchain',
       type: 'quick-fixes',
       includeTests: false,
-      output: 'markdown'
+      output: 'markdown',
     });
   }
 
@@ -149,7 +145,7 @@ Issues found:
 1. Missing type annotations for function parameter and return type
 2. No null/undefined checks for items parameter
 3. No type checking for items[i].value
-      `
+      `,
     },
     {
       code: `
@@ -168,15 +164,14 @@ Issues found:
 1. Hardcoded API key should be moved to environment variable
 2. Missing type annotation for function parameter and return type
 3. No error handling for fetch operation
-      `
-    }
+      `,
+    },
   ];
 
   // Create an example template
   const exampleTemplate = new PromptTemplate({
-    template:
-      'Code example:\n```typescript\n{code}\n```\n\nAnalysis:\n{analysis}',
-    inputVariables: ['code', 'analysis']
+    template: 'Code example:\n```typescript\n{code}\n```\n\nAnalysis:\n{analysis}',
+    inputVariables: ['code', 'analysis'],
   });
 
   // Create a few-shot prompt template
@@ -187,24 +182,19 @@ Issues found:
     examplePrompt: exampleTemplate,
     suffix:
       'Now, analyze the following TypeScript code for quick fixes, using the same structured approach as in the examples:\n\nCode to analyze:\n```typescript\n{CODE}\n```\n\n{{SCHEMA_INSTRUCTIONS}}',
-    inputVariables: ['CODE', 'SCHEMA_INSTRUCTIONS']
+    inputVariables: ['CODE', 'SCHEMA_INSTRUCTIONS'],
   });
 
   // Format the few-shot prompt with our sample code
   const formattedFewShotPrompt = await fewShotPromptTemplate.format({
     CODE: typescriptSampleWithIssues,
-    SCHEMA_INSTRUCTIONS: formatInstructions
+    SCHEMA_INSTRUCTIONS: formatInstructions,
   });
 
   // Create a standard prompt template for comparison
   const standardTemplate = new PromptTemplate({
     template: rawPrompt,
-    inputVariables: [
-      'CODE',
-      'LANGUAGE',
-      'SCHEMA_INSTRUCTIONS',
-      'LANGUAGE_INSTRUCTIONS'
-    ]
+    inputVariables: ['CODE', 'LANGUAGE', 'SCHEMA_INSTRUCTIONS', 'LANGUAGE_INSTRUCTIONS'],
   });
 
   // Format the standard prompt
@@ -213,15 +203,11 @@ Issues found:
     LANGUAGE: 'TypeScript',
     SCHEMA_INSTRUCTIONS: formatInstructions,
     LANGUAGE_INSTRUCTIONS:
-      'This code is written in TypeScript. Please provide language-specific advice for quick improvements.'
+      'This code is written in TypeScript. Please provide language-specific advice for quick improvements.',
   });
 
-  logger.info(
-    'Improved LangChain-based Few-Shot Prompt for Quick Fixes Review:'
-  );
-  logger.info(
-    '----------------------------------------------------------------'
-  );
+  logger.info('Improved LangChain-based Few-Shot Prompt for Quick Fixes Review:');
+  logger.info('----------------------------------------------------------------');
   logger.info(formattedFewShotPrompt.substring(0, 500) + '...');
 
   logger.info('\nStandard Prompt for Quick Fixes Review:');
@@ -236,26 +222,25 @@ Issues found:
       highPriorityIssues: [
         {
           title: 'Missing TypeScript type for useState',
-          description:
-            'The useState hook is not properly typed, which could lead to type errors.',
+          description: 'The useState hook is not properly typed, which could lead to type errors.',
           location: {
             file: 'DataDisplay.tsx',
             lineStart: 14,
             lineEnd: 14,
-            codeSnippet: 'const [data, setData] = useState([]);'
+            codeSnippet: 'const [data, setData] = useState([]);',
           },
           suggestedFix: {
             code: 'const [data, setData] = useState<DataItem[]>([]);',
             explanation:
-              'Adding the correct type annotation ensures type safety throughout the component.'
+              'Adding the correct type annotation ensures type safety throughout the component.',
           },
           impact:
             'Prevents potential runtime errors and improves developer experience with better IntelliSense.',
           effort: 1,
           priority: 'high',
           category: 'typing',
-          tags: ['typescript', 'react', 'useState']
-        }
+          tags: ['typescript', 'react', 'useState'],
+        },
       ],
       mediumPriorityIssues: [
         {
@@ -266,71 +251,66 @@ Issues found:
             file: 'DataDisplay.tsx',
             lineStart: 38,
             lineEnd: 38,
-            codeSnippet:
-              'if (data.length == 0) return <div>No data available.</div>;'
+            codeSnippet: 'if (data.length == 0) return <div>No data available.</div>;',
           },
           suggestedFix: {
             code: 'if (data.length === 0) return <div>No data available.</div>;',
-            explanation:
-              'Using strict equality prevents unexpected type coercion issues.'
+            explanation: 'Using strict equality prevents unexpected type coercion issues.',
           },
-          impact:
-            'Ensures consistent behavior and follows TypeScript best practices.',
+          impact: 'Ensures consistent behavior and follows TypeScript best practices.',
           effort: 1,
           priority: 'medium',
           category: 'bug',
-          tags: ['typescript', 'equality', 'best-practice']
-        }
+          tags: ['typescript', 'equality', 'best-practice'],
+        },
       ],
       lowPriorityIssues: [
         {
           title: 'Add descriptive error message',
-          description:
-            "Generic error message doesn't provide useful information to the user.",
+          description: "Generic error message doesn't provide useful information to the user.",
           location: {
             file: 'DataDisplay.tsx',
             lineStart: 35,
             lineEnd: 35,
-            codeSnippet: 'if (error) return <div>Error loading data.</div>;'
+            codeSnippet: 'if (error) return <div>Error loading data.</div>;',
           },
           suggestedFix: {
             code: "if (error) return <div>Error loading data: {error.message || 'Unknown error'}</div>;",
             explanation:
-              'Displaying the actual error message helps with debugging and provides more context to users.'
+              'Displaying the actual error message helps with debugging and provides more context to users.',
           },
           impact: 'Improves user experience and makes debugging easier.',
           effort: 1,
           priority: 'low',
           category: 'error-handling',
-          tags: ['ux', 'debugging']
-        }
+          tags: ['ux', 'debugging'],
+        },
       ],
       summary:
         'The code has several type safety issues, potential bugs, and areas for improvement in error handling and user experience.',
       recommendations: [
         'Enable stricter TypeScript compiler options in tsconfig.json',
         'Add ESLint with typescript-eslint for automatic detection of similar issues',
-        'Consider using React Query or SWR for better data fetching patterns'
+        'Consider using React Query or SWR for better data fetching patterns',
       ],
       positiveAspects: [
         'Good component structure with clear separation of states (loading, error, empty, data)',
-        'Proper use of React hooks (useState, useEffect)'
+        'Proper use of React hooks (useState, useEffect)',
       ],
       recommendedTools: [
         {
           tool: 'typescript-eslint',
           description: 'ESLint plugin for TypeScript-specific linting rules',
-          configuration:
-            '{\n  "extends": ["plugin:@typescript-eslint/recommended"]\n}'
+          configuration: '{\n  "extends": ["plugin:@typescript-eslint/recommended"]\n}',
         },
         {
           tool: 'React Query',
           description:
             'Data fetching library for React that handles loading, error, and caching states',
-          configuration: 'npm install @tanstack/react-query'
-        }
-      ]
-    }
+          configuration: 'npm install @tanstack/react-query',
+        },
+      ],
+    },
   };
 }
 

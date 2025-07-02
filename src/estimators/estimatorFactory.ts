@@ -5,9 +5,9 @@
  * based on the model name or provider.
  */
 
-import { TokenEstimator } from './baseEstimator';
-import { GeminiTokenEstimator } from './geminiEstimator';
 import { AnthropicTokenEstimator } from './anthropicEstimator';
+import type { TokenEstimator } from './baseEstimator';
+import { GeminiTokenEstimator } from './geminiEstimator';
 import { OpenAITokenEstimator } from './openaiEstimator';
 import { OpenRouterTokenEstimator } from './openRouterEstimator';
 
@@ -48,17 +48,14 @@ export class EstimatorFactory {
     // Try to determine the provider from the model name
     if (modelName.startsWith('gemini-')) {
       return GeminiTokenEstimator.getInstance();
-    } else if (
-      modelName.startsWith('claude-') ||
-      modelName.startsWith('anthropic/')
-    ) {
+    }
+    if (modelName.startsWith('claude-') || modelName.startsWith('anthropic/')) {
       return AnthropicTokenEstimator.getInstance();
-    } else if (
-      modelName.startsWith('gpt-') ||
-      modelName.startsWith('openai/')
-    ) {
+    }
+    if (modelName.startsWith('gpt-') || modelName.startsWith('openai/')) {
       return OpenAITokenEstimator.getInstance();
-    } else if (modelName.startsWith('openrouter-')) {
+    }
+    if (modelName.startsWith('openrouter-')) {
       return OpenRouterTokenEstimator.getInstance();
     }
 

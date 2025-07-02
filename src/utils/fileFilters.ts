@@ -9,8 +9,9 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { FileInfo } from '../types/review';
+import type { FileInfo } from '../types/review';
 import logger from './logger';
+
 // import { promises as fsPromises } from 'fs'; // TODO: Remove if not needed
 
 /**
@@ -18,10 +19,31 @@ import logger from './logger';
  * Exclude non-executable files like .md, .txt, .log, .tgz, .json, and .svg
  */
 const SUPPORTED_EXTENSIONS = [
-  '.ts', '.tsx', '.js', '.jsx', 
-  '.py', '.pyc', '.pyi', '.pyx', '.pyd',
-  '.php', '.java', '.rb', '.rake', '.gemspec', '.ru', '.erb',
-  '.go', '.rs', '.c', '.cpp', '.h', '.hpp', '.cs', '.swift', '.kt'
+  '.ts',
+  '.tsx',
+  '.js',
+  '.jsx',
+  '.py',
+  '.pyc',
+  '.pyi',
+  '.pyx',
+  '.pyd',
+  '.php',
+  '.java',
+  '.rb',
+  '.rake',
+  '.gemspec',
+  '.ru',
+  '.erb',
+  '.go',
+  '.rs',
+  '.c',
+  '.cpp',
+  '.h',
+  '.hpp',
+  '.cs',
+  '.swift',
+  '.kt',
 ];
 
 /**
@@ -53,7 +75,7 @@ export function isTestFile(filePath: string): boolean {
 export async function loadGitignorePatterns(projectDir: string): Promise<string[]> {
   try {
     const gitignorePath = path.join(projectDir, '.gitignore');
-    
+
     // Check if .gitignore exists
     try {
       await fs.access(gitignorePath);
@@ -62,13 +84,13 @@ export async function loadGitignorePatterns(projectDir: string): Promise<string[
       logger.debug(`No .gitignore file found at ${gitignorePath}`);
       return [];
     }
-    
+
     // Read and parse .gitignore
     const content = await fs.readFile(gitignorePath, 'utf-8');
     return content
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line && !line.startsWith('#'));
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'));
   } catch (error) {
     logger.error(`Error reading .gitignore: ${error}`);
     return [];
@@ -81,10 +103,7 @@ export async function loadGitignorePatterns(projectDir: string): Promise<string[
  * @param gitignorePatterns Array of gitignore patterns
  * @returns True if the file should be excluded
  */
-export function shouldExcludeFile(
-  filePath: string,
-  gitignorePatterns: string[]
-): boolean {
+export function shouldExcludeFile(filePath: string, gitignorePatterns: string[]): boolean {
   // Convert Windows paths to Unix-style for consistent pattern matching
   const normalizedPath = filePath.replace(/\\/g, '/');
 
@@ -116,7 +135,7 @@ export function shouldExcludeFile(
 
     // Create the regex
     const regex = new RegExp(
-      `^${regexPattern}$|^${regexPattern}/|/${regexPattern}$|/${regexPattern}/`
+      `^${regexPattern}$|^${regexPattern}/|/${regexPattern}$|/${regexPattern}/`,
     );
 
     // Check if the path matches the pattern
@@ -201,7 +220,7 @@ export function isSupportedFile(filePath: string): boolean {
   if (fileName.startsWith('.')) {
     return false;
   }
-  
+
   const ext = path.extname(filePath).toLowerCase();
   return SUPPORTED_EXTENSIONS.includes(ext);
 }
@@ -219,14 +238,9 @@ export async function discoverFiles(
     includeTests?: boolean;
     maxDepth?: number;
     currentDepth?: number;
-  } = {}
+  } = {},
 ): Promise<string[]> {
-  const {
-    excludePatterns = [],
-    includeTests = false,
-    maxDepth = 10,
-    currentDepth = 0
-  } = options;
+  const { excludePatterns = [], includeTests = false, maxDepth = 10, currentDepth = 0 } = options;
 
   // Check max depth
   if (currentDepth > maxDepth) {
@@ -258,7 +272,7 @@ export async function discoverFiles(
           excludePatterns,
           includeTests,
           maxDepth,
-          currentDepth: currentDepth + 1
+          currentDepth: currentDepth + 1,
         });
 
         files.push(...subFiles);
@@ -268,7 +282,7 @@ export async function discoverFiles(
           logger.debug(`Skipping file: ${entry.name} (hidden file)`);
           continue;
         }
-        
+
         // Skip test files if not including tests
         if (!includeTests && isTestFile(entryPath)) {
           logger.debug(`Skipping file: ${entryPath} (test file)`);
@@ -305,7 +319,7 @@ export async function readFileInfo(filePath: string): Promise<FileInfo> {
     return {
       path: filePath,
       relativePath: filePath,
-      content
+      content,
     };
   } catch (error) {
     logger.error(`Error reading file ${filePath}:`, error);
@@ -318,10 +332,8 @@ export async function readFileInfo(filePath: string): Promise<FileInfo> {
  * @param filePaths Array of file paths
  * @returns Array of FileInfo objects
  */
-export async function readMultipleFiles(
-  filePaths: string[]
-): Promise<FileInfo[]> {
-  const filePromises = filePaths.map(filePath => readFileInfo(filePath));
+export async function readMultipleFiles(filePaths: string[]): Promise<FileInfo[]> {
+  const filePromises = filePaths.map((filePath) => readFileInfo(filePath));
   return Promise.all(filePromises);
 }
 
@@ -335,25 +347,24 @@ export async function readMultipleFiles(
 export async function getFilesToReview(
   targetPath: string,
   isFile: boolean,
-  includeTests: boolean = false,
-  excludePatterns: string[] = []
+  includeTests = false,
+  excludePatterns: string[] = [],
 ): Promise<string[]> {
   if (isFile) {
     // If the target is a file, just return it
     return [targetPath];
-  } else {
-    // If it's a directory, load .gitignore patterns if not already provided
-    let patterns = excludePatterns;
-    if (patterns.length === 0) {
-      patterns = await loadGitignorePatterns(targetPath);
-      logger.debug(`Loaded ${patterns.length} patterns from .gitignore`);
-    }
-    
-    // If the target is a directory, discover files
-    return discoverFiles(targetPath, {
-      excludePatterns: patterns,
-      includeTests,
-      maxDepth: 10
-    });
   }
+  // If it's a directory, load .gitignore patterns if not already provided
+  let patterns = excludePatterns;
+  if (patterns.length === 0) {
+    patterns = await loadGitignorePatterns(targetPath);
+    logger.debug(`Loaded ${patterns.length} patterns from .gitignore`);
+  }
+
+  // If the target is a directory, discover files
+  return discoverFiles(targetPath, {
+    excludePatterns: patterns,
+    includeTests,
+    maxDepth: 10,
+  });
 }

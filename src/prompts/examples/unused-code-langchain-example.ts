@@ -6,17 +6,13 @@
  * analyzing the import graph and tracking references.
  */
 
-import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
-import { PromptManager } from '../PromptManager';
-import { PromptStrategyFactory } from '../strategies/PromptStrategyFactory';
-import { PromptCache } from '../cache/PromptCache';
-import {
-  getUnusedCodeReviewFormatInstructions
-} from '../schemas/unused-code-schema';
-import {
-  getCodeTracingUnusedCodeReviewFormatInstructions
-} from '../schemas/code-tracing-unused-code-schema';
+import { FewShotPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
 import logger from '../../utils/logger';
+import { PromptCache } from '../cache/PromptCache';
+import { PromptManager } from '../PromptManager';
+import { getCodeTracingUnusedCodeReviewFormatInstructions } from '../schemas/code-tracing-unused-code-schema';
+import { getUnusedCodeReviewFormatInstructions } from '../schemas/unused-code-schema';
+import { PromptStrategyFactory } from '../strategies/PromptStrategyFactory';
 
 /**
  * Example function demonstrating LangChain usage for unused code review
@@ -29,11 +25,7 @@ async function unusedCodeLangChainExample() {
   const promptCache = PromptCache.getInstance();
 
   // Create a LangChain strategy
-  PromptStrategyFactory.createStrategy(
-    'langchain',
-    promptManager,
-    promptCache
-  );
+  PromptStrategyFactory.createStrategy('langchain', promptManager, promptCache);
 
   // Get a raw prompt template for unused code review
   const rawPrompt = await promptManager.getPromptTemplate('unused-code', {
@@ -41,7 +33,7 @@ async function unusedCodeLangChainExample() {
     type: 'unused-code',
     includeTests: false,
     output: 'markdown',
-    promptStrategy: 'langchain'
+    promptStrategy: 'langchain',
   });
 
   // Get format instructions for structured output
@@ -50,12 +42,7 @@ async function unusedCodeLangChainExample() {
   // Create a LangChain prompt template directly
   const template = new PromptTemplate({
     template: rawPrompt,
-    inputVariables: [
-      'CODE',
-      'LANGUAGE',
-      'SCHEMA_INSTRUCTIONS',
-      'LANGUAGE_INSTRUCTIONS'
-    ]
+    inputVariables: ['CODE', 'LANGUAGE', 'SCHEMA_INSTRUCTIONS', 'LANGUAGE_INSTRUCTIONS'],
   });
 
   // Create example code to review
@@ -139,7 +126,7 @@ export function useDataFetcher(endpoint: string) {
     LANGUAGE: 'TypeScript',
     SCHEMA_INSTRUCTIONS: formatInstructions,
     LANGUAGE_INSTRUCTIONS:
-      'This code is written in TypeScript. Please provide language-specific advice for identifying and removing unused TypeScript code.'
+      'This code is written in TypeScript. Please provide language-specific advice for identifying and removing unused TypeScript code.',
   };
 
   // Format the prompt
@@ -165,12 +152,11 @@ export function useDataFetcher(endpoint: string) {
           location: { file: 'useDataFetcher.ts', lineStart: 40, lineEnd: 44 },
           assessment:
             "100% confident. The 'useNewApi' variable is explicitly set to true and never modified.",
-          suggestedAction:
-            "Remove the conditional branch and keep only the 'else' block code.",
+          suggestedAction: "Remove the conditional branch and keep only the 'else' block code.",
           riskLevel: 'low',
           impactLevel: 'high',
-          category: 'featureFlag'
-        }
+          category: 'featureFlag',
+        },
       ],
       mediumImpactIssues: [
         {
@@ -178,37 +164,33 @@ export function useDataFetcher(endpoint: string) {
           description:
             "The function 'transformData' is defined but never used anywhere in the code.",
           location: { file: 'useDataFetcher.ts', lineStart: 59, lineEnd: 64 },
-          assessment:
-            '95% confident. This function is not called anywhere in the visible code.',
-          suggestedAction:
-            "Remove this function if it's not used elsewhere in the codebase.",
+          assessment: '95% confident. This function is not called anywhere in the visible code.',
+          suggestedAction: "Remove this function if it's not used elsewhere in the codebase.",
           riskLevel: 'low',
           impactLevel: 'medium',
-          category: 'deadCode'
-        }
+          category: 'deadCode',
+        },
       ],
       lowImpactIssues: [
         {
           title: 'Unused debug variable',
-          description:
-            "The 'debug' variable is defined but never used in the code.",
+          description: "The 'debug' variable is defined but never used in the code.",
           location: { file: 'useDataFetcher.ts', lineStart: 33, lineEnd: 33 },
-          assessment:
-            '100% confident. This variable is initialized but never referenced.',
+          assessment: '100% confident. This variable is initialized but never referenced.',
           suggestedAction: 'Remove this variable.',
           riskLevel: 'low',
           impactLevel: 'low',
-          category: 'deadCode'
-        }
+          category: 'deadCode',
+        },
       ],
       summary:
         'The code contains several instances of unused code that can be safely removed, including a dead code path controlled by a feature flag, an unused function, and an unused variable.',
       recommendations: [
         'Use ESLint with the @typescript-eslint/no-unused-vars rule to automatically detect unused variables',
         'Set up TypeScript compiler options like noUnusedLocals to catch unused variables during build',
-        'Regularly review and remove feature flags once features are fully released'
-      ]
-    }
+        'Regularly review and remove feature flags once features are fully released',
+      ],
+    },
   };
 }
 
@@ -223,23 +205,16 @@ async function codeTracingUnusedCodeExample() {
   const promptCache = PromptCache.getInstance();
 
   // Create a LangChain strategy
-  PromptStrategyFactory.createStrategy(
-    'langchain',
-    promptManager,
-    promptCache
-  );
+  PromptStrategyFactory.createStrategy('langchain', promptManager, promptCache);
 
   // Get a raw prompt template for code tracing unused code review
-  await promptManager.getPromptTemplate(
-    'code-tracing-unused-code',
-    {
-      language: 'typescript',
-      type: 'code-tracing-unused-code',
-      includeTests: false,
-      output: 'markdown',
-      promptStrategy: 'langchain'
-    }
-  );
+  await promptManager.getPromptTemplate('code-tracing-unused-code', {
+    language: 'typescript',
+    type: 'code-tracing-unused-code',
+    includeTests: false,
+    output: 'markdown',
+    promptStrategy: 'langchain',
+  });
 
   // Get format instructions for structured output
   const formatInstructions = getCodeTracingUnusedCodeReviewFormatInstructions();
@@ -270,7 +245,7 @@ import { formatDate } from '../utils';`,
 4. Only formatDate is imported via the barrel file in Profile.tsx
 5. No dynamic imports or requires use this function
 6. No references to this function name exist in string literals or comments that would indicate dynamic usage
-7. HIGH confidence: This function can be safely removed as it's not referenced anywhere in the codebase.`
+7. HIGH confidence: This function can be safely removed as it's not referenced anywhere in the codebase.`,
     },
     {
       code: `// src/types/common.ts
@@ -294,14 +269,14 @@ function setupAdmin(config: AdminConfig) {
 2. While there are no direct imports of UserConfig
 3. It's extended by AdminConfig which is imported and used
 4. The interface forms part of the type hierarchy
-5. LOW confidence: Cannot be removed as it's indirectly used via inheritance`
-    }
+5. LOW confidence: Cannot be removed as it's indirectly used via inheritance`,
+    },
   ];
 
   // Create an example prompt template
   const exampleTemplate = new PromptTemplate({
     inputVariables: ['code', 'analysis'],
-    template: 'Code:\n{code}\n\nAnalysis:\n{analysis}'
+    template: 'Code:\n{code}\n\nAnalysis:\n{analysis}',
   });
 
   // Create the few-shot prompt template
@@ -330,7 +305,7 @@ Here are examples of high-quality analyses:`,
 {code}
 
 Provide a detailed analysis with evidence for each element you identify as unused. Focus specifically on analyzing the import graph with barrel files (index.ts) and how modules are imported and re-exported.`,
-    inputVariables: ['code']
+    inputVariables: ['code'],
   });
 
   // Example input for an utility-heavy example
@@ -393,7 +368,7 @@ function UserProfile() {
 
   // Format the prompt with the example
   const formattedPrompt = await fewShotPrompt.format({
-    code: codeToAnalyze
+    code: codeToAnalyze,
   });
 
   logger.info('Code Tracing LangChain Prompt for Unused Code Review:');
@@ -416,48 +391,43 @@ function UserProfile() {
           filePath: 'src/utils/stringUtils.ts',
           location: {
             startLine: 9,
-            endLine: 11
+            endLine: 11,
           },
           codeSnippet:
             "export function slugify(str: string): string {\n  return str.toLowerCase().replace(/\\s+/g, '-').replace(/[^\\w-]+/g, '');\n}",
           confidence: 'high',
-          confidenceReason:
-            'Not exported in barrel file and no direct imports found',
+          confidenceReason: 'Not exported in barrel file and no direct imports found',
           evidence: {
             definition: {
               file: 'src/utils/stringUtils.ts',
               line: 9,
-              codeSnippet: 'export function slugify(str: string): string {'
+              codeSnippet: 'export function slugify(str: string): string {',
             },
             importSearch: {
               searchedIn: [
                 'All project files',
                 'src/utils/index.ts',
-                'Direct imports from stringUtils.ts'
+                'Direct imports from stringUtils.ts',
               ],
               noImportsFound: true,
-              searchMethod: 'Analyzed all import statements and barrel files'
+              searchMethod: 'Analyzed all import statements and barrel files',
             },
             referenceSearch: {
-              searchedIn: [
-                'All project files',
-                'String literals',
-                'Dynamic imports'
-              ],
+              searchedIn: ['All project files', 'String literals', 'Dynamic imports'],
               noReferencesFound: true,
-              searchMethod: 'Searched for function name references'
+              searchMethod: 'Searched for function name references',
             },
             edgeCasesConsidered: [
               {
                 case: 'Re-export through barrel files',
-                verification: 'Not re-exported in src/utils/index.ts'
+                verification: 'Not re-exported in src/utils/index.ts',
               },
               {
                 case: 'Dynamic function calls',
-                verification: 'No string literals matching function name found'
-              }
-            ]
-          }
+                verification: 'No string literals matching function name found',
+              },
+            ],
+          },
         },
         {
           elementType: 'function',
@@ -465,46 +435,40 @@ function UserProfile() {
           filePath: 'src/utils/files/pathUtils.ts',
           location: {
             startLine: 15,
-            endLine: 17
+            endLine: 17,
           },
           codeSnippet:
             "export function joinPaths(...paths: string[]): string {\n  return paths.join('/').replace(/\\/+/g, '/');\n}",
           confidence: 'high',
-          confidenceReason:
-            'Not exported in barrel file and no direct imports found',
+          confidenceReason: 'Not exported in barrel file and no direct imports found',
           evidence: {
             definition: {
               file: 'src/utils/files/pathUtils.ts',
               line: 15,
-              codeSnippet:
-                'export function joinPaths(...paths: string[]): string {'
+              codeSnippet: 'export function joinPaths(...paths: string[]): string {',
             },
             importSearch: {
               searchedIn: [
                 'All project files',
                 'src/utils/files/index.ts',
-                'Direct imports from pathUtils.ts'
+                'Direct imports from pathUtils.ts',
               ],
               noImportsFound: true,
-              searchMethod: 'Analyzed all import statements and barrel files'
+              searchMethod: 'Analyzed all import statements and barrel files',
             },
             referenceSearch: {
-              searchedIn: [
-                'All project files',
-                'String literals',
-                'Dynamic imports'
-              ],
+              searchedIn: ['All project files', 'String literals', 'Dynamic imports'],
               noReferencesFound: true,
-              searchMethod: 'Searched for function name references'
+              searchMethod: 'Searched for function name references',
             },
             edgeCasesConsidered: [
               {
                 case: 'Re-export through barrel files',
-                verification: 'Not re-exported in src/utils/files/index.ts'
-              }
-            ]
-          }
-        }
+                verification: 'Not re-exported in src/utils/files/index.ts',
+              },
+            ],
+          },
+        },
       ],
       unusedClasses: [],
       unusedTypesAndInterfaces: [],
@@ -512,26 +476,24 @@ function UserProfile() {
       unusedVariablesAndImports: [],
       analysisMethodology: {
         entryPoints: ['src/components/UserProfile.tsx'],
-        moduleResolution:
-          'Analyzed TypeScript module resolution including barrel files',
-        referenceTracking:
-          'Traced through all imports, re-exports, and function calls',
+        moduleResolution: 'Analyzed TypeScript module resolution including barrel files',
+        referenceTracking: 'Traced through all imports, re-exports, and function calls',
         limitations: [
           'Limited to static analysis of the provided code',
-          'Cannot detect runtime dynamic imports or eval usage'
-        ]
+          'Cannot detect runtime dynamic imports or eval usage',
+        ],
       },
       summary: {
         totalUnusedElements: 2,
         highConfidenceCount: 2,
         filesWithUnusedCode: 2,
-        potentialCodeReduction: '~15%'
-      }
-    }
+        potentialCodeReduction: '~15%',
+      },
+    },
   };
 }
 
 export default {
   unusedCodeLangChainExample,
-  codeTracingUnusedCodeExample
+  codeTracingUnusedCodeExample,
 };

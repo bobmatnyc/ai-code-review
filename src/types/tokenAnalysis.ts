@@ -2,7 +2,7 @@
  * Type definitions for token analysis.
  */
 
-import { FileInfo } from './review';
+import type { FileInfo } from './review';
 
 export interface FileTokenAnalysis {
   path: string;
@@ -54,5 +54,5 @@ export declare class TokenAnalyzer {
 export declare function formatTokenAnalysis(
   analysis: TokenAnalysisResult,
   modelName: string,
-  includeFiles?: boolean
+  includeFiles?: boolean,
 ): string;

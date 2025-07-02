@@ -1,6 +1,6 @@
 /**
  * @fileoverview Utility to generate tree structure from file paths
- * 
+ *
  * This module provides functions to convert a list of file paths into a
  * hierarchical tree structure for display in a markdown file.
  */
@@ -25,12 +25,12 @@ interface TreeNode {
  * @param filePath Full path of the file (for files only)
  * @returns A new tree node
  */
-function createNode(name: string, isFile: boolean = false, filePath?: string): TreeNode {
+function createNode(name: string, isFile = false, filePath?: string): TreeNode {
   return {
     name,
     children: new Map<string, TreeNode>(),
     isFile,
-    path: filePath
+    path: filePath,
   };
 }
 
@@ -47,17 +47,17 @@ function buildTree(filePaths: string[]): TreeNode {
   for (const filePath of filePaths) {
     // Split the path into components
     const parts = filePath.split(/[\\/]/);
-    
+
     // Start at the root
     let currentNode = root;
-    
+
     // Traverse the path components
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
       if (!part) continue; // Skip empty parts
-      
+
       const isFile = i === parts.length - 1;
-      
+
       // If this node doesn't exist yet, create it
       if (!currentNode.children.has(part)) {
         currentNode.children.set(part, createNode(part, isFile, isFile ? filePath : undefined));
@@ -71,7 +71,7 @@ function buildTree(filePaths: string[]): TreeNode {
           continue;
         }
       }
-      
+
       // Move to the next node
       currentNode = currentNode.children.get(part)!;
     }
@@ -88,52 +88,46 @@ function buildTree(filePaths: string[]): TreeNode {
  * @param prefix Prefix for the current line
  * @returns Markdown string representing the tree
  */
-function generateMarkdownTree(
-  node: TreeNode, 
-  indent: string = '', 
-  isLast: boolean = true,
-  prefix: string = ''
-): string {
+function generateMarkdownTree(node: TreeNode, indent = '', isLast = true, prefix = ''): string {
   if (node.name === 'root') {
     // Root node is special - process its children directly
     let result = '';
     const children = Array.from(node.children.entries());
-    
+
     for (let i = 0; i < children.length; i++) {
       const [, childNode] = children[i];
       const isLastChild = i === children.length - 1;
       result += generateMarkdownTree(childNode, '', isLastChild, '');
     }
-    
+
     return result;
   }
-  
+
   // Current node indicator
   const nodeIndicator = isLast ? '└── ' : '├── ';
-  
+
   // Generate this node's line
   let result = `${indent}${prefix}${nodeIndicator}${node.name}\n`;
-  
+
   // Generate child node prefix
   const childPrefix = isLast ? '    ' : '│   ';
-  
+
   // Process children
-  const children = Array.from(node.children.entries())
-    .sort(([nameA], [nameB]) => {
-      // Directories first, then files
-      const nodeA = node.children.get(nameA)!;
-      const nodeB = node.children.get(nameB)!;
-      if (nodeA.isFile && !nodeB.isFile) return 1;
-      if (!nodeA.isFile && nodeB.isFile) return -1;
-      return nameA.localeCompare(nameB);
-    });
-  
+  const children = Array.from(node.children.entries()).sort(([nameA], [nameB]) => {
+    // Directories first, then files
+    const nodeA = node.children.get(nameA)!;
+    const nodeB = node.children.get(nameB)!;
+    if (nodeA.isFile && !nodeB.isFile) return 1;
+    if (!nodeA.isFile && nodeB.isFile) return -1;
+    return nameA.localeCompare(nameB);
+  });
+
   for (let i = 0; i < children.length; i++) {
     const [, childNode] = children[i];
     const isLastChild = i === children.length - 1;
     result += generateMarkdownTree(childNode, `${indent}${prefix}${childPrefix}`, isLastChild, '');
   }
-  
+
   return result;
 }
 
@@ -146,14 +140,14 @@ export function generateFileTree(filePaths: string[]): string {
   try {
     // Sort file paths to ensure consistent output
     const sortedPaths = [...filePaths].sort();
-    
+
     // Build the tree structure
     const root = buildTree(sortedPaths);
-    
+
     // Generate the markdown
     return '```\n' + generateMarkdownTree(root) + '```';
   } catch (error) {
     logger.error(`Error generating file tree: ${error}`);
-    return filePaths.map(file => `- \`${file}\``).join('\n');
+    return filePaths.map((file) => `- \`${file}\``).join('\n');
   }
 }

@@ -13,11 +13,11 @@ export type Provider = 'gemini' | 'anthropic' | 'openai' | 'openrouter';
  */
 export enum ModelCategory {
   REASONING = 'reasoning',
-  FAST_INFERENCE = 'fast-inference', 
+  FAST_INFERENCE = 'fast-inference',
   COST_OPTIMIZED = 'cost-optimized',
   LONG_CONTEXT = 'long-context',
   MULTIMODAL = 'multimodal',
-  CODING = 'coding'
+  CODING = 'coding',
 }
 
 /**

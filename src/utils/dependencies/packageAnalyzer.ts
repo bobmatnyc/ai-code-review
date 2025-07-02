@@ -1,6 +1,6 @@
 /**
  * @fileoverview Package analyzer utility for extracting package information
- * 
+ *
  * This module provides utilities to extract package information from
  * various package management files like package.json, composer.json,
  * requirements.txt, etc.
@@ -39,7 +39,7 @@ export interface PackageAnalysisResult {
  */
 export async function extractPackageInfo(projectPath: string): Promise<PackageAnalysisResult[]> {
   const results: PackageAnalysisResult[] = [];
-  
+
   try {
     // Try to find package.json (Node.js)
     const packageJsonPath = path.join(projectPath, 'package.json');
@@ -53,7 +53,7 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
       // package.json not found or invalid
       logger.debug(`No valid package.json found at ${packageJsonPath}`);
     }
-    
+
     // Try to find composer.json (PHP)
     const composerJsonPath = path.join(projectPath, 'composer.json');
     try {
@@ -64,7 +64,7 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
       // composer.json not found or invalid
       logger.debug(`No valid composer.json found at ${composerJsonPath}`);
     }
-    
+
     // Try to find requirements.txt (Python)
     const requirementsPath = path.join(projectPath, 'requirements.txt');
     try {
@@ -75,7 +75,7 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
       // requirements.txt not found or invalid
       logger.debug(`No valid requirements.txt found at ${requirementsPath}`);
     }
-    
+
     // Try to find Gemfile (Ruby)
     const gemfilePath = path.join(projectPath, 'Gemfile');
     try {
@@ -86,15 +86,18 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
       // Gemfile not found or invalid
       logger.debug(`No valid Gemfile found at ${gemfilePath}`);
     }
-    
-    return results.filter(result => 
-      (result.npm && result.npm.length > 0) || 
-      (result.composer && result.composer.length > 0) || 
-      (result.python && result.python.length > 0) ||
-      (result.ruby && result.ruby.length > 0)
+
+    return results.filter(
+      (result) =>
+        (result.npm && result.npm.length > 0) ||
+        (result.composer && result.composer.length > 0) ||
+        (result.python && result.python.length > 0) ||
+        (result.ruby && result.ruby.length > 0),
     );
   } catch (error) {
-    logger.error(`Error extracting package information: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error extracting package information: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return [];
   }
 }
@@ -109,7 +112,7 @@ async function parsePackageJson(content: string, filePath: string): Promise<Pack
   try {
     const packageJson = JSON.parse(content);
     const dependencies: PackageInfo[] = [];
-    
+
     // Parse dependencies
     if (packageJson.dependencies) {
       Object.entries(packageJson.dependencies).forEach(([name, version]) => {
@@ -117,11 +120,11 @@ async function parsePackageJson(content: string, filePath: string): Promise<Pack
           name,
           version: String(version).replace(/[\^~]/g, ''),
           constraint: String(version),
-          devDependency: false
+          devDependency: false,
         });
       });
     }
-    
+
     // Parse devDependencies
     if (packageJson.devDependencies) {
       Object.entries(packageJson.devDependencies).forEach(([name, version]) => {
@@ -129,18 +132,20 @@ async function parsePackageJson(content: string, filePath: string): Promise<Pack
           name,
           version: String(version).replace(/[\^~]/g, ''),
           constraint: String(version),
-          devDependency: true
+          devDependency: true,
         });
       });
     }
-    
+
     return {
       npm: dependencies,
       filename: 'package.json',
-      filePath
+      filePath,
     };
   } catch (error) {
-    logger.error(`Error parsing package.json: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error parsing package.json: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return { filename: 'package.json', filePath };
   }
 }
@@ -151,11 +156,14 @@ async function parsePackageJson(content: string, filePath: string): Promise<Pack
  * @param filePath The path to composer.json
  * @returns Package analysis result
  */
-async function parseComposerJson(content: string, filePath: string): Promise<PackageAnalysisResult> {
+async function parseComposerJson(
+  content: string,
+  filePath: string,
+): Promise<PackageAnalysisResult> {
   try {
     const composerJson = JSON.parse(content);
     const dependencies: PackageInfo[] = [];
-    
+
     // Parse require
     if (composerJson.require) {
       Object.entries(composerJson.require).forEach(([name, version]) => {
@@ -164,30 +172,32 @@ async function parseComposerJson(content: string, filePath: string): Promise<Pac
           dependencies.push({
             name,
             constraint: String(version),
-            devDependency: false
+            devDependency: false,
           });
         }
       });
     }
-    
+
     // Parse require-dev
     if (composerJson['require-dev']) {
       Object.entries(composerJson['require-dev']).forEach(([name, version]) => {
         dependencies.push({
           name,
           constraint: String(version),
-          devDependency: true
+          devDependency: true,
         });
       });
     }
-    
+
     return {
       composer: dependencies,
       filename: 'composer.json',
-      filePath
+      filePath,
     };
   } catch (error) {
-    logger.error(`Error parsing composer.json: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error parsing composer.json: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return { filename: 'composer.json', filePath };
   }
 }
@@ -198,42 +208,49 @@ async function parseComposerJson(content: string, filePath: string): Promise<Pac
  * @param filePath The path to requirements.txt
  * @returns Package analysis result
  */
-async function parseRequirementsTxt(content: string, filePath: string): Promise<PackageAnalysisResult> {
+async function parseRequirementsTxt(
+  content: string,
+  filePath: string,
+): Promise<PackageAnalysisResult> {
   try {
     const lines = content.split('\n');
     const dependencies: PackageInfo[] = [];
-    
+
     for (const line of lines) {
       // Skip empty lines and comments
       const trimmedLine = line.trim();
       if (!trimmedLine || trimmedLine.startsWith('#')) {
         continue;
       }
-      
+
       // Parse package==version or package>=version format
-      const versionMatch = trimmedLine.match(/^([a-zA-Z0-9_.-]+)\s*([=<>]+)\s*([a-zA-Z0-9_.-]+)(.*)$/);
+      const versionMatch = trimmedLine.match(
+        /^([a-zA-Z0-9_.-]+)\s*([=<>]+)\s*([a-zA-Z0-9_.-]+)(.*)$/,
+      );
       if (versionMatch) {
         const [, name, operator, version] = versionMatch;
         dependencies.push({
           name,
           version,
-          constraint: `${operator}${version}`
+          constraint: `${operator}${version}`,
         });
       } else {
         // Just package name without version constraint
         dependencies.push({
-          name: trimmedLine
+          name: trimmedLine,
         });
       }
     }
-    
+
     return {
       python: dependencies,
       filename: 'requirements.txt',
-      filePath
+      filePath,
     };
   } catch (error) {
-    logger.error(`Error parsing requirements.txt: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error parsing requirements.txt: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return { filename: 'requirements.txt', filePath };
   }
 }
@@ -250,47 +267,48 @@ async function parseGemfile(content: string, filePath: string): Promise<PackageA
     const dependencies: PackageInfo[] = [];
     let inGroup = false;
     let isDevGroup = false;
-    
+
     for (const line of lines) {
       const trimmedLine = line.trim();
-      
+
       // Skip empty lines and comments
       if (!trimmedLine || trimmedLine.startsWith('#')) {
         continue;
       }
-      
+
       // Check for group definitions
       if (trimmedLine.startsWith('group')) {
         inGroup = true;
-        isDevGroup = trimmedLine.includes(':development') || 
-                    trimmedLine.includes(':test');
+        isDevGroup = trimmedLine.includes(':development') || trimmedLine.includes(':test');
       } else if (inGroup && trimmedLine === 'end') {
         inGroup = false;
         isDevGroup = false;
       }
-      
+
       // Parse gem declarations
       const gemMatch = trimmedLine.match(/gem\s+['"]([^'"]+)['"](,\s*['"]([^'"]+)['"])?/);
       if (gemMatch) {
         const name = gemMatch[1];
         const version = gemMatch[3];
-        
+
         dependencies.push({
           name,
           version,
           constraint: version,
-          devDependency: isDevGroup
+          devDependency: isDevGroup,
         });
       }
     }
-    
+
     return {
       ruby: dependencies,
       filename: 'Gemfile',
-      filePath
+      filePath,
     };
   } catch (error) {
-    logger.error(`Error parsing Gemfile: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error parsing Gemfile: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return { filename: 'Gemfile', filePath };
   }
 }

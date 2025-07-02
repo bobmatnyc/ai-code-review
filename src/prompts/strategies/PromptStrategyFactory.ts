@@ -5,14 +5,14 @@
  * the model provider and user preferences.
  */
 
-import { PromptStrategy } from './PromptStrategy';
+import logger from '../../utils/logger';
+import type { PromptCache } from '../cache/PromptCache';
+import type { PromptManager } from '../PromptManager';
 import { AnthropicPromptStrategy } from './AnthropicPromptStrategy';
 import { GeminiPromptStrategy } from './GeminiPromptStrategy';
-import { OpenAIPromptStrategy } from './OpenAIPromptStrategy';
 import { LangChainPromptStrategy } from './LangChainPromptStrategy';
-import { PromptManager } from '../PromptManager';
-import { PromptCache } from '../cache/PromptCache';
-import logger from '../../utils/logger';
+import { OpenAIPromptStrategy } from './OpenAIPromptStrategy';
+import type { PromptStrategy } from './PromptStrategy';
 
 /**
  * Factory for creating prompt strategies
@@ -30,7 +30,7 @@ export class PromptStrategyFactory {
   static createStrategy(
     provider: string,
     promptManager: PromptManager,
-    promptCache: PromptCache
+    promptCache: PromptCache,
   ): PromptStrategy {
     // Normalize the provider name
     const normalizedProvider = provider.toLowerCase();
@@ -76,13 +76,13 @@ export class PromptStrategyFactory {
    */
   static getAllStrategies(
     promptManager: PromptManager,
-    promptCache: PromptCache
+    promptCache: PromptCache,
   ): PromptStrategy[] {
     return [
       new AnthropicPromptStrategy(promptManager, promptCache),
       new GeminiPromptStrategy(promptManager, promptCache),
       new OpenAIPromptStrategy(promptManager, promptCache),
-      new LangChainPromptStrategy(promptManager, promptCache)
+      new LangChainPromptStrategy(promptManager, promptCache),
     ];
   }
 }

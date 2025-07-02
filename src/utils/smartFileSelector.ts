@@ -8,8 +8,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import logger from './logger';
 import { loadGitignorePatterns, shouldExcludeFile } from './fileFilters';
+import logger from './logger';
 
 /**
  * Interface for TypeScript configuration file
@@ -29,7 +29,7 @@ interface TsConfig {
 export async function loadEslintIgnorePatterns(projectDir: string): Promise<string[]> {
   try {
     const eslintIgnorePath = path.join(projectDir, '.eslintignore');
-    
+
     // Check if .eslintignore exists
     try {
       await fs.promises.access(eslintIgnorePath);
@@ -38,7 +38,7 @@ export async function loadEslintIgnorePatterns(projectDir: string): Promise<stri
       logger.debug(`No .eslintignore file found at ${eslintIgnorePath}`);
       return [];
     }
-    
+
     // Read and parse .eslintignore
     const content = await fs.promises.readFile(eslintIgnorePath, 'utf-8');
     if (!content) {
@@ -46,8 +46,8 @@ export async function loadEslintIgnorePatterns(projectDir: string): Promise<stri
     }
     return content
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line && !line.startsWith('#'));
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'));
   } catch (error) {
     // Only log as error if it's not just a file not found issue
     if (error instanceof Error && (error as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -68,7 +68,7 @@ export async function loadEslintIgnorePatterns(projectDir: string): Promise<stri
 export async function loadTsConfig(projectDir: string): Promise<TsConfig | null> {
   try {
     const tsConfigPath = path.join(projectDir, 'tsconfig.json');
-    
+
     // Check if tsconfig.json exists
     try {
       await fs.promises.access(tsConfigPath);
@@ -77,7 +77,7 @@ export async function loadTsConfig(projectDir: string): Promise<TsConfig | null>
       logger.debug(`No tsconfig.json file found at ${tsConfigPath}`);
       return null;
     }
-    
+
     // Read and parse tsconfig.json
     const content = await fs.promises.readFile(tsConfigPath, 'utf-8');
     if (!content) {
@@ -113,7 +113,7 @@ function convertTsGlobToRegex(pattern: string): RegExp {
     .replace(/\*\*/g, '.*')
     .replace(/\*/g, '[^/]*')
     .replace(/\?/g, '[^/]');
-  
+
   // Add standard regex markers
   return new RegExp(`^${regexPattern}$|^${regexPattern}/|/${regexPattern}$|/${regexPattern}/`);
 }
@@ -130,19 +130,19 @@ export function matchesTsConfig(filePath: string, tsConfig: TsConfig, projectDir
   if (!tsConfig) {
     return true;
   }
-  
+
   // Convert Windows paths to Unix-style for consistent pattern matching
   const normalizedPath = filePath.replace(/\\/g, '/');
   const relativePath = path.relative(projectDir, filePath).replace(/\\/g, '/');
-  
+
   // If files array is provided, only include files explicitly listed
   if (tsConfig.files && tsConfig.files.length > 0) {
-    return tsConfig.files.some(file => {
+    return tsConfig.files.some((file) => {
       const normalizedFile = file.replace(/\\/g, '/');
       return relativePath === normalizedFile;
     });
   }
-  
+
   // Check exclude patterns first
   if (tsConfig.exclude && tsConfig.exclude.length > 0) {
     for (const pattern of tsConfig.exclude) {
@@ -154,34 +154,36 @@ export function matchesTsConfig(filePath: string, tsConfig: TsConfig, projectDir
       }
     }
   }
-  
+
   // Then check include patterns
   if (tsConfig.include && tsConfig.include.length > 0) {
     // For the test case 'should match files that are included in tsconfig.json'
     // We need to make sure these test paths match the src/**/* pattern
-    
+
     // Find if file matches any include pattern
     for (const pattern of tsConfig.include) {
       const regex = convertTsGlobToRegex(pattern);
-      
+
       // Check both the full path and the relative path
       if (regex.test(normalizedPath) || regex.test(relativePath)) {
         return true;
       }
-      
+
       // Special handling for test cases with src/**/* pattern
-      if (pattern === 'src/**/*' && (
-          relativePath.startsWith('src/') || 
+      if (
+        pattern === 'src/**/*' &&
+        (relativePath.startsWith('src/') ||
           normalizedPath.includes('/src/') ||
-          normalizedPath.endsWith('/src'))) {
+          normalizedPath.endsWith('/src'))
+      ) {
         return true;
       }
     }
-    
+
     logger.debug(`File ${filePath} not included by any tsconfig.json include pattern`);
     return false;
   }
-  
+
   // If no include patterns are provided, include all files that weren't excluded
   return true;
 }
@@ -192,37 +194,40 @@ export function matchesTsConfig(filePath: string, tsConfig: TsConfig, projectDir
  * @param projectDir Project directory path
  * @returns Array of filtered file paths
  */
-export async function applySmartFiltering(filePaths: string[], projectDir: string): Promise<string[]> {
+export async function applySmartFiltering(
+  filePaths: string[],
+  projectDir: string,
+): Promise<string[]> {
   // Load ignore patterns
   const gitignorePatterns = await loadGitignorePatterns(projectDir);
   const eslintIgnorePatterns = await loadEslintIgnorePatterns(projectDir);
   const tsConfig = await loadTsConfig(projectDir);
-  
+
   // Log patterns loaded
   logger.debug(`Loaded ${gitignorePatterns.length} .gitignore patterns`);
   logger.debug(`Loaded ${eslintIgnorePatterns.length} .eslintignore patterns`);
   logger.debug(`TypeScript config loaded: ${tsConfig ? 'Yes' : 'No'}`);
 
   // Apply filtering
-  return filePaths.filter(filePath => {
+  return filePaths.filter((filePath) => {
     // Apply .gitignore patterns
     if (shouldExcludeFile(filePath, gitignorePatterns)) {
       logger.debug(`File excluded by .gitignore: ${filePath}`);
       return false;
     }
-    
+
     // Apply .eslintignore patterns
     if (shouldExcludeFile(filePath, eslintIgnorePatterns)) {
       logger.debug(`File excluded by .eslintignore: ${filePath}`);
       return false;
     }
-    
+
     // Apply TypeScript configuration
     if (tsConfig && !matchesTsConfig(filePath, tsConfig, projectDir)) {
       logger.debug(`File excluded by tsconfig.json: ${filePath}`);
       return false;
     }
-    
+
     // Include the file if it passed all filters
     return true;
   });
@@ -232,5 +237,5 @@ export default {
   loadEslintIgnorePatterns,
   loadTsConfig,
   matchesTsConfig,
-  applySmartFiltering
+  applySmartFiltering,
 };

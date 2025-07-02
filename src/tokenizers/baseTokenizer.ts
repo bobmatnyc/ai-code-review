@@ -62,7 +62,7 @@ export class TokenizerRegistry {
    * @returns Tokenizer for the model, or undefined if none found
    */
   static getTokenizer(modelName: string): Tokenizer | undefined {
-    return TokenizerRegistry.tokenizers.find(t => t.supportsModel(modelName));
+    return TokenizerRegistry.tokenizers.find((t) => t.supportsModel(modelName));
   }
 
   /**
@@ -120,26 +120,23 @@ export function getTokenizer(modelName: string): Tokenizer {
 
   if (modelNameLower.includes('gpt')) {
     return (
-      TokenizerRegistry.getAllTokenizers().find(
-        t => t.getModelName() === 'gpt'
-      ) || new FallbackTokenizer()
+      TokenizerRegistry.getAllTokenizers().find((t) => t.getModelName() === 'gpt') ||
+      new FallbackTokenizer()
     );
   }
 
   if (modelNameLower.includes('claude')) {
     return (
-      TokenizerRegistry.getAllTokenizers().find(
-        t => t.getModelName() === 'claude'
-      ) || new FallbackTokenizer()
+      TokenizerRegistry.getAllTokenizers().find((t) => t.getModelName() === 'claude') ||
+      new FallbackTokenizer()
     );
   }
 
   // Check for Gemini models
   if (modelNameLower.includes('gemini')) {
     return (
-      TokenizerRegistry.getAllTokenizers().find(
-        t => t.getModelName() === 'gemini'
-      ) || new FallbackTokenizer()
+      TokenizerRegistry.getAllTokenizers().find((t) => t.getModelName() === 'gemini') ||
+      new FallbackTokenizer()
     );
   }
 
@@ -172,13 +169,13 @@ export function getTokenizer(modelName: string): Tokenizer {
 export function countTokens(text: string, modelName: string): number {
   const tokenizer = getTokenizer(modelName);
   const count = tokenizer.countTokens(text);
-  
+
   // For our test model, produce bigger token counts to ensure chunking triggers in tests
   if (modelName === 'test-small-context') {
     // For test-small-context model, create a higher token count
     // to ensure we exceed the context window (5000)
     return text.length;
   }
-  
+
   return count;
 }

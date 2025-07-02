@@ -1,21 +1,21 @@
 /**
  * @fileoverview Declaration extraction utilities for semantic analysis
- * 
+ *
  * This module provides functions to extract declarations from AST nodes
  * for different programming languages.
  */
 
-import Parser from 'tree-sitter';
+import type Parser from 'tree-sitter';
 import logger from '../../../utils/logger';
-import { Declaration, DeclarationType } from '../types';
-import { 
-  extractNodeName, 
-  extractDependencies, 
-  calculateNodeComplexity, 
-  determineExportStatus, 
-  extractDocumentation, 
+import type { Declaration, DeclarationType } from '../types';
+import {
+  calculateNodeComplexity,
+  determineExportStatus,
+  extractDependencies,
+  extractDocumentation,
   extractModifiers,
-  traverseNode
+  extractNodeName,
+  traverseNode,
 } from './NodeAnalyzer';
 
 /**
@@ -26,12 +26,12 @@ import {
  * @returns Array of declarations
  */
 export function extractDeclarations(
-  node: Parser.SyntaxNode, 
-  lines: string[], 
-  language: string
+  node: Parser.SyntaxNode,
+  lines: string[],
+  language: string,
 ): Declaration[] {
   const declarations: Declaration[] = [];
-  
+
   // Language-specific declaration extraction
   switch (language) {
     case 'typescript':
@@ -48,7 +48,7 @@ export function extractDeclarations(
       extractPHPDeclarations(node, declarations, lines);
       break;
   }
-  
+
   return declarations;
 }
 
@@ -61,29 +61,25 @@ export function extractDeclarations(
 export function extractTSDeclarations(
   node: Parser.SyntaxNode,
   declarations: Declaration[],
-  lines: string[]
+  lines: string[],
 ): void {
   // Only extract top-level declarations - methods will be handled as children
   const topLevelTypeMapping: Record<string, DeclarationType> = {
-    'function_declaration': 'function',
-    'class_declaration': 'class',
-    'abstract_class_declaration': 'class',
-    'interface_declaration': 'interface',
-    'type_alias_declaration': 'type',
-    'variable_declaration': 'const',
-    'lexical_declaration': 'const',
-    'enum_declaration': 'enum',
-    'namespace_declaration': 'namespace'
+    function_declaration: 'function',
+    class_declaration: 'class',
+    abstract_class_declaration: 'class',
+    interface_declaration: 'interface',
+    type_alias_declaration: 'type',
+    variable_declaration: 'const',
+    lexical_declaration: 'const',
+    enum_declaration: 'enum',
+    namespace_declaration: 'namespace',
     // Note: method_definition removed - handled by extractChildDeclarations
   };
 
   traverseNode(node, (child) => {
     if (child.type in topLevelTypeMapping) {
-      const declaration = createDeclarationFromNode(
-        child,
-        topLevelTypeMapping[child.type],
-        lines
-      );
+      const declaration = createDeclarationFromNode(child, topLevelTypeMapping[child.type], lines);
       if (declaration) {
         declarations.push(declaration);
       }
@@ -100,21 +96,17 @@ export function extractTSDeclarations(
 export function extractPythonDeclarations(
   node: Parser.SyntaxNode,
   declarations: Declaration[],
-  lines: string[]
+  lines: string[],
 ): void {
   const typeMapping: Record<string, DeclarationType> = {
-    'function_definition': 'function',
-    'class_definition': 'class',
-    'decorated_definition': 'function'
+    function_definition: 'function',
+    class_definition: 'class',
+    decorated_definition: 'function',
   };
 
   traverseNode(node, (child) => {
     if (child.type in typeMapping) {
-      const declaration = createDeclarationFromNode(
-        child,
-        typeMapping[child.type],
-        lines
-      );
+      const declaration = createDeclarationFromNode(child, typeMapping[child.type], lines);
       if (declaration) {
         declarations.push(declaration);
       }
@@ -131,21 +123,17 @@ export function extractPythonDeclarations(
 export function extractRubyDeclarations(
   node: Parser.SyntaxNode,
   declarations: Declaration[],
-  lines: string[]
+  lines: string[],
 ): void {
   const typeMapping: Record<string, DeclarationType> = {
-    'method': 'function',
-    'class': 'class',
-    'module': 'namespace'
+    method: 'function',
+    class: 'class',
+    module: 'namespace',
   };
 
   traverseNode(node, (child) => {
     if (child.type in typeMapping) {
-      const declaration = createDeclarationFromNode(
-        child,
-        typeMapping[child.type],
-        lines
-      );
+      const declaration = createDeclarationFromNode(child, typeMapping[child.type], lines);
       if (declaration) {
         declarations.push(declaration);
       }
@@ -162,22 +150,18 @@ export function extractRubyDeclarations(
 export function extractPHPDeclarations(
   node: Parser.SyntaxNode,
   declarations: Declaration[],
-  lines: string[]
+  lines: string[],
 ): void {
   const typeMapping: Record<string, DeclarationType> = {
-    'function_definition': 'function',
-    'method_declaration': 'method',
-    'class_declaration': 'class',
-    'interface_declaration': 'interface'
+    function_definition: 'function',
+    method_declaration: 'method',
+    class_declaration: 'class',
+    interface_declaration: 'interface',
   };
 
   traverseNode(node, (child) => {
     if (child.type in typeMapping) {
-      const declaration = createDeclarationFromNode(
-        child,
-        typeMapping[child.type],
-        lines
-      );
+      const declaration = createDeclarationFromNode(child, typeMapping[child.type], lines);
       if (declaration) {
         declarations.push(declaration);
       }
@@ -195,13 +179,13 @@ export function extractPHPDeclarations(
 export function createDeclarationFromNode(
   node: Parser.SyntaxNode,
   type: DeclarationType,
-  lines: string[]
+  lines: string[],
 ): Declaration | null {
   try {
     const name = extractNodeName(node) || 'anonymous';
     const startLine = node.startPosition.row + 1;
     const endLine = node.endPosition.row + 1;
-    
+
     return {
       type,
       name,
@@ -212,7 +196,7 @@ export function createDeclarationFromNode(
       exportStatus: determineExportStatus(node),
       documentation: extractDocumentation(node, lines),
       children: extractChildDeclarations(node, lines),
-      modifiers: extractModifiers(node)
+      modifiers: extractModifiers(node),
     };
   } catch (error) {
     logger.warn(`Failed to create declaration from node: ${error}`);
@@ -228,13 +212,17 @@ export function createDeclarationFromNode(
  */
 export function extractChildDeclarations(node: Parser.SyntaxNode, lines: string[]): Declaration[] {
   const children: Declaration[] = [];
-  
+
   // For class declarations (including abstract classes), look inside the class_body
   if (node.type === 'class_declaration' || node.type === 'abstract_class_declaration') {
-    const classBody = node.children.find(child => child.type === 'class_body');
+    const classBody = node.children.find((child) => child.type === 'class_body');
     if (classBody) {
       for (const child of classBody.children) {
-        if (child.type === 'method_definition' || child.type === 'public_field_definition' || child.type === 'property_definition') {
+        if (
+          child.type === 'method_definition' ||
+          child.type === 'public_field_definition' ||
+          child.type === 'property_definition'
+        ) {
           const childDecl = createDeclarationFromNode(child, 'method', lines);
           if (childDecl) {
             children.push(childDecl);
@@ -244,7 +232,7 @@ export function extractChildDeclarations(node: Parser.SyntaxNode, lines: string[
     }
   } else if (node.type === 'class_definition') {
     // Python class support
-    const classBody = node.children.find(child => child.type === 'block');
+    const classBody = node.children.find((child) => child.type === 'block');
     if (classBody) {
       for (const child of classBody.children) {
         if (child.type === 'function_definition') {
@@ -266,6 +254,6 @@ export function extractChildDeclarations(node: Parser.SyntaxNode, lines: string[
       }
     }
   }
-  
+
   return children;
 }

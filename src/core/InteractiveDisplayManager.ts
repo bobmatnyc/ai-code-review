@@ -6,9 +6,9 @@
  */
 
 import fs from 'fs/promises';
-import { ReviewOptions } from '../types/review';
-import { displayReviewResults } from '../utils/reviewActionHandler';
+import type { ReviewOptions } from '../types/review';
 import logger from '../utils/logger';
+import { displayReviewResults } from '../utils/reviewActionHandler';
 
 /**
  * Priority filter type for interactive mode
@@ -25,7 +25,7 @@ export type PriorityFilter = 'h' | 'm' | 'l' | 'a';
 export async function displayReviewInteractively(
   reviewPath: string,
   projectPath: string,
-  options: ReviewOptions
+  options: ReviewOptions,
 ): Promise<void> {
   try {
     logger.info('\nDisplaying review results in interactive mode...');
@@ -37,28 +37,18 @@ export async function displayReviewInteractively(
     const priorityFilter = getPriorityFilterFromOptions(options);
 
     // Display the review results
-    const results = await displayReviewResults(
-      reviewContent,
-      projectPath,
-      priorityFilter
-    );
+    const results = await displayReviewResults(reviewContent, projectPath, priorityFilter);
 
     // Print summary
     logger.info('\n--- Review Summary ---');
     logger.info(`Total issues found: ${results.totalSuggestions}`);
-    logger.info(
-      `High priority issues: ${results.highPrioritySuggestions.length}`
-    );
-    logger.info(
-      `Medium priority issues: ${results.mediumPrioritySuggestions.length}`
-    );
-    logger.info(
-      `Low priority issues: ${results.lowPrioritySuggestions.length}`
-    );
+    logger.info(`High priority issues: ${results.highPrioritySuggestions.length}`);
+    logger.info(`Medium priority issues: ${results.mediumPrioritySuggestions.length}`);
+    logger.info(`Low priority issues: ${results.lowPrioritySuggestions.length}`);
     logger.info('----------------------');
   } catch (error) {
     logger.error(
-      `Error displaying review results: ${error instanceof Error ? error.message : String(error)}`
+      `Error displaying review results: ${error instanceof Error ? error.message : String(error)}`,
     );
     throw error;
   }
@@ -69,9 +59,7 @@ export async function displayReviewInteractively(
  * @param options Review options that may contain the priority filter
  * @returns The priority filter (h, m, l, or a) or undefined if not specified
  */
-export function getPriorityFilterFromOptions(
-  options?: ReviewOptions
-): PriorityFilter | undefined {
+export function getPriorityFilterFromOptions(options?: ReviewOptions): PriorityFilter | undefined {
   // First check if the interactive option is a string (priority filter)
   if (
     options &&
@@ -83,9 +71,7 @@ export function getPriorityFilterFromOptions(
 
   // Otherwise check if there's a priority filter argument after --interactive
   const args = process.argv;
-  const interactiveIndex = args.findIndex(
-    arg => arg === '--interactive' || arg === '-i'
-  );
+  const interactiveIndex = args.findIndex((arg) => arg === '--interactive' || arg === '-i');
 
   if (interactiveIndex !== -1 && interactiveIndex < args.length - 1) {
     const nextArg = args[interactiveIndex + 1];

@@ -13,11 +13,11 @@
 
 // Import from pathValidator for aliases
 import {
-  validateTargetPath,
-  pathExists,
   isDirectory,
   isFile,
-  isPathWithinCwd
+  isPathWithinCwd,
+  pathExists,
+  validateTargetPath,
 } from './pathValidator';
 
 // Re-export from pathValidator
@@ -31,31 +31,27 @@ export const validatePath = validateTargetPath;
 // Re-export from fileReader
 export {
   readFile,
-  readFileWithInfo,
+  readFilesInDirectory as findFilesInDirectory,
   readFilesWithInfo,
-  readFilesInDirectory as findFilesInDirectory
+  readFileWithInfo,
 } from './FileReader';
 
 // Import from fileWriter for aliases
 import {
+  appendFile as appendFileImpl,
   ensureDirectoryExists,
   writeFile as writeFileImpl,
-  appendFile as appendFileImpl
 } from './FileWriter';
 
 // Re-export from fileWriter
-export {
-  ensureDirectoryExists,
-  writeFileImpl as writeFile,
-  appendFileImpl as appendFile
-};
+export { ensureDirectoryExists, writeFileImpl as writeFile, appendFileImpl as appendFile };
 
 // Alias for backward compatibility
 export const createDirectory = ensureDirectoryExists;
 
 // Re-export from pathGenerator
 export {
-  generateVersionedOutputPath,
+  generateTempFilePath,
   generateUniqueOutputPath,
-  generateTempFilePath
+  generateVersionedOutputPath,
 } from './PathGenerator';

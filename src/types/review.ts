@@ -5,7 +5,7 @@
  * review options, and review results.
  */
 
-import { CostInfo } from '../clients/utils/tokenCounter';
+import type { CostInfo } from '../clients/utils/tokenCounter';
 
 // Re-export CostInfo for convenience
 export type { CostInfo } from '../clients/utils/tokenCounter';

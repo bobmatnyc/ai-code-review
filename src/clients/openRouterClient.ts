@@ -14,29 +14,23 @@
  * - Support for different review types
  */
 
-import {
-  ReviewType,
-  ReviewResult,
-  FileInfo,
-  CostInfo,
-  ReviewOptions
-} from '../types/review';
+import type { CostInfo, FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import { ApiError } from '../utils/apiErrorHandler';
 import { getConfig } from '../utils/config';
-import { ProjectDocs /* , addProjectDocsToPrompt */ } from '../utils/projectDocs'; // addProjectDocsToPrompt not used
 import logger from '../utils/logger';
+import type { ProjectDocs /* , addProjectDocsToPrompt */ } from '../utils/projectDocs'; // addProjectDocsToPrompt not used
 import {
+  isDebugMode,
   // generateDirectoryStructure, // Not used in this file
   validateOpenRouterApiKey,
-  isDebugMode
 } from './utils';
-import { getCostInfoFromText } from './utils/tokenCounter';
-import { loadPromptTemplate } from './utils/promptLoader';
-import { ApiError } from '../utils/apiErrorHandler';
 // import { getLanguageFromExtension } from './utils/languageDetection'; // Not used in this file
 import {
+  formatConsolidatedReviewPrompt,
   formatSingleFileReviewPrompt,
-  formatConsolidatedReviewPrompt
 } from './utils/promptFormatter';
+import { loadPromptTemplate } from './utils/promptLoader';
+import { getCostInfoFromText } from './utils/tokenCounter';
 
 // Track if we've initialized a model successfully
 let modelInitialized = false;
@@ -58,7 +52,7 @@ function isOpenRouterModel(): {
   return {
     isCorrect: adapter === 'openrouter',
     adapter,
-    modelName
+    modelName,
   };
 }
 
@@ -118,9 +112,8 @@ export async function generateOpenRouterReview(
   filePath: string,
   reviewType: ReviewType,
   projectDocs?: ProjectDocs | null,
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): Promise<ReviewResult> {
-
   try {
     // Initialize the model if we haven't already
     if (!modelInitialized) {
@@ -142,12 +135,7 @@ export async function generateOpenRouterReview(
     const promptTemplate = await loadPromptTemplate(reviewType, options);
 
     // Format the prompt
-    const prompt = formatSingleFileReviewPrompt(
-      promptTemplate,
-      fileContent,
-      filePath,
-      projectDocs
-    );
+    const prompt = formatSingleFileReviewPrompt(promptTemplate, fileContent, filePath, projectDocs);
     // Retrieve the configured OpenRouter model name
     const { modelName } = isOpenRouterModel();
 
@@ -155,22 +143,20 @@ export async function generateOpenRouterReview(
       console.log(`Generating review with OpenRouter ${modelName}...`);
 
       // Make the API request
-      const response = await fetch(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
-            'X-Title': 'AI Code Review'
-          },
-          body: JSON.stringify({
-            model: modelName,
-            messages: [
-              {
-                role: 'system',
-                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
+          'X-Title': 'AI Code Review',
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
 
 IMPORTANT: Your response MUST be in the following JSON format:
 
@@ -199,18 +185,17 @@ IMPORTANT: Your response MUST be in the following JSON format:
   ]
 }
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
-              },
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            temperature: 0.2,
-            max_tokens: 4000
-          })
-        }
-      );
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.`,
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          temperature: 0.2,
+          max_tokens: 4000,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -220,9 +205,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       const data = await response.json();
       if (data.choices && data.choices.length > 0) {
         content = data.choices[0].message.content;
-        console.log(
-          `Successfully generated review with OpenRouter ${modelName}`
-        );
+        console.log(`Successfully generated review with OpenRouter ${modelName}`);
       } else {
         throw new Error(`Invalid response format from OpenRouter ${modelName}`);
       }
@@ -234,14 +217,14 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         logger.warn(
           `Failed to calculate cost information: ${
             error instanceof Error ? error.message : String(error)
-          }`
+          }`,
         );
       }
     } catch (error) {
       throw new ApiError(
         `Failed to generate review with OpenRouter ${modelName}: ${
           error instanceof Error ? error.message : String(error)
-        }`
+        }`,
       );
     }
 
@@ -257,13 +240,11 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn(
-          'Response is valid JSON but does not have the expected structure'
-        );
+        logger.warn('Response is valid JSON but does not have the expected structure');
       }
     } catch (parseError) {
       logger.warn(
-        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
       );
       // Keep the original response as content
     }
@@ -276,13 +257,13 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       filePath,
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData
+      structuredData,
     };
   } catch (error) {
     logger.error(
       `Error generating review for ${filePath}: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
     throw error;
   }
@@ -302,9 +283,8 @@ export async function generateOpenRouterConsolidatedReview(
   projectName: string,
   reviewType: ReviewType,
   projectDocs?: ProjectDocs | null,
-  options?: ReviewOptions
+  options?: ReviewOptions,
 ): Promise<ReviewResult> {
-
   try {
     // Initialize the model if we haven't already
     if (!modelInitialized) {
@@ -326,38 +306,34 @@ export async function generateOpenRouterConsolidatedReview(
     const prompt = formatConsolidatedReviewPrompt(
       promptTemplate,
       projectName,
-      files.map(file => ({
+      files.map((file) => ({
         relativePath: file.relativePath || '',
         content: file.content,
-        sizeInBytes: file.content.length
+        sizeInBytes: file.content.length,
       })),
-      projectDocs
+      projectDocs,
     );
     // Retrieve the configured OpenRouter model name
     const { modelName } = isOpenRouterModel();
 
     try {
-      console.log(
-        `Generating consolidated review with OpenRouter ${modelName}...`
-      );
+      console.log(`Generating consolidated review with OpenRouter ${modelName}...`);
 
       // Make the API request
-      const response = await fetch(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
-            'X-Title': 'AI Code Review'
-          },
-          body: JSON.stringify({
-            model: modelName,
-            messages: [
-              {
-                role: 'system',
-                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://github.com/bobmatnyc/code-review',
+          'X-Title': 'AI Code Review',
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
 
 IMPORTANT: Your response MUST be in the following JSON format:
 
@@ -386,18 +362,17 @@ IMPORTANT: Your response MUST be in the following JSON format:
   ]
 }
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.`
-              },
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            temperature: 0.2,
-            max_tokens: 4000
-          })
-        }
-      );
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.`,
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          temperature: 0.2,
+          max_tokens: 4000,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -407,9 +382,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       const data = await response.json();
       if (data.choices && data.choices.length > 0) {
         content = data.choices[0].message.content;
-        console.log(
-          `Successfully generated review with OpenRouter ${modelName}`
-        );
+        console.log(`Successfully generated review with OpenRouter ${modelName}`);
       } else {
         throw new Error(`Invalid response format from OpenRouter ${modelName}`);
       }
@@ -421,14 +394,14 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         logger.warn(
           `Failed to calculate cost information: ${
             error instanceof Error ? error.message : String(error)
-          }`
+          }`,
         );
       }
     } catch (error) {
       throw new ApiError(
         `Failed to generate consolidated review with OpenRouter ${modelName}: ${
           error instanceof Error ? error.message : String(error)
-        }`
+        }`,
       );
     }
 
@@ -444,13 +417,11 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn(
-          'Response is valid JSON but does not have the expected structure'
-        );
+        logger.warn('Response is valid JSON but does not have the expected structure');
       }
     } catch (parseError) {
       logger.warn(
-        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
       );
       // Keep the original response as content
     }
@@ -463,13 +434,13 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       filePath: 'consolidated',
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData
+      structuredData,
     };
   } catch (error) {
     logger.error(
       `Error generating consolidated review: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
     throw error;
   }

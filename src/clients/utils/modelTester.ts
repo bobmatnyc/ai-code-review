@@ -8,13 +8,13 @@
  */
 
 import {
-  getGoogleApiKey,
-  getOpenRouterApiKey,
   getAnthropicApiKey,
-  getOpenAIApiKey
+  getGoogleApiKey,
+  getOpenAIApiKey,
+  getOpenRouterApiKey,
 } from '../../utils/envLoader';
 import logger from '../../utils/logger';
-import { Provider } from './modelMaps';
+import type { Provider } from './modelMaps';
 
 /**
  * Test result interface
@@ -41,15 +41,17 @@ function formatApiError(error: any, provider: string): string {
   // Check for common error patterns
   if (errorMessage.includes('API key')) {
     return `Invalid ${provider} API key: ${errorMessage}`;
-  } else if (errorMessage.includes('Rate limit')) {
-    return `${provider} API rate limit exceeded: ${errorMessage}`;
-  } else if (errorMessage.includes('not found')) {
-    return `${provider} model not found: ${errorMessage}`;
-  } else if (errorMessage.includes('quota')) {
-    return `${provider} API quota exceeded: ${errorMessage}`;
-  } else {
-    return `${provider} API error: ${errorMessage}`;
   }
+  if (errorMessage.includes('Rate limit')) {
+    return `${provider} API rate limit exceeded: ${errorMessage}`;
+  }
+  if (errorMessage.includes('not found')) {
+    return `${provider} model not found: ${errorMessage}`;
+  }
+  if (errorMessage.includes('quota')) {
+    return `${provider} API quota exceeded: ${errorMessage}`;
+  }
+  return `${provider} API error: ${errorMessage}`;
 }
 
 /**
@@ -57,9 +59,7 @@ function formatApiError(error: any, provider: string): string {
  * @param modelName Model name to test
  * @returns Test result
  */
-export async function testGeminiModel(
-  modelName: string = 'gemini-1.5-pro'
-): Promise<TestResult> {
+export async function testGeminiModel(modelName = 'gemini-1.5-pro'): Promise<TestResult> {
   const apiKeyResult = getGoogleApiKey();
 
   if (!apiKeyResult.apiKey) {
@@ -67,14 +67,15 @@ export async function testGeminiModel(
       success: false,
       message:
         'No Google API key found. Please set AI_CODE_REVIEW_GOOGLE_API_KEY in your .env file.',
-      provider: 'gemini'
+      provider: 'gemini',
     };
   }
 
   try {
     // Dynamically import the GoogleGenerativeAI library
-    const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } =
-      await import('@google/generative-ai');
+    const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = await import(
+      '@google/generative-ai'
+    );
 
     // Initialize the client
     const genAI = new GoogleGenerativeAI(apiKeyResult.apiKey);
@@ -88,21 +89,21 @@ export async function testGeminiModel(
       safetySettings: [
         {
           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
-        }
-      ]
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+      ],
     });
 
     const response = result.response.text();
@@ -112,7 +113,7 @@ export async function testGeminiModel(
       message: `Successfully tested ${modelName}`,
       model: modelName,
       provider: 'gemini',
-      response
+      response,
     };
   } catch (error) {
     logger.error(`Error testing Gemini model ${modelName}:`, error);
@@ -122,7 +123,7 @@ export async function testGeminiModel(
       message: formatApiError(error, 'Gemini'),
       model: modelName,
       provider: 'gemini',
-      error
+      error,
     };
   }
 }
@@ -133,7 +134,7 @@ export async function testGeminiModel(
  * @returns Test result
  */
 export async function testAnthropicModel(
-  modelName: string = 'claude-3-sonnet-20240229'
+  modelName = 'claude-3-sonnet-20240229',
 ): Promise<TestResult> {
   const apiKeyResult = getAnthropicApiKey();
 
@@ -142,7 +143,7 @@ export async function testAnthropicModel(
       success: false,
       message:
         'No Anthropic API key found. Please set AI_CODE_REVIEW_ANTHROPIC_API_KEY in your .env file.',
-      provider: 'anthropic'
+      provider: 'anthropic',
     };
   }
 
@@ -153,19 +154,19 @@ export async function testAnthropicModel(
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKeyResult.apiKey,
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
         model: modelName,
         max_tokens: 10,
-        messages: [{ role: 'user', content: 'Say hello in one word.' }]
-      })
+        messages: [{ role: 'user', content: 'Say hello in one word.' }],
+      }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `API error: ${response.status} ${errorData.error?.message || 'Unknown error'}`
+        `API error: ${response.status} ${errorData.error?.message || 'Unknown error'}`,
       );
     }
 
@@ -176,7 +177,7 @@ export async function testAnthropicModel(
       message: `Successfully tested ${modelName}`,
       model: modelName,
       provider: 'anthropic',
-      response: data.content[0].text
+      response: data.content[0].text,
     };
   } catch (error) {
     logger.error(`Error testing Anthropic model ${modelName}:`, error);
@@ -186,7 +187,7 @@ export async function testAnthropicModel(
       message: formatApiError(error, 'Anthropic'),
       model: modelName,
       provider: 'anthropic',
-      error
+      error,
     };
   }
 }
@@ -196,9 +197,7 @@ export async function testAnthropicModel(
  * @param modelName Model name to test
  * @returns Test result
  */
-export async function testOpenAIModel(
-  modelName: string = 'gpt-4o'
-): Promise<TestResult> {
+export async function testOpenAIModel(modelName = 'gpt-4o'): Promise<TestResult> {
   const apiKeyResult = getOpenAIApiKey();
 
   if (!apiKeyResult.apiKey) {
@@ -206,7 +205,7 @@ export async function testOpenAIModel(
       success: false,
       message:
         'No OpenAI API key found. Please set AI_CODE_REVIEW_OPENAI_API_KEY in your .env file.',
-      provider: 'openai'
+      provider: 'openai',
     };
   }
 
@@ -216,19 +215,19 @@ export async function testOpenAIModel(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKeyResult.apiKey}`
+        Authorization: `Bearer ${apiKeyResult.apiKey}`,
       },
       body: JSON.stringify({
         model: modelName,
         max_tokens: 10,
-        messages: [{ role: 'user', content: 'Say hello in one word.' }]
-      })
+        messages: [{ role: 'user', content: 'Say hello in one word.' }],
+      }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `API error: ${response.status} ${errorData.error?.message || 'Unknown error'}`
+        `API error: ${response.status} ${errorData.error?.message || 'Unknown error'}`,
       );
     }
 
@@ -239,7 +238,7 @@ export async function testOpenAIModel(
       message: `Successfully tested ${modelName}`,
       model: modelName,
       provider: 'openai',
-      response: data.choices[0].message.content
+      response: data.choices[0].message.content,
     };
   } catch (error) {
     logger.error(`Error testing OpenAI model ${modelName}:`, error);
@@ -249,7 +248,7 @@ export async function testOpenAIModel(
       message: formatApiError(error, 'OpenAI'),
       model: modelName,
       provider: 'openai',
-      error
+      error,
     };
   }
 }
@@ -260,7 +259,7 @@ export async function testOpenAIModel(
  * @returns Test result
  */
 export async function testOpenRouterModel(
-  modelName: string = 'anthropic/claude-3-opus-20240229'
+  modelName = 'anthropic/claude-3-opus-20240229',
 ): Promise<TestResult> {
   const apiKeyResult = getOpenRouterApiKey();
 
@@ -269,33 +268,30 @@ export async function testOpenRouterModel(
       success: false,
       message:
         'No OpenRouter API key found. Please set AI_CODE_REVIEW_OPENROUTER_API_KEY in your .env file.',
-      provider: 'openrouter'
+      provider: 'openrouter',
     };
   }
 
   try {
     // Use fetch to test the API
-    const response = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKeyResult.apiKey}`,
-          'HTTP-Referer': 'https://github.com/bobmatnyc/ai-code-review'
-        },
-        body: JSON.stringify({
-          model: modelName,
-          max_tokens: 10,
-          messages: [{ role: 'user', content: 'Say hello in one word.' }]
-        })
-      }
-    );
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKeyResult.apiKey}`,
+        'HTTP-Referer': 'https://github.com/bobmatnyc/ai-code-review',
+      },
+      body: JSON.stringify({
+        model: modelName,
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'Say hello in one word.' }],
+      }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `API error: ${response.status} ${errorData.error?.message || 'Unknown error'}`
+        `API error: ${response.status} ${errorData.error?.message || 'Unknown error'}`,
       );
     }
 
@@ -306,7 +302,7 @@ export async function testOpenRouterModel(
       message: `Successfully tested ${modelName}`,
       model: modelName,
       provider: 'openrouter',
-      response: data.choices[0].message.content
+      response: data.choices[0].message.content,
     };
   } catch (error) {
     logger.error(`Error testing OpenRouter model ${modelName}:`, error);
@@ -316,7 +312,7 @@ export async function testOpenRouterModel(
       message: formatApiError(error, 'OpenRouter'),
       model: modelName,
       provider: 'openrouter',
-      error
+      error,
     };
   }
 }
@@ -353,8 +349,7 @@ export async function testBestAvailableModel(): Promise<TestResult> {
   // No models available
   return {
     success: false,
-    message:
-      'No API keys found or all API tests failed. Please check your .env file and API keys.'
+    message: 'No API keys found or all API tests failed. Please check your .env file and API keys.',
   };
 }
 
@@ -366,7 +361,7 @@ export async function testBestAvailableModel(): Promise<TestResult> {
  */
 export async function findAvailableModelForProvider(
   provider: Provider,
-  modelOptions: string[]
+  modelOptions: string[],
 ): Promise<string | null> {
   logger.info(`Testing ${modelOptions.length} ${provider} models...`);
 

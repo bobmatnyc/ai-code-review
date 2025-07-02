@@ -1,15 +1,15 @@
 /**
  * @fileoverview Utility for consolidating multi-pass reviews into a single coherent review.
- * 
+ *
  * This module provides a dedicated function to consolidate multiple review passes
  * into a single, comprehensive review by sending the review content to the same AI model
  * that was used for the original review, ensuring consistency in analysis and tone.
  */
 
-import logger from '../logger';
-import { ReviewResult } from '../../types/review';
 import { ClientFactory } from '../../clients/factory/clientFactory';
+import type { ReviewResult } from '../../types/review';
 import { getConfig } from '../../utils/config';
+import logger from '../logger';
 
 /**
  * Consolidates a multi-pass review into a single coherent review using the
@@ -17,9 +17,7 @@ import { getConfig } from '../../utils/config';
  * @param review The multi-pass review content to consolidate
  * @returns Promise resolving to the consolidated review content
  */
-export async function consolidateReview(
-  review: ReviewResult
-): Promise<string> {
+export async function consolidateReview(review: ReviewResult): Promise<string> {
   try {
     logger.debug('[CONSOLIDATION] Starting consolidation with:', {
       hasContent: !!review.content,
@@ -27,43 +25,43 @@ export async function consolidateReview(
       projectName: review.projectName,
       modelUsed: review.modelUsed,
       reviewType: review.reviewType,
-      firstChars: review.content?.substring(0, 200) || 'N/A'
+      firstChars: review.content?.substring(0, 200) || 'N/A',
     });
-    
+
     // Use the writer model if configured, otherwise fall back to the main model
     const config = getConfig();
     const consolidationModel = config.writerModel || config.selectedModel;
-    
+
     logger.info(`Creating client with model ${consolidationModel} for consolidation`);
-    
+
     // Temporarily override the model environment variable for client initialization
     const originalModel = process.env.AI_CODE_REVIEW_MODEL;
     process.env.AI_CODE_REVIEW_MODEL = consolidationModel;
-    
+
     try {
       // Create and initialize the client with the consolidation model
       const client = ClientFactory.createClient(consolidationModel);
       logger.debug('[CONSOLIDATION] Created client:', {
         clientType: client.constructor.name,
-        model: consolidationModel
+        model: consolidationModel,
       });
       await client.initialize();
       logger.debug('[CONSOLIDATION] Client initialized successfully');
-      
+
       // Extract provider from the configured model
       // const [_provider] = consolidationModel.split(':'); // Not used in this implementation
-      
+
       // Create a consolidated prompt that includes the multi-pass results
       const consolidationSystemPrompt = getConsolidationSystemPrompt();
       const consolidationPrompt = getConsolidationPrompt(review);
-      
+
       logger.debug('[CONSOLIDATION] Prompts created:', {
         systemPromptLength: consolidationSystemPrompt.length,
-        userPromptLength: consolidationPrompt.length
+        userPromptLength: consolidationPrompt.length,
       });
-      
+
       logger.info(`Consolidating multi-pass review with ${consolidationModel}...`);
-      
+
       logger.debug('[CONSOLIDATION] Sending to generateConsolidatedReview with:', {
         filesCount: 1,
         fileName: 'MULTI_PASS_REVIEW.md',
@@ -77,37 +75,43 @@ export async function consolidateReview(
           isConsolidation: true,
           consolidationMode: true,
           skipFileContent: false,
-          interactive: false
-        }
+          interactive: false,
+        },
       });
-      
+
       // Make a direct API call with our custom prompts for consolidation
       // This is necessary because the standard generateConsolidatedReview doesn't support custom prompts
       const [provider, modelName] = consolidationModel.split(':');
-      
+
       if (provider === 'openai') {
         // Use direct OpenAI API call with custom prompts
         const apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
         if (!apiKey) {
           throw new Error('OpenAI API key not found');
         }
-        
+
         const { fetchWithRetry } = await import('../../clients/base/httpClient');
-        
-        const requestBody: { model: string; messages: Array<{ role: string; content: string }>; max_tokens?: number; max_completion_tokens?: number; temperature?: number } = {
+
+        const requestBody: {
+          model: string;
+          messages: Array<{ role: string; content: string }>;
+          max_tokens?: number;
+          max_completion_tokens?: number;
+          temperature?: number;
+        } = {
           model: modelName,
           messages: [
             {
               role: 'system',
-              content: consolidationSystemPrompt
+              content: consolidationSystemPrompt,
             },
             {
               role: 'user',
-              content: consolidationPrompt
-            }
-          ]
+              content: consolidationPrompt,
+            },
+          ],
         };
-        
+
         // Add appropriate max tokens parameter based on model
         if (modelName.startsWith('o3')) {
           requestBody.max_completion_tokens = 4096;
@@ -115,102 +119,103 @@ export async function consolidateReview(
           requestBody.max_tokens = 4096;
           requestBody.temperature = 0.2;
         }
-        
+
         logger.debug('[CONSOLIDATION] Making direct OpenAI API call with custom prompts');
-        
-        const response = await fetchWithRetry(
-          'https://api.openai.com/v1/chat/completions',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(requestBody)
-          }
-        );
-        
+
+        const response = await fetchWithRetry('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(requestBody),
+        });
+
         const data = await response.json();
-        
+
         if (!data.choices?.[0]?.message?.content) {
           throw new Error('Invalid API response');
         }
-        
+
         const consolidatedContent = data.choices[0].message.content;
-        
+
         logger.debug('[CONSOLIDATION] Received direct API response:', {
           contentLength: consolidatedContent.length,
-          firstChars: consolidatedContent.substring(0, 200)
+          firstChars: consolidatedContent.substring(0, 200),
         });
-        
+
         if (!consolidatedContent || consolidatedContent.trim() === '') {
           logger.warn('Received empty consolidation from direct API call');
           return createFallbackConsolidation(review);
         }
-        
+
         logger.info('Successfully consolidated review with AI using direct API call');
         return consolidatedContent;
-      } else {
-        // For non-OpenAI providers, we need to use a different approach
-        // We'll send the consolidation as a single review request with custom prompt
-        logger.info(`Using custom consolidation approach for ${provider} provider`);
-        
-        // Create a custom prompt that includes both system and user prompts
-        const fullConsolidationPrompt = `${consolidationSystemPrompt}
+      }
+      // For non-OpenAI providers, we need to use a different approach
+      // We'll send the consolidation as a single review request with custom prompt
+      logger.info(`Using custom consolidation approach for ${provider} provider`);
+
+      // Create a custom prompt that includes both system and user prompts
+      const fullConsolidationPrompt = `${consolidationSystemPrompt}
 
 ---
 
 ${consolidationPrompt}`;
-        
-        // For Gemini and other providers, we'll use generateReview with a special prompt
-        // This avoids the issue of the content being treated as source code
-        if (client.generateReview) {
-          logger.debug('[CONSOLIDATION] Using generateReview method with custom consolidation prompt');
-          
-          const consolidationResult = await client.generateReview(
-            fullConsolidationPrompt,  // Use our custom consolidation prompt as the file content
-            'CONSOLIDATION_TASK',      // Special file path to indicate this is a consolidation
-            'architectural',           // Use architectural review type as it's most comprehensive
-            null,                      // No project docs needed
-            {
-              type: 'architectural',
-              skipFileContent: true,   // Don't try to include file content in the prompt
-              isConsolidation: true,
-              includeTests: false,
-              output: 'markdown',
-              interactive: false
-            }
-          );
-          
-          return consolidationResult?.content || createFallbackConsolidation(review);
-        } else {
-          // If generateReview is not available, try a direct API approach
-          logger.warn(`Provider ${provider} does not support generateReview method, attempting direct API call`);
-          
-          // For now, fall back to the problematic approach with a warning
-          // TODO: Implement direct API calls for other providers
-          const consolidationResult = await client.generateConsolidatedReview(
-            [{
-              path: 'CONSOLIDATION_REQUEST.md',
-              relativePath: 'CONSOLIDATION_REQUEST.md', 
-              content: fullConsolidationPrompt
-            }],
-            review.projectName || 'ai-code-review',
-            'architectural', // Use architectural type
-            null,
-            {
-              type: 'architectural',
-              includeTests: false,
-              output: 'markdown',
-              isConsolidation: true,
-              skipFileContent: true,
-              interactive: false
-            }
-          );
-          
-          return consolidationResult?.content || createFallbackConsolidation(review);
-        }
+
+      // For Gemini and other providers, we'll use generateReview with a special prompt
+      // This avoids the issue of the content being treated as source code
+      if (client.generateReview) {
+        logger.debug(
+          '[CONSOLIDATION] Using generateReview method with custom consolidation prompt',
+        );
+
+        const consolidationResult = await client.generateReview(
+          fullConsolidationPrompt, // Use our custom consolidation prompt as the file content
+          'CONSOLIDATION_TASK', // Special file path to indicate this is a consolidation
+          'architectural', // Use architectural review type as it's most comprehensive
+          null, // No project docs needed
+          {
+            type: 'architectural',
+            skipFileContent: true, // Don't try to include file content in the prompt
+            isConsolidation: true,
+            includeTests: false,
+            output: 'markdown',
+            interactive: false,
+          },
+        );
+
+        return consolidationResult?.content || createFallbackConsolidation(review);
       }
+      // If generateReview is not available, try a direct API approach
+      logger.warn(
+        `Provider ${provider} does not support generateReview method, attempting direct API call`,
+      );
+
+      // For now, fall back to the problematic approach with a warning
+      // TODO: Implement direct API calls for other providers
+      const consolidationResult = await client.generateConsolidatedReview(
+        [
+          {
+            path: 'CONSOLIDATION_REQUEST.md',
+            relativePath: 'CONSOLIDATION_REQUEST.md',
+            content: fullConsolidationPrompt,
+          },
+        ],
+        review.projectName || 'ai-code-review',
+        'architectural', // Use architectural type
+        null,
+        {
+          type: 'architectural',
+          includeTests: false,
+          output: 'markdown',
+          isConsolidation: true,
+          skipFileContent: true,
+          interactive: false,
+        },
+      );
+
+      return consolidationResult?.content || createFallbackConsolidation(review);
     } finally {
       // Restore the original model environment variable
       if (originalModel !== undefined) {
@@ -220,11 +225,12 @@ ${consolidationPrompt}`;
       }
     }
   } catch (error) {
-    logger.error(`Error consolidating review: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error consolidating review: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return createFallbackConsolidation(review);
   }
 }
-
 
 /**
  * Creates a system prompt for review consolidation
@@ -285,7 +291,7 @@ function getConsolidationPrompt(review: ReviewResult): string {
   const passCount = review.costInfo?.passCount || 5;
   // const _fileCount = review.files?.length || 200; // Not used in this prompt
   const projectName = review.projectName || 'ai-code-review';
-  
+
   return `I have conducted a multi-pass code review of a project named "${projectName}" using the "${review.reviewType}" review type. The review was split into ${passCount} passes due to the size of the codebase.
 
 Here are the results from all passes:
@@ -318,97 +324,106 @@ IMPORTANT: Use the actual current date (${new Date().toLocaleDateString()}) in y
  */
 function createFallbackConsolidation(review: ReviewResult): string {
   logger.info('Creating fallback consolidation from multi-pass results...');
-  
+
   // Extract project name
   const projectName = review.projectName || 'ai-code-review';
-  
+
   // Extract key information from each pass - more flexible regex
   const passRegex = /## Pass (\d+): Review of (\d+) Files([\s\S]*?)(?=## Pass \d+:|$)/g;
-  const passes: { passNumber: number, fileCount: number, content: string }[] = [];
-  
+  const passes: { passNumber: number; fileCount: number; content: string }[] = [];
+
   let match;
   while ((match = passRegex.exec(review.content)) !== null) {
     const [, passNumberStr, fileCountStr, passContent] = match;
     passes.push({
       passNumber: parseInt(passNumberStr, 10),
       fileCount: parseInt(fileCountStr, 10),
-      content: passContent.trim()
+      content: passContent.trim(),
     });
   }
-  
+
   logger.debug(`Found ${passes.length} passes in multi-pass review`);
-  
+
   // Deduplicate findings across passes
   const highPriorityFindings = new Set<string>();
   const mediumPriorityFindings = new Set<string>();
   const lowPriorityFindings = new Set<string>();
-  
+
   // Regular expressions to extract findings from each pass - support multiple formats
   const highPriorityRegex = /### (?:High Priority|Critical Issues?)([\s\S]*?)(?=###|## Pass|$)/gi;
-  const mediumPriorityRegex = /### (?:Medium Priority|Important Issues?)([\s\S]*?)(?=###|## Pass|$)/gi;
+  const mediumPriorityRegex =
+    /### (?:Medium Priority|Important Issues?)([\s\S]*?)(?=###|## Pass|$)/gi;
   const lowPriorityRegex = /### (?:Low Priority|Minor Issues?)([\s\S]*?)(?=###|## Pass|$)/gi;
-  
+
   // Extract issue titles from content blocks - support multiple formats
   const extractIssueTitles = (content: string): string[] => {
     const titles: string[] = [];
-    
+
     // Format 1: - **Issue title:** <title>
     const issueTitleRegex1 = /- \*\*Issue title:\*\* (.*?)(?=\n|$)/g;
     let match1;
     while ((match1 = issueTitleRegex1.exec(content)) !== null) {
       titles.push(match1[1].trim());
     }
-    
+
     // Format 2: #### <title> (o3 format)
     const issueTitleRegex2 = /####\s+([^\n]+)/g;
     let match2;
     while ((match2 = issueTitleRegex2.exec(content)) !== null) {
       titles.push(match2[1].trim());
     }
-    
+
     // Format 3: Simple bullet points starting with issues
     const issueTitleRegex3 = /^[\s-]*\*?\s*(.+?)$/gm;
-    if (titles.length === 0) { // Only use this if no other format found
+    if (titles.length === 0) {
+      // Only use this if no other format found
       let match3;
       while ((match3 = issueTitleRegex3.exec(content)) !== null) {
         const line = match3[1].trim();
         // Filter out meta lines
-        if (line && !line.startsWith('Location:') && !line.startsWith('Type:') && 
-            !line.startsWith('Description:') && !line.startsWith('Impact:')) {
+        if (
+          line &&
+          !line.startsWith('Location:') &&
+          !line.startsWith('Type:') &&
+          !line.startsWith('Description:') &&
+          !line.startsWith('Impact:')
+        ) {
           titles.push(line);
         }
       }
     }
-    
+
     return titles;
   };
-  
+
   // Process each pass to extract findings
-  passes.forEach(pass => {
+  passes.forEach((pass) => {
     const passContent = pass.content;
-    
+
     // Extract findings by priority
     let highMatch;
     highPriorityRegex.lastIndex = 0; // Reset regex
     while ((highMatch = highPriorityRegex.exec(passContent)) !== null) {
-      extractIssueTitles(highMatch[1]).forEach(title => highPriorityFindings.add(title));
+      extractIssueTitles(highMatch[1]).forEach((title) => highPriorityFindings.add(title));
     }
-    
+
     let mediumMatch;
     mediumPriorityRegex.lastIndex = 0; // Reset regex
     while ((mediumMatch = mediumPriorityRegex.exec(passContent)) !== null) {
-      extractIssueTitles(mediumMatch[1]).forEach(title => mediumPriorityFindings.add(title));
+      extractIssueTitles(mediumMatch[1]).forEach((title) => mediumPriorityFindings.add(title));
     }
-    
+
     let lowMatch;
     lowPriorityRegex.lastIndex = 0; // Reset regex
     while ((lowMatch = lowPriorityRegex.exec(passContent)) !== null) {
-      extractIssueTitles(lowMatch[1]).forEach(title => lowPriorityFindings.add(title));
+      extractIssueTitles(lowMatch[1]).forEach((title) => lowPriorityFindings.add(title));
     }
   });
-  
-  logger.debug(`Extracted findings - High: ${highPriorityFindings.size}, Medium: ${mediumPriorityFindings.size}, Low: ${lowPriorityFindings.size}`);
-  
+
+  logger.debug(
+    `Extracted findings - High: ${highPriorityFindings.size}, Medium: ${mediumPriorityFindings.size}, Low: ${lowPriorityFindings.size}`,
+  );
+
   // Create a consolidated review
   return `# Consolidated ${review.reviewType.charAt(0).toUpperCase() + review.reviewType.slice(1)} Review Report: ${projectName}
 
@@ -440,15 +455,21 @@ Based on the identified issues, the codebase receives the following grades:
 
 ## Critical Issues (High Priority)
 
-${Array.from(highPriorityFindings).map(issue => `- ${issue}`).join('\n')}
+${Array.from(highPriorityFindings)
+  .map((issue) => `- ${issue}`)
+  .join('\n')}
 
 ## Important Issues (Medium Priority)
 
-${Array.from(mediumPriorityFindings).map(issue => `- ${issue}`).join('\n')}
+${Array.from(mediumPriorityFindings)
+  .map((issue) => `- ${issue}`)
+  .join('\n')}
 
 ## Minor Issues (Low Priority)
 
-${Array.from(lowPriorityFindings).map(issue => `- ${issue}`).join('\n')}
+${Array.from(lowPriorityFindings)
+  .map((issue) => `- ${issue}`)
+  .join('\n')}
 
 ## Recommendations
 

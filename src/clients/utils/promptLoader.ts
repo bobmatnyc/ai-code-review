@@ -11,8 +11,8 @@
  * This module is a compatibility layer that uses the PromptManager internally.
  */
 
-import { ReviewType, ReviewOptions } from '../../types/review';
 import { PromptManager } from '../../prompts/PromptManager';
+import type { ReviewOptions, ReviewType } from '../../types/review';
 
 /**
  * Load a prompt template
@@ -29,7 +29,7 @@ import { PromptManager } from '../../prompts/PromptManager';
  */
 export async function loadPromptTemplate(
   reviewType: ReviewType,
-  languageOrOptions?: string | ReviewOptions
+  languageOrOptions?: string | ReviewOptions,
 ): Promise<string> {
   // Get the prompt manager instance
   const promptManager = PromptManager.getInstance();
@@ -42,7 +42,7 @@ export async function loadPromptTemplate(
       language: languageOrOptions as any,
       type: 'quick-fixes',
       includeTests: false,
-      output: 'markdown'
+      output: 'markdown',
     };
   } else {
     options = languageOrOptions;

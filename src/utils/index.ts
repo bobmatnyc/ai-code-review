@@ -6,34 +6,31 @@
  * throughout the application.
  */
 
-// Core utilities
-export * from './logger';
-export * from './envLoader';
-export * from './config';
-export * from './fileSystem';
-export * from './priorityFilter';
-export * from './pathValidator';
-export * from './fileFilters';
-export * from './smartFileSelector';
-// export * from './fileSystemUtils'; // Commented out due to conflicts with fileSystem.ts
-export * from './projectDocs';
-
 // API utilities
 export * from './api';
+export * from './config';
+export * from './envLoader';
+export * from './fileFilters';
+export * from './fileSystem';
+// Core utilities
+export * from './logger';
+export * from './pathValidator';
+export * from './priorityFilter';
+// export * from './fileSystemUtils'; // Commented out due to conflicts with fileSystem.ts
+export * from './projectDocs';
+export * from './smartFileSelector';
 
 // File utilities (moved to main utils directory)
 // export * from './files'; // Deprecated - files moved to main utils
 
-// Parsing utilities (moved to main utils directory)
-export * from './reviewParser';
-export * from './sanitizer';
-
-// Template utilities (moved from templates directory)
-export * from './promptTemplateManager';
-export * from './templateLoader';
-
+// Re-export types
+export * from '../types/review';
 // Detection utilities
 export * from './detection';
 
-// Re-export types
-export * from '../types/review';
+// Template utilities (moved from templates directory)
+export * from './promptTemplateManager';
+// Parsing utilities (moved to main utils directory)
+export * from './reviewParser';
+export * from './sanitizer';
+export * from './templateLoader';

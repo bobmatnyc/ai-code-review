@@ -5,9 +5,8 @@
  * including API key management, request formatting, and response processing.
  */
 
-import { getApiKeyForProvider } from '../config';
+import { getApiKeyForProvider, getConfig } from '../config';
 import logger from '../logger';
-import { getConfig } from '../config';
 
 /**
  * Check if an API key is available for a specific provider
@@ -45,22 +44,20 @@ export function hasApiKey(provider: string): boolean {
  * // If no model is specified but Anthropic API key is available
  * getApiKeyType() // Returns 'Anthropic'
  */
-export function getApiKeyType():
-  | 'OpenRouter'
-  | 'Google'
-  | 'Anthropic'
-  | 'OpenAI'
-  | null {
+export function getApiKeyType(): 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI' | null {
   // Get configuration from the centralized config module
   const config = getConfig();
 
   // Get the model adapter from the configuration
   const selectedModel = config.selectedModel;
   // Default to 'gemini' if no adapter is specified
-  const adapter = selectedModel && selectedModel.includes(':')
-    ? selectedModel.split(':')[0].toLowerCase() // Normalize to lowercase
-    : 'gemini';
-  
+  const adapter =
+    selectedModel && selectedModel.includes(':')
+      ? selectedModel
+          .split(':')[0]
+          .toLowerCase() // Normalize to lowercase
+      : 'gemini';
+
   // Add debug logging to track model selection
   logger.debug(`getApiKeyType: selectedModel=${selectedModel}, adapter=${adapter}`);
 
@@ -85,7 +82,7 @@ export function getApiKeyType():
   // If no specific adapter is specified or the adapter wasn't recognized,
   // check if any API keys are available
   logger.debug('getApiKeyType: No recognized adapter, checking available API keys');
-  
+
   // Check for any available API keys
   if (config.googleApiKey) {
     logger.debug('getApiKeyType: Found Google API key');
@@ -111,7 +108,7 @@ export function getApiKeyType():
 
 /**
  * Get the API key type based on available environment variables (lowercase version)
- * 
+ *
  * This is an alternative version of getApiKeyType that returns lowercase strings
  * and 'none' instead of null. This function is maintained for internal usage
  * within the api utilities module.
@@ -127,15 +124,17 @@ export function getApiKeyTypeLowerCase():
   | 'none' {
   if (hasApiKey('gemini')) {
     return 'google';
-  } else if (hasApiKey('openrouter')) {
-    return 'openrouter';
-  } else if (hasApiKey('anthropic')) {
-    return 'anthropic';
-  } else if (hasApiKey('openai')) {
-    return 'openai';
-  } else {
-    return 'none';
   }
+  if (hasApiKey('openrouter')) {
+    return 'openrouter';
+  }
+  if (hasApiKey('anthropic')) {
+    return 'anthropic';
+  }
+  if (hasApiKey('openai')) {
+    return 'openai';
+  }
+  return 'none';
 }
 
 /**
@@ -165,19 +164,14 @@ export function formatApiError(error: any, provider: string): string {
   // Check for common API errors
   if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
     return `${provider} API key is invalid or expired. Please check your API key.`;
-  } else if (
-    errorMessage.includes('429') ||
-    errorMessage.includes('rate limit')
-  ) {
-    return `${provider} API rate limit exceeded. Please try again later.`;
-  } else if (
-    errorMessage.includes('500') ||
-    errorMessage.includes('server error')
-  ) {
-    return `${provider} API server error. Please try again later.`;
-  } else {
-    return `${provider} API error: ${errorMessage}`;
   }
+  if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+    return `${provider} API rate limit exceeded. Please try again later.`;
+  }
+  if (errorMessage.includes('500') || errorMessage.includes('server error')) {
+    return `${provider} API server error. Please try again later.`;
+  }
+  return `${provider} API error: ${errorMessage}`;
 }
 
 /**
@@ -200,11 +194,7 @@ export function formatApiError(error: any, provider: string): string {
  *   apiKey: 'sk-1234' // This will be redacted in the logs
  * });
  */
-export function logApiRequest(
-  provider: string,
-  endpoint: string,
-  params: any
-): void {
+export function logApiRequest(provider: string, endpoint: string, params: any): void {
   // Clone the params to avoid modifying the original
   const redactedParams = { ...params };
 

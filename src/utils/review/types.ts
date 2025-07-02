@@ -1,6 +1,6 @@
 /**
  * @fileoverview Type definitions for review action modules
- * 
+ *
  * This module provides shared types used across the review action modules.
  */
 
@@ -10,7 +10,7 @@
 export enum FixPriority {
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 /**

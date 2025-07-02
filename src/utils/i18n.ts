@@ -6,11 +6,11 @@
  * resources, and provides utility functions for translating text.
  */
 
+import fs from 'fs';
 import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import ICU from 'i18next-icu';
 import path from 'path';
-import fs from 'fs';
 
 // Default language
 const DEFAULT_LANGUAGE = 'en';
@@ -23,9 +23,7 @@ export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'de', 'ja'];
  * @param lng Language code to use
  * @returns Promise that resolves when i18next is initialized
  */
-export async function initI18n(
-  lng: string = DEFAULT_LANGUAGE
-): Promise<typeof i18next> {
+export async function initI18n(lng: string = DEFAULT_LANGUAGE): Promise<typeof i18next> {
   // Ensure the language is supported, fallback to default if not
   const language = SUPPORTED_LANGUAGES.includes(lng) ? lng : DEFAULT_LANGUAGE;
 
@@ -46,11 +44,11 @@ export async function initI18n(
           if (format === 'uppercase') return value.toUpperCase();
           if (format === 'lowercase') return value.toLowerCase();
           return value;
-        }
+        },
       },
       backend: {
-        loadPath: path.join(localesPath, '{{lng}}/{{ns}}.json')
-      }
+        loadPath: path.join(localesPath, '{{lng}}/{{ns}}.json'),
+      },
       // Add any additional configuration here
     });
 
@@ -69,7 +67,7 @@ function getLocalesPath(): string {
     // For npm package
     path.resolve(__dirname, '..', '..', 'locales'),
     // For global installation
-    path.resolve(__dirname, '..', '..', '..', 'locales')
+    path.resolve(__dirname, '..', '..', '..', 'locales'),
   ];
 
   for (const p of possiblePaths) {
@@ -95,14 +93,14 @@ export function t(key: string, options?: Record<string, any>): string {
       // Return a fallback message
       return options?.message || key;
     }
-    
+
     const translated = i18next.t(key, options);
-    
+
     // If translation returns the key itself or undefined, use fallback
     if (!translated || translated === key || translated === 'undefined') {
       return options?.message || key;
     }
-    
+
     return translated;
   } catch (error) {
     // In case of any error, return a fallback
@@ -125,9 +123,7 @@ export function getCurrentLanguage(): string {
  */
 export async function changeLanguage(lng: string): Promise<void> {
   if (!SUPPORTED_LANGUAGES.includes(lng)) {
-    console.warn(
-      `Language ${lng} is not supported. Using ${DEFAULT_LANGUAGE} instead.`
-    );
+    console.warn(`Language ${lng} is not supported. Using ${DEFAULT_LANGUAGE} instead.`);
     lng = DEFAULT_LANGUAGE;
   }
 

@@ -5,9 +5,9 @@
  * that include detailed evidence of why each element is considered unused.
  */
 
-import {
+import type {
   CodeTracingUnusedCodeReview,
-  TracedUnusedElement
+  TracedUnusedElement,
 } from '../prompts/schemas/code-tracing-unused-code-schema';
 
 /**
@@ -16,7 +16,7 @@ import {
  * @returns Formatted markdown
  */
 export function formatCodeTracingUnusedCodeReviewAsMarkdown(
-  review: CodeTracingUnusedCodeReview
+  review: CodeTracingUnusedCodeReview,
 ): string {
   // Build the header
   let markdown = '# Code Tracing Unused Code Detection Report\n\n';
@@ -52,15 +52,9 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
       'The following files are never imported or used anywhere in the codebase and can be safely removed:\n\n';
 
     // Group by confidence
-    const highConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'high'
-    );
-    const mediumConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'medium'
-    );
-    const lowConfidence = review.unusedFiles.filter(
-      file => file.confidence === 'low'
-    );
+    const highConfidence = review.unusedFiles.filter((file) => file.confidence === 'high');
+    const mediumConfidence = review.unusedFiles.filter((file) => file.confidence === 'medium');
+    const lowConfidence = review.unusedFiles.filter((file) => file.confidence === 'low');
 
     if (highConfidence.length > 0) {
       markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
@@ -85,15 +79,9 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
       'The following functions are never called in the codebase and can be safely removed:\n\n';
 
     // Group by confidence
-    const highConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'high'
-    );
-    const mediumConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'medium'
-    );
-    const lowConfidence = review.unusedFunctions.filter(
-      func => func.confidence === 'low'
-    );
+    const highConfidence = review.unusedFunctions.filter((func) => func.confidence === 'high');
+    const mediumConfidence = review.unusedFunctions.filter((func) => func.confidence === 'medium');
+    const lowConfidence = review.unusedFunctions.filter((func) => func.confidence === 'low');
 
     if (highConfidence.length > 0) {
       markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
@@ -118,15 +106,9 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
       'The following classes are never instantiated in the codebase and can be safely removed:\n\n';
 
     // Group by confidence
-    const highConfidence = review.unusedClasses.filter(
-      cls => cls.confidence === 'high'
-    );
-    const mediumConfidence = review.unusedClasses.filter(
-      cls => cls.confidence === 'medium'
-    );
-    const lowConfidence = review.unusedClasses.filter(
-      cls => cls.confidence === 'low'
-    );
+    const highConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'high');
+    const mediumConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'medium');
+    const lowConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'low');
 
     if (highConfidence.length > 0) {
       markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
@@ -152,13 +134,13 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
 
     // Group by confidence
     const highConfidence = review.unusedTypesAndInterfaces.filter(
-      type => type.confidence === 'high'
+      (type) => type.confidence === 'high',
     );
     const mediumConfidence = review.unusedTypesAndInterfaces.filter(
-      type => type.confidence === 'medium'
+      (type) => type.confidence === 'medium',
     );
     const lowConfidence = review.unusedTypesAndInterfaces.filter(
-      type => type.confidence === 'low'
+      (type) => type.confidence === 'low',
     );
 
     if (highConfidence.length > 0) {
@@ -180,19 +162,14 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
   // Dead Code Branches Section
   if (review.deadCodeBranches.length > 0) {
     markdown += '## Dead Code Branches\n\n';
-    markdown +=
-      'The following code branches can never execute and can be safely removed:\n\n';
+    markdown += 'The following code branches can never execute and can be safely removed:\n\n';
 
     // Group by confidence
-    const highConfidence = review.deadCodeBranches.filter(
-      branch => branch.confidence === 'high'
-    );
+    const highConfidence = review.deadCodeBranches.filter((branch) => branch.confidence === 'high');
     const mediumConfidence = review.deadCodeBranches.filter(
-      branch => branch.confidence === 'medium'
+      (branch) => branch.confidence === 'medium',
     );
-    const lowConfidence = review.deadCodeBranches.filter(
-      branch => branch.confidence === 'low'
-    );
+    const lowConfidence = review.deadCodeBranches.filter((branch) => branch.confidence === 'low');
 
     if (highConfidence.length > 0) {
       markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
@@ -218,13 +195,13 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
 
     // Group by confidence
     const highConfidence = review.unusedVariablesAndImports.filter(
-      variable => variable.confidence === 'high'
+      (variable) => variable.confidence === 'high',
     );
     const mediumConfidence = review.unusedVariablesAndImports.filter(
-      variable => variable.confidence === 'medium'
+      (variable) => variable.confidence === 'medium',
     );
     const lowConfidence = review.unusedVariablesAndImports.filter(
-      variable => variable.confidence === 'low'
+      (variable) => variable.confidence === 'low',
     );
 
     if (highConfidence.length > 0) {
@@ -251,9 +228,7 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
  * @param elements Elements to format
  * @returns Formatted markdown checklist
  */
-function formatTracedElementsAsChecklist(
-  elements: TracedUnusedElement[]
-): string {
+function formatTracedElementsAsChecklist(elements: TracedUnusedElement[]): string {
   let markdown = '';
 
   // Group by file
@@ -308,15 +283,13 @@ function formatTracedElementsAsChecklist(
         // If the snippet already contains markdown code blocks, extract just the code
         if (snippet.startsWith('```') && snippet.endsWith('```')) {
           // Extract the code between the markdown code block delimiters
-          snippet = snippet
-            .substring(snippet.indexOf('\n') + 1, snippet.lastIndexOf('```'))
-            .trim();
+          snippet = snippet.substring(snippet.indexOf('\n') + 1, snippet.lastIndexOf('```')).trim();
         }
 
         // Ensure proper indentation for markdown
         snippet = snippet
           .split('\n')
-          .map(line => `  ${line}`)
+          .map((line) => `  ${line}`)
           .join('\n');
 
         markdown += '  ```\n';
@@ -338,8 +311,7 @@ function formatTracedElementsAsChecklist(
         markdown += '    - **Exports**:\n';
         for (const exportInfo of element.evidence.exports) {
           // Format export location with proper handling for missing line numbers
-          const exportLine =
-            exportInfo.line && exportInfo.line > 0 ? `:${exportInfo.line}` : '';
+          const exportLine = exportInfo.line && exportInfo.line > 0 ? `:${exportInfo.line}` : '';
           markdown += `      - ${exportInfo.exportType} export in ${exportInfo.file}${exportLine}\n`;
         }
       }
@@ -398,7 +370,7 @@ function formatElementType(elementType: string): string {
     enum: 'Enum',
     export: 'Export',
     hook: 'React Hook',
-    component: 'React Component'
+    component: 'React Component',
   };
 
   return mapping[elementType] || elementType;
@@ -409,23 +381,19 @@ function formatElementType(elementType: string): string {
  * @param review The review to format
  * @returns Shell script for removing unused code
  */
-export function generateCodeTracingRemovalScript(
-  review: CodeTracingUnusedCodeReview
-): string {
+export function generateCodeTracingRemovalScript(review: CodeTracingUnusedCodeReview): string {
   let script = '#!/bin/bash\n\n';
   script +=
     '# Script generated by AI Code Review to remove unused code identified through code tracing\n';
-  script +=
-    '# WARNING: This script should be carefully reviewed before execution\n';
+  script += '# WARNING: This script should be carefully reviewed before execution\n';
   script += '# RECOMMENDED: Create a git branch before running this script\n\n';
 
-  script +=
-    'echo "This script will remove unused code identified through deep code tracing."\n\n';
+  script += 'echo "This script will remove unused code identified through deep code tracing."\n\n';
 
   // Only include high confidence issues for the removal script
   const highConfidenceFiles = review.unusedFiles
-    .filter(file => file.confidence === 'high')
-    .map(file => {
+    .filter((file) => file.confidence === 'high')
+    .map((file) => {
       // Clean filePath - remove any ":N/A" suffixes or patterns that might appear
       let cleanFilePath = file.filePath;
 
@@ -458,16 +426,14 @@ export function generateCodeTracingRemovalScript(
   // This uses sed to remove specific line ranges
 
   const highConfidenceFunctions = review.unusedFunctions.filter(
-    func => func.confidence === 'high'
+    (func) => func.confidence === 'high',
   );
-  const highConfidenceClasses = review.unusedClasses.filter(
-    cls => cls.confidence === 'high'
-  );
+  const highConfidenceClasses = review.unusedClasses.filter((cls) => cls.confidence === 'high');
   const highConfidenceTypes = review.unusedTypesAndInterfaces.filter(
-    type => type.confidence === 'high'
+    (type) => type.confidence === 'high',
   );
   const highConfidenceBranches = review.deadCodeBranches.filter(
-    branch => branch.confidence === 'high'
+    (branch) => branch.confidence === 'high',
   );
 
   // Group all elements by file for targeted removal
@@ -522,11 +488,9 @@ export function generateCodeTracingRemovalScript(
   // This ensures we remove from bottom to top to avoid changing line numbers
   for (const filePath in elementsByFile) {
     // Clean the file path for comparison
-    const cleanPath = filePath.endsWith(':N/A')
-      ? filePath.replace(':N/A', '')
-      : filePath;
+    const cleanPath = filePath.endsWith(':N/A') ? filePath.replace(':N/A', '') : filePath;
 
-    if (highConfidenceFiles.find(file => file.filePath === cleanPath)) {
+    if (highConfidenceFiles.find((file) => file.filePath === cleanPath)) {
       // Skip files that will be removed entirely
       continue;
     }
@@ -541,11 +505,9 @@ export function generateCodeTracingRemovalScript(
 
     for (const [filePath, elements] of Object.entries(elementsByFile)) {
       // Clean the file path for comparison
-      const cleanPath = filePath.endsWith(':N/A')
-        ? filePath.replace(':N/A', '')
-        : filePath;
+      const cleanPath = filePath.endsWith(':N/A') ? filePath.replace(':N/A', '') : filePath;
 
-      if (highConfidenceFiles.find(file => file.filePath === cleanPath)) {
+      if (highConfidenceFiles.find((file) => file.filePath === cleanPath)) {
         // Skip files that will be removed entirely
         continue;
       }
@@ -581,5 +543,5 @@ export function generateCodeTracingRemovalScript(
 
 export default {
   formatCodeTracingUnusedCodeReviewAsMarkdown,
-  generateCodeTracingRemovalScript
+  generateCodeTracingRemovalScript,
 };

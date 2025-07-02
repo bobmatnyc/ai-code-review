@@ -6,8 +6,8 @@
  * comprehensive statistics for reporting.
  */
 
-import { countTokens } from '../../tokenizers';
 import { calculateCost, formatCost } from '../../clients/utils/tokenCounter';
+import { countTokens } from '../../tokenizers';
 import logger from '../../utils/logger';
 
 /**
@@ -95,11 +95,11 @@ export class TokenTracker {
   /** Context maintenance factor used in multi-pass reviews */
   private contextMaintenanceFactor: number;
   /** Whether the tracker is active */
-  private isActive: boolean = true;
+  private isActive = true;
   /** Pass currently being tracked */
-  private currentPass: number = 0;
+  private currentPass = 0;
   /** Current pass start time */
-  private currentPassStartTime: number = 0;
+  private currentPassStartTime = 0;
   // We don't need to track this separately as it's already stored in passTokenUsage
 
   /**
@@ -107,14 +107,13 @@ export class TokenTracker {
    * @param modelName Model name
    * @param contextMaintenanceFactor Context maintenance factor (0-1)
    */
-  constructor(
-    modelName: string,
-    contextMaintenanceFactor: number = 0.15
-  ) {
+  constructor(modelName: string, contextMaintenanceFactor = 0.15) {
     this.startTime = Date.now();
     this.modelName = modelName;
     this.contextMaintenanceFactor = contextMaintenanceFactor;
-    logger.debug(`Initialized TokenTracker for model: ${modelName} with context maintenance factor: ${contextMaintenanceFactor}`);
+    logger.debug(
+      `Initialized TokenTracker for model: ${modelName} with context maintenance factor: ${contextMaintenanceFactor}`,
+    );
   }
 
   /**
@@ -123,7 +122,7 @@ export class TokenTracker {
    * @param files Files being processed in this pass
    * @param isConsolidation Whether this is a consolidation pass
    */
-  public startPass(passNumber: number, files: string[], isConsolidation: boolean = false): void {
+  public startPass(passNumber: number, files: string[], isConsolidation = false): void {
     if (!this.isActive) {
       logger.warn('TokenTracker is not active, cannot start new pass');
       return;
@@ -131,19 +130,19 @@ export class TokenTracker {
 
     this.currentPass = passNumber;
     this.currentPassStartTime = Date.now();
-    
+
     logger.debug(`TokenTracker: Started tracking pass ${passNumber} with ${files.length} files`);
-    
+
     // Initialize the pass token usage with all required properties
     this.passTokenUsage[passNumber - 1] = {
-      passNumber: passNumber,  // Explicit assignment to avoid type issues
+      passNumber: passNumber, // Explicit assignment to avoid type issues
       inputTokens: 0,
       outputTokens: 0,
       totalTokens: 0,
       estimatedCost: 0,
       timeTakenMs: 0,
       files: [...files],
-      isConsolidation: isConsolidation
+      isConsolidation: isConsolidation,
     };
   }
 
@@ -157,7 +156,7 @@ export class TokenTracker {
   public recordTokenUsage(
     inputText: string,
     outputText: string,
-    passNumber: number = this.currentPass
+    passNumber: number = this.currentPass,
   ): PassTokenUsage {
     if (!this.isActive) {
       logger.warn('TokenTracker is not active, cannot record token usage');
@@ -170,7 +169,7 @@ export class TokenTracker {
         estimatedCost: 0,
         timeTakenMs: 0,
         files: [],
-        isConsolidation: false
+        isConsolidation: false,
       };
     }
 
@@ -184,7 +183,7 @@ export class TokenTracker {
         estimatedCost: 0,
         timeTakenMs: 0,
         files: [],
-        isConsolidation: false
+        isConsolidation: false,
       };
     }
 
@@ -193,7 +192,7 @@ export class TokenTracker {
     const outputTokens = countTokens(outputText, this.modelName);
     const totalTokens = inputTokens + outputTokens;
     const estimatedCost = calculateCost(inputTokens, outputTokens, this.modelName);
-    
+
     // Update the pass token usage
     const passUsage = this.passTokenUsage[passNumber - 1];
     if (passUsage) {
@@ -201,7 +200,7 @@ export class TokenTracker {
       passUsage.outputTokens += outputTokens;
       passUsage.totalTokens += totalTokens;
       passUsage.estimatedCost += estimatedCost;
-      
+
       // Calculate time taken if this is the current pass
       if (passNumber === this.currentPass) {
         passUsage.timeTakenMs = Date.now() - this.currentPassStartTime;
@@ -210,18 +209,22 @@ export class TokenTracker {
       logger.warn(`Pass ${passNumber} does not exist in TokenTracker during token recording`);
     }
 
-    logger.debug(`TokenTracker: Recorded ${inputTokens} input, ${outputTokens} output tokens for pass ${passNumber}`);
-    
-    return passUsage ? { ...passUsage } : {
-      passNumber: passNumber,
-      inputTokens: 0,
-      outputTokens: 0,
-      totalTokens: 0,
-      estimatedCost: 0,
-      timeTakenMs: 0,
-      files: [],
-      isConsolidation: false
-    };
+    logger.debug(
+      `TokenTracker: Recorded ${inputTokens} input, ${outputTokens} output tokens for pass ${passNumber}`,
+    );
+
+    return passUsage
+      ? { ...passUsage }
+      : {
+          passNumber: passNumber,
+          inputTokens: 0,
+          outputTokens: 0,
+          totalTokens: 0,
+          estimatedCost: 0,
+          timeTakenMs: 0,
+          files: [],
+          isConsolidation: false,
+        };
   }
 
   /**
@@ -241,7 +244,7 @@ export class TokenTracker {
         estimatedCost: 0,
         timeTakenMs: 0,
         files: [],
-        isConsolidation: false
+        isConsolidation: false,
       };
     }
 
@@ -256,7 +259,7 @@ export class TokenTracker {
         estimatedCost: 0,
         timeTakenMs: 0,
         files: [],
-        isConsolidation: false
+        isConsolidation: false,
       };
     }
 
@@ -265,23 +268,26 @@ export class TokenTracker {
     if (passUsage) {
       passUsage.timeTakenMs = Date.now() - this.currentPassStartTime;
 
-      logger.info(`TokenTracker: Completed pass ${passNumber} with ${passUsage.totalTokens} tokens (${passUsage.inputTokens} input, ${passUsage.outputTokens} output)`);
-      logger.info(`TokenTracker: Pass ${passNumber} estimated cost: ${formatCost(passUsage.estimatedCost)}`);
-      
+      logger.info(
+        `TokenTracker: Completed pass ${passNumber} with ${passUsage.totalTokens} tokens (${passUsage.inputTokens} input, ${passUsage.outputTokens} output)`,
+      );
+      logger.info(
+        `TokenTracker: Pass ${passNumber} estimated cost: ${formatCost(passUsage.estimatedCost)}`,
+      );
+
       return { ...passUsage };
-    } else {
-      logger.warn(`Pass ${passNumber} does not exist in TokenTracker during completion`);
-      return {
-        passNumber: passNumber,
-        inputTokens: 0,
-        outputTokens: 0,
-        totalTokens: 0,
-        estimatedCost: 0,
-        timeTakenMs: 0,
-        files: [],
-        isConsolidation: false
-      };
     }
+    logger.warn(`Pass ${passNumber} does not exist in TokenTracker during completion`);
+    return {
+      passNumber: passNumber,
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      estimatedCost: 0,
+      timeTakenMs: 0,
+      files: [],
+      isConsolidation: false,
+    };
   }
 
   /**
@@ -297,11 +303,11 @@ export class TokenTracker {
 
     // The consolidation pass is always the last pass + 1
     const consolidationPassNumber = this.passTokenUsage.length + 1;
-    
+
     this.startPass(consolidationPassNumber, files, true);
-    
+
     logger.info(`TokenTracker: Started consolidation pass ${consolidationPassNumber}`);
-    
+
     return consolidationPassNumber;
   }
 
@@ -320,26 +326,26 @@ export class TokenTracker {
    */
   public getConsolidatedTokenUsage(): ConsolidatedTokenUsage {
     const passTokenUsage = [...this.passTokenUsage];
-    
+
     // Calculate totals
     const totalInputTokens = passTokenUsage.reduce((sum, pass) => sum + pass.inputTokens, 0);
     const totalOutputTokens = passTokenUsage.reduce((sum, pass) => sum + pass.outputTokens, 0);
     const totalTokens = totalInputTokens + totalOutputTokens;
     const totalEstimatedCost = passTokenUsage.reduce((sum, pass) => sum + pass.estimatedCost, 0);
     const totalTimeTakenMs = passTokenUsage.reduce((sum, pass) => sum + pass.timeTakenMs, 0);
-    
+
     // Calculate unique files (files may appear in multiple passes due to context maintenance)
     const uniqueFiles = new Set<string>();
-    passTokenUsage.forEach(pass => {
-      pass.files.forEach(file => uniqueFiles.add(file));
+    passTokenUsage.forEach((pass) => {
+      pass.files.forEach((file) => uniqueFiles.add(file));
     });
-    
+
     const totalFiles = uniqueFiles.size;
     const averageTokensPerFile = totalFiles > 0 ? totalTokens / totalFiles : 0;
-    
+
     // Check if a consolidation pass was included
-    const includedConsolidation = passTokenUsage.some(pass => pass.isConsolidation);
-    
+    const includedConsolidation = passTokenUsage.some((pass) => pass.isConsolidation);
+
     return {
       totalInputTokens,
       totalOutputTokens,
@@ -353,7 +359,7 @@ export class TokenTracker {
       passCount: passTokenUsage.length,
       contextMaintenanceFactor: this.contextMaintenanceFactor,
       modelName: this.modelName,
-      includedConsolidation
+      includedConsolidation,
     };
   }
 
@@ -364,34 +370,33 @@ export class TokenTracker {
   public getTokenStatistics(): TokenStatistics {
     const consolidated = this.getConsolidatedTokenUsage();
     const elapsedTimeSeconds = (Date.now() - this.startTime) / 1000;
-    
+
     // Calculate token rate
     const currentPassUsage = this.getPassTokenUsage(this.currentPass);
     const currentPassTimeSeconds = currentPassUsage ? currentPassUsage.timeTakenMs / 1000 : 0;
-    const currentTokenRate = currentPassTimeSeconds > 0 && currentPassUsage 
-      ? currentPassUsage.totalTokens / currentPassTimeSeconds 
-      : 0;
-    
-    const averageTokenRate = elapsedTimeSeconds > 0 
-      ? consolidated.totalTokens / elapsedTimeSeconds 
-      : 0;
-    
+    const currentTokenRate =
+      currentPassTimeSeconds > 0 && currentPassUsage
+        ? currentPassUsage.totalTokens / currentPassTimeSeconds
+        : 0;
+
+    const averageTokenRate =
+      elapsedTimeSeconds > 0 ? consolidated.totalTokens / elapsedTimeSeconds : 0;
+
     // Estimate tokens remaining (very rough estimate)
     // In a real implementation, we would have better metrics based on the review type and files
     const estimatedTokensRemaining = 0; // Not implemented yet
-    
+
     // Estimate time remaining
-    const estimatedTimeRemainingMs = averageTokenRate > 0 
-      ? (estimatedTokensRemaining / averageTokenRate) * 1000 
-      : 0;
-    
+    const estimatedTimeRemainingMs =
+      averageTokenRate > 0 ? (estimatedTokensRemaining / averageTokenRate) * 1000 : 0;
+
     return {
       currentTokenRate,
       averageTokenRate,
       estimatedTokensRemaining,
       estimatedTimeRemainingMs,
       estimatedCostSoFar: consolidated.totalEstimatedCost,
-      formattedEstimatedCostSoFar: consolidated.formattedTotalCost
+      formattedEstimatedCostSoFar: consolidated.formattedTotalCost,
     };
   }
 
@@ -401,7 +406,7 @@ export class TokenTracker {
    */
   public generateTokenUsageReport(): string {
     const consolidated = this.getConsolidatedTokenUsage();
-    
+
     // Format times
     const formatTime = (ms: number): string => {
       const seconds = Math.floor(ms / 1000);
@@ -409,7 +414,7 @@ export class TokenTracker {
       const remainingSeconds = seconds % 60;
       return `${minutes}m ${remainingSeconds}s`;
     };
-    
+
     let report = `## Token Usage Report
 
 ### Overview
@@ -425,19 +430,19 @@ export class TokenTracker {
 | Pass | Files | Input Tokens | Output Tokens | Total Tokens | Cost | Time |
 |------|-------|--------------|---------------|--------------|------|------|
 `;
-    
+
     // Add each pass to the report
-    consolidated.passTokenUsage.forEach(pass => {
+    consolidated.passTokenUsage.forEach((pass) => {
       report += `| ${pass.passNumber}${pass.isConsolidation ? ' (Consolidation)' : ''} | ${pass.files.length} | ${pass.inputTokens.toLocaleString()} | ${pass.outputTokens.toLocaleString()} | ${pass.totalTokens.toLocaleString()} | ${formatCost(pass.estimatedCost)} | ${formatTime(pass.timeTakenMs)} |\n`;
     });
-    
+
     // Add token rate information
     const stats = this.getTokenStatistics();
     report += `\n### Performance
 - **Average Token Rate**: ${stats.averageTokenRate.toFixed(2)} tokens/second
 - **Average Cost Rate**: $${(stats.estimatedCostSoFar / (consolidated.totalTimeTakenMs / 1000)).toFixed(6)}/second
 `;
-    
+
     return report;
   }
 

@@ -32,33 +32,30 @@ export class OpenRouterTokenEstimator extends AbstractTokenEstimator {
    * Pricing information for OpenRouter-specific models
    * Note: Many models are provided by other providers and use their pricing
    */
-  private MODEL_PRICING: Record<
-    string,
-    { inputTokenCost: number; outputTokenCost: number }
-  > = {
+  private MODEL_PRICING: Record<string, { inputTokenCost: number; outputTokenCost: number }> = {
     // Models with OpenRouter-specific pricing
     'mistralai/mistral-7b-instruct': {
       inputTokenCost: 0.0002, // $0.20 per 1M tokens
-      outputTokenCost: 0.0002 // $0.20 per 1M tokens
+      outputTokenCost: 0.0002, // $0.20 per 1M tokens
     },
     'mistralai/mistral-small': {
       inputTokenCost: 0.002, // $2.00 per 1M tokens
-      outputTokenCost: 0.006 // $6.00 per 1M tokens
+      outputTokenCost: 0.006, // $6.00 per 1M tokens
     },
     'mistralai/mistral-medium': {
       inputTokenCost: 0.0027, // $2.70 per 1M tokens
-      outputTokenCost: 0.0081 // $8.10 per 1M tokens
+      outputTokenCost: 0.0081, // $8.10 per 1M tokens
     },
     'mistralai/mistral-large': {
       inputTokenCost: 0.008, // $8.00 per 1M tokens
-      outputTokenCost: 0.024 // $24.00 per 1M tokens
+      outputTokenCost: 0.024, // $24.00 per 1M tokens
     },
 
     // Default fallback pricing
     default: {
       inputTokenCost: 0.005, // $5.00 per 1M tokens
-      outputTokenCost: 0.015 // $15.00 per 1M tokens
-    }
+      outputTokenCost: 0.015, // $15.00 per 1M tokens
+    },
   };
 
   /**
@@ -96,12 +93,8 @@ export class OpenRouterTokenEstimator extends AbstractTokenEstimator {
         : modelName;
       return this.anthropicEstimator.supportsModel(anthropicModel)
         ? {
-            inputTokenCost:
-              this.anthropicEstimator.calculateCost(1000, 0, anthropicModel) /
-              1000,
-            outputTokenCost:
-              this.anthropicEstimator.calculateCost(0, 1000, anthropicModel) /
-              1000
+            inputTokenCost: this.anthropicEstimator.calculateCost(1000, 0, anthropicModel) / 1000,
+            outputTokenCost: this.anthropicEstimator.calculateCost(0, 1000, anthropicModel) / 1000,
           }
         : this.MODEL_PRICING['default'];
     }
@@ -113,10 +106,8 @@ export class OpenRouterTokenEstimator extends AbstractTokenEstimator {
         : modelName;
       return this.openaiEstimator.supportsModel(openaiModel)
         ? {
-            inputTokenCost:
-              this.openaiEstimator.calculateCost(1000, 0, openaiModel) / 1000,
-            outputTokenCost:
-              this.openaiEstimator.calculateCost(0, 1000, openaiModel) / 1000
+            inputTokenCost: this.openaiEstimator.calculateCost(1000, 0, openaiModel) / 1000,
+            outputTokenCost: this.openaiEstimator.calculateCost(0, 1000, openaiModel) / 1000,
           }
         : this.MODEL_PRICING['default'];
     }
@@ -135,7 +126,7 @@ export class OpenRouterTokenEstimator extends AbstractTokenEstimator {
   calculateCost(
     inputTokens: number,
     outputTokens: number,
-    modelName: string = this.getDefaultModel()
+    modelName: string = this.getDefaultModel(),
   ): number {
     // Apply OpenRouter's markup (approximately 10%)
     const OPENROUTER_MARKUP = 1.1;

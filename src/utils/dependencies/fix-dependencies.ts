@@ -4,8 +4,8 @@
  * @fileoverview Script that fixes the dependency security scanner by modifying how it handles stack analysis
  */
 
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 
 console.log('Fixing dependency scanner...');
 
@@ -71,7 +71,7 @@ const modifiedContent = content.replace(
       }
     } catch (importError) {
       logger.debug(\`OWASP module error: \${importError}\`);
-      // Return just the tech stack when OWASP module fails to load`
+      // Return just the tech stack when OWASP module fails to load`,
 );
 
 // Write the modified content back to the file
@@ -84,7 +84,8 @@ const securityScannerPath = path.join(__dirname, 'dependencySecurityScanner.ts')
 
 // Add import for os module
 let scannerContent = fs.readFileSync(securityScannerPath, 'utf8');
-scannerContent = `/**
+scannerContent =
+  `/**
  * @fileoverview Advanced dependency scanning for package security analysis
  * 
  * This module implements comprehensive dependency scanning and vulnerability detection 
@@ -139,7 +140,7 @@ scannerContent = scannerContent.replace(
     logger.debug(\`Dependency scanner not found in PATH: \${error}\`);
     return false;
   }
-}`
+}`,
 );
 
 // Fix the run function to handle platform differences
@@ -162,7 +163,7 @@ scannerContent = scannerContent.replace(
       stdio: 'pipe',
       encoding: 'utf-8',
       shell: true // Use shell on all platforms for better compatibility
-    });`
+    });`,
 );
 
 // Write the modified content back to the file

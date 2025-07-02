@@ -4,13 +4,8 @@
  * This module provides a wrapper for the OpenRouter client to handle dynamic imports.
  */
 
-import {
-  ReviewType,
-  ReviewOptions,
-  ReviewResult,
-  FileInfo
-} from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import type { ProjectDocs } from '../utils/projectDocs';
 
 // Import the OpenRouter client directly
 import * as openRouterClient from './openRouterClient';
@@ -37,13 +32,13 @@ export async function generateOpenRouterConsolidatedReview(
   project: string,
   reviewType: ReviewType,
   projectDocs: ProjectDocs | null,
-  options: ReviewOptions
+  options: ReviewOptions,
 ): Promise<ReviewResult> {
   return openRouterClient.generateOpenRouterConsolidatedReview(
     fileInfos,
     project,
     reviewType,
     projectDocs,
-    options
+    options,
   );
 }

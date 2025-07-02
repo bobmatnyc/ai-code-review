@@ -12,7 +12,7 @@ declare module '../formatters/outputFormatter' {
     timestamp: string,
     costInfo: string,
     modelInfo: string,
-    metadataSection?: string
+    metadataSection?: string,
   ): string;
 
   function formatStructuredReviewAsMarkdown(
@@ -21,6 +21,6 @@ declare module '../formatters/outputFormatter' {
     reviewType: string,
     timestamp: string,
     costInfo: string,
-    modelInfo: string
+    modelInfo: string,
   ): string;
 }

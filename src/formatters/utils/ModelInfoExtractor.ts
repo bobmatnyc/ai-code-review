@@ -1,6 +1,6 @@
 /**
  * @fileoverview Utility for extracting model information from model strings.
- * 
+ *
  * This module provides functions to extract and parse model information from
  * model strings in various formats. It handles different provider prefixes
  * and standardizes the output format.
@@ -84,10 +84,13 @@ export function extractModelInfo(modelString?: string): ModelInfo {
  * @param modelInfo Formatted model info string (e.g., "Google Gemini AI (gemini-1.5-pro)")
  * @returns Object containing modelVendor and modelName
  */
-export function extractModelInfoFromString(modelInfo: string): { modelVendor: string; modelName: string } {
+export function extractModelInfoFromString(modelInfo: string): {
+  modelVendor: string;
+  modelName: string;
+} {
   let modelVendor = 'Unknown';
   let modelName = 'AI';
-  
+
   if (modelInfo) {
     if (modelInfo.includes('Google Gemini AI')) {
       modelVendor = 'Google';

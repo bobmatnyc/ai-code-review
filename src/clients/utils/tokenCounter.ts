@@ -77,14 +77,14 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
       {
         threshold: 0,
         inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
-        outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01, // $10.00 per 1M tokens (≤200k tokens)
       },
       {
         threshold: 200000,
         inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
-        outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
-      }
-    ]
+        outputTokenCost: 0.015, // $15.00 per 1M tokens (>200k tokens)
+      },
+    ],
   },
   'gemini-2.5-pro-preview': {
     type: 'tiered',
@@ -92,14 +92,14 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
       {
         threshold: 0,
         inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
-        outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01, // $10.00 per 1M tokens (≤200k tokens)
       },
       {
         threshold: 200000,
         inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
-        outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
-      }
-    ]
+        outputTokenCost: 0.015, // $15.00 per 1M tokens (>200k tokens)
+      },
+    ],
   },
   'gemini-2.5-pro-exp': {
     type: 'tiered',
@@ -107,24 +107,24 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
       {
         threshold: 0,
         inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
-        outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
+        outputTokenCost: 0.01, // $10.00 per 1M tokens (≤200k tokens)
       },
       {
         threshold: 200000,
         inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
-        outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
-      }
-    ]
+        outputTokenCost: 0.015, // $15.00 per 1M tokens (>200k tokens)
+      },
+    ],
   },
   'gemini-2.0-flash': {
     type: 'standard',
     inputTokenCost: 0.0001, // $0.10 per 1M tokens
-    outputTokenCost: 0.0004 // $0.40 per 1M tokens
+    outputTokenCost: 0.0004, // $0.40 per 1M tokens
   },
   'gemini-2.0-flash-lite': {
     type: 'standard',
     inputTokenCost: 0.000075, // $0.075 per 1M tokens
-    outputTokenCost: 0.0003 // $0.30 per 1M tokens
+    outputTokenCost: 0.0003, // $0.30 per 1M tokens
   },
 
   // Gemini 1.5 models
@@ -134,14 +134,14 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
       {
         threshold: 0,
         inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤128k tokens)
-        outputTokenCost: 0.005 // $5.00 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.005, // $5.00 per 1M tokens (≤128k tokens)
       },
       {
         threshold: 128000,
         inputTokenCost: 0.0025, // $2.50 per 1M tokens (>128k tokens)
-        outputTokenCost: 0.01 // $10.00 per 1M tokens (>128k tokens)
-      }
-    ]
+        outputTokenCost: 0.01, // $10.00 per 1M tokens (>128k tokens)
+      },
+    ],
   },
   'gemini-1.5-flash': {
     type: 'tiered',
@@ -149,14 +149,14 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
       {
         threshold: 0,
         inputTokenCost: 0.000075, // $0.075 per 1M tokens (≤128k tokens)
-        outputTokenCost: 0.0003 // $0.30 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.0003, // $0.30 per 1M tokens (≤128k tokens)
       },
       {
         threshold: 128000,
         inputTokenCost: 0.00015, // $0.15 per 1M tokens (>128k tokens)
-        outputTokenCost: 0.0006 // $0.60 per 1M tokens (>128k tokens)
-      }
-    ]
+        outputTokenCost: 0.0006, // $0.60 per 1M tokens (>128k tokens)
+      },
+    ],
   },
   'gemini-1.5-flash-8b': {
     type: 'tiered',
@@ -164,49 +164,49 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
       {
         threshold: 0,
         inputTokenCost: 0.0000375, // $0.0375 per 1M tokens (≤128k tokens)
-        outputTokenCost: 0.00015 // $0.15 per 1M tokens (≤128k tokens)
+        outputTokenCost: 0.00015, // $0.15 per 1M tokens (≤128k tokens)
       },
       {
         threshold: 128000,
         inputTokenCost: 0.000075, // $0.075 per 1M tokens (>128k tokens)
-        outputTokenCost: 0.0003 // $0.30 per 1M tokens (>128k tokens)
-      }
-    ]
+        outputTokenCost: 0.0003, // $0.30 per 1M tokens (>128k tokens)
+      },
+    ],
   },
 
   // OpenRouter models
   'anthropic/claude-3-opus': {
     type: 'standard',
     inputTokenCost: 0.015, // $15.00 per 1M tokens
-    outputTokenCost: 0.075 // $75.00 per 1M tokens
+    outputTokenCost: 0.075, // $75.00 per 1M tokens
   },
   'anthropic/claude-3-sonnet': {
     type: 'standard',
     inputTokenCost: 0.003, // $3.00 per 1M tokens
-    outputTokenCost: 0.015 // $15.00 per 1M tokens
+    outputTokenCost: 0.015, // $15.00 per 1M tokens
   },
   'openai/gpt-4-turbo': {
     type: 'standard',
     inputTokenCost: 0.01, // $10.00 per 1M tokens
-    outputTokenCost: 0.03 // $30.00 per 1M tokens
+    outputTokenCost: 0.03, // $30.00 per 1M tokens
   },
   'openai/gpt-4o': {
     type: 'standard',
     inputTokenCost: 0.0025, // $2.50 per 1M tokens
-    outputTokenCost: 0.01 // $10.00 per 1M tokens
+    outputTokenCost: 0.01, // $10.00 per 1M tokens
   },
   'anthropic/claude-2.1': {
     type: 'standard',
     inputTokenCost: 0.008, // $8.00 per 1M tokens
-    outputTokenCost: 0.024 // $24.00 per 1M tokens
+    outputTokenCost: 0.024, // $24.00 per 1M tokens
   },
 
   // Default fallback pricing
   default: {
     type: 'standard',
     inputTokenCost: 0.001, // $1.00 per 1M tokens
-    outputTokenCost: 0.002 // $2.00 per 1M tokens
-  }
+    outputTokenCost: 0.002, // $2.00 per 1M tokens
+  },
 };
 
 /**
@@ -237,7 +237,7 @@ function calculateTierCost(
   tokens: number,
   tokenCost: number,
   tierStart: number,
-  tierEnd?: number
+  tierEnd?: number,
 ): number {
   // Calculate how many tokens fall within this tier
   const tierTokens = tierEnd
@@ -258,7 +258,7 @@ function calculateTierCost(
 export function calculateCost(
   inputTokens: number,
   outputTokens: number,
-  modelName: string = 'gemini-1.5-pro'
+  modelName = 'gemini-1.5-pro',
 ): number {
   const pricing = getModelPricing(modelName);
 
@@ -278,12 +278,7 @@ export function calculateCost(
       const tierStart = tiers[i].threshold;
       const tierEnd = i < tiers.length - 1 ? tiers[i + 1].threshold : undefined;
 
-      inputCost += calculateTierCost(
-        inputTokens,
-        tiers[i].inputTokenCost,
-        tierStart,
-        tierEnd
-      );
+      inputCost += calculateTierCost(inputTokens, tiers[i].inputTokenCost, tierStart, tierEnd);
     }
 
     // Calculate output token cost across tiers
@@ -291,12 +286,7 @@ export function calculateCost(
       const tierStart = tiers[i].threshold;
       const tierEnd = i < tiers.length - 1 ? tiers[i + 1].threshold : undefined;
 
-      outputCost += calculateTierCost(
-        outputTokens,
-        tiers[i].outputTokenCost,
-        tierStart,
-        tierEnd
-      );
+      outputCost += calculateTierCost(outputTokens, tiers[i].outputTokenCost, tierStart, tierEnd);
     }
   }
 
@@ -348,7 +338,7 @@ export interface PassCostInfo {
 export function getCostInfoFromText(
   inputText: string,
   outputText: string,
-  modelName: string = 'gemini-1.5-pro'
+  modelName = 'gemini-1.5-pro',
 ): CostInfo {
   const inputTokens = estimateTokenCount(inputText, modelName);
   const outputTokens = estimateTokenCount(outputText, modelName);
@@ -361,7 +351,7 @@ export function getCostInfoFromText(
     totalTokens,
     estimatedCost,
     formattedCost: formatCost(estimatedCost),
-    cost: estimatedCost // Alias for backward compatibility
+    cost: estimatedCost, // Alias for backward compatibility
   };
 }
 
@@ -375,7 +365,7 @@ export function getCostInfoFromText(
 export function getCostInfo(
   inputTokens: number,
   outputTokens: number,
-  modelName: string = 'gemini-1.5-pro'
+  modelName = 'gemini-1.5-pro',
 ): CostInfo {
   const totalTokens = inputTokens + outputTokens;
   const estimatedCost = calculateCost(inputTokens, outputTokens, modelName);
@@ -386,6 +376,6 @@ export function getCostInfo(
     totalTokens,
     estimatedCost,
     formattedCost: formatCost(estimatedCost),
-    cost: estimatedCost // Alias for backward compatibility
+    cost: estimatedCost, // Alias for backward compatibility
   };
 }

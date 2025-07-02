@@ -6,7 +6,7 @@
  * and findings from previous passes.
  */
 
-import { FileInfo } from '../../types/review';
+import type { FileInfo } from '../../types/review';
 
 /**
  * Type of code element tracked in the context
@@ -19,7 +19,7 @@ export enum CodeElementType {
   Import = 'import',
   ExportedItem = 'exported',
   Component = 'component',
-  EntryPoint = 'entryPoint'
+  EntryPoint = 'entryPoint',
 }
 
 /**
@@ -104,7 +104,7 @@ export class ReviewContext {
   constructor(projectName: string, reviewType: string, files: FileInfo[]) {
     this.projectName = projectName;
     this.reviewType = reviewType;
-    this.allFiles = files.map(f => f.path);
+    this.allFiles = files.map((f) => f.path);
     this.currentPass = 0;
     this.codeElements = new Map();
     this.findings = [];
@@ -156,7 +156,7 @@ export class ReviewContext {
    * @returns Array of code elements of the specified type
    */
   public getCodeElementsByType(type: CodeElementType): CodeElement[] {
-    return this.getCodeElements().filter(el => el.type === type);
+    return this.getCodeElements().filter((el) => el.type === type);
   }
 
   /**
@@ -165,7 +165,7 @@ export class ReviewContext {
    * @returns Array of code elements in the file
    */
   public getCodeElementsInFile(filePath: string): CodeElement[] {
-    return this.getCodeElements().filter(el => el.file === filePath);
+    return this.getCodeElements().filter((el) => el.file === filePath);
   }
 
   /**
@@ -175,7 +175,7 @@ export class ReviewContext {
   public addFinding(finding: ReviewFinding): void {
     this.findings.push({
       ...finding,
-      passNumber: this.currentPass
+      passNumber: this.currentPass,
     });
     this.updatedAt = new Date();
   }
@@ -195,7 +195,7 @@ export class ReviewContext {
   public addFileSummary(summary: FileSummary): void {
     this.fileSummaries.set(summary.path, {
       ...summary,
-      passNumber: this.currentPass
+      passNumber: this.currentPass,
     });
     this.updatedAt = new Date();
   }
@@ -240,10 +240,7 @@ export class ReviewContext {
    * @param maxContextLength Maximum length of context in characters
    * @returns Formatted context string for inclusion in the next prompt
    */
-  public generateNextPassContext(
-    files: string[],
-    maxContextLength: number = 2000
-  ): string {
+  public generateNextPassContext(files: string[], maxContextLength = 2000): string {
     let context = `
 ### Review Context (Pass ${this.currentPass})
 
@@ -254,13 +251,11 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
 `;
 
     // Add important findings from previous passes
-    const importantFindings = this.findings
-      .sort((a, b) => b.severity - a.severity)
-      .slice(0, 5);
+    const importantFindings = this.findings.sort((a, b) => b.severity - a.severity).slice(0, 5);
 
     if (importantFindings.length > 0) {
       context += '#### Key Findings from Previous Passes\n\n';
-      importantFindings.forEach(finding => {
+      importantFindings.forEach((finding) => {
         context += `- [${finding.type.toUpperCase()}] ${finding.description}${finding.file ? ` (in ${finding.file})` : ''}\n`;
       });
       context += '\n';
@@ -268,12 +263,12 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
 
     // Add summaries of files that are related but not in this pass
     const relatedFiles = this.getAllFileSummaries()
-      .filter(summary => !files.includes(summary.path))
+      .filter((summary) => !files.includes(summary.path))
       .slice(0, 5);
 
     if (relatedFiles.length > 0) {
       context += '#### Related Files (Not in This Pass)\n\n';
-      relatedFiles.forEach(file => {
+      relatedFiles.forEach((file) => {
         context += `- ${file.path}: ${file.description}\n`;
         if (file.keyElements.length > 0) {
           context += `  Key elements: ${file.keyElements.join(', ')}\n`;
@@ -284,13 +279,13 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
 
     // Add important code elements relevant to this pass
     const relevantElements = this.getCodeElements()
-      .filter(el => files.includes(el.file) || el.importance > 7)
+      .filter((el) => files.includes(el.file) || el.importance > 7)
       .sort((a, b) => b.importance - a.importance)
       .slice(0, 10);
 
     if (relevantElements.length > 0) {
       context += '#### Important Code Elements\n\n';
-      relevantElements.forEach(element => {
+      relevantElements.forEach((element) => {
         context += `- ${element.type} \`${element.name}\`${element.signature ? `: ${element.signature}` : ''} (in ${element.file})\n`;
       });
       context += '\n';
@@ -299,7 +294,7 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
     // Add general notes
     if (this.generalNotes.length > 0) {
       context += '#### General Notes\n\n';
-      this.generalNotes.slice(0, 3).forEach(note => {
+      this.generalNotes.slice(0, 3).forEach((note) => {
         context += `- ${note}\n`;
       });
       context += '\n';
@@ -327,7 +322,7 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
       fileSummaries: Array.from(this.fileSummaries.values()),
       generalNotes: this.generalNotes,
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString()
+      updatedAt: this.updatedAt.toISOString(),
     };
   }
 
@@ -340,44 +335,44 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
     const context = new ReviewContext(
       json.projectName as string,
       json.reviewType as string,
-      (json.allFiles as any[]) || []
+      (json.allFiles as any[]) || [],
     );
-    
+
     context.currentPass = (json.currentPass as number) || 0;
-    
+
     // Restore code elements
     if (Array.isArray(json.codeElements)) {
       json.codeElements.forEach((element: CodeElement) => {
         context.addCodeElement(element);
       });
     }
-    
+
     // Restore findings
     if (Array.isArray(json.findings)) {
       context.findings = json.findings;
     }
-    
+
     // Restore file summaries
     if (Array.isArray(json.fileSummaries)) {
       json.fileSummaries.forEach((summary: FileSummary) => {
         context.fileSummaries.set(summary.path, summary);
       });
     }
-    
+
     // Restore general notes
     if (Array.isArray(json.generalNotes)) {
       context.generalNotes = json.generalNotes;
     }
-    
+
     // Restore timestamps
     if (json.createdAt) {
       context.createdAt = new Date(json.createdAt as string);
     }
-    
+
     if (json.updatedAt) {
       context.updatedAt = new Date(json.updatedAt as string);
     }
-    
+
     return context;
   }
 }

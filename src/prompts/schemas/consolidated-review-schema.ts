@@ -12,11 +12,19 @@ import { z } from 'zod';
  * Grade levels following academic grading scale
  */
 export const GradeLevel = z.enum([
-  'A+', 'A', 'A-',
-  'B+', 'B', 'B-',
-  'C+', 'C', 'C-',
-  'D+', 'D', 'D-',
-  'F'
+  'A+',
+  'A',
+  'A-',
+  'B+',
+  'B',
+  'B-',
+  'C+',
+  'C',
+  'C-',
+  'D+',
+  'D',
+  'D-',
+  'F',
 ]);
 
 export type GradeLevel = z.infer<typeof GradeLevel>;
@@ -31,7 +39,7 @@ export const GradeCategoriesSchema = z.object({
   testing: GradeLevel,
   maintainability: GradeLevel,
   security: GradeLevel,
-  performance: GradeLevel
+  performance: GradeLevel,
 });
 
 export type GradeCategories = z.infer<typeof GradeCategoriesSchema>;
@@ -52,7 +60,7 @@ export const ConsolidatedIssueSchema = z.object({
   description: z.string().describe('Detailed description of the issue'),
   files: z.array(z.string()).describe('Files affected by this issue'),
   recommendation: z.string().describe('Recommended fix or improvement'),
-  impact: z.string().describe('Impact of fixing this issue')
+  impact: z.string().describe('Impact of fixing this issue'),
 });
 
 export type ConsolidatedIssue = z.infer<typeof ConsolidatedIssueSchema>;
@@ -63,7 +71,7 @@ export type ConsolidatedIssue = z.infer<typeof ConsolidatedIssueSchema>;
 export const StrengthSchema = z.object({
   title: z.string().describe('Brief title of the strength'),
   description: z.string().describe('Detailed description'),
-  files: z.array(z.string()).optional().describe('Examples of files demonstrating this strength')
+  files: z.array(z.string()).optional().describe('Examples of files demonstrating this strength'),
 });
 
 export type Strength = z.infer<typeof StrengthSchema>;
@@ -75,7 +83,7 @@ export const ArchitecturalInsightSchema = z.object({
   title: z.string().describe('Title of the architectural insight'),
   description: z.string().describe('Detailed explanation'),
   recommendation: z.string().optional().describe('Recommended improvements'),
-  relatedFiles: z.array(z.string()).optional().describe('Files related to this insight')
+  relatedFiles: z.array(z.string()).optional().describe('Files related to this insight'),
 });
 
 export type ArchitecturalInsight = z.infer<typeof ArchitecturalInsightSchema>;
@@ -88,52 +96,57 @@ export const ConsolidatedReviewSchema = z.object({
   timestamp: z.string().describe('ISO 8601 timestamp'),
   projectName: z.string().describe('Name of the reviewed project'),
   filesReviewed: z.number().describe('Total number of files reviewed'),
-  
+
   // Overall assessment
   executiveSummary: z.string().describe('Executive summary of the review'),
   overallGrade: GradeLevel.describe('Overall grade for the codebase'),
   gradeRationale: z.string().describe('Explanation for the overall grade'),
-  
+
   // Detailed grading
   gradeCategories: GradeCategoriesSchema.describe('Grades by category'),
-  categoryRationale: z.object({
-    functionality: z.string(),
-    codeQuality: z.string(),
-    documentation: z.string(),
-    testing: z.string(),
-    maintainability: z.string(),
-    security: z.string(),
-    performance: z.string()
-  }).describe('Rationale for each category grade'),
-  
+  categoryRationale: z
+    .object({
+      functionality: z.string(),
+      codeQuality: z.string(),
+      documentation: z.string(),
+      testing: z.string(),
+      maintainability: z.string(),
+      security: z.string(),
+      performance: z.string(),
+    })
+    .describe('Rationale for each category grade'),
+
   // Issues by priority
   issues: z.object({
     high: z.array(ConsolidatedIssueSchema).describe('High priority issues'),
     medium: z.array(ConsolidatedIssueSchema).describe('Medium priority issues'),
-    low: z.array(ConsolidatedIssueSchema).describe('Low priority issues')
+    low: z.array(ConsolidatedIssueSchema).describe('Low priority issues'),
   }),
-  
+
   // Positive aspects
   strengths: z.array(StrengthSchema).describe('Strengths identified in the codebase'),
-  
+
   // Architectural insights
-  architecturalInsights: z.array(ArchitecturalInsightSchema).optional().describe('Architectural patterns and insights'),
-  
+  architecturalInsights: z
+    .array(ArchitecturalInsightSchema)
+    .optional()
+    .describe('Architectural patterns and insights'),
+
   // Summary statistics
   summary: z.object({
     totalIssues: z.number(),
     highPriorityIssues: z.number(),
     mediumPriorityIssues: z.number(),
     lowPriorityIssues: z.number(),
-    totalStrengths: z.number()
+    totalStrengths: z.number(),
   }),
-  
+
   // Recommendations
   recommendations: z.object({
     immediate: z.array(z.string()).describe('Actions to take immediately'),
     shortTerm: z.array(z.string()).describe('Actions for the next sprint/iteration'),
-    longTerm: z.array(z.string()).describe('Strategic improvements')
-  })
+    longTerm: z.array(z.string()).describe('Strategic improvements'),
+  }),
 });
 
 export type ConsolidatedReview = z.infer<typeof ConsolidatedReviewSchema>;
@@ -142,7 +155,7 @@ export type ConsolidatedReview = z.infer<typeof ConsolidatedReviewSchema>;
  * Root object for the consolidated review schema
  */
 export const ConsolidatedReviewRootSchema = z.object({
-  review: ConsolidatedReviewSchema
+  review: ConsolidatedReviewSchema,
 });
 
 export type ConsolidatedReviewRoot = z.infer<typeof ConsolidatedReviewRootSchema>;

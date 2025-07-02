@@ -11,42 +11,41 @@
  * - Generating AI-based unused code reviews using specialized prompts
  * - Reformatting reviews into user-friendly output
  * - Generating removal scripts for easy cleanup
- * 
+ *
  * The strategy leverages LangChain for improved prompting and can use either
  * standard or enhanced unused code review templates based on availability.
  */
 
-import { BaseReviewStrategy } from './ReviewStrategy';
-import { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
-import { ProjectDocs } from '../utils/projectDocs';
-import { addMetadataToProjectDocs } from '../utils/projectDocs';
-import { ApiClientConfig } from '../core/ApiClientSelector';
+import { exec } from 'child_process';
+import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
-import logger from '../utils/logger';
-import { PromptStrategyFactory } from '../prompts/strategies/PromptStrategyFactory';
-import { PromptManager } from '../prompts/PromptManager';
-import { PromptCache } from '../prompts/cache/PromptCache';
-import { getImprovedUnusedCodeReviewFormatInstructions } from '../prompts/schemas/improved-unused-code-schema';
 import {
   formatUnusedCodeReviewAsMarkdown,
-  generateRemovalScript
+  generateRemovalScript,
 } from '../formatters/unusedCodeFormatter';
-import { exec } from 'child_process';
+import { PromptCache } from '../prompts/cache/PromptCache';
+import { PromptManager } from '../prompts/PromptManager';
+import { getImprovedUnusedCodeReviewFormatInstructions } from '../prompts/schemas/improved-unused-code-schema';
+import { PromptStrategyFactory } from '../prompts/strategies/PromptStrategyFactory';
+import type { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
+import logger from '../utils/logger';
+import { addMetadataToProjectDocs, type ProjectDocs } from '../utils/projectDocs';
+import { BaseReviewStrategy } from './ReviewStrategy';
 
 /**
  * Strategy for detecting and suggesting removal of unused code.
- * 
+ *
  * This strategy combines AI-based code analysis with static analysis tools
  * to identify unused code with high confidence. It can utilize ts-prune
  * for finding unused exports and ESLint for detecting unused variables.
- * 
+ *
  * The strategy prioritizes findings by impact level (high, medium, low)
  * and can generate removal scripts to help with cleanup.
- * 
+ *
  * @example
  * const strategy = new UnusedCodeReviewStrategy();
  * const result = await strategy.execute(files, projectName, projectDocs, options, apiConfig);
- * 
+ *
  * @extends {BaseReviewStrategy}
  */
 export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
@@ -56,7 +55,7 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
   constructor() {
     super('unused-code');
   }
-  
+
   /**
    * Run static analysis tools to get data about unused code
    * @param options Review options
@@ -65,15 +64,15 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
   private async getToolingData(options: ReviewOptions): Promise<any> {
     const result: any = {
       tsPrune: null,
-      eslint: null
+      eslint: null,
     };
-    
+
     try {
       // Check if ts-prune is installed
       if (options.useTsPrune) {
         result.tsPrune = await this.runTsPrune();
       }
-      
+
       // Check if eslint is configured
       if (options.useEslint) {
         result.eslint = await this.runEslint();
@@ -81,21 +80,21 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
     } catch (error) {
       logger.error('Error running static analysis tools:', error);
     }
-    
+
     return result;
   }
-  
+
   /**
    * Executes ts-prune to find unused TypeScript exports in the project.
-   * 
+   *
    * This method runs the ts-prune tool via npx, which analyzes TypeScript
    * files to identify exports that are not imported anywhere else in the project.
    * The output is parsed into a structured format for use in the review.
-   * 
+   *
    * @returns {Promise<any>} Object containing:
    *   - unusedExports: Array of objects with file, line, export name, and notes
    *   - totalCount: Total number of unused exports found
-   * 
+   *
    * @throws Will reject with an error if ts-prune execution fails
    * @example
    * const tsPruneData = await strategy.runTsPrune();
@@ -116,30 +115,32 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
           reject(error);
           return;
         }
-        
+
         // Parse ts-prune output
         const lines = stdout.trim().split('\n');
-        const unusedExports = lines.map(line => {
-          const match = line.match(/([^:]+):(\d+) - (\w+)( \(([^)]+)\))?/);
-          if (match) {
-            return {
-              file: match[1],
-              line: parseInt(match[2]),
-              export: match[3],
-              note: match[5] || null
-            };
-          }
-          return null;
-        }).filter(Boolean);
-        
+        const unusedExports = lines
+          .map((line) => {
+            const match = line.match(/([^:]+):(\d+) - (\w+)( \(([^)]+)\))?/);
+            if (match) {
+              return {
+                file: match[1],
+                line: parseInt(match[2]),
+                export: match[3],
+                note: match[5] || null,
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
         resolve({
           unusedExports,
-          totalCount: unusedExports.length
+          totalCount: unusedExports.length,
         });
       });
     });
   }
-  
+
   /**
    * Run eslint to find unused variables
    * @returns Results from eslint
@@ -153,15 +154,15 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
           reject(error);
           return;
         }
-        
+
         try {
           // Parse eslint JSON output
           const results = JSON.parse(stdout);
-          
+
           // Filter for unused variables
           const unusedVars = [];
           let totalUnusedCount = 0;
-          
+
           for (const result of results) {
             for (const message of result.messages) {
               if (message.ruleId === '@typescript-eslint/no-unused-vars') {
@@ -171,15 +172,15 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
                   line: message.line,
                   column: message.column,
                   variable: message.message.match(/'([^']+)'/)?.[1] || 'unknown',
-                  severity: message.severity === 2 ? 'error' : 'warning'
+                  severity: message.severity === 2 ? 'error' : 'warning',
                 });
               }
             }
           }
-          
+
           resolve({
             unusedVariables: unusedVars,
-            totalCount: totalUnusedCount
+            totalCount: totalUnusedCount,
           });
         } catch (error) {
           logger.error('Error parsing eslint output:', error);
@@ -191,7 +192,7 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
 
   /**
    * Performs a comprehensive unused code review on the provided files.
-   * 
+   *
    * This method:
    * 1. Runs static analysis tools if configured (ts-prune, ESLint)
    * 2. Enhances review options with language-specific settings
@@ -199,14 +200,14 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
    * 4. Generates an AI-based review of unused code
    * 5. Post-processes the result to format it for user consumption
    * 6. Generates removal scripts for identified unused code
-   * 
+   *
    * @param {FileInfo[]} files - Array of files to analyze for unused code
    * @param {string} projectName - Name of the project being reviewed
    * @param {ProjectDocs | null} projectDocs - Project documentation or null if not available
    * @param {ReviewOptions} options - Configuration options for the review
    * @param {ApiClientConfig} apiClientConfig - Configuration for the AI API client
    * @returns {Promise<ReviewResult>} Review result with detailed unused code findings
-   * 
+   *
    * @throws Will log but not throw errors from static analysis tools
    */
   async execute(
@@ -214,11 +215,9 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult> {
-    logger.info(
-      `Executing unused code review strategy for ${files.length} files...`
-    );
+    logger.info(`Executing unused code review strategy for ${files.length} files...`);
 
     // Add tooling insights from ts-prune and eslint if configured
     let toolingMetadata = {};
@@ -226,11 +225,14 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
       toolingMetadata = await this.getToolingData(options);
       // Use the addMetadataToProjectDocs function if projectDocs exists
       if (projectDocs) {
-        addMetadataToProjectDocs(projectDocs, 'unusedCodeTooling', 
-          `## Static Analysis Tool Results\n\n${JSON.stringify(toolingMetadata, null, 2)}`);
+        addMetadataToProjectDocs(
+          projectDocs,
+          'unusedCodeTooling',
+          `## Static Analysis Tool Results\n\n${JSON.stringify(toolingMetadata, null, 2)}`,
+        );
       }
     }
-    
+
     // Enhance options with LangChain-specific settings
     const enhancedOptions: ReviewOptions = {
       ...options,
@@ -241,7 +243,7 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
       promptFile:
         options.language === 'typescript'
           ? `${process.cwd()}/prompts/typescript/improved-unused-code-review.md`
-          : `${process.cwd()}/prompts/improved-unused-code-review.md`
+          : `${process.cwd()}/prompts/improved-unused-code-review.md`,
     };
 
     // Use LangChain prompt strategy if available
@@ -251,11 +253,7 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
       // Get LangChain prompt strategy
       const promptManager = PromptManager.getInstance();
       const promptCache = PromptCache.getInstance();
-      PromptStrategyFactory.createStrategy(
-        'langchain',
-        promptManager,
-        promptCache
-      );
+      PromptStrategyFactory.createStrategy('langchain', promptManager, promptCache);
 
       logger.info('Using LangChain prompt strategy for unused code review');
     }
@@ -267,15 +265,17 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
       this.reviewType,
       projectDocs,
       enhancedOptions,
-      apiClientConfig
+      apiClientConfig,
     );
 
     // If we have a response and it's in JSON format, try to reformat it
     if (reviewResult.response && reviewResult.outputFormat === 'json') {
       try {
         // Parse the JSON response
-        const parsedResult = typeof reviewResult.response === 'string' ? 
-          JSON.parse(reviewResult.response) : reviewResult.response;
+        const parsedResult =
+          typeof reviewResult.response === 'string'
+            ? JSON.parse(reviewResult.response)
+            : reviewResult.response;
 
         // If it's a valid result with the expected structure, format it
         if (
@@ -284,8 +284,7 @@ export class UnusedCodeReviewStrategy extends BaseReviewStrategy {
           parsedResult.lowImpactIssues
         ) {
           // Format the response using our specialized formatter
-          const formattedMarkdown =
-            formatUnusedCodeReviewAsMarkdown(parsedResult);
+          const formattedMarkdown = formatUnusedCodeReviewAsMarkdown(parsedResult);
 
           // Also generate a removal script
           const removalScript = generateRemovalScript(parsedResult);

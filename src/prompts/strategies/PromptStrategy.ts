@@ -6,12 +6,12 @@
  * models and review types.
  */
 
-import { ReviewOptions, ReviewType } from '../../types/review';
-import { ProjectDocs } from '../../utils/projectDocs';
-import { PromptManager } from '../PromptManager';
-import { PromptCache } from '../cache/PromptCache';
-import logger from '../../utils/logger';
 import { PromptTemplate as LangChainPromptTemplate } from '@langchain/core/prompts';
+import type { ReviewOptions, ReviewType } from '../../types/review';
+import logger from '../../utils/logger';
+import type { ProjectDocs } from '../../utils/projectDocs';
+import type { PromptCache } from '../cache/PromptCache';
+import type { PromptManager } from '../PromptManager';
 
 /**
  * Interface for prompt strategies
@@ -27,7 +27,7 @@ export interface IPromptStrategy {
   generatePrompt(
     reviewType: ReviewType,
     options: ReviewOptions,
-    projectDocs?: ProjectDocs | null
+    projectDocs?: ProjectDocs | null,
   ): Promise<string>;
 
   /**
@@ -36,10 +36,7 @@ export interface IPromptStrategy {
    * @param options Review options
    * @returns Formatted prompt (can be synchronous or asynchronous)
    */
-  formatPrompt(
-    prompt: string,
-    options: ReviewOptions
-  ): string | Promise<string>;
+  formatPrompt(prompt: string, options: ReviewOptions): string | Promise<string>;
 
   /**
    * Get a LangChain prompt template
@@ -49,7 +46,7 @@ export interface IPromptStrategy {
    */
   getLangChainTemplate(
     prompt: string,
-    options: ReviewOptions
+    options: ReviewOptions,
   ): LangChainPromptTemplate | Promise<LangChainPromptTemplate>;
 
   /**
@@ -92,7 +89,7 @@ export abstract class PromptStrategy implements IPromptStrategy {
   async generatePrompt(
     reviewType: ReviewType,
     options: ReviewOptions,
-    _projectDocs?: ProjectDocs | null
+    _projectDocs?: ProjectDocs | null,
   ): Promise<string> {
     try {
       // Check if we should use a cached prompt
@@ -100,25 +97,20 @@ export abstract class PromptStrategy implements IPromptStrategy {
         const cachedPrompt = this.promptCache.getBestPrompt(reviewType);
         if (cachedPrompt) {
           logger.info(
-            `Using cached prompt for ${reviewType} review type (rating: ${cachedPrompt.rating})`
+            `Using cached prompt for ${reviewType} review type (rating: ${cachedPrompt.rating})`,
           );
-          return await Promise.resolve(
-            this.formatPrompt(cachedPrompt.content, options)
-          );
+          return await Promise.resolve(this.formatPrompt(cachedPrompt.content, options));
         }
       }
 
       // Get the prompt template from the prompt manager
-      const promptTemplate = await this.promptManager.getPromptTemplate(
-        reviewType,
-        options
-      );
+      const promptTemplate = await this.promptManager.getPromptTemplate(reviewType, options);
 
       // Format the prompt
       return await Promise.resolve(this.formatPrompt(promptTemplate, options));
     } catch (error) {
       logger.error(
-        `Error generating prompt: ${error instanceof Error ? error.message : String(error)}`
+        `Error generating prompt: ${error instanceof Error ? error.message : String(error)}`,
       );
       throw error;
     }
@@ -130,10 +122,7 @@ export abstract class PromptStrategy implements IPromptStrategy {
    * @param options Review options
    * @returns Formatted prompt (can be synchronous or asynchronous)
    */
-  abstract formatPrompt(
-    prompt: string,
-    options: ReviewOptions
-  ): string | Promise<string>;
+  abstract formatPrompt(prompt: string, options: ReviewOptions): string | Promise<string>;
 
   /**
    * Get a LangChain prompt template
@@ -143,17 +132,15 @@ export abstract class PromptStrategy implements IPromptStrategy {
    */
   async getLangChainTemplate(
     prompt: string,
-    options: ReviewOptions
+    options: ReviewOptions,
   ): Promise<LangChainPromptTemplate> {
     // Format the prompt first using the model-specific formatter
-    const formattedPrompt = await Promise.resolve(
-      this.formatPrompt(prompt, options)
-    );
+    const formattedPrompt = await Promise.resolve(this.formatPrompt(prompt, options));
 
     // Create the LangChain template with appropriate input variables
     return new LangChainPromptTemplate({
       template: formattedPrompt,
-      inputVariables: this.extractInputVariables(formattedPrompt)
+      inputVariables: this.extractInputVariables(formattedPrompt),
     });
   }
 
@@ -168,7 +155,7 @@ export abstract class PromptStrategy implements IPromptStrategy {
     const variableMatches = prompt.match(/{{(\w+)}}|{(\w+)}/g) || [];
 
     // Extract the variable names without the braces
-    return variableMatches.map(match => {
+    return variableMatches.map((match) => {
       // Remove {{ and }} or { and }
       return match.replace(/{{|}}/g, '').replace(/{|}/g, '');
     });

@@ -1,18 +1,18 @@
 /**
  * @fileoverview Training framework for extract-patterns prompts using LangChain
- * 
+ *
  * This module implements a systematic approach to training and optimizing
  * the extract-patterns prompt to better identify coding patterns, architectural
  * patterns, and code composition metrics.
  */
 
-import { PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts';
+import { FewShotPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
+import type { ReviewOptions } from '../../types/review';
+import logger from '../../utils/logger';
+import { PromptCache } from '../cache/PromptCache';
+import { PromptOptimizer } from '../meta/PromptOptimizer';
 import { PromptManager } from '../PromptManager';
 import { LangChainPromptStrategy } from '../strategies/LangChainPromptStrategy';
-import { PromptOptimizer } from '../meta/PromptOptimizer';
-import { PromptCache } from '../cache/PromptCache';
-import { ReviewOptions } from '../../types/review';
-import logger from '../../utils/logger';
 
 /**
  * Training example for pattern extraction
@@ -69,27 +69,21 @@ export class ExtractPatternsTrainer {
   constructor() {
     this.promptManager = PromptManager.getInstance();
     this.cache = PromptCache.getInstance();
-    this.langchainStrategy = new LangChainPromptStrategy(
-      this.promptManager,
-      this.cache
-    );
+    this.langchainStrategy = new LangChainPromptStrategy(this.promptManager, this.cache);
     this.optimizer = new PromptOptimizer(this.promptManager, this.cache);
   }
 
   /**
    * Train the extract-patterns prompt using few-shot learning
    */
-  async trainWithExamples(
-    examples: PatternTrainingExample[],
-    basePrompt: string
-  ): Promise<string> {
+  async trainWithExamples(examples: PatternTrainingExample[], basePrompt: string): Promise<string> {
     logger.info('Starting extract-patterns prompt training...');
 
     // Create few-shot examples for LangChain
-    const fewShotExamples = examples.map(example => ({
+    const fewShotExamples = examples.map((example) => ({
       code: example.code,
       expected_patterns: JSON.stringify(example.expectedPatterns, null, 2),
-      description: example.description
+      description: example.description,
     }));
 
     // Create the few-shot template
@@ -106,7 +100,7 @@ export class ExtractPatternsTrainer {
 
 ---
 `,
-      inputVariables: ['code', 'expected_patterns', 'description']
+      inputVariables: ['code', 'expected_patterns', 'description'],
     });
 
     const fewShotTemplate = new FewShotPromptTemplate({
@@ -129,11 +123,11 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
 ## Code to Analyze:
 {input_code}
 `,
-      inputVariables: ['input_code']
+      inputVariables: ['input_code'],
     });
 
     const optimizedPrompt = await fewShotTemplate.format({
-      input_code: '{INPUT_CODE_PLACEHOLDER}'
+      input_code: '{INPUT_CODE_PLACEHOLDER}',
     });
 
     logger.info('Generated few-shot prompt for extract-patterns training');
@@ -146,7 +140,7 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
   async evaluatePrompt(
     prompt: string,
     examples: PatternTrainingExample[],
-    options: ReviewOptions
+    options: ReviewOptions,
   ): Promise<TrainingFeedback[]> {
     const feedbacks: TrainingFeedback[] = [];
 
@@ -155,14 +149,10 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
 
       // Format the prompt with the example code
       const formattedPrompt = prompt.replace('{INPUT_CODE_PLACEHOLDER}', example.code);
-      
+
       // This would normally call the AI model to get results
       // For now, we'll create a mock evaluation
-      const feedback = await this.evaluateAgainstExample(
-        formattedPrompt,
-        example,
-        options
-      );
+      const feedback = await this.evaluateAgainstExample(formattedPrompt, example, options);
 
       feedbacks.push(feedback);
     }
@@ -177,7 +167,7 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
     initialPrompt: string,
     examples: PatternTrainingExample[],
     options: ReviewOptions,
-    maxIterations: number = 5
+    maxIterations = 5,
   ): Promise<string> {
     let currentPrompt = initialPrompt;
     let bestScore = 0;
@@ -213,11 +203,11 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
   private async evaluateAgainstExample(
     _prompt: string,
     _example: PatternTrainingExample,
-    _options: ReviewOptions
+    _options: ReviewOptions,
   ): Promise<TrainingFeedback> {
     // This is a mock implementation
     // In a real scenario, this would call the AI model and compare results
-    
+
     const mockFeedback: TrainingFeedback = {
       patternIdentificationScore: Math.random() * 10,
       metricsAccuracyScore: Math.random() * 10,
@@ -226,13 +216,13 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
       specificFeedback: [
         'Need more specific pattern identification',
         'Code metrics could be more accurate',
-        'Missing architectural pattern analysis'
+        'Missing architectural pattern analysis',
       ],
       improvements: [
         'Add more specific examples of design patterns',
         'Include quantitative metrics requirements',
-        'Emphasize architectural pattern identification'
-      ]
+        'Emphasize architectural pattern identification',
+      ],
     };
 
     return mockFeedback;
@@ -243,10 +233,10 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
    */
   private async optimizeBasedOnFeedback(
     prompt: string,
-    feedbacks: TrainingFeedback[]
+    feedbacks: TrainingFeedback[],
   ): Promise<string> {
     // Collect all improvement suggestions
-    const allImprovements = feedbacks.flatMap(f => f.improvements);
+    const allImprovements = feedbacks.flatMap((f) => f.improvements);
     // Note: feedback analysis would be implemented here in a real scenario
 
     // Create optimization instructions (placeholder for future implementation)
@@ -264,16 +254,19 @@ Provide quantitative metrics wherever possible and be specific about pattern imp
     let improvedPrompt = prompt;
 
     // Add more specific instructions based on common improvements
-    if (improvements.some(i => i.includes('specific examples'))) {
-      improvedPrompt += '\n\nIMPORTANT: Provide specific examples and file locations for each pattern you identify.';
+    if (improvements.some((i) => i.includes('specific examples'))) {
+      improvedPrompt +=
+        '\n\nIMPORTANT: Provide specific examples and file locations for each pattern you identify.';
     }
 
-    if (improvements.some(i => i.includes('quantitative metrics'))) {
-      improvedPrompt += '\n\nIMPORTANT: Include specific numbers for file sizes, function lengths, and complexity metrics.';
+    if (improvements.some((i) => i.includes('quantitative metrics'))) {
+      improvedPrompt +=
+        '\n\nIMPORTANT: Include specific numbers for file sizes, function lengths, and complexity metrics.';
     }
 
-    if (improvements.some(i => i.includes('architectural pattern'))) {
-      improvedPrompt += '\n\nIMPORTANT: Systematically analyze the architectural patterns and explain how they work together.';
+    if (improvements.some((i) => i.includes('architectural pattern'))) {
+      improvedPrompt +=
+        '\n\nIMPORTANT: Systematically analyze the architectural patterns and explain how they work together.';
     }
 
     return improvedPrompt;

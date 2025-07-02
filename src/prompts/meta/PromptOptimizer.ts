@@ -7,11 +7,11 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import type { ApiClientConfig } from '../../core/ApiClientSelector';
+import type { ReviewResult, ReviewType } from '../../types/review';
 import logger from '../../utils/logger';
-import { ReviewResult, ReviewType } from '../../types/review';
-import { PromptManager } from '../PromptManager';
-import { PromptCache } from '../cache/PromptCache';
-import { ApiClientConfig } from '../../core/ApiClientSelector';
+import type { PromptCache } from '../cache/PromptCache';
+import type { PromptManager } from '../PromptManager';
 
 /**
  * Feedback on review quality
@@ -67,7 +67,7 @@ export class PromptOptimizer {
     originalPrompt: string,
     reviewResult: ReviewResult,
     feedback: ReviewFeedback,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<string> {
     try {
       logger.info('Optimizing prompt based on feedback...');
@@ -80,26 +80,19 @@ export class PromptOptimizer {
         metaPromptTemplate,
         originalPrompt,
         reviewResult,
-        feedback
+        feedback,
       );
 
       // Generate the optimized prompt using the appropriate API client
-      const optimizedPrompt = await this.generateOptimizedPrompt(
-        metaPrompt,
-        apiClientConfig
-      );
+      const optimizedPrompt = await this.generateOptimizedPrompt(metaPrompt, apiClientConfig);
 
       // Cache the optimized prompt
-      await this.cacheOptimizedPrompt(
-        reviewResult.reviewType,
-        optimizedPrompt,
-        feedback.rating
-      );
+      await this.cacheOptimizedPrompt(reviewResult.reviewType, optimizedPrompt, feedback.rating);
 
       return optimizedPrompt;
     } catch (error) {
       logger.error(
-        `Error optimizing prompt: ${error instanceof Error ? error.message : String(error)}`
+        `Error optimizing prompt: ${error instanceof Error ? error.message : String(error)}`,
       );
       // Return the original prompt if optimization fails
       return originalPrompt;
@@ -123,13 +116,13 @@ export class PromptOptimizer {
           'src',
           'prompts',
           'meta',
-          'prompt-optimization.md'
+          'prompt-optimization.md',
         );
         return await fs.readFile(localPath, 'utf-8');
       }
     } catch (error) {
       logger.error(
-        `Error loading meta-prompt template: ${error instanceof Error ? error.message : String(error)}`
+        `Error loading meta-prompt template: ${error instanceof Error ? error.message : String(error)}`,
       );
       throw new Error('Failed to load meta-prompt template');
     }
@@ -147,7 +140,7 @@ export class PromptOptimizer {
     metaPromptTemplate: string,
     originalPrompt: string,
     reviewResult: ReviewResult,
-    feedback: ReviewFeedback
+    feedback: ReviewFeedback,
   ): string {
     // Format the feedback as a string
     const feedbackStr = this.formatFeedback(feedback);
@@ -173,7 +166,7 @@ export class PromptOptimizer {
 
     if (feedback.positiveAspects && feedback.positiveAspects.length > 0) {
       feedbackStr += 'Positive Aspects:\n';
-      feedback.positiveAspects.forEach(aspect => {
+      feedback.positiveAspects.forEach((aspect) => {
         feedbackStr += `- ${aspect}\n`;
       });
       feedbackStr += '\n';
@@ -181,7 +174,7 @@ export class PromptOptimizer {
 
     if (feedback.negativeAspects && feedback.negativeAspects.length > 0) {
       feedbackStr += 'Areas for Improvement:\n';
-      feedback.negativeAspects.forEach(aspect => {
+      feedback.negativeAspects.forEach((aspect) => {
         feedbackStr += `- ${aspect}\n`;
       });
       feedbackStr += '\n';
@@ -198,7 +191,7 @@ export class PromptOptimizer {
    */
   private async generateOptimizedPrompt(
     metaPrompt: string,
-    _apiClientConfig: ApiClientConfig
+    _apiClientConfig: ApiClientConfig,
   ): Promise<string> {
     // For now, we'll use a simple placeholder implementation
     // In a real implementation, this would use the appropriate API client
@@ -222,7 +215,7 @@ export class PromptOptimizer {
   private async cacheOptimizedPrompt(
     reviewType: ReviewType,
     optimizedPrompt: string,
-    rating: number
+    rating: number,
   ): Promise<void> {
     try {
       // Cache the optimized prompt
@@ -230,7 +223,7 @@ export class PromptOptimizer {
       logger.info(`Cached optimized prompt for ${reviewType} review type`);
     } catch (error) {
       logger.error(
-        `Error caching optimized prompt: ${error instanceof Error ? error.message : String(error)}`
+        `Error caching optimized prompt: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

@@ -1,11 +1,11 @@
 /**
  * @fileoverview Utilities for formatting metadata sections in review outputs.
- * 
+ *
  * This module provides functions to format metadata sections for review outputs,
  * including cost information, model details, and other metadata.
  */
 
-import { ReviewType, PassCost } from '../../types/review';
+import type { PassCost, ReviewType } from '../../types/review';
 import { extractModelInfoFromString } from './ModelInfoExtractor';
 
 /**
@@ -32,11 +32,11 @@ export function formatMetadataSection(
   detectedLanguage?: string,
   detectedFramework?: string,
   frameworkVersion?: string,
-  cssFrameworks?: Array<{ name: string; version?: string }>
+  cssFrameworks?: Array<{ name: string; version?: string }>,
 ): string {
   // Extract model vendor and name from modelInfo
   const { modelVendor, modelName } = extractModelInfoFromString(modelInfo);
-  
+
   // Format the date
   const formattedDate = new Date(timestamp).toLocaleString(undefined, {
     year: 'numeric',
@@ -45,25 +45,25 @@ export function formatMetadataSection(
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    timeZoneName: 'short'
+    timeZoneName: 'short',
   });
 
   // Create metadata section
   let metadataSection = `## Metadata\n| Property | Value |\n|----------|-------|\n| Review Type | ${reviewType} |\n| Generated At | ${formattedDate} |\n| Model Provider | ${modelVendor} |\n| Model Name | ${modelName} |`;
-  
+
   // Add framework detection information if available
   if (detectedLanguage) {
     metadataSection += `\n| Detected Language | ${detectedLanguage} |`;
-    
+
     if (detectedFramework && detectedFramework !== 'none') {
       metadataSection += `\n| Detected Framework | ${detectedFramework}${frameworkVersion ? ` v${frameworkVersion}` : ''} |`;
     }
-    
+
     if (cssFrameworks && cssFrameworks.length > 0) {
-      const cssFrameworksStr = cssFrameworks.map(cf => 
-        cf.version ? `${cf.name} v${cf.version.replace(/[^\d.]/g, '')}` : cf.name
-      ).join(', ');
-      
+      const cssFrameworksStr = cssFrameworks
+        .map((cf) => (cf.version ? `${cf.name} v${cf.version.replace(/[^\d.]/g, '')}` : cf.name))
+        .join(', ');
+
       metadataSection += `\n| CSS Frameworks | ${cssFrameworksStr} |`;
     }
   }
@@ -71,7 +71,7 @@ export function formatMetadataSection(
   // Add cost information if available
   if (cost) {
     metadataSection += `\n| Input Tokens | ${cost.inputTokens.toLocaleString()} |\n| Output Tokens | ${cost.outputTokens.toLocaleString()} |\n| Total Tokens | ${cost.totalTokens.toLocaleString()} |\n| Estimated Cost | ${cost.formattedCost} |`;
-    
+
     // Add multi-pass information if available
     if (cost.passCount && cost.passCount > 1) {
       metadataSection += `\n| Multi-pass Review | ${cost.passCount} passes |`;
@@ -103,7 +103,7 @@ export function parseMetadata(metadata: any): any {
   if (!metadata) {
     return {};
   }
-  
+
   try {
     return typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
   } catch (error) {
@@ -144,7 +144,7 @@ export function createEnhancedMetadata(
   detectedLanguage?: string,
   detectedFramework?: string,
   frameworkVersion?: string,
-  cssFrameworks?: Array<{ name: string; version?: string }>
+  cssFrameworks?: Array<{ name: string; version?: string }>,
 ): any {
   // Format the date
   const formattedDate = new Date(timestamp).toLocaleString(undefined, {
@@ -154,7 +154,7 @@ export function createEnhancedMetadata(
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    timeZoneName: 'short'
+    timeZoneName: 'short',
   });
 
   // Create enhanced metadata object
@@ -162,40 +162,43 @@ export function createEnhancedMetadata(
     model: {
       provider: modelVendor,
       name: modelName,
-      fullName: modelInfo
+      fullName: modelInfo,
     },
     review: {
       type: reviewType,
       path: displayPath,
       generatedAt: new Date(timestamp).toISOString(),
       formattedDate: formattedDate,
-      multiPass: (cost && cost.passCount && cost.passCount > 1) ? {
-        enabled: true,
-        passCount: cost.passCount || 1,
-        perPassCosts: cost.perPassCosts || null
-      } : null
+      multiPass:
+        cost && cost.passCount && cost.passCount > 1
+          ? {
+              enabled: true,
+              passCount: cost.passCount || 1,
+              perPassCosts: cost.perPassCosts || null,
+            }
+          : null,
     },
     cost: cost || null,
     tool: {
       version: toolVersion || process.env.npm_package_version || '2.1.1',
       commandOptions: commandOptions || null,
-      ...additionalMetadata
-    }
+      ...additionalMetadata,
+    },
   };
-  
+
   // Add framework detection information if available
   if (detectedLanguage) {
     enhancedMetadata.detection = {
-      language: detectedLanguage
+      language: detectedLanguage,
     };
-    
+
     if (detectedFramework && detectedFramework !== 'none') {
       enhancedMetadata.detection.framework = detectedFramework;
       if (frameworkVersion) {
         enhancedMetadata.detection.frameworkVersion = frameworkVersion;
       }
     }
-    
+
     if (cssFrameworks && cssFrameworks.length > 0) {
       enhancedMetadata.detection.cssFrameworks = cssFrameworks;
     }
@@ -213,25 +216,27 @@ export function parseCostInfo(costInfo: string): any {
   if (!costInfo) {
     return null;
   }
-  
+
   // Try to extract cost information from the costInfo string
   const inputTokensMatch = costInfo.match(/Input tokens: ([\d,]+)/);
   const outputTokensMatch = costInfo.match(/Output tokens: ([\d,]+)/);
   const totalTokensMatch = costInfo.match(/Total tokens: ([\d,]+)/);
   const estimatedCostMatch = costInfo.match(/Estimated cost: (.*?)$/m);
   const passCountMatch = costInfo.match(/Multi-pass review: (\d+) passes/);
-  
+
   if (inputTokensMatch || outputTokensMatch || totalTokensMatch || estimatedCostMatch) {
     return {
       inputTokens: inputTokensMatch ? parseInt(inputTokensMatch[1].replace(/,/g, '')) : 0,
       outputTokens: outputTokensMatch ? parseInt(outputTokensMatch[1].replace(/,/g, '')) : 0,
       totalTokens: totalTokensMatch ? parseInt(totalTokensMatch[1].replace(/,/g, '')) : 0,
-      estimatedCost: estimatedCostMatch ? parseFloat(estimatedCostMatch[1].replace('$', '').replace(' USD', '')) : 0,
+      estimatedCost: estimatedCostMatch
+        ? parseFloat(estimatedCostMatch[1].replace('$', '').replace(' USD', ''))
+        : 0,
       formattedCost: estimatedCostMatch ? estimatedCostMatch[1] : '$0.00 USD',
-      passCount: passCountMatch ? parseInt(passCountMatch[1]) : 1
+      passCount: passCountMatch ? parseInt(passCountMatch[1]) : 1,
     };
   }
-  
+
   return null;
 }
 
@@ -244,13 +249,13 @@ export function formatCostInfo(cost: any): string {
   if (!cost) {
     return '';
   }
-  
+
   let costInfo = `\n\n## Token Usage and Cost\n- Input tokens: ${cost.inputTokens.toLocaleString()}\n- Output tokens: ${cost.outputTokens.toLocaleString()}\n- Total tokens: ${cost.totalTokens.toLocaleString()}\n- Estimated cost: ${cost.formattedCost}`;
-  
+
   // Add multi-pass information if available
   if (cost.passCount && cost.passCount > 1) {
     costInfo += `\n- Multi-pass review: ${cost.passCount} passes`;
-    
+
     // Add per-pass breakdown if available
     if (cost.perPassCosts && Array.isArray(cost.perPassCosts)) {
       costInfo += `\n\n### Pass Breakdown`;
@@ -259,6 +264,6 @@ export function formatCostInfo(cost: any): string {
       });
     }
   }
-  
+
   return costInfo;
 }

@@ -1,21 +1,16 @@
 /**
  * @fileoverview Semantic chunking integration with robust fallback
- * 
+ *
  * This module provides a seamless integration layer that attempts semantic
  * chunking first, then gracefully falls back to the existing TokenAnalyzer
  * approach when semantic analysis fails or is not available.
  */
 
+import type { FileInfo } from '../../types/review';
 import logger from '../../utils/logger';
-import { SemanticAnalysisConfig } from './types';
+import { ChunkGenerator, type ChunkGeneratorConfig } from './ChunkGenerator';
 import { SemanticAnalyzer } from './SemanticAnalyzer';
-import { ChunkGenerator, ChunkGeneratorConfig } from './ChunkGenerator';
-import { 
-  SemanticAnalysis, 
-  CodeChunk, 
-  ReviewFocus
-} from './types';
-import { FileInfo } from '../../types/review';
+import type { CodeChunk, ReviewFocus, SemanticAnalysis, SemanticAnalysisConfig } from './types';
 
 /**
  * Simple line-based chunking result for fallback
@@ -95,9 +90,9 @@ const DEFAULT_CONFIG: ChunkingIntegrationConfig = {
       complexityThreshold: 10,
       maxChunkSize: 500,
       includeDependencyAnalysis: true,
-      includeHalsteadMetrics: false
-    }
-  }
+      includeHalsteadMetrics: false,
+    },
+  },
 };
 
 /**
@@ -156,16 +151,16 @@ export class SemanticChunkingIntegration {
    */
   private detectLanguageFromPath(filePath: string): string | null {
     const extension = filePath.split('.').pop()?.toLowerCase();
-    
+
     const extensionMap: Record<string, string> = {
-      'ts': 'typescript',
-      'tsx': 'typescript',
-      'js': 'javascript',
-      'jsx': 'javascript',
-      'py': 'python',
-      'rb': 'ruby'
+      ts: 'typescript',
+      tsx: 'typescript',
+      js: 'javascript',
+      jsx: 'javascript',
+      py: 'python',
+      rb: 'ruby',
     };
-    
+
     return extensionMap[extension || ''] || null;
   }
 
@@ -185,35 +180,40 @@ export class SemanticChunkingIntegration {
     }
 
     logger.debug(`Consolidating ${chunks.length} semantic threads into batches`);
-    
+
     // Calculate total tokens to determine if we can fit everything in one batch
     const totalTokens = chunks.reduce((sum, chunk) => sum + (chunk.estimatedTokens || 0), 0);
-    
-    // If all chunks can fit within a single batch's token limit and thread count, 
+
+    // If all chunks can fit within a single batch's token limit and thread count,
     // create one consolidated batch instead of grouping by affinity
-    if (totalTokens <= this.config.maxTokensPerBatch && chunks.length <= this.config.maxThreadsPerBatch) {
-      logger.info(`All ${chunks.length} threads fit within limits (${totalTokens} tokens) - creating single batch`);
+    if (
+      totalTokens <= this.config.maxTokensPerBatch &&
+      chunks.length <= this.config.maxThreadsPerBatch
+    ) {
+      logger.info(
+        `All ${chunks.length} threads fit within limits (${totalTokens} tokens) - creating single batch`,
+      );
       const singleBatch = this.mergeBatchChunks(chunks, 'consolidated', 1);
       return [singleBatch];
     }
-    
+
     // Otherwise, group chunks by type and complexity for better consolidation
     const groupedChunks = this.groupChunksByAffinity(chunks);
     const consolidatedBatches: CodeChunk[] = [];
-    
+
     // First, try to combine smaller groups to minimize batch count
     const groupEntries = Object.entries(groupedChunks).filter(([_, chunks]) => chunks.length > 0);
     const sortedGroups = groupEntries.sort((a, b) => a[1].length - b[1].length);
-    
+
     // Attempt to merge small groups together
     const mergedGroups: Array<[string, CodeChunk[]]> = [];
     let currentMergedGroup: CodeChunk[] = [];
     let currentMergedTokens = 0;
     let currentMergedName = '';
-    
+
     for (const [groupType, groupChunks] of sortedGroups) {
       const groupTokens = groupChunks.reduce((sum, chunk) => sum + (chunk.estimatedTokens || 0), 0);
-      
+
       if (currentMergedGroup.length === 0) {
         currentMergedGroup = groupChunks;
         currentMergedTokens = groupTokens;
@@ -234,19 +234,21 @@ export class SemanticChunkingIntegration {
         currentMergedName = groupType;
       }
     }
-    
+
     // Don't forget the last group
     if (currentMergedGroup.length > 0) {
       mergedGroups.push([currentMergedName, currentMergedGroup]);
     }
-    
+
     // Now create batches from the merged groups
     for (const [groupType, groupChunks] of mergedGroups) {
       const batches = this.createBatchesFromGroup(groupChunks, groupType);
       consolidatedBatches.push(...batches);
     }
 
-    logger.info(`Consolidated ${chunks.length} threads into ${consolidatedBatches.length} efficient batches`);
+    logger.info(
+      `Consolidated ${chunks.length} threads into ${consolidatedBatches.length} efficient batches`,
+    );
     return consolidatedBatches;
   }
 
@@ -260,21 +262,27 @@ export class SemanticChunkingIntegration {
       interfaces: [],
       utilities: [],
       tests: [],
-      other: []
+      other: [],
     };
 
-    chunks.forEach(chunk => {
+    chunks.forEach((chunk) => {
       // Use chunk content if available, otherwise classify by declarations
       const chunkText = chunk.content || '';
       const declarations = chunk.declarations || [];
-      
+
       // Classify chunks based on content patterns or declaration types
-      const hasInterface = chunkText.includes('interface ') || declarations.some(d => d.type === 'interface');
-      const hasClass = chunkText.includes('class ') || declarations.some(d => d.type === 'class');
-      const hasFunction = chunkText.includes('function ') || declarations.some(d => d.type === 'function');
-      const hasTest = chunkText.includes('test') || chunkText.includes('spec') || chunkText.includes('describe');
-      const hasUtil = chunkText.includes('util') || chunkText.includes('helper') || chunkText.includes('constant');
-      
+      const hasInterface =
+        chunkText.includes('interface ') || declarations.some((d) => d.type === 'interface');
+      const hasClass = chunkText.includes('class ') || declarations.some((d) => d.type === 'class');
+      const hasFunction =
+        chunkText.includes('function ') || declarations.some((d) => d.type === 'function');
+      const hasTest =
+        chunkText.includes('test') || chunkText.includes('spec') || chunkText.includes('describe');
+      const hasUtil =
+        chunkText.includes('util') ||
+        chunkText.includes('helper') ||
+        chunkText.includes('constant');
+
       if (hasInterface) {
         groups.interfaces.push(chunk);
       } else if (hasClass) {
@@ -300,7 +308,7 @@ export class SemanticChunkingIntegration {
    */
   private createBatchesFromGroup(chunks: CodeChunk[], groupType: string): CodeChunk[] {
     if (chunks.length === 0) return [];
-    
+
     const batches: CodeChunk[] = [];
     let currentBatch: CodeChunk[] = [];
     let currentTokens = 0;
@@ -310,11 +318,11 @@ export class SemanticChunkingIntegration {
 
     for (const chunk of sortedChunks) {
       const chunkTokens = chunk.estimatedTokens || 0;
-      
+
       // Check if adding this chunk would exceed limits
       const wouldExceedTokens = currentTokens + chunkTokens > this.config.maxTokensPerBatch;
       const wouldExceedCount = currentBatch.length >= this.config.maxThreadsPerBatch;
-      
+
       if ((wouldExceedTokens || wouldExceedCount) && currentBatch.length > 0) {
         // Create batch from current chunks
         batches.push(this.mergeBatchChunks(currentBatch, groupType, batches.length + 1));
@@ -339,38 +347,38 @@ export class SemanticChunkingIntegration {
    */
   private mergeBatchChunks(chunks: CodeChunk[], groupType: string, batchNumber: number): CodeChunk {
     const totalTokens = chunks.reduce((sum, chunk) => sum + (chunk.estimatedTokens || 0), 0);
-    const mergedContent = chunks.map(chunk => chunk.content || '').join('\n\n');
-    
+    const mergedContent = chunks.map((chunk) => chunk.content || '').join('\n\n');
+
     // Extract all declarations from chunks
-    const allDeclarations = chunks.flatMap(chunk => chunk.declarations || []);
+    const allDeclarations = chunks.flatMap((chunk) => chunk.declarations || []);
 
     return {
       id: `semantic_batch_${groupType}_${batchNumber}`,
       type: 'module',
       lines: [
-        Math.min(...chunks.map(c => c.lines?.[0] || 1)),
-        Math.max(...chunks.map(c => c.lines?.[1] || 1))
+        Math.min(...chunks.map((c) => c.lines?.[0] || 1)),
+        Math.max(...chunks.map((c) => c.lines?.[1] || 1)),
       ] as [number, number],
       declarations: allDeclarations,
-      context: chunks.flatMap(c => c.context || []),
+      context: chunks.flatMap((c) => c.context || []),
       priority: chunks[0]?.priority || 'medium',
       reviewFocus: chunks[0]?.reviewFocus || ['maintainability'],
       estimatedTokens: totalTokens,
-      dependencies: [...new Set(chunks.flatMap(c => c.dependencies || []))],
+      dependencies: [...new Set(chunks.flatMap((c) => c.dependencies || []))],
       content: mergedContent,
       metadata: {
         semanticInfo: {
           declarations: allDeclarations,
           complexity: allDeclarations.reduce((sum, d) => sum + (d.cyclomaticComplexity || 1), 0),
           threadCount: chunks.length,
-          groupType
+          groupType,
         },
         consolidation: {
           originalThreads: chunks.length,
-          threadIds: chunks.map(c => c.id),
-          consolidationReason: `Merged ${chunks.length} ${groupType} threads for efficient processing`
-        }
-      }
+          threadIds: chunks.map((c) => c.id),
+          consolidationReason: `Merged ${chunks.length} ${groupType} threads for efficient processing`,
+        },
+      },
     };
   }
 
@@ -385,7 +393,7 @@ export class SemanticChunkingIntegration {
       forceSemantic?: boolean;
       forceTraditional?: boolean;
       useCache?: boolean;
-    } = {}
+    } = {},
   ): Promise<IntegratedChunkingResult> {
     const startTime = Date.now();
     const {
@@ -393,7 +401,7 @@ export class SemanticChunkingIntegration {
       modelName = 'gemini:gemini-1.5-pro',
       forceSemantic = false,
       forceTraditional = false,
-      useCache = this.config.enableCaching
+      useCache = this.config.enableCaching,
     } = options;
 
     const errors: string[] = [];
@@ -414,7 +422,7 @@ export class SemanticChunkingIntegration {
       const strategy = this.determineChunkingStrategy(files, {
         forceSemantic,
         forceTraditional,
-        reviewType
+        reviewType,
       });
 
       logger.info(`Using ${strategy} chunking strategy for ${files.length} files`);
@@ -425,7 +433,7 @@ export class SemanticChunkingIntegration {
       if (strategy === 'semantic' && this.config.enableSemanticChunking) {
         // Attempt semantic chunking
         const semanticResult = await this.attemptSemanticChunking(files, reviewType);
-        
+
         if (semanticResult.success) {
           chunks = semanticResult.chunks;
           semanticAnalysis = semanticResult.analysis;
@@ -433,7 +441,7 @@ export class SemanticChunkingIntegration {
           reasoning = semanticResult.reasoning;
         } else {
           errors.push(...semanticResult.errors);
-          
+
           if (this.config.enableFallback) {
             logger.info('Semantic chunking failed, falling back to traditional approach');
             const fallbackResult = await this.performTraditionalChunking(files, { reviewType });
@@ -452,9 +460,10 @@ export class SemanticChunkingIntegration {
         chunks = traditionalResult.chunks;
         lineBasedResult = traditionalResult.chunkingResult;
         method = 'traditional';
-        reasoning = strategy === 'traditional' ? 
-          'Traditional chunking selected by strategy' : 
-          'Semantic chunking disabled';
+        reasoning =
+          strategy === 'traditional'
+            ? 'Traditional chunking selected by strategy'
+            : 'Semantic chunking disabled';
       }
 
       const endTime = Date.now();
@@ -471,9 +480,9 @@ export class SemanticChunkingIntegration {
           analysisTimeMs: endTime - startTime,
           chunkingTimeMs: endTime - startTime, // Simplified for now
           totalTokens,
-          chunksGenerated: chunks.length
+          chunksGenerated: chunks.length,
         },
-        reasoning
+        reasoning,
       };
 
       // Cache result
@@ -481,17 +490,21 @@ export class SemanticChunkingIntegration {
         this.cache.set(cacheKey, result);
       }
 
-      logger.info(`Chunking complete: ${chunks.length} chunks, ${totalTokens} tokens, method: ${method}`);
+      logger.info(
+        `Chunking complete: ${chunks.length} chunks, ${totalTokens} tokens, method: ${method}`,
+      );
       return result;
-
     } catch (error) {
       logger.error('Integrated chunking failed:', error);
-      
+
       // Last resort fallback
       if (this.config.enableFallback && !forceTraditional) {
         logger.warn('Attempting emergency fallback to traditional chunking');
         try {
-          const fallbackResult = await this.performTraditionalChunking(files, { reviewType, modelName });
+          const fallbackResult = await this.performTraditionalChunking(files, {
+            reviewType,
+            modelName,
+          });
           return {
             chunks: fallbackResult.chunks,
             method: 'traditional',
@@ -501,16 +514,19 @@ export class SemanticChunkingIntegration {
             metrics: {
               analysisTimeMs: Date.now() - startTime,
               chunkingTimeMs: 0,
-              totalTokens: fallbackResult.chunks.reduce((sum, chunk) => sum + chunk.estimatedTokens, 0),
-              chunksGenerated: fallbackResult.chunks.length
+              totalTokens: fallbackResult.chunks.reduce(
+                (sum, chunk) => sum + chunk.estimatedTokens,
+                0,
+              ),
+              chunksGenerated: fallbackResult.chunks.length,
             },
-            reasoning: 'Emergency fallback due to complete analysis failure'
+            reasoning: 'Emergency fallback due to complete analysis failure',
           };
         } catch (fallbackError) {
           logger.error('Emergency fallback also failed:', fallbackError);
         }
       }
-      
+
       throw error;
     }
   }
@@ -524,7 +540,7 @@ export class SemanticChunkingIntegration {
       forceSemantic?: boolean;
       forceTraditional?: boolean;
       reviewType?: string;
-    }
+    },
   ): 'semantic' | 'traditional' {
     const { forceSemantic, forceTraditional } = options;
 
@@ -536,7 +552,7 @@ export class SemanticChunkingIntegration {
     if (!this.config.enableSemanticChunking) return 'traditional';
 
     // Check file characteristics
-    const hasSemanticSupportedFiles = files.some(file => {
+    const hasSemanticSupportedFiles = files.some((file) => {
       const language = this.detectLanguageFromPath(file.path);
       return language && this.isLanguageSupported(language);
     });
@@ -547,8 +563,8 @@ export class SemanticChunkingIntegration {
     }
 
     // Check file sizes
-    const hasOversizedFiles = files.some(file => 
-      file.content.length > this.config.maxFileSizeForSemantic
+    const hasOversizedFiles = files.some(
+      (file) => file.content.length > this.config.maxFileSizeForSemantic,
     );
 
     if (hasOversizedFiles) {
@@ -557,13 +573,13 @@ export class SemanticChunkingIntegration {
     }
 
     // Check language preferences
-    const languages = files.map(file => this.detectLanguageFromPath(file.path)).filter(Boolean);
-    
-    if (languages.some(lang => this.config.forceTraditional.includes(lang!))) {
+    const languages = files.map((file) => this.detectLanguageFromPath(file.path)).filter(Boolean);
+
+    if (languages.some((lang) => this.config.forceTraditional.includes(lang!))) {
       return 'traditional';
     }
-    
-    if (languages.some(lang => this.config.forceSemantic.includes(lang!))) {
+
+    if (languages.some((lang) => this.config.forceSemantic.includes(lang!))) {
       return 'semantic';
     }
 
@@ -576,7 +592,7 @@ export class SemanticChunkingIntegration {
    */
   private async attemptSemanticChunking(
     files: FileInfo[],
-    reviewType: string
+    reviewType: string,
   ): Promise<{
     success: boolean;
     chunks: CodeChunk[];
@@ -598,13 +614,19 @@ export class SemanticChunkingIntegration {
 
         const language = this.detectLanguageFromPath(file.path);
         if (!language || !this.isLanguageSupported(language)) {
-          logger.debug(`Skipping semantic analysis for ${file.path} - unsupported language: ${language}`);
+          logger.debug(
+            `Skipping semantic analysis for ${file.path} - unsupported language: ${language}`,
+          );
           continue;
         }
 
         // Perform semantic analysis
-        const analysisResult = await this.semanticAnalyzer.analyzeCode(file.content, file.path, language);
-        
+        const analysisResult = await this.semanticAnalyzer.analyzeCode(
+          file.content,
+          file.path,
+          language,
+        );
+
         if (!analysisResult.success || !analysisResult.analysis) {
           logger.debug(`Semantic analysis failed for ${file.path}:`, analysisResult.errors);
           continue;
@@ -614,7 +636,7 @@ export class SemanticChunkingIntegration {
         const chunkingResult = this.chunkGenerator.generateChunks(
           analysisResult.analysis,
           file.content,
-          reviewType
+          reviewType,
         );
 
         if (analysisResult.success && chunkingResult.chunks) {
@@ -625,16 +647,18 @@ export class SemanticChunkingIntegration {
           const filePrefix = this.sanitizeFileName(file.path);
           const fileChunks = chunkingResult.chunks.map((chunk: CodeChunk) => ({
             ...chunk,
-            id: `${filePrefix}_${chunk.id}`
+            id: `${filePrefix}_${chunk.id}`,
           }));
-          
+
           allChunks.push(...fileChunks);
-          
+
           if (!primaryAnalysis) {
             primaryAnalysis = analysisResult.analysis!;
           }
         } else {
-          errors.push(`Semantic analysis failed for ${file.path}: ${analysisResult.errors.map((e) => (typeof e === 'object' && e.message ? e.message : e.toString())).join(', ')}`);
+          errors.push(
+            `Semantic analysis failed for ${file.path}: ${analysisResult.errors.map((e) => (typeof e === 'object' && e.message ? e.message : e.toString())).join(', ')}`,
+          );
         }
       }
 
@@ -643,7 +667,7 @@ export class SemanticChunkingIntegration {
           success: false,
           chunks: [],
           errors: errors.length > 0 ? errors : ['No semantic chunks could be generated'],
-          reasoning: 'Semantic analysis produced no usable chunks'
+          reasoning: 'Semantic analysis produced no usable chunks',
         };
       }
 
@@ -652,18 +676,18 @@ export class SemanticChunkingIntegration {
         chunks: allChunks,
         analysis: primaryAnalysis,
         errors,
-        reasoning: `Generated ${allChunks.length} semantic chunks across ${files.length} files`
+        reasoning: `Generated ${allChunks.length} semantic chunks across ${files.length} files`,
       };
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown semantic analysis error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown semantic analysis error';
       logger.error('Semantic chunking attempt failed:', error);
-      
+
       return {
         success: false,
         chunks: [],
         errors: [...errors, errorMessage],
-        reasoning: 'Semantic analysis threw an exception'
+        reasoning: 'Semantic analysis threw an exception',
       };
     }
   }
@@ -676,7 +700,7 @@ export class SemanticChunkingIntegration {
     options: {
       reviewType?: string;
       modelName?: string;
-    }
+    },
   ): Promise<{
     chunks: CodeChunk[];
     chunkingResult: LineBasedChunkingResult;
@@ -708,7 +732,7 @@ export class SemanticChunkingIntegration {
           priority: 'medium',
           reviewFocus: this.getTraditionalReviewFocus(reviewType),
           estimatedTokens: fileTokens,
-          dependencies: []
+          dependencies: [],
         });
       } else {
         // Multiple chunks for large files
@@ -725,7 +749,7 @@ export class SemanticChunkingIntegration {
             priority: 'medium',
             reviewFocus: this.getTraditionalReviewFocus(reviewType),
             estimatedTokens: chunkTokens,
-            dependencies: []
+            dependencies: [],
           });
         }
       }
@@ -734,19 +758,21 @@ export class SemanticChunkingIntegration {
     const chunkingResult: LineBasedChunkingResult = {
       totalFiles: files.length,
       estimatedTotalTokens: totalTokens,
-      chunks: chunks.map(chunk => ({
+      chunks: chunks.map((chunk) => ({
         estimatedTokenCount: chunk.estimatedTokens,
         priority: chunk.priority,
         startLine: chunk.lines[0],
-        endLine: chunk.lines[1]
-      }))
+        endLine: chunk.lines[1],
+      })),
     };
 
-    logger.debug(`Line-based chunking generated ${chunks.length} chunks with ${totalTokens} estimated tokens`);
+    logger.debug(
+      `Line-based chunking generated ${chunks.length} chunks with ${totalTokens} estimated tokens`,
+    );
 
     return {
       chunks,
-      chunkingResult
+      chunkingResult,
     };
   }
 
@@ -756,10 +782,10 @@ export class SemanticChunkingIntegration {
   private getTraditionalReviewFocus(reviewType: string): ReviewFocus[] {
     const focusMap: Record<string, ReviewFocus[]> = {
       'quick-fixes': ['maintainability', 'performance'],
-      'architectural': ['architecture', 'type_safety', 'maintainability'],
-      'security': ['security', 'error_handling'],
-      'performance': ['performance', 'architecture'],
-      'unused-code': ['maintainability', 'architecture']
+      architectural: ['architecture', 'type_safety', 'maintainability'],
+      security: ['security', 'error_handling'],
+      performance: ['performance', 'architecture'],
+      'unused-code': ['maintainability', 'architecture'],
     };
 
     return focusMap[reviewType] || ['maintainability'];
@@ -780,7 +806,7 @@ export class SemanticChunkingIntegration {
    * Generate cache key for analysis results
    */
   private generateCacheKey(files: FileInfo[], reviewType: string, modelName: string): string {
-    const fileHashes = files.map(f => this.simpleHash(f.content + f.path)).join('_');
+    const fileHashes = files.map((f) => this.simpleHash(f.content + f.path)).join('_');
     return `${fileHashes}_${reviewType}_${modelName}`;
   }
 
@@ -791,7 +817,7 @@ export class SemanticChunkingIntegration {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash).toString(36);
@@ -802,12 +828,14 @@ export class SemanticChunkingIntegration {
    */
   public canUseSemanticChunking(files: FileInfo[]): boolean {
     if (!this.config.enableSemanticChunking) return false;
-    
-    return files.some(file => {
+
+    return files.some((file) => {
       const language = this.detectLanguageFromPath(file.path);
-      return language && 
-             this.isLanguageSupported(language) &&
-             file.content.length <= this.config.maxFileSizeForSemantic;
+      return (
+        language &&
+        this.isLanguageSupported(language) &&
+        file.content.length <= this.config.maxFileSizeForSemantic
+      );
     });
   }
 
@@ -821,8 +849,8 @@ export class SemanticChunkingIntegration {
       cacheSize: this.cache.size,
       semanticSystemStats: {
         size: this.cache.size,
-        enabled: this.config.enableCaching
-      }
+        enabled: this.config.enableCaching,
+      },
     };
   }
 
@@ -872,7 +900,7 @@ export async function analyzeAndChunkWithFallback(
     forceSemantic?: boolean;
     forceTraditional?: boolean;
     useCache?: boolean;
-  } = {}
+  } = {},
 ): Promise<IntegratedChunkingResult> {
   return semanticChunkingIntegration.analyzeAndChunk(files, options);
 }

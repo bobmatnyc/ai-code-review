@@ -1,29 +1,29 @@
 /**
  * @fileoverview Abstract base client for interacting with various AI APIs.
- * 
+ *
  * This module defines an abstract base class that encapsulates common functionality
  * across different AI client implementations (OpenAI, Anthropic, Google, etc.).
  * It provides a unified interface for model detection, initialization, review generation,
  * and other shared operations.
  */
 
-import {
-  ReviewType,
-  ReviewResult,
+import type {
+  CostInfo,
   FileInfo,
   ReviewOptions,
-  CostInfo
+  ReviewResult,
+  ReviewType,
 } from '../../types/review';
-import { StructuredReview } from '../../types/structuredReview';
-import { ProjectDocs } from '../../utils/projectDocs';
+import type { StructuredReview } from '../../types/structuredReview';
 import logger from '../../utils/logger';
+import type { ProjectDocs } from '../../utils/projectDocs';
 
 /**
  * Abstract base class for AI model clients
  */
 export abstract class AbstractClient {
-  protected modelName: string = '';
-  protected isInitialized: boolean = false;
+  protected modelName = '';
+  protected isInitialized = false;
 
   /**
    * Check if the provided model name is supported by this client
@@ -56,7 +56,7 @@ export abstract class AbstractClient {
     filePath: string,
     reviewType: ReviewType,
     projectDocs?: ProjectDocs | null,
-    options?: ReviewOptions
+    options?: ReviewOptions,
   ): Promise<ReviewResult>;
 
   /**
@@ -73,7 +73,7 @@ export abstract class AbstractClient {
     projectName: string,
     reviewType: ReviewType,
     projectDocs?: ProjectDocs | null,
-    options?: ReviewOptions
+    options?: ReviewOptions,
   ): Promise<ReviewResult>;
 
   /**
@@ -88,7 +88,7 @@ export abstract class AbstractClient {
     files: FileInfo[],
     projectName: string,
     projectDocs?: ProjectDocs | null,
-    options?: ReviewOptions
+    options?: ReviewOptions,
   ): Promise<ReviewResult>;
 
   /**
@@ -107,9 +107,7 @@ export abstract class AbstractClient {
 
       // Validate that it has the expected structure
       if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn(
-          'Response is valid JSON but does not have the expected structure'
-        );
+        logger.warn('Response is valid JSON but does not have the expected structure');
       }
 
       return structuredData;
@@ -117,7 +115,7 @@ export abstract class AbstractClient {
       logger.warn(
         `Response is not valid JSON: ${
           parseError instanceof Error ? parseError.message : String(parseError)
-        }`
+        }`,
       );
       // Return null for non-JSON content
       return null;
@@ -136,10 +134,10 @@ export abstract class AbstractClient {
     content: string,
     filePath: string,
     reviewType: ReviewType,
-    cost?: CostInfo
+    cost?: CostInfo,
   ): ReviewResult {
     const structuredData = this.processResponseForStructuredData(content);
-    
+
     return {
       content,
       cost,
@@ -147,7 +145,7 @@ export abstract class AbstractClient {
       filePath,
       reviewType,
       timestamp: new Date().toISOString(),
-      structuredData: structuredData as StructuredReview | undefined
+      structuredData: structuredData as StructuredReview | undefined,
     };
   }
 
@@ -176,11 +174,7 @@ export abstract class AbstractClient {
    * @param filePath The file path or identifier related to the error
    * @throws The processed error
    */
-  protected handleApiError(
-    error: unknown,
-    operation: string,
-    filePath: string
-  ): never {
+  protected handleApiError(error: unknown, operation: string, filePath: string): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Error ${operation} for ${filePath}: ${errorMessage}`);
     throw error;

@@ -1,11 +1,11 @@
 /**
  * @fileoverview Formatter for token analysis results.
  *
- * This module provides utilities for formatting token analysis results into 
+ * This module provides utilities for formatting token analysis results into
  * human-readable strings and other formats for display or logging.
  */
 
-import { TokenAnalysisResult, FileTokenAnalysis } from './TokenAnalyzer';
+import type { FileTokenAnalysis, TokenAnalysisResult } from './TokenAnalyzer';
 
 /**
  * Format a number with commas as thousands separators
@@ -24,11 +24,11 @@ function formatNumber(num: number): string {
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) {
     return `${bytes} B`;
-  } else if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(2)} KB`;
-  } else {
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(2)} KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 /**
@@ -41,17 +41,15 @@ function formatFileSize(bytes: number): string {
 export function formatTokenAnalysis(
   analysis: TokenAnalysisResult,
   modelName: string,
-  includeFiles: boolean = false
+  includeFiles = false,
 ): string {
   // Extract provider and model if available
-  const [provider, model] = modelName.includes(':')
-    ? modelName.split(':')
-    : [undefined, modelName];
+  const [provider, model] = modelName.includes(':') ? modelName.split(':') : [undefined, modelName];
   const displayModel = model || modelName;
   const displayProvider = provider
     ? `${provider.charAt(0).toUpperCase() + provider.slice(1)}`
     : 'Unknown';
-    
+
   let output = `
 === Token Analysis Report ===
 
@@ -66,7 +64,7 @@ Token Information:
   Context Window Size: ${formatNumber(analysis.contextWindowSize)}
 
 Context Utilization:
-  ${(analysis.estimatedTotalTokens / analysis.contextWindowSize * 100).toFixed(2)}% of context window used
+  ${((analysis.estimatedTotalTokens / analysis.contextWindowSize) * 100).toFixed(2)}% of context window used
 
 `;
 
@@ -104,8 +102,8 @@ File Details:
 
     // Sort files by token count (largest first)
     const sortedFiles = [...analysis.files].sort((a, b) => b.tokenCount - a.tokenCount);
-    
-    sortedFiles.forEach(file => {
+
+    sortedFiles.forEach((file) => {
       output += `  ${file.relativePath}:
     Tokens: ${formatNumber(file.tokenCount)}
     Size: ${formatFileSize(file.sizeInBytes)}
@@ -122,9 +120,7 @@ File Details:
  * @param analysis Token analysis result
  * @returns JSON string representation of the analysis
  */
-export function formatTokenAnalysisAsJson(
-  analysis: TokenAnalysisResult
-): string {
+export function formatTokenAnalysisAsJson(analysis: TokenAnalysisResult): string {
   return JSON.stringify(analysis, null, 2);
 }
 

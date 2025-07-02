@@ -29,18 +29,18 @@ export async function parseGitHubProjectsArguments(): Promise<GitHubProjectsSync
         alias: 'd',
         choices: ['to-github', 'from-github'],
         default: 'to-github',
-        describe: 'Sync direction'
+        describe: 'Sync direction',
       })
       .option('project-path', {
         alias: 'p',
         type: 'string',
-        describe: 'Path to the project directory'
+        describe: 'Path to the project directory',
       })
       .option('description-only', {
         alias: 'desc',
         type: 'boolean',
         default: false,
-        describe: 'Update only the project readme with PROJECT.md content'
+        describe: 'Update only the project readme with PROJECT.md content',
       })
       .help()
       .alias('help', 'h')
@@ -49,14 +49,14 @@ export async function parseGitHubProjectsArguments(): Promise<GitHubProjectsSync
     const options: GitHubProjectsSyncOptions = {
       direction: argv.direction as 'to-github' | 'from-github',
       projectPath: argv['project-path'] as string,
-      descriptionOnly: argv['description-only'] as boolean
+      descriptionOnly: argv['description-only'] as boolean,
     };
 
     return options;
   } catch (error) {
     logger.error(
       'Error parsing GitHub Projects sync arguments:',
-      error instanceof Error ? error.message : String(error)
+      error instanceof Error ? error.message : String(error),
     );
     process.exit(1);
   }

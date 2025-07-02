@@ -1,12 +1,12 @@
 /**
  * @fileoverview Tool calling abstractions for LLM clients
- * 
+ *
  * This module provides interfaces and utilities for tool calling
  * across different LLM providers.
  */
 
-import { PackageInfo } from '../../utils/dependencies/packageAnalyzer';
-import { DependencySecurityInfo } from '../../utils/dependencies/serpApiHelper';
+import type { PackageInfo } from '../../utils/dependencies/packageAnalyzer';
+import type { DependencySecurityInfo } from '../../utils/dependencies/serpApiHelper';
 
 /**
  * Base interface for all tool definitions
@@ -49,20 +49,21 @@ export const DEPENDENCY_SECURITY_TOOL: FunctionToolDefinition = {
     properties: {
       package_name: {
         type: 'string',
-        description: 'The name of the package to search for'
+        description: 'The name of the package to search for',
       },
       package_version: {
         type: 'string',
-        description: 'The version of the package (optional)'
+        description: 'The version of the package (optional)',
       },
       ecosystem: {
         type: 'string',
         enum: ['npm', 'composer', 'pip', 'gem'],
-        description: 'The package ecosystem (npm for JavaScript, composer for PHP, pip for Python, gem for Ruby)'
-      }
+        description:
+          'The package ecosystem (npm for JavaScript, composer for PHP, pip for Python, gem for Ruby)',
+      },
     },
-    required: ['package_name', 'ecosystem']
-  }
+    required: ['package_name', 'ecosystem'],
+  },
 };
 
 /**
@@ -71,7 +72,8 @@ export const DEPENDENCY_SECURITY_TOOL: FunctionToolDefinition = {
 export const BATCH_DEPENDENCY_SECURITY_TOOL: FunctionToolDefinition = {
   type: 'function',
   name: 'batch_search_dependency_security',
-  description: 'Search for security information about multiple package dependencies (limited to 5 packages)',
+  description:
+    'Search for security information about multiple package dependencies (limited to 5 packages)',
   parameters: {
     type: 'object',
     properties: {
@@ -83,28 +85,29 @@ export const BATCH_DEPENDENCY_SECURITY_TOOL: FunctionToolDefinition = {
           properties: {
             name: {
               type: 'string',
-              description: 'The name of the package'
+              description: 'The name of the package',
             },
             version: {
               type: 'string',
-              description: 'The version of the package (optional)'
-            }
+              description: 'The version of the package (optional)',
+            },
           },
-          required: ['name']
-        }
+          required: ['name'],
+        },
       },
       ecosystem: {
         type: 'string',
         enum: ['npm', 'composer', 'pip', 'gem'],
-        description: 'The package ecosystem (npm for JavaScript, composer for PHP, pip for Python, gem for Ruby)'
+        description:
+          'The package ecosystem (npm for JavaScript, composer for PHP, pip for Python, gem for Ruby)',
       },
       limit: {
         type: 'number',
-        description: 'The maximum number of packages to search for (default: 5)'
-      }
+        description: 'The maximum number of packages to search for (default: 5)',
+      },
     },
-    required: ['packages', 'ecosystem']
-  }
+    required: ['packages', 'ecosystem'],
+  },
 };
 
 /**
@@ -112,7 +115,7 @@ export const BATCH_DEPENDENCY_SECURITY_TOOL: FunctionToolDefinition = {
  */
 export const ALL_TOOLS: FunctionToolDefinition[] = [
   DEPENDENCY_SECURITY_TOOL,
-  BATCH_DEPENDENCY_SECURITY_TOOL
+  BATCH_DEPENDENCY_SECURITY_TOOL,
 ];
 
 /**
@@ -147,8 +150,14 @@ export interface ToolCallingHandler {
    * @returns The final request
    */
   createToolResultsRequest(
-    conversation: Array<{role: string; content: string | null; toolCalls?: any; toolCallId?: string; name?: string}>,
-    toolResults: ToolCallResult[]
+    conversation: Array<{
+      role: string;
+      content: string | null;
+      toolCalls?: any;
+      toolCallId?: string;
+      name?: string;
+    }>,
+    toolResults: ToolCallResult[],
   ): any;
 }
 
@@ -160,7 +169,7 @@ export interface ToolCallingHandler {
 export function packageInfoFromToolArgs(args: any): PackageInfo {
   return {
     name: args.package_name,
-    version: args.package_version
+    version: args.package_version,
   };
 }
 
@@ -172,7 +181,7 @@ export function packageInfoFromToolArgs(args: any): PackageInfo {
 export function packageInfosFromBatchToolArgs(args: any): PackageInfo[] {
   return (args.packages || []).map((pkg: any) => ({
     name: pkg.name,
-    version: pkg.version
+    version: pkg.version,
   }));
 }
 
@@ -185,9 +194,9 @@ export function formatDependencySecurityInfo(info: DependencySecurityInfo | null
   if (!info) {
     return 'No security information found for this dependency.';
   }
-  
+
   let result = `## ${info.packageName} ${info.packageVersion ? `(${info.packageVersion})` : ''}`;
-  
+
   // Add package health information
   if (info.packageHealth) {
     result += '\n\n### Package Health\n\n';
@@ -201,56 +210,56 @@ export function formatDependencySecurityInfo(info: DependencySecurityInfo | null
       result += `- Popularity: ${info.packageHealth.popularity}\n`;
     }
   }
-  
+
   // Add deprecation information
   if (info.deprecationInfo) {
     result += `\n\n### ⚠️ Deprecation Warning\n\n${info.deprecationInfo}`;
   }
-  
+
   // Add recommended version
   if (info.recommendedVersion) {
     result += `\n\n### ✅ Recommended Version\n\n${info.recommendedVersion}`;
   }
-  
+
   // Add vulnerabilities
   if (info.vulnerabilities.length > 0) {
     result += '\n\n### Vulnerabilities\n\n';
-    
+
     for (const vuln of info.vulnerabilities) {
       const severityEmoji = {
         critical: '🔴',
         high: '🟠',
         medium: '🟡',
         low: '🟢',
-        unknown: '⚪'
+        unknown: '⚪',
       }[vuln.severity];
-      
+
       result += `${severityEmoji} **Severity:** ${vuln.severity}\n\n`;
       result += `${vuln.description}\n\n`;
-      
+
       if (vuln.affectedVersions) {
         result += `**Affected Versions:** ${vuln.affectedVersions}\n\n`;
       }
-      
+
       if (vuln.fixedVersions) {
         result += `**Fixed in:** ${vuln.fixedVersions}\n\n`;
       }
-      
+
       if (vuln.url) {
         result += `**More Info:** [${vuln.url}](${vuln.url})\n\n`;
       }
     }
   }
-  
+
   // Add sources
   if (info.sources.length > 0) {
     result += '\n\n### Sources\n\n';
-    
+
     for (const source of info.sources) {
       result += `- [${new URL(source).hostname}](${source})\n`;
     }
   }
-  
+
   return result;
 }
 
@@ -263,6 +272,6 @@ export function formatBatchDependencySecurityInfo(infos: DependencySecurityInfo[
   if (infos.length === 0) {
     return 'No security information found for any dependencies.';
   }
-  
+
   return infos.map(formatDependencySecurityInfo).join('\n\n---\n\n');
 }

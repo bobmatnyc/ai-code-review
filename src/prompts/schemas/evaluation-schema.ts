@@ -34,7 +34,11 @@ export type ConfidenceLevel = z.infer<typeof ConfidenceLevel>;
 /**
  * Working environment assessment
  */
-export const WorkingEnvironment = z.enum(['Individual project', 'Team collaboration', 'Enterprise']);
+export const WorkingEnvironment = z.enum([
+  'Individual project',
+  'Team collaboration',
+  'Enterprise',
+]);
 export type WorkingEnvironment = z.infer<typeof WorkingEnvironment>;
 
 /**
@@ -55,8 +59,12 @@ export type ExperienceDomain = z.infer<typeof ExperienceDomain>;
 export const SkillAssessmentSchema = z.object({
   level: SkillLevel,
   confidence: ConfidenceLevel,
-  keyEvidence: z.array(z.string()).describe('Specific examples from the code that support this assessment'),
-  notablePatterns: z.array(z.string()).describe('Notable patterns or decisions that indicate skill level')
+  keyEvidence: z
+    .array(z.string())
+    .describe('Specific examples from the code that support this assessment'),
+  notablePatterns: z
+    .array(z.string())
+    .describe('Notable patterns or decisions that indicate skill level'),
 });
 
 export type SkillAssessment = z.infer<typeof SkillAssessmentSchema>;
@@ -68,7 +76,7 @@ export const AIAssistanceAssessmentSchema = z.object({
   likelihood: AIAssistanceLevel,
   confidence: ConfidenceLevel,
   supportingIndicators: z.array(z.string()).describe('Specific patterns suggesting AI involvement'),
-  evidenceAgainst: z.array(z.string()).optional().describe('Evidence against AI assistance')
+  evidenceAgainst: z.array(z.string()).optional().describe('Evidence against AI assistance'),
 });
 
 export type AIAssistanceAssessment = z.infer<typeof AIAssistanceAssessmentSchema>;
@@ -79,8 +87,12 @@ export type AIAssistanceAssessment = z.infer<typeof AIAssistanceAssessmentSchema
 export const ProfessionalMaturityAssessmentSchema = z.object({
   level: ProfessionalMaturity,
   confidence: ConfidenceLevel,
-  decisionMakingQuality: z.array(z.string()).describe('Assessment of architectural and implementation choices'),
-  productionReadinessEvidence: z.array(z.string()).describe('Evidence of production readiness and maintainability focus')
+  decisionMakingQuality: z
+    .array(z.string())
+    .describe('Assessment of architectural and implementation choices'),
+  productionReadinessEvidence: z
+    .array(z.string())
+    .describe('Evidence of production readiness and maintainability focus'),
 });
 
 export type ProfessionalMaturityAssessment = z.infer<typeof ProfessionalMaturityAssessmentSchema>;
@@ -92,7 +104,7 @@ export const DevelopmentContextSchema = z.object({
   workingEnvironment: WorkingEnvironment,
   timeConstraints: TimeConstraints,
   experienceDomain: ExperienceDomain,
-  reasoning: z.string().describe('Reasoning for these assessments')
+  reasoning: z.string().describe('Reasoning for these assessments'),
 });
 
 export type DevelopmentContext = z.infer<typeof DevelopmentContextSchema>;
@@ -103,7 +115,9 @@ export type DevelopmentContext = z.infer<typeof DevelopmentContextSchema>;
 export const NotableObservationsSchema = z.object({
   uniqueStrengths: z.array(z.string()).describe('Unique strengths or approaches observed'),
   interestingDecisions: z.array(z.string()).describe('Interesting decisions or trade-offs made'),
-  expertiseAreas: z.array(z.string()).describe('Areas where the developer shows particular expertise or growth')
+  expertiseAreas: z
+    .array(z.string())
+    .describe('Areas where the developer shows particular expertise or growth'),
 });
 
 export type NotableObservations = z.infer<typeof NotableObservationsSchema>;
@@ -116,26 +130,34 @@ export const EvaluationReviewSchema = z.object({
   timestamp: z.string().describe('ISO 8601 timestamp'),
   projectName: z.string().describe('Name of the reviewed project'),
   filesEvaluated: z.number().describe('Total number of files evaluated'),
-  
+
   // Core assessments
   skillAssessment: SkillAssessmentSchema,
   aiAssistanceAssessment: AIAssistanceAssessmentSchema,
   professionalMaturityAssessment: ProfessionalMaturityAssessmentSchema,
-  
+
   // Context and observations
   developmentContext: DevelopmentContextSchema,
   notableObservations: NotableObservationsSchema,
-  
+
   // Overall profile
-  overallProfile: z.string().describe('2-3 sentence summary of the developer\'s likely background, experience level, and development approach'),
-  
+  overallProfile: z
+    .string()
+    .describe(
+      "2-3 sentence summary of the developer's likely background, experience level, and development approach",
+    ),
+
   // Language-specific insights
-  languageSpecificInsights: z.object({
-    language: z.string().describe('Primary language assessed'),
-    skillMarkers: z.array(z.string()).describe('Language-specific skill indicators'),
-    aiPatterns: z.array(z.string()).describe('Language-specific AI assistance patterns'),
-    professionalPractices: z.array(z.string()).describe('Professional practices specific to this language')
-  }).optional()
+  languageSpecificInsights: z
+    .object({
+      language: z.string().describe('Primary language assessed'),
+      skillMarkers: z.array(z.string()).describe('Language-specific skill indicators'),
+      aiPatterns: z.array(z.string()).describe('Language-specific AI assistance patterns'),
+      professionalPractices: z
+        .array(z.string())
+        .describe('Professional practices specific to this language'),
+    })
+    .optional(),
 });
 
 export type EvaluationReview = z.infer<typeof EvaluationReviewSchema>;
@@ -144,7 +166,7 @@ export type EvaluationReview = z.infer<typeof EvaluationReviewSchema>;
  * Root object for the evaluation review schema
  */
 export const EvaluationReviewRootSchema = z.object({
-  evaluation: EvaluationReviewSchema
+  evaluation: EvaluationReviewSchema,
 });
 
 export type EvaluationReviewRoot = z.infer<typeof EvaluationReviewRootSchema>;

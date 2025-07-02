@@ -1,6 +1,6 @@
 /**
  * @fileoverview Language detection utilities for semantic analysis
- * 
+ *
  * This module provides functions to detect programming languages from file paths
  * and check if languages are supported for semantic analysis.
  */
@@ -12,17 +12,17 @@
  */
 export function detectLanguage(filePath: string): string {
   const extension = filePath.split('.').pop()?.toLowerCase();
-  
+
   const extensionMap: Record<string, string> = {
-    'ts': 'typescript',
-    'tsx': 'typescript',
-    'js': 'javascript',
-    'jsx': 'javascript',
-    'py': 'python',
-    'rb': 'ruby',
-    'php': 'php'
+    ts: 'typescript',
+    tsx: 'typescript',
+    js: 'javascript',
+    jsx: 'javascript',
+    py: 'python',
+    rb: 'ruby',
+    php: 'php',
   };
-  
+
   return extensionMap[extension || ''] || 'unknown';
 }
 
@@ -36,12 +36,14 @@ export function detectLanguage(filePath: string): string {
 export function isLanguageSupported(
   language: string,
   enabledLanguages: string[],
-  availableParsers: Set<string> | Map<string, unknown>
+  availableParsers: Set<string> | Map<string, unknown>,
 ): boolean {
-  return enabledLanguages.includes(language) && 
-         (availableParsers instanceof Set ? 
-           availableParsers.has(language) : 
-           availableParsers.has(language));
+  return (
+    enabledLanguages.includes(language) &&
+    (availableParsers instanceof Set
+      ? availableParsers.has(language)
+      : availableParsers.has(language))
+  );
 }
 
 /**
@@ -54,5 +56,5 @@ export const LANGUAGE_PARSERS = {
   jsx: 'TypeScript.tsx', // Use TSX parser for JSX
   python: 'Python',
   ruby: 'Ruby',
-  php: 'PHP'
+  php: 'PHP',
 } as const;

@@ -8,12 +8,12 @@
 
 import * as path from 'path';
 import { fileExists } from '../utils/fileSystemUtils';
-import logger from '../utils/logger';
 import {
   getGitHubProjectsConfig,
+  syncGitHubToProjectMd,
   syncProjectMdToGitHub,
-  syncGitHubToProjectMd
 } from '../utils/githubProjectsClient';
+import logger from '../utils/logger';
 
 /**
  * Command options
@@ -67,7 +67,9 @@ export async function syncGitHubProjects(options: SyncGitHubProjectsOptions = {}
       logger.info(`Sync completed successfully. PROJECT.md updated at ${projectMdPath}`);
     }
   } catch (error) {
-    logger.error(`Error syncing with GitHub Projects: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error syncing with GitHub Projects: ${error instanceof Error ? error.message : String(error)}`,
+    );
     process.exit(1);
   }
 }
@@ -87,8 +89,9 @@ export async function handleSyncGitHubProjectsCommand(): Promise<void> {
     // Run the sync command
     await syncGitHubProjects(options);
   } catch (error) {
-    logger.error(`Error handling GitHub Projects sync command: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Error handling GitHub Projects sync command: ${error instanceof Error ? error.message : String(error)}`,
+    );
     process.exit(1);
   }
 }
-

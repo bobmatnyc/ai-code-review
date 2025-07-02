@@ -1,20 +1,15 @@
 /**
  * @fileoverview Abstract base class for review strategies.
- * 
+ *
  * This module defines an abstract base class that encapsulates common functionality
  * across different review strategy implementations. It provides a unified interface
  * for executing reviews with different approaches and configurations.
  */
 
-import {
-  FileInfo,
-  ReviewOptions,
-  ReviewResult,
-  ReviewType
-} from '../../types/review';
-import { ProjectDocs } from '../../utils/projectDocs';
-import { ApiClientConfig } from '../../core/ApiClientSelector';
+import type { ApiClientConfig } from '../../core/ApiClientSelector';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../../types/review';
 import logger from '../../utils/logger';
+import type { ProjectDocs } from '../../utils/projectDocs';
 
 /**
  * Abstract base class for review strategies
@@ -24,7 +19,7 @@ export abstract class AbstractStrategy {
    * The review type (quick-fixes, architectural, security, etc.)
    */
   protected reviewType: ReviewType;
-  
+
   /**
    * Constructor
    * @param reviewType The type of review to perform
@@ -32,7 +27,7 @@ export abstract class AbstractStrategy {
   constructor(reviewType: ReviewType) {
     this.reviewType = reviewType;
   }
-  
+
   /**
    * Execute the review strategy
    * @param files Array of file information objects
@@ -47,9 +42,9 @@ export abstract class AbstractStrategy {
     projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
-    apiClientConfig: ApiClientConfig
+    apiClientConfig: ApiClientConfig,
   ): Promise<ReviewResult>;
-  
+
   /**
    * Get the review type
    * @returns The review type
@@ -57,7 +52,7 @@ export abstract class AbstractStrategy {
   public getReviewType(): ReviewType {
     return this.reviewType;
   }
-  
+
   /**
    * Validate the input parameters
    * @param files Array of file information objects
@@ -69,15 +64,15 @@ export abstract class AbstractStrategy {
       logger.error('No files provided for review');
       return false;
     }
-    
+
     if (!projectName) {
       logger.error('No project name provided');
       return false;
     }
-    
+
     return true;
   }
-  
+
   /**
    * Log the review execution start
    * @param files Array of file information objects
@@ -85,20 +80,20 @@ export abstract class AbstractStrategy {
    */
   protected logExecutionStart(files: FileInfo[], projectName: string): void {
     logger.info(
-      `Executing ${this.reviewType} review for ${projectName} with ${files.length} files`
+      `Executing ${this.reviewType} review for ${projectName} with ${files.length} files`,
     );
   }
-  
+
   /**
    * Log the review execution completion
    * @param result The review result
    */
   protected logExecutionCompletion(result: ReviewResult): void {
     logger.info(
-      `Completed ${this.reviewType} review, generated ${result.content.length} characters of content`
+      `Completed ${this.reviewType} review, generated ${result.content.length} characters of content`,
     );
   }
-  
+
   /**
    * Handle errors during review execution
    * @param error The error that occurred

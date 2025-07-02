@@ -61,14 +61,14 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
         {
           threshold: 0,
           inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
-          outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
+          outputTokenCost: 0.01, // $10.00 per 1M tokens (≤200k tokens)
         },
         {
           threshold: 200000,
           inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
-          outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
-        }
-      ]
+          outputTokenCost: 0.015, // $15.00 per 1M tokens (>200k tokens)
+        },
+      ],
     },
     'gemini-2.5-pro-preview': {
       type: 'tiered',
@@ -76,14 +76,14 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
         {
           threshold: 0,
           inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
-          outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
+          outputTokenCost: 0.01, // $10.00 per 1M tokens (≤200k tokens)
         },
         {
           threshold: 200000,
           inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
-          outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
-        }
-      ]
+          outputTokenCost: 0.015, // $15.00 per 1M tokens (>200k tokens)
+        },
+      ],
     },
     'gemini-2.5-pro-exp': {
       type: 'tiered',
@@ -91,24 +91,24 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
         {
           threshold: 0,
           inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤200k tokens)
-          outputTokenCost: 0.01 // $10.00 per 1M tokens (≤200k tokens)
+          outputTokenCost: 0.01, // $10.00 per 1M tokens (≤200k tokens)
         },
         {
           threshold: 200000,
           inputTokenCost: 0.0025, // $2.50 per 1M tokens (>200k tokens)
-          outputTokenCost: 0.015 // $15.00 per 1M tokens (>200k tokens)
-        }
-      ]
+          outputTokenCost: 0.015, // $15.00 per 1M tokens (>200k tokens)
+        },
+      ],
     },
     'gemini-2.0-flash': {
       type: 'standard',
       inputTokenCost: 0.0001, // $0.10 per 1M tokens
-      outputTokenCost: 0.0004 // $0.40 per 1M tokens
+      outputTokenCost: 0.0004, // $0.40 per 1M tokens
     },
     'gemini-2.0-flash-lite': {
       type: 'standard',
       inputTokenCost: 0.000075, // $0.075 per 1M tokens
-      outputTokenCost: 0.0003 // $0.30 per 1M tokens
+      outputTokenCost: 0.0003, // $0.30 per 1M tokens
     },
 
     // Gemini 1.5 models
@@ -118,14 +118,14 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
         {
           threshold: 0,
           inputTokenCost: 0.00125, // $1.25 per 1M tokens (≤128k tokens)
-          outputTokenCost: 0.005 // $5.00 per 1M tokens (≤128k tokens)
+          outputTokenCost: 0.005, // $5.00 per 1M tokens (≤128k tokens)
         },
         {
           threshold: 128000,
           inputTokenCost: 0.0025, // $2.50 per 1M tokens (>128k tokens)
-          outputTokenCost: 0.01 // $10.00 per 1M tokens (>128k tokens)
-        }
-      ]
+          outputTokenCost: 0.01, // $10.00 per 1M tokens (>128k tokens)
+        },
+      ],
     },
     'gemini-1.5-flash': {
       type: 'tiered',
@@ -133,14 +133,14 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
         {
           threshold: 0,
           inputTokenCost: 0.000075, // $0.075 per 1M tokens (≤128k tokens)
-          outputTokenCost: 0.0003 // $0.30 per 1M tokens (≤128k tokens)
+          outputTokenCost: 0.0003, // $0.30 per 1M tokens (≤128k tokens)
         },
         {
           threshold: 128000,
           inputTokenCost: 0.00015, // $0.15 per 1M tokens (>128k tokens)
-          outputTokenCost: 0.0006 // $0.60 per 1M tokens (>128k tokens)
-        }
-      ]
+          outputTokenCost: 0.0006, // $0.60 per 1M tokens (>128k tokens)
+        },
+      ],
     },
     'gemini-1.5-flash-8b': {
       type: 'tiered',
@@ -148,22 +148,22 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
         {
           threshold: 0,
           inputTokenCost: 0.0000375, // $0.0375 per 1M tokens (≤128k tokens)
-          outputTokenCost: 0.00015 // $0.15 per 1M tokens (≤128k tokens)
+          outputTokenCost: 0.00015, // $0.15 per 1M tokens (≤128k tokens)
         },
         {
           threshold: 128000,
           inputTokenCost: 0.000075, // $0.075 per 1M tokens (>128k tokens)
-          outputTokenCost: 0.0003 // $0.30 per 1M tokens (>128k tokens)
-        }
-      ]
+          outputTokenCost: 0.0003, // $0.30 per 1M tokens (>128k tokens)
+        },
+      ],
     },
 
     // Default fallback pricing
     default: {
       type: 'standard',
       inputTokenCost: 0.001, // $1.00 per 1M tokens
-      outputTokenCost: 0.002 // $2.00 per 1M tokens
-    }
+      outputTokenCost: 0.002, // $2.00 per 1M tokens
+    },
   };
 
   /**
@@ -194,7 +194,7 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
     tokens: number,
     tokenCost: number,
     tierStart: number,
-    tierEnd?: number
+    tierEnd?: number,
   ): number {
     // Calculate how many tokens fall within this tier
     const tierTokens = tierEnd
@@ -215,7 +215,7 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
   calculateCost(
     inputTokens: number,
     outputTokens: number,
-    modelName: string = this.getDefaultModel()
+    modelName: string = this.getDefaultModel(),
   ): number {
     const pricing = this.getModelPricing(modelName);
 
@@ -233,28 +233,26 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
       // Calculate input token cost across tiers
       for (let i = 0; i < tiers.length; i++) {
         const tierStart = tiers[i].threshold;
-        const tierEnd =
-          i < tiers.length - 1 ? tiers[i + 1].threshold : undefined;
+        const tierEnd = i < tiers.length - 1 ? tiers[i + 1].threshold : undefined;
 
         inputCost += this.calculateTierCost(
           inputTokens,
           tiers[i].inputTokenCost,
           tierStart,
-          tierEnd
+          tierEnd,
         );
       }
 
       // Calculate output token cost across tiers
       for (let i = 0; i < tiers.length; i++) {
         const tierStart = tiers[i].threshold;
-        const tierEnd =
-          i < tiers.length - 1 ? tiers[i + 1].threshold : undefined;
+        const tierEnd = i < tiers.length - 1 ? tiers[i + 1].threshold : undefined;
 
         outputCost += this.calculateTierCost(
           outputTokens,
           tiers[i].outputTokenCost,
           tierStart,
-          tierEnd
+          tierEnd,
         );
       }
     }

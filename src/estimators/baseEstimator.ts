@@ -35,11 +35,7 @@ export interface TokenEstimator {
    * @param modelName Name of the model (optional, uses default if not provided)
    * @returns Estimated cost in USD
    */
-  calculateCost(
-    inputTokens: number,
-    outputTokens: number,
-    modelName?: string
-  ): number;
+  calculateCost(inputTokens: number, outputTokens: number, modelName?: string): number;
 
   /**
    * Format a cost value as a currency string
@@ -55,11 +51,7 @@ export interface TokenEstimator {
    * @param modelName Name of the model (optional)
    * @returns Cost information
    */
-  getCostInfo(
-    inputTokens: number,
-    outputTokens: number,
-    modelName?: string
-  ): CostInfo;
+  getCostInfo(inputTokens: number, outputTokens: number, modelName?: string): CostInfo;
 
   /**
    * Get cost information based on text
@@ -68,11 +60,7 @@ export interface TokenEstimator {
    * @param modelName Name of the model (optional)
    * @returns Cost information
    */
-  getCostInfoFromText(
-    inputText: string,
-    outputText: string,
-    modelName?: string
-  ): CostInfo;
+  getCostInfoFromText(inputText: string, outputText: string, modelName?: string): CostInfo;
 
   /**
    * Get the default model name for this estimator

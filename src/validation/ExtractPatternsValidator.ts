@@ -7,16 +7,19 @@
  */
 
 import { z } from 'zod';
-import { ExtractPatternsReview, ExtractPatternsReviewRootSchema } from '../prompts/schemas/extract-patterns-schema';
+import {
+  type ExtractPatternsReview,
+  ExtractPatternsReviewRootSchema,
+} from '../prompts/schemas/extract-patterns-schema';
 
 /**
  * Quality score levels
  */
 export enum QualityLevel {
   EXCELLENT = 'excellent',
-  GOOD = 'good', 
+  GOOD = 'good',
   ADEQUATE = 'adequate',
-  POOR = 'poor'
+  POOR = 'poor',
 }
 
 /**
@@ -25,7 +28,7 @@ export enum QualityLevel {
 export enum IssueSeverity {
   CRITICAL = 'critical',
   WARNING = 'warning',
-  INFO = 'info'
+  INFO = 'info',
 }
 
 /**
@@ -73,32 +76,32 @@ export class ExtractPatternsValidator {
     const suggestions: string[] = [];
 
     // Schema validation
-    const schemaResult = this.validateSchema(output);
+    const schemaResult = ExtractPatternsValidator.validateSchema(output);
     if (!schemaResult.isValid) {
       return {
         isValid: false,
         qualityLevel: QualityLevel.POOR,
-        qualityMetrics: this.getDefaultMetrics(),
+        qualityMetrics: ExtractPatternsValidator.getDefaultMetrics(),
         issues: schemaResult.issues,
         suggestions: ['Fix schema validation errors before proceeding'],
-        summary: 'Output does not conform to required schema'
+        summary: 'Output does not conform to required schema',
       };
     }
 
     const patterns = schemaResult.data!;
-    
+
     // Content quality validation
-    const contentIssues = this.validateContent(patterns);
+    const contentIssues = ExtractPatternsValidator.validateContent(patterns);
     issues.push(...contentIssues);
 
     // Calculate quality metrics
-    const qualityMetrics = this.calculateQualityMetrics(patterns, issues);
-    
+    const qualityMetrics = ExtractPatternsValidator.calculateQualityMetrics(patterns, issues);
+
     // Determine overall quality level
-    const qualityLevel = this.determineQualityLevel(qualityMetrics);
-    
+    const qualityLevel = ExtractPatternsValidator.determineQualityLevel(qualityMetrics);
+
     // Generate suggestions
-    const contentSuggestions = this.generateSuggestions(patterns, issues);
+    const contentSuggestions = ExtractPatternsValidator.generateSuggestions(patterns, issues);
     suggestions.push(...contentSuggestions);
 
     return {
@@ -107,36 +110,46 @@ export class ExtractPatternsValidator {
       qualityMetrics,
       issues,
       suggestions,
-      summary: this.generateSummary(qualityLevel, qualityMetrics, issues.length)
+      summary: ExtractPatternsValidator.generateSummary(
+        qualityLevel,
+        qualityMetrics,
+        issues.length,
+      ),
     };
   }
 
   /**
    * Validate against schema
    */
-  private static validateSchema(output: unknown): { isValid: boolean; data?: ExtractPatternsReview; issues: ValidationIssue[] } {
+  private static validateSchema(output: unknown): {
+    isValid: boolean;
+    data?: ExtractPatternsReview;
+    issues: ValidationIssue[];
+  } {
     try {
       const result = ExtractPatternsReviewRootSchema.parse(output);
       return { isValid: true, data: result.patterns, issues: [] };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const issues: ValidationIssue[] = error.errors.map(err => ({
+        const issues: ValidationIssue[] = error.errors.map((err) => ({
           field: err.path.join('.'),
           severity: IssueSeverity.CRITICAL,
           message: err.message,
-          suggestion: 'Ensure the field is present and has the correct type'
+          suggestion: 'Ensure the field is present and has the correct type',
         }));
         return { isValid: false, issues };
       }
-      
+
       return {
         isValid: false,
-        issues: [{
-          field: 'root',
-          severity: IssueSeverity.CRITICAL,
-          message: 'Failed to parse output as valid JSON',
-          suggestion: 'Ensure output is valid JSON format'
-        }]
+        issues: [
+          {
+            field: 'root',
+            severity: IssueSeverity.CRITICAL,
+            message: 'Failed to parse output as valid JSON',
+            suggestion: 'Ensure output is valid JSON format',
+          },
+        ],
       };
     }
   }
@@ -153,7 +166,7 @@ export class ExtractPatternsValidator {
         field: 'projectOverview.purpose',
         severity: IssueSeverity.WARNING,
         message: 'Project purpose description is too brief',
-        suggestion: 'Provide more detailed explanation of what the project does'
+        suggestion: 'Provide more detailed explanation of what the project does',
       });
     }
 
@@ -163,7 +176,7 @@ export class ExtractPatternsValidator {
         field: 'technologyStack.coreLanguages',
         severity: IssueSeverity.CRITICAL,
         message: 'No core languages identified',
-        suggestion: 'Identify at least one primary programming language'
+        suggestion: 'Identify at least one primary programming language',
       });
     }
 
@@ -173,7 +186,7 @@ export class ExtractPatternsValidator {
         field: 'codeMetrics.totalFiles',
         severity: IssueSeverity.CRITICAL,
         message: 'Total files count is zero',
-        suggestion: 'Ensure file counting is working correctly'
+        suggestion: 'Ensure file counting is working correctly',
       });
     }
 
@@ -183,7 +196,7 @@ export class ExtractPatternsValidator {
         field: 'architecturalPatterns',
         severity: IssueSeverity.WARNING,
         message: 'No architectural patterns identified',
-        suggestion: 'Look for common design patterns like Strategy, Factory, Observer, etc.'
+        suggestion: 'Look for common design patterns like Strategy, Factory, Observer, etc.',
       });
     }
 
@@ -194,7 +207,7 @@ export class ExtractPatternsValidator {
           field: `architecturalPatterns[${index}].examples`,
           severity: IssueSeverity.WARNING,
           message: `No examples provided for pattern: ${pattern.patternName}`,
-          suggestion: 'Provide specific file names or code examples'
+          suggestion: 'Provide specific file names or code examples',
         });
       }
     });
@@ -205,7 +218,7 @@ export class ExtractPatternsValidator {
         field: 'exemplarCharacteristics.strengths',
         severity: IssueSeverity.WARNING,
         message: 'No strengths identified',
-        suggestion: 'Identify what makes this codebase worth studying'
+        suggestion: 'Identify what makes this codebase worth studying',
       });
     }
 
@@ -214,7 +227,7 @@ export class ExtractPatternsValidator {
         field: 'exemplarCharacteristics.patternsToEmulate',
         severity: IssueSeverity.WARNING,
         message: 'No patterns to emulate identified',
-        suggestion: 'Identify specific patterns that could be replicated in other projects'
+        suggestion: 'Identify specific patterns that could be replicated in other projects',
       });
     }
 
@@ -224,7 +237,7 @@ export class ExtractPatternsValidator {
         field: 'summary',
         severity: IssueSeverity.WARNING,
         message: 'Summary is too brief',
-        suggestion: 'Provide a more comprehensive 2-3 sentence summary'
+        suggestion: 'Provide a more comprehensive 2-3 sentence summary',
       });
     }
 
@@ -234,12 +247,15 @@ export class ExtractPatternsValidator {
   /**
    * Calculate quality metrics
    */
-  private static calculateQualityMetrics(patterns: ExtractPatternsReview, issues: ValidationIssue[]): QualityMetrics {
+  private static calculateQualityMetrics(
+    patterns: ExtractPatternsReview,
+    issues: ValidationIssue[],
+  ): QualityMetrics {
     // Completeness: Based on presence and quality of required fields
     let completeness = 100;
-    const criticalIssues = issues.filter(i => i.severity === IssueSeverity.CRITICAL);
-    const warningIssues = issues.filter(i => i.severity === IssueSeverity.WARNING);
-    
+    const criticalIssues = issues.filter((i) => i.severity === IssueSeverity.CRITICAL);
+    const warningIssues = issues.filter((i) => i.severity === IssueSeverity.WARNING);
+
     completeness -= criticalIssues.length * 20;
     completeness -= warningIssues.length * 5;
     completeness = Math.max(0, completeness);
@@ -248,7 +264,7 @@ export class ExtractPatternsValidator {
     let accuracy = 100;
     if (patterns.codeMetrics.averageFunctionLength > 200) accuracy -= 10;
     if (patterns.codeMetrics.averageFileLength > 1000) accuracy -= 10;
-    if (patterns.architecturalPatterns.some(p => p.examples.length === 0)) accuracy -= 15;
+    if (patterns.architecturalPatterns.some((p) => p.examples.length === 0)) accuracy -= 15;
     accuracy = Math.max(0, accuracy);
 
     // Usefulness: Based on actionable insights and specific recommendations
@@ -263,16 +279,16 @@ export class ExtractPatternsValidator {
     const hasVagueDescriptions = [
       patterns.projectOverview.purpose,
       patterns.summary,
-      ...patterns.exemplarCharacteristics.strengths
-    ].some(text => text.includes('good') || text.includes('nice') || text.includes('well'));
-    
+      ...patterns.exemplarCharacteristics.strengths,
+    ].some((text) => text.includes('good') || text.includes('nice') || text.includes('well'));
+
     if (hasVagueDescriptions) specificity -= 20;
     if (patterns.architecturalPatterns.length === 0) specificity -= 30;
     specificity = Math.max(0, specificity);
 
     // Overall: Weighted average
     const overall = Math.round(
-      (completeness * 0.3 + accuracy * 0.25 + usefulness * 0.25 + specificity * 0.2)
+      completeness * 0.3 + accuracy * 0.25 + usefulness * 0.25 + specificity * 0.2,
     );
 
     return {
@@ -280,7 +296,7 @@ export class ExtractPatternsValidator {
       accuracy: Math.round(accuracy),
       usefulness: Math.round(usefulness),
       specificity: Math.round(specificity),
-      overall
+      overall,
     };
   }
 
@@ -297,14 +313,19 @@ export class ExtractPatternsValidator {
   /**
    * Generate improvement suggestions
    */
-  private static generateSuggestions(patterns: ExtractPatternsReview, issues: ValidationIssue[]): string[] {
+  private static generateSuggestions(
+    patterns: ExtractPatternsReview,
+    issues: ValidationIssue[],
+  ): string[] {
     const suggestions: string[] = [];
 
-    if (issues.some(i => i.field.includes('architecturalPatterns'))) {
-      suggestions.push('Look for more specific design patterns like Strategy, Factory, Observer, Decorator, etc.');
+    if (issues.some((i) => i.field.includes('architecturalPatterns'))) {
+      suggestions.push(
+        'Look for more specific design patterns like Strategy, Factory, Observer, Decorator, etc.',
+      );
     }
 
-    if (issues.some(i => i.field.includes('examples'))) {
+    if (issues.some((i) => i.field.includes('examples'))) {
       suggestions.push('Provide concrete file names and code snippets as examples');
     }
 
@@ -313,7 +334,9 @@ export class ExtractPatternsValidator {
     }
 
     if (patterns.replicationGuide.keyDecisions.length < 5) {
-      suggestions.push('Document more architectural and tooling decisions that would be important for replication');
+      suggestions.push(
+        'Document more architectural and tooling decisions that would be important for replication',
+      );
     }
 
     return suggestions;
@@ -322,12 +345,16 @@ export class ExtractPatternsValidator {
   /**
    * Generate validation summary
    */
-  private static generateSummary(qualityLevel: QualityLevel, metrics: QualityMetrics, issueCount: number): string {
+  private static generateSummary(
+    qualityLevel: QualityLevel,
+    metrics: QualityMetrics,
+    issueCount: number,
+  ): string {
     const levelDescriptions = {
       [QualityLevel.EXCELLENT]: 'Excellent quality pattern extraction with comprehensive insights',
       [QualityLevel.GOOD]: 'Good quality pattern extraction with minor areas for improvement',
       [QualityLevel.ADEQUATE]: 'Adequate pattern extraction but could be more detailed',
-      [QualityLevel.POOR]: 'Poor quality pattern extraction requiring significant improvement'
+      [QualityLevel.POOR]: 'Poor quality pattern extraction requiring significant improvement',
     };
 
     return `${levelDescriptions[qualityLevel]}. Overall score: ${metrics.overall}/100 with ${issueCount} validation issues.`;
@@ -342,7 +369,7 @@ export class ExtractPatternsValidator {
       accuracy: 0,
       usefulness: 0,
       specificity: 0,
-      overall: 0
+      overall: 0,
     };
   }
 }

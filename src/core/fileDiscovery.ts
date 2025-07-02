@@ -5,15 +5,12 @@
  * It handles gitignore patterns, test exclusions, and file system operations.
  */
 
-import path from 'path';
 import fs from 'fs/promises';
-import { pathExists, isDirectory, isPathWithinCwd } from '../utils/fileSystem';
-import { 
-  getFilesToReview as getFilteredFiles, 
-  loadGitignorePatterns 
-} from '../utils/fileFilters';
-import { applySmartFiltering } from '../utils/smartFileSelector';
+import path from 'path';
+import { getFilesToReview as getFilteredFiles, loadGitignorePatterns } from '../utils/fileFilters';
+import { isDirectory, isPathWithinCwd, pathExists } from '../utils/fileSystem';
 import logger from '../utils/logger';
+import { applySmartFiltering } from '../utils/smartFileSelector';
 
 /**
  * File information structure
@@ -34,8 +31,16 @@ function validateTargetParameter(target: string): void {
   if (target.includes('=')) {
     const [key, ...valueParts] = target.split('=');
     const value = valueParts.join('='); // Rejoin in case value contains =
-    const commonOptions = ['type', 'output', 'model', 'language', 'debug', 'interactive', 'estimate'];
-    
+    const commonOptions = [
+      'type',
+      'output',
+      'model',
+      'language',
+      'debug',
+      'interactive',
+      'estimate',
+    ];
+
     // Only flag as parameter if the key part matches a known option
     // This avoids false positives for file paths like "src/file=name.ts"
     if (commonOptions.includes(key)) {
@@ -50,7 +55,8 @@ Example usage:
   ai-code-review . --${key} ${value}
 
 Run 'ai-code-review --help' for more options.`);
-    } else if (!key.includes('/') && !key.includes('\\') && !key.includes('.')) {
+    }
+    if (!key.includes('/') && !key.includes('\\') && !key.includes('.')) {
       // If the key doesn't look like a path (no slashes or dots), it's probably a parameter mistake
       throw new Error(`Invalid parameter format: '${target}'
     
@@ -68,10 +74,21 @@ Run 'ai-code-review --help' for all options.`);
     }
     // If key looks like a path (contains / or \ or .), don't flag it as an error
   }
-  
+
   // Check if the target looks like an option without proper prefix
-  const commonOptions = ['type', 'output', 'model', 'language', 'debug', 'interactive', 
-                        'estimate', 'help', 'version', 'listmodels', 'models'];
+  const commonOptions = [
+    'type',
+    'output',
+    'model',
+    'language',
+    'debug',
+    'interactive',
+    'estimate',
+    'help',
+    'version',
+    'listmodels',
+    'models',
+  ];
   if (commonOptions.includes(target)) {
     throw new Error(`'${target}' looks like an option but is missing '--' prefix.
     
@@ -88,7 +105,7 @@ For options that require values:
 
 Run 'ai-code-review --help' for more information.`);
   }
-  
+
   // Check for other common mistakes
   if (target.startsWith('-') && !target.startsWith('--')) {
     throw new Error(`Invalid option format: '${target}'
@@ -115,27 +132,24 @@ Run 'ai-code-review --help' for all available options.`);
 export async function discoverFiles(
   target: string,
   projectPath: string,
-  includeTests: boolean = false
+  includeTests = false,
 ): Promise<string[]> {
   try {
     // First validate the target parameter for common mistakes
     validateTargetParameter(target);
-    
+
     // Validate the target path
     const resolvedTarget = path.resolve(projectPath, target);
 
     // Check if the path is within the project directory
     if (!isPathWithinCwd(resolvedTarget)) {
-      throw new Error(
-        `Target must be within the project directory: ${projectPath}`
-      );
+      throw new Error(`Target must be within the project directory: ${projectPath}`);
     }
 
     const targetPath = resolvedTarget;
 
     // Check if the target exists
-    const isFileTarget =
-      (await pathExists(targetPath)) && !(await isDirectory(targetPath));
+    const isFileTarget = (await pathExists(targetPath)) && !(await isDirectory(targetPath));
     const isDirectoryTarget = await isDirectory(targetPath);
 
     if (!isFileTarget && !isDirectoryTarget) {
@@ -145,13 +159,13 @@ export async function discoverFiles(
     // Load gitignore patterns from target path, not project path
     const gitignorePatterns = await loadGitignorePatterns(targetPath);
     logger.debug(`Loaded ${gitignorePatterns.length} patterns from .gitignore in ${targetPath}`);
-    
+
     // Get files to review using the existing filter utility
     let filesToReview = await getFilteredFiles(
       targetPath,
       isFileTarget,
       includeTests,
-      gitignorePatterns
+      gitignorePatterns,
     );
 
     // Apply smart filtering (tsconfig.json and .eslintignore)
@@ -169,7 +183,7 @@ export async function discoverFiles(
     return filesToReview;
   } catch (error) {
     logger.error(
-      `Error discovering files: ${error instanceof Error ? error.message : String(error)}`
+      `Error discovering files: ${error instanceof Error ? error.message : String(error)}`,
     );
     throw error; // Re-throw to allow the caller to handle it
   }
@@ -183,7 +197,7 @@ export async function discoverFiles(
  */
 export async function readFilesContent(
   filePaths: string[],
-  projectPath: string
+  projectPath: string,
 ): Promise<{ fileInfos: FileInfo[]; errors: Array<{ path: string; error: string }> }> {
   const fileInfos: FileInfo[] = [];
   const errors: Array<{ path: string; error: string }> = [];
@@ -191,7 +205,7 @@ export async function readFilesContent(
   for (const filePath of filePaths) {
     try {
       // Check if file exists and is readable
-      if (!await pathExists(filePath)) {
+      if (!(await pathExists(filePath))) {
         errors.push({ path: filePath, error: 'File does not exist' });
         continue;
       }
@@ -206,7 +220,7 @@ export async function readFilesContent(
       fileInfos.push({
         path: filePath,
         relativePath,
-        content: fileContent
+        content: fileContent,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
