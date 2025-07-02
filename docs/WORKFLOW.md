@@ -159,6 +159,169 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 - `Medium` - Standard features and improvements
 - `Low` - Nice-to-have features, technical debt
 
+## 🔥 YOLO Mode Requirements (CRITICAL)
+
+**YOLO Mode Definition**: Rapid development mode for urgent fixes or experimental work.
+
+### Mandatory YOLO Mode Rules
+1. **ALWAYS work from a TrackDown task** - No exceptions, even for "quick fixes"
+2. **Branch naming MUST tie to TrackDown tasks**: `feature/US-001-description` or `hotfix/BUG-001-critical-fix`
+3. **All development work** follows proper epic/subticket workflow with appropriate branching strategy
+4. **Documentation epics** (like comprehensive documentation updates) MUST use the 6-subticket pattern:
+   - Subticket 1: Audit and Analysis
+   - Subticket 2: Toolchain Enhancement  
+   - Subticket 3: Workflow Documentation
+   - Subticket 4: Business Context
+   - Subticket 5: Structure Optimization
+   - Subticket 6: Integration Testing
+
+### YOLO Mode Workflow
+```bash
+# 1. Create or identify TrackDown task (even for urgent work)
+trackdown create task "Fix critical login bug" --priority Critical --status Ready
+
+# 2. Create properly named branch tied to task
+git checkout -b hotfix/BUG-001-login-validation
+
+# 3. Update task status before starting
+trackdown update BUG-001 --status "In Progress" --assignee "@developer"
+
+# 4. Implement with task linkage in all commits
+git commit -m "fix: resolve login validation bug
+
+Critical fix for user authentication flow.
+Closes: BUG-001"
+
+# 5. Link completion back to task
+trackdown update BUG-001 --status "Done" --notes "Fix deployed, monitoring for issues"
+```
+
+### Epic/Subticket Management for Complex Work
+**Rule**: Any work involving 3+ files or 2+ hours MUST use epic structure.
+
+```bash
+# Create epic branch for complex work
+git checkout -b epic/US-005-user-dashboard
+
+# Create subticket branches off epic branch
+git checkout epic/US-005-user-dashboard
+git checkout -b feature/US-005-1-dashboard-api
+
+# Work in subticket branch, merge back to epic
+git checkout epic/US-005-user-dashboard
+git merge feature/US-005-1-dashboard-api
+
+# Final epic merge to main
+git checkout main
+git merge epic/US-005-user-dashboard
+```
+
+## 📋 Task Linkage Requirements (CRITICAL)
+
+**Core Principle**: ALL development activities must be traceable to TrackDown tickets.
+
+### What Must Be Linked
+- **Every commit** - Reference ticket in commit message
+- **Every PR** - Link to closing/related tickets
+- **Every code review** - Connect back to originating task
+- **Every documentation update** - Link to task driving the update
+- **Every refactoring effort** - Justify with business/technical task
+- **Every dependency update** - Link to maintenance or security task
+
+### Linking Patterns
+```bash
+# Commit message format with task linkage
+git commit -m "feat(auth): implement OAuth2 integration
+
+Add OAuth2 authentication flow with Google provider.
+Includes token validation and refresh logic.
+
+Closes: US-012
+References: EP-003
+Breaking: Changes authentication API endpoints"
+
+# PR description format
+## Related Work Items
+- Closes US-012
+- References EP-003 (Authentication Epic)
+- Blocks US-015 (until this lands)
+
+## Task Completion Validation
+- [x] All acceptance criteria met
+- [x] Tests added for new functionality  
+- [x] Documentation updated
+- [x] TrackDown ticket updated with completion notes
+```
+
+### Orphaned Work Prevention
+```bash
+# Before starting ANY development work:
+trackdown list --status Ready           # Check available prioritized tasks
+trackdown view US-XXX                   # Review task details and acceptance criteria
+
+# If no appropriate task exists:
+trackdown create story "Title" --epic EP-XXX --priority Medium
+# Then proceed with proper branch and linking
+```
+
+## 📜 Code as Source of Truth (CRITICAL)
+
+**Fundamental Principle**: When documentation conflicts with source code, assume code is correct.
+
+### Code-Truth Validation Process
+
+#### 1. Pre-Documentation Update Validation
+```bash
+# Before updating any technical documentation:
+cat package.json | grep -A 20 "scripts"           # Verify npm scripts exist
+ls -la tsconfig.json vitest.config.mjs eslint.*   # Verify config files
+find src/ -name "*.ts" | head -10                  # Verify file structure
+
+# Validate environment setup against actual implementation:
+grep -r "AI_CODE_REVIEW_" src/ --include="*.ts"    # Check env var usage
+grep -r "process.env" src/utils/envLoader.ts       # Check environment loading
+```
+
+#### 2. Documentation Alignment Workflow
+```bash
+# 1. Read the relevant source code first
+cat src/utils/envLoader.ts              # Understand actual implementation
+
+# 2. Test the documented procedures
+pnpm run lint                           # Verify commands work as documented
+pnpm run build:types                    # Test build procedures
+pnpm test                               # Validate test commands
+
+# 3. Update documentation to match code reality
+# 4. Never change code to match outdated documentation without explicit approval
+```
+
+#### 3. Continuous Alignment Requirements
+- **All technical instructions** must be validated against package.json scripts
+- **All environment variable documentation** must match actual usage in envLoader.ts
+- **All file path references** must be verified against actual project structure
+- **All build/test procedures** must be tested before documenting
+
+#### 4. Code-Truth Validation in Task Completion
+```bash
+# Before marking any documentation task as "Done":
+# 1. Cross-reference all technical details with source code
+grep -r "the documented pattern" src/   # Verify implementation matches docs
+
+# 2. Test all documented procedures
+bash -c "$(grep -A 5 'Build command:' docs/FILE.md | tail -1)"  # Test build steps
+
+# 3. Update TrackDown task with validation evidence
+trackdown update US-XXX --notes "Validated all commands against source code. All procedures tested and working."
+```
+
+### Documentation Conflict Resolution
+1. **Assume code is correct** unless explicitly told otherwise
+2. **Update documentation** to match current implementation
+3. **Test documented procedures** before finalizing updates
+4. **Flag significant discrepancies** for technical review
+5. **Never auto-correct code** to match outdated documentation
+
 ## 🔁 3. Git Workflow & Version Control
 
 ### Commit Standards
@@ -252,60 +415,259 @@ Use this template for PRs:
 
 ---
 
-## 🧪 4. Testing & Quality Assurance
+## 🧪 4. Testing & Quality Assurance with Code-Truth Integration
 
-### Full CI Pipeline
-Before committing or publishing, always run:
+### Complete CI Pipeline (MANDATORY before commits)
+**Rule**: ALL commits must pass full CI pipeline locally.
 
 ```bash
-# Complete validation pipeline
-pnpm run lint          # ESLint validation
-pnpm test              # Full test suite with vitest
-pnpm run build         # TypeScript compilation and bundling
-pnpm run validate:prompts  # Validate prompt templates
+# Essential validation sequence (run before EVERY commit)
+pnpm run lint                    # ESLint validation (target: <500 warnings, 0 errors)
+pnpm run build:types             # TypeScript compilation verification  
+pnpm test                        # Full test suite execution (46 files, 476 tests)
+pnpm run validate:prompts        # Prompt template and metadata validation
+pnpm run validate:models         # Model configuration validation
+
+# Extended validation for releases
+pnpm run test:coverage           # Core code coverage verification (70%+ target)
+pnpm run build                   # Full production build with executable generation
+./dist/index.js --version        # Verify CLI executable works
+./dist/index.js --listmodels     # Verify model configurations load
 ```
 
-### Test Categories
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: API client and workflow testing  
-- **Prompt Validation**: Template syntax and metadata validation
-- **Model Tests**: Live API testing (when keys available)
+### Test Categories with Code-Truth Validation
 
-### Coverage Requirements
-- Minimum 80% test coverage for new features
-- All public APIs must have tests
-- Critical paths (review orchestration, client selection) require comprehensive testing
+#### Unit Tests (Isolated Component Testing)
+**Location**: `src/__tests__/**/*.test.ts`  
+**Current Status**: 46 test files, 100% pass rate  
+**Coverage Focus**: CLI parsing, file operations, configuration management
+
+```bash
+# Run specific test categories
+pnpm test -- --reporter=verbose cli/           # CLI-specific tests
+pnpm test -- --reporter=verbose utils/         # Utility function tests
+pnpm test -- --reporter=verbose clients/       # API client tests
+```
+
+#### Integration Tests (Component Interaction Testing)
+**Pattern**: `*.integration.test.ts`  
+**Purpose**: Test workflows, file discovery, review strategies
+**Code-Truth Requirement**: Validate against actual file structures and configurations
+
+```bash
+# Integration test validation
+pnpm test -- integration          # Run all integration tests
+pnpm test -- fileDiscovery        # File system integration
+pnpm test -- reviewOrchestrator   # End-to-end review workflows
+```
+
+#### API Integration Tests (Real Provider Testing)
+**Pattern**: `*.real.test.ts`  
+**Status**: 22 tests skipped when API keys unavailable  
+**Code-Truth Requirement**: Validate against actual API provider specifications
+
+```bash
+# API tests (require environment variables)
+AI_CODE_REVIEW_GOOGLE_API_KEY=xxx pnpm test -- real
+AI_CODE_REVIEW_ANTHROPIC_API_KEY=xxx pnpm test -- anthropic.real
+```
+
+#### Prompt Validation (Template System Testing)
+**Purpose**: Validate Handlebars templates and YAML frontmatter  
+**Code-Truth Requirement**: Ensure templates match actual usage patterns
+
+```bash
+# Validate prompt templates against code usage
+pnpm run validate:prompts         # Template syntax and metadata validation
+grep -r "reviewType:" src/        # Verify review types match templates
+```
+
+### Coverage Requirements with Truth Validation
+- **Core Code Coverage**: 70% for statements, branches, functions, lines
+- **Coverage Exclusions**: docs/, scripts/, src/prompts/, examples/, debug/
+- **Truth Validation**: All test mocks must match actual implementations
+
+```bash
+# Coverage analysis with truth checking
+pnpm run test:coverage                        # Generate coverage report
+grep -r "getInstance" src/ | wc -l           # Verify singleton usage patterns
+find src/ -name "*.ts" | xargs grep -l "mock" | wc -l  # Check for production mock usage (should be 0)
+```
+
+### Quality Gates with Source Code Alignment
+1. **Zero Compilation Errors**: TypeScript must compile cleanly
+2. **Controlled Warning Count**: ESLint warnings <500 (tracked metric)
+3. **Test Pass Rate**: 100% for available tests (no failures allowed)
+4. **Configuration Validity**: All referenced files and commands must exist
+5. **Executable Functionality**: Built CLI must execute successfully
 
 ---
 
-## 📦 5. Building & Packaging
+## 📦 5. Building & Packaging with Refactoring Integration
 
-### Development Build
+### Development Build Workflow
 ```bash
-npm run dev        # Run with ts-node for development
-npm run local      # Run with tsconfig-paths for module resolution
+# Development execution patterns
+pnpm run dev                    # Run with ts-node for active development
+pnpm run local                  # Run with tsconfig-paths for module resolution testing
+pnpm run test:watch             # Continuous testing during development
+
+# Development iteration cycle
+pnpm run build:types            # Quick TypeScript validation (no output)
+pnpm run quick-build           # Fast incremental build for testing
+./dist/index.js . --estimate   # Test built executable with estimation
 ```
 
-### Production Build
+### Production Build Process (Code-Truth Validated)
 ```bash
-npm run build      # Full production build with tests
-npm run quick-build # Fast build without tests (development only)
+# Complete production build sequence
+pnpm run build                  # Full production build with all validations
+
+# What `pnpm run build` executes (from package.json verification):
+# 1. tsc                        # TypeScript compilation to dist/
+# 2. npm run postbuild          # Post-build processing
+#    - scripts/prepare-package.sh # Executable preparation
+#    - Shebang addition and permission setting
+#    - Version synchronization
+#    - Model mapping validation
 ```
 
-### Package Preparation
-```bash
-npm run prepare-package  # Complete package preparation for publishing
+#### Build Output Structure (Validated Against Source)
+```
+dist/                           # Build output directory
+├── index.js                    # Main CLI executable (with #!/usr/bin/env node)
+├── index.d.ts                  # TypeScript declarations
+├── cli/                        # Compiled CLI argument parsing
+├── clients/                    # Compiled AI provider clients
+│   ├── implementations/        # Provider-specific implementations
+│   └── utils/                  # Client utilities and model maps
+├── utils/                      # Compiled utility functions
+│   ├── envLoader.js           # Environment variable loading
+│   └── logger.js              # Logging functionality
+└── types/                      # Compiled TypeScript type definitions
 ```
 
-This script:
-1. Cleans previous builds
-2. Runs full test suite
-3. Builds TypeScript with type definitions
-4. Creates executable CLI with shebang
-5. Validates package.json structure
-6. Syncs model mappings and version
+### Refactoring-Safe Build Validation
+```bash
+# Pre-refactoring build verification
+pnpm run build                  # Establish baseline build
+./dist/index.js --listmodels    # Verify all models load correctly
+./dist/index.js . --estimate    # Test with current directory
 
-**⚠️ Known Issue**: Watch for duplicate shebang lines in `dist/index.js`. If you encounter `SyntaxError: Invalid or unexpected token` when running the CLI, check for and remove duplicate shebang lines (see Troubleshooting section).
+# Post-refactoring validation sequence
+pnpm run lint                   # Verify code quality maintained
+pnpm run build:types            # Check for TypeScript regressions  
+pnpm test                       # Ensure no functionality broken
+pnpm run build                  # Full build to catch integration issues
+./dist/index.js --version       # Verify executable integrity
+
+# Compare functionality pre/post refactoring
+diff <(./dist/index.js --listmodels) pre-refactor-models.txt  # Model list unchanged
+diff <(./dist/index.js . --estimate) pre-refactor-estimate.txt # Estimation unchanged
+```
+
+### Package Preparation (Production-Ready)
+```bash
+# Complete package preparation for publishing
+pnpm run prepare-package        # Comprehensive package preparation
+
+# Manual verification of prepare-package results:
+head -5 dist/index.js           # Verify single shebang line exists
+ls -la dist/index.js            # Verify executable permissions (+x)
+./dist/index.js --version       # Test CLI functionality
+grep -r "version" dist/index.js # Verify version embedding worked
+```
+
+#### Package Preparation Process (Source-Validated)
+The `scripts/prepare-package.sh` script performs:
+1. **Clean Previous Builds**: `rm -rf dist/`
+2. **Full Test Execution**: `pnpm test` (all 476 tests must pass)
+3. **TypeScript Compilation**: `tsc` with type definitions
+4. **Executable Creation**: Add shebang (`#!/usr/bin/env node`) to `dist/index.js`
+5. **Permission Setting**: `chmod +x dist/index.js`
+6. **Version Synchronization**: Embed package.json version into code
+7. **Model Map Validation**: Verify all provider configurations load
+8. **Package.json Validation**: Ensure publishing metadata correct
+
+### Refactoring Best Practices
+
+#### Pre-Refactoring Checklist
+```bash
+# 1. Establish baseline
+git checkout -b refactor/US-XXX-description    # Create refactor branch linked to task
+pnpm run build && ./dist/index.js --version    # Verify current functionality
+pnpm run test:coverage                         # Capture current coverage
+
+# 2. Create reference outputs for comparison
+./dist/index.js . --estimate > pre-refactor-estimate.txt
+./dist/index.js --listmodels > pre-refactor-models.txt
+
+# 3. Update TrackDown task
+trackdown update US-XXX --status "In Progress" --notes "Refactoring started, baseline established"
+```
+
+#### During Refactoring Process
+```bash
+# Iterative validation during refactoring
+pnpm run build:types            # Quick TypeScript validation after each major change
+pnpm test -- --reporter=verbose # Run tests with detailed output
+pnpm run lint                   # Maintain code quality standards
+
+# Milestone validation (after significant changes)
+pnpm run build                  # Full build verification
+./dist/index.js --version       # Ensure CLI still works
+./dist/index.js . --estimate    # Test core functionality
+```
+
+#### Post-Refactoring Validation
+```bash
+# Complete functionality verification
+pnpm run lint && pnpm run build:types && pnpm test  # Full CI pipeline
+pnpm run build                                      # Production build
+./dist/index.js --listmodels                        # Verify all models work
+./dist/index.js . --estimate                        # Test estimation
+
+# Regression testing
+diff pre-refactor-models.txt <(./dist/index.js --listmodels)    # Models unchanged
+diff pre-refactor-estimate.txt <(./dist/index.js . --estimate) # Estimation logic unchanged
+
+# Performance validation (if performance-sensitive refactoring)
+time ./dist/index.js . --estimate                              # Time execution
+ls -la dist/                                                   # Check build size
+
+# Update TrackDown with validation results
+trackdown update US-XXX --status "Done" --notes "Refactoring complete. All functionality verified."
+```
+
+### Build Troubleshooting with Code-Truth Validation
+
+#### Common Build Issues
+```bash
+# Issue: TypeScript compilation errors
+pnpm run build:types 2>&1 | tee build-errors.log  # Capture errors for analysis
+grep -A 5 -B 5 "error TS" build-errors.log        # Focus on TypeScript errors
+
+# Issue: Duplicate shebang (validated against source)
+head -5 dist/index.js                              # Check for duplicate shebangs
+# Should show only: #!/usr/bin/env node (once)
+sed -i '2d' dist/index.js                         # Remove duplicate if found
+
+# Issue: Module resolution failures
+ls -la tsconfig.json vitest.config.mjs            # Verify config files exist
+grep -A 10 "paths" tsconfig.json                  # Check path mappings
+```
+
+#### Build Validation Against Source Code
+```bash
+# Verify build configuration matches documentation
+cat package.json | jq '.scripts.build'           # Check build script definition
+cat package.json | jq '.scripts.postbuild'       # Check post-build steps
+ls -la scripts/prepare-package.sh                 # Verify script exists
+
+# Validate dependencies are correctly built
+grep -r "require.*@" dist/ | head -5             # Check require statements
+grep -r "import.*@" dist/ | head -5              # Check import statements (should be none)
+```
 
 ---
 
