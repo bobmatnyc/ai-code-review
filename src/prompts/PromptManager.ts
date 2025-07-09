@@ -10,8 +10,8 @@
  * registering custom templates programmatically.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { ReviewOptions, ReviewType } from '../types/review';
 import { getSchemaInstructions } from '../types/reviewSchema';
 import logger from '../utils/logger';
@@ -161,7 +161,7 @@ export class PromptManager {
       // Check if the directory exists
       try {
         await fs.access(templatesDir);
-      } catch (error) {
+      } catch (_error) {
         // Silently ignore missing templates directory - this is expected in most cases
         logger.debug(`Custom templates directory not found: ${templatesDir}`);
         return;
@@ -236,7 +236,7 @@ export class PromptManager {
 
     // Try to extract metadata from the content
     const metadataMatch = content.match(/---\s*\n([\s\S]*?)\n---/);
-    if (metadataMatch && metadataMatch[1]) {
+    if (metadataMatch?.[1]) {
       try {
         const metadataLines = metadataMatch[1].split('\n');
         const metadata: Record<string, string | string[]> = {};

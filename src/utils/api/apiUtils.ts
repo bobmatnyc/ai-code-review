@@ -51,12 +51,11 @@ export function getApiKeyType(): 'OpenRouter' | 'Google' | 'Anthropic' | 'OpenAI
   // Get the model adapter from the configuration
   const selectedModel = config.selectedModel;
   // Default to 'gemini' if no adapter is specified
-  const adapter =
-    selectedModel && selectedModel.includes(':')
-      ? selectedModel
-          .split(':')[0]
-          .toLowerCase() // Normalize to lowercase
-      : 'gemini';
+  const adapter = selectedModel?.includes(':')
+    ? selectedModel
+        .split(':')[0]
+        .toLowerCase() // Normalize to lowercase
+    : 'gemini';
 
   // Add debug logging to track model selection
   logger.debug(`getApiKeyType: selectedModel=${selectedModel}, adapter=${adapter}`);

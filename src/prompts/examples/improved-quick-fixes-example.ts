@@ -114,7 +114,7 @@ async function improvedQuickFixesExample() {
       includeTests: false,
       output: 'markdown',
     });
-  } catch (error) {
+  } catch (_error) {
     logger.warn('Could not find improved prompt template, using standard template');
     rawPrompt = await promptManager.getPromptTemplate('quick-fixes', {
       language: 'typescript',
@@ -208,11 +208,11 @@ Issues found:
 
   logger.info('Improved LangChain-based Few-Shot Prompt for Quick Fixes Review:');
   logger.info('----------------------------------------------------------------');
-  logger.info(formattedFewShotPrompt.substring(0, 500) + '...');
+  logger.info(`${formattedFewShotPrompt.substring(0, 500)}...`);
 
   logger.info('\nStandard Prompt for Quick Fixes Review:');
   logger.info('---------------------------------------');
-  logger.info(formattedStandardPrompt.substring(0, 500) + '...');
+  logger.info(`${formattedStandardPrompt.substring(0, 500)}...`);
 
   return {
     fewShotPrompt: formattedFewShotPrompt,

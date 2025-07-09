@@ -7,8 +7,8 @@
  * and interactive display.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 // Import the new modules
 import { selectApiClient } from '../core/ApiClientSelector';
 import { displayReviewInteractively } from '../core/InteractiveDisplayManager';
@@ -112,7 +112,7 @@ export async function handleConsolidatedReview(
       });
 
       // Check if it's a rate limit error
-      if (apiError.message && apiError.message.includes('Rate limit exceeded')) {
+      if (apiError.message?.includes('Rate limit exceeded')) {
         logger.error('Rate limit exceeded. The review will continue with a fallback model.');
         logger.error(`Error details logged to: ${errorLogPath}`);
         logger.error('You can try again later or reduce the number of files being reviewed.');

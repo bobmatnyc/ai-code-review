@@ -68,7 +68,7 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
           return parsed;
         }
       }
-    } catch (error) {}
+    } catch (_error) {}
   }
 
   return null;
@@ -124,14 +124,14 @@ export function extractStructuredData(content: string): StructuredReview | undef
         if (blockContent.includes('{') && blockContent.includes('}')) {
           // Look for a properly formatted object within the TypeScript code
           const objectMatch = blockContent.match(/(\{[\s\S]*\})/);
-          if (objectMatch && objectMatch[1]) {
+          if (objectMatch?.[1]) {
             const potentialJson = objectMatch[1].trim();
             try {
               // Try to verify it's parsable JSON
               JSON.parse(potentialJson);
               jsonContent = potentialJson;
               logger.debug('Successfully extracted JSON object from TypeScript code block');
-            } catch (parseError) {
+            } catch (_parseError) {
               // Not valid JSON, continue with regular processing
               logger.debug('TypeScript block contains object syntax but not valid JSON');
               if (blockContent.startsWith('{') && blockContent.endsWith('}')) {
@@ -288,19 +288,19 @@ export function extractStructuredData(content: string): StructuredReview | undef
     if (configManager.getApplicationConfig().logLevel.value === 'debug') {
       const snippet =
         content.length > 200
-          ? content.substring(0, 100) + '...' + content.substring(content.length - 100)
+          ? `${content.substring(0, 100)}...${content.substring(content.length - 100)}`
           : content;
       logger.debug(`Content snippet causing JSON parse error: ${snippet}`);
 
       // Also log if we found code blocks but couldn't parse the content
       if (jsonBlockMatch) {
-        if (jsonBlockMatch && jsonBlockMatch[1]) {
+        if (jsonBlockMatch?.[1]) {
           logger.debug(
             `Found JSON code block but content couldn't be parsed as JSON: ${jsonBlockMatch[1].substring(0, 100)}`,
           );
         }
       } else if (anyCodeBlockMatch) {
-        if (anyCodeBlockMatch && anyCodeBlockMatch[1]) {
+        if (anyCodeBlockMatch?.[1]) {
           logger.debug(
             `Found non-JSON code block but content couldn't be parsed as JSON: ${anyCodeBlockMatch[1].substring(0, 100)}`,
           );
@@ -324,7 +324,7 @@ export function extractStructuredData(content: string): StructuredReview | undef
           },
         ],
       };
-    } catch (fallbackError) {
+    } catch (_fallbackError) {
       logger.debug('Failed to create fallback structured response');
       return undefined;
     }

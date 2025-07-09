@@ -181,7 +181,7 @@ export async function performEstimation(
         );
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Fall back to the legacy estimator if TokenAnalyzer fails
     logger.warn('Advanced token analysis failed, falling back to basic estimation');
 

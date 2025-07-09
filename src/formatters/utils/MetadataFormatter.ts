@@ -106,7 +106,7 @@ export function parseMetadata(metadata: any): any {
 
   try {
     return typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-  } catch (error) {
+  } catch (_error) {
     // Silently continue if metadata parsing fails
     return {};
   }
@@ -170,7 +170,7 @@ export function createEnhancedMetadata(
       generatedAt: new Date(timestamp).toISOString(),
       formattedDate: formattedDate,
       multiPass:
-        cost && cost.passCount && cost.passCount > 1
+        cost?.passCount && cost.passCount > 1
           ? {
               enabled: true,
               passCount: cost.passCount || 1,

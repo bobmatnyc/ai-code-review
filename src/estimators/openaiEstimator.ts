@@ -97,7 +97,7 @@ export class OpenAITokenEstimator extends AbstractTokenEstimator {
     inputTokenCost: number;
     outputTokenCost: number;
   } {
-    return this.MODEL_PRICING[modelName] || this.MODEL_PRICING['default'];
+    return this.MODEL_PRICING[modelName] || this.MODEL_PRICING.default;
   }
 
   /**

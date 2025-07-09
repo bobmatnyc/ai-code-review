@@ -5,7 +5,7 @@
  * in different formats.
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 import type { ReviewOptions, ReviewResult } from '../../types/review';
 import logger from '../../utils/logger';
 import { displayReviewInteractively } from '../InteractiveDisplayManager';

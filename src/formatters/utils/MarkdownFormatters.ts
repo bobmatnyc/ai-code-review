@@ -101,7 +101,7 @@ export function formatAsMarkdown(review: ReviewResult): string {
       }
 
       // Check if the data has a 'review' property (our JSON structure)
-      if (structuredReview && structuredReview.review) {
+      if (structuredReview?.review) {
         return formatSchemaBasedReviewAsMarkdown(
           structuredReview,
           filePath || '',
@@ -158,7 +158,7 @@ export function formatAsMarkdown(review: ReviewResult): string {
 
   if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
     // For consolidated reviews, show the full target directory path
-    displayPath = process.cwd() + ' (Current Directory)';
+    displayPath = `${process.cwd()} (Current Directory)`;
   }
 
   // Extract model vendor and name from modelInfo (currently unused but may be needed for future features)
@@ -291,7 +291,7 @@ export function formatStructuredReviewAsMarkdown(
 
   if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
     // For consolidated reviews, show the full target directory path
-    displayPath = process.cwd() + ' (Current Directory)';
+    displayPath = `${process.cwd()} (Current Directory)`;
   }
 
   // Include metadata section if available
@@ -370,7 +370,7 @@ export function formatSimpleMarkdown(
 
   if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
     // For consolidated reviews, show the full target directory path
-    displayPath = process.cwd() + ' (Current Directory)';
+    displayPath = `${process.cwd()} (Current Directory)`;
   }
 
   // Extract model vendor and name from modelInfo
@@ -407,7 +407,7 @@ export function formatSimpleMarkdown(
 | Estimated Cost | ${cost.formattedCost} |`
           : ''
       }${
-        cost && cost.passCount
+        cost?.passCount
           ? `
 | Multi-pass Review | ${cost.passCount} passes |`
           : ''
@@ -498,7 +498,7 @@ export function formatSchemaBasedReviewAsMarkdown(
   // Format the metadata section
   let displayPath = filePath || '';
   if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
-    displayPath = process.cwd() + ' (Current Directory)';
+    displayPath = `${process.cwd()} (Current Directory)`;
   }
 
   // Extract model vendor and name from modelInfo

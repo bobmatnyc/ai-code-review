@@ -16,9 +16,9 @@
  * The new system provides clearer precedence rules and better error handling.
  */
 
+import fs from 'node:fs/promises';
+import * as path from 'node:path';
 import * as dotenv from 'dotenv';
-import fs from 'fs/promises';
-import * as path from 'path';
 
 // Helper function for debug logging - always visible to help diagnose environment variable loading issues
 function debugLog(message: string): void {
@@ -104,7 +104,7 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
               envLocalPath = potentialEnvPath;
               debugLog(`Found .env.local in tool directory: ${potentialEnvPath}`);
               break;
-            } catch (statError) {
+            } catch (_statError) {
               // File doesn't exist in this directory, continue to next
               debugLog(`No .env.local in ${potentialEnvPath}`);
             }

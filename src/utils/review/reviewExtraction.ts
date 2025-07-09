@@ -5,7 +5,7 @@
  * including parsing sections by priority, identifying file locations, and extracting code snippets.
  */
 
-import path from 'path';
+import path from 'node:path';
 import logger from '../logger';
 import { FixPriority, type FixSuggestion } from './types';
 
@@ -338,11 +338,11 @@ export async function parseSuggestions(
         const currentCodeMatch = issueBlock.match(/Current code:([\s\S]*?)(?:Suggested code:|$)/i);
         const suggestedCodeMatch = issueBlock.match(/Suggested code:([\s\S]*?)(?:Impact:|$)/i);
 
-        if (currentCodeMatch && currentCodeMatch[1].trim()) {
+        if (currentCodeMatch?.[1].trim()) {
           codeBlocks.push(currentCodeMatch[1].trim());
         }
 
-        if (suggestedCodeMatch && suggestedCodeMatch[1].trim()) {
+        if (suggestedCodeMatch?.[1].trim()) {
           codeBlocks.push(suggestedCodeMatch[1].trim());
         }
       }

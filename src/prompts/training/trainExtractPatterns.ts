@@ -11,8 +11,8 @@
  * - Architectural and implementation patterns
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { ReviewOptions } from '../../types/review';
 import logger from '../../utils/logger';
 import { PromptManager } from '../PromptManager';
@@ -116,7 +116,7 @@ async function trainExtractPatternsPrompt(config: TrainingConfig): Promise<void>
         language: 'typescript',
       });
       logger.info('Using existing extract-patterns prompt as starting point');
-    } catch (error) {
+    } catch (_error) {
       logger.warn('Could not load existing prompt, using enhanced base prompt');
       currentPrompt = ENHANCED_BASE_PROMPT;
     }

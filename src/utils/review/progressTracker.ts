@@ -5,7 +5,7 @@
  * during multi-pass reviews.
  */
 
-import readline from 'readline';
+import readline from 'node:readline';
 import logger from '../logger';
 
 /**
@@ -120,7 +120,7 @@ export class MultiPassProgressTracker {
     const { currentPass, totalPasses, currentPhase, startTime } = this.progress;
 
     // Calculate elapsed time
-    const elapsed = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+    const elapsed = Math.floor((Date.now() - startTime.getTime()) / 1000);
     const elapsedMinutes = Math.floor(elapsed / 60);
     const elapsedSeconds = elapsed % 60;
 
@@ -143,7 +143,7 @@ export class MultiPassProgressTracker {
 
       if (this.progress.currentFiles.length > 0) {
         const fileNames = this.progress.currentFiles.map((f) => f.split('/').pop()).join(', ');
-        progressMessage += ` | Processing: ${fileNames.length > 50 ? fileNames.substring(0, 50) + '...' : fileNames}`;
+        progressMessage += ` | Processing: ${fileNames.length > 50 ? `${fileNames.substring(0, 50)}...` : fileNames}`;
       }
     } else if (currentPhase === 'processing') {
       progressMessage = `Processing results...`;
@@ -228,7 +228,7 @@ export class MultiPassProgressTracker {
     this.progress.currentPhase = 'complete';
 
     // Calculate total time
-    const elapsed = Math.floor((new Date().getTime() - this.progress.startTime.getTime()) / 1000);
+    const elapsed = Math.floor((Date.now() - this.progress.startTime.getTime()) / 1000);
     const elapsedMinutes = Math.floor(elapsed / 60);
     const elapsedSeconds = elapsed % 60;
 

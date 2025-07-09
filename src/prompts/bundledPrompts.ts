@@ -747,8 +747,8 @@ export function getBundledPrompt(
   }
 
   // Fallback to generic prompt
-  if (bundledPrompts['generic'] && bundledPrompts['generic'][reviewType]) {
-    return bundledPrompts['generic'][reviewType];
+  if (bundledPrompts.generic?.[reviewType]) {
+    return bundledPrompts.generic[reviewType];
   }
 
   return undefined;

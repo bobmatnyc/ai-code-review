@@ -93,7 +93,7 @@ async function listGeminiModels() {
     console.log('\nAvailable models:');
     console.log('----------------');
 
-    if (result && result.models) {
+    if (result?.models) {
       // Sort models for better display
       const sortedModels = [...result.models].sort((a, b) => a.name.localeCompare(b.name));
 

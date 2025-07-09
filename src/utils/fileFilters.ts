@@ -7,8 +7,8 @@
  * Supported file types include TypeScript, JavaScript, JSON, and Markdown.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { FileInfo } from '../types/review';
 import logger from './logger';
 
@@ -79,7 +79,7 @@ export async function loadGitignorePatterns(projectDir: string): Promise<string[
     // Check if .gitignore exists
     try {
       await fs.access(gitignorePath);
-    } catch (error) {
+    } catch (_error) {
       // File doesn't exist
       logger.debug(`No .gitignore file found at ${gitignorePath}`);
       return [];

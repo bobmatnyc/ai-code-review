@@ -132,7 +132,7 @@ export async function handleFetchResponse(response: Response, apiName: string): 
       const contentType = response.headers.get('content-type');
       console.log(`[DEBUG] Content-Type: ${contentType}`);
 
-      if (contentType && contentType.includes('application/json')) {
+      if (contentType?.includes('application/json')) {
         errorBody = await response.json();
         console.log(`[DEBUG] JSON error body: ${JSON.stringify(errorBody)}`);
       } else {

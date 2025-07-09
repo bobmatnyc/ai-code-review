@@ -218,11 +218,11 @@ function getModelPricing(modelName: string): ModelPricing {
   // Handle OpenRouter model names (remove the 'openrouter-' prefix)
   if (modelName.startsWith('openrouter-')) {
     const actualModelName = modelName.substring('openrouter-'.length);
-    return MODEL_PRICING[actualModelName] || MODEL_PRICING['default'];
+    return MODEL_PRICING[actualModelName] || MODEL_PRICING.default;
   }
 
   // Handle Gemini model names
-  return MODEL_PRICING[modelName] || MODEL_PRICING['default'];
+  return MODEL_PRICING[modelName] || MODEL_PRICING.default;
 }
 
 /**

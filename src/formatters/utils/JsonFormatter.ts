@@ -38,7 +38,7 @@ export function formatAsJson(review: ReviewResult): string {
   // Format path for display
   let displayPath = review.filePath || '';
   if (!displayPath || displayPath === review.reviewType || displayPath === 'consolidated') {
-    displayPath = process.cwd() + ' (Current Directory)';
+    displayPath = `${process.cwd()} (Current Directory)`;
   }
 
   // Create enhanced metadata with detection info

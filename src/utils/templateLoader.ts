@@ -5,9 +5,9 @@
  * It supports variable substitution, partials, and conditional logic.
  */
 
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as Handlebars from 'handlebars';
-import * as path from 'path';
 import configManager from './configManager';
 import logger from './logger';
 

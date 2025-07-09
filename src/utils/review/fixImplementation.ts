@@ -6,7 +6,7 @@
  * implementation as automatic fixes are not fully supported.
  */
 
-import readline from 'readline';
+import readline from 'node:readline';
 import type { FixSuggestion } from './types';
 
 /**

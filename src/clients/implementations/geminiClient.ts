@@ -452,7 +452,7 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
 `;
       }
 
-      const modifiedPrompt = outputInstructions + '\n\n' + prompt;
+      const modifiedPrompt = `${outputInstructions}\n\n${prompt}`;
 
       // Adjust temperature based on whether we need structured JSON
       const temperature = isInteractiveMode ? 0.1 : 0.2;
@@ -529,7 +529,7 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
                 JSON.parse(jsonCandidate);
                 logger.info('Successfully extracted JSON by removing prefix content');
                 return jsonCandidate;
-              } catch (parseError) {
+              } catch (_parseError) {
                 // Continue to error handling
               }
             }

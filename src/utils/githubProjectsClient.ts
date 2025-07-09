@@ -6,7 +6,7 @@
  * syncing PROJECT.md content with GitHub Projects, and managing project items.
  */
 
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 import fetch from 'node-fetch';
 // import path from 'path'; // TODO: Remove if not needed
 import logger from './logger';

@@ -5,9 +5,9 @@
  * in code reviews. It supports both project-wide and per-file analysis.
  */
 
-import { exec } from 'child_process';
-import path from 'path';
-import { promisify } from 'util';
+import { exec } from 'node:child_process';
+import path from 'node:path';
+import { promisify } from 'node:util';
 import logger from './logger';
 
 const execAsync = promisify(exec);
@@ -112,7 +112,7 @@ function parseTypeCheckErrors(output: string, ciData: CIData, projectPath: strin
       const [, file, lineNum, colNum, errorCode, message] = match;
       const relativeFile = path.relative(projectPath, file);
 
-      if (!ciData.fileErrors![relativeFile]) {
+      if (!ciData.fileErrors?.[relativeFile]) {
         ciData.fileErrors![relativeFile] = {
           typeCheckErrors: 0,
           lintErrors: 0,
@@ -121,8 +121,8 @@ function parseTypeCheckErrors(output: string, ciData: CIData, projectPath: strin
         };
       }
 
-      ciData.fileErrors![relativeFile].typeCheckErrors++;
-      ciData.fileErrors![relativeFile].typeCheckMessages!.push(
+      ciData.fileErrors?.[relativeFile].typeCheckErrors++;
+      ciData.fileErrors?.[relativeFile].typeCheckMessages?.push(
         `Line ${lineNum}:${colNum} - ${errorCode}: ${message}`,
       );
     }
@@ -140,7 +140,7 @@ function parseLintErrors(output: string, ciData: CIData, projectPath: string): v
     // ESLint file header format: /path/to/file.ts
     if (line.match(/^[/\\]/)) {
       currentFile = path.relative(projectPath, line.trim());
-      if (!ciData.fileErrors![currentFile]) {
+      if (!ciData.fileErrors?.[currentFile]) {
         ciData.fileErrors![currentFile] = {
           typeCheckErrors: 0,
           lintErrors: 0,
@@ -154,8 +154,8 @@ function parseLintErrors(output: string, ciData: CIData, projectPath: string): v
       const match = line.match(/^\s*(\d+):(\d+)\s+error\s+(.+?)\s+(.+)$/);
       if (match) {
         const [, lineNum, colNum, message, rule] = match;
-        ciData.fileErrors![currentFile].lintErrors++;
-        ciData.fileErrors![currentFile].lintMessages!.push(
+        ciData.fileErrors?.[currentFile].lintErrors++;
+        ciData.fileErrors?.[currentFile].lintMessages?.push(
           `Line ${lineNum}:${colNum} - ${message} (${rule})`,
         );
       }

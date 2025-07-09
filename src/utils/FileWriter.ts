@@ -5,8 +5,8 @@
  * with error handling and logging.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import logger from './logger';
 import { pathExists } from './pathValidator';
 

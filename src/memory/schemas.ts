@@ -1,20 +1,19 @@
 /**
  * Memory Schemas for Code Review Operations
- * 
+ *
  * Enterprise memory schemas (MEM-002) implementing structured patterns
  * for storing and retrieving code review knowledge.
  */
 
-import type { CodeReviewMemoryEntry, MemoryCategory } from './types';
+import type { CodeReviewMemoryEntry } from './types';
 
 /**
  * Schema definitions for different memory categories
  */
 export class MemorySchemas {
-  
   /**
    * PATTERN Memory Schema
-   * 
+   *
    * Stores code review best practices, common patterns, and architectural decisions
    */
   static createPatternMemory(data: {
@@ -47,17 +46,17 @@ ${data.references ? `References:\n${data.references.join('\n')}` : ''}`,
           'pattern',
           data.language,
           data.complexity,
-          ...(data.framework ? [data.framework] : [])
+          ...(data.framework ? [data.framework] : []),
         ],
         confidence: 0.9,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     };
   }
 
   /**
    * ERROR Memory Schema
-   * 
+   *
    * Stores bug patterns, security vulnerabilities, and common mistakes
    */
   static createErrorMemory(data: {
@@ -95,17 +94,17 @@ ${data.relatedErrors ? `Related Errors:\n${data.relatedErrors.join('\n')}` : ''}
           data.errorType,
           data.severity,
           data.language,
-          ...(data.framework ? [data.framework] : [])
+          ...(data.framework ? [data.framework] : []),
         ],
         confidence: 0.95,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     };
   }
 
   /**
    * TEAM Memory Schema
-   * 
+   *
    * Stores team-specific review standards, coding conventions, and preferences
    */
   static createTeamMemory(data: {
@@ -139,17 +138,17 @@ ${data.exceptions ? `Exceptions:\n${data.exceptions.join('\n')}` : ''}`,
           data.teamId,
           data.category,
           data.enforcement,
-          ...(data.language ? [data.language] : [])
+          ...(data.language ? [data.language] : []),
         ],
         confidence: 0.8,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     };
   }
 
   /**
    * PROJECT Memory Schema
-   * 
+   *
    * Stores project-specific metrics, review history, and improvement tracking
    */
   static createProjectMemory(data: {
@@ -184,17 +183,17 @@ ${data.impact ? `Impact: ${data.impact}` : ''}`,
           data.projectId,
           data.metric,
           data.trend,
-          ...(data.reviewStrategy ? [data.reviewStrategy] : [])
+          ...(data.reviewStrategy ? [data.reviewStrategy] : []),
         ],
         confidence: 0.85,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     };
   }
 
   /**
    * Code Review Workflow Memory Schema
-   * 
+   *
    * Specialized schema for storing complete code review workflows and their outcomes
    */
   static createWorkflowMemory(data: {
@@ -232,22 +231,16 @@ ${data.feedback ? `Feedback: ${data.feedback}` : ''}`,
         projectId: data.projectId,
         language: data.language,
         strategy: data.strategy,
-        tags: [
-          'workflow',
-          data.strategy,
-          data.reviewer,
-          data.outcome,
-          data.language
-        ],
+        tags: ['workflow', data.strategy, data.reviewer, data.outcome, data.language],
         confidence: 0.9,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     };
   }
 
   /**
    * Security Finding Memory Schema
-   * 
+   *
    * Specialized schema for security-related findings and recommendations
    */
   static createSecurityMemory(data: {
@@ -285,17 +278,17 @@ ${data.references ? `References:\n${data.references.join('\n')}` : ''}`,
           data.vulnerability,
           data.language,
           ...(data.framework ? [data.framework] : []),
-          ...(data.cvssScore ? [`cvss-${Math.floor(data.cvssScore)}`] : [])
+          ...(data.cvssScore ? [`cvss-${Math.floor(data.cvssScore)}`] : []),
         ],
         confidence: data.cvssScore ? Math.min(data.cvssScore / 10, 1) : 0.8,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     };
   }
 
   /**
    * Performance Optimization Memory Schema
-   * 
+   *
    * Stores performance-related findings and optimization recommendations
    */
   static createPerformanceMemory(data: {
@@ -325,10 +318,14 @@ Description: ${data.description}
 
 Implementation: ${data.implementation}
 
-${data.metrics ? `Performance Metrics:
+${
+  data.metrics
+    ? `Performance Metrics:
 Before: ${data.metrics.before}
 After: ${data.metrics.after}
-Improvement: ${data.metrics.improvement}` : ''}`,
+Improvement: ${data.metrics.improvement}`
+    : ''
+}`,
       metadata: {
         language: data.language,
         tags: [
@@ -337,17 +334,17 @@ Improvement: ${data.metrics.improvement}` : ''}`,
           data.impact,
           data.complexity,
           data.language,
-          ...(data.framework ? [data.framework] : [])
+          ...(data.framework ? [data.framework] : []),
         ],
         confidence: 0.85,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     };
   }
 
   /**
    * Validate memory entry against schema
-   * 
+   *
    * @param entry - Memory entry to validate
    * @returns Validation result with any errors
    */
@@ -392,13 +389,13 @@ Improvement: ${data.metrics.improvement}` : ''}`,
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
   /**
    * Extract structured data from memory content
-   * 
+   *
    * @param entry - Memory entry to parse
    * @returns Parsed structured data
    */

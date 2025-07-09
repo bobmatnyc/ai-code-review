@@ -5,7 +5,7 @@
  * elements like unused files, functions, classes, and variables.
  */
 
-import path from 'path';
+import path from 'node:path';
 import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
 import {

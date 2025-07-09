@@ -5,8 +5,8 @@
  * and the new Handlebars template system, enabling a smooth migration.
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { ReviewType } from '../types/review';
 import logger from './logger';
 import { listAvailableTemplates, loadPromptTemplate } from './templateLoader';

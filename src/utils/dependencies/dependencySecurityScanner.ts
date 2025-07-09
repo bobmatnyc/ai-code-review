@@ -6,10 +6,10 @@
  * disclosed vulnerabilities in project dependencies.
  */
 
-import { spawnSync } from 'child_process';
-import { promises as fs } from 'fs';
-import os from 'os'; // Added for platform detection
-import path from 'path';
+import { spawnSync } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import os from 'node:os'; // Added for platform detection
+import path from 'node:path';
 import logger from '../logger';
 import { detectTechStacks } from './dependencyRegistry';
 import { formatStackSummary } from './stackAwarePackageAnalyzer';
@@ -377,7 +377,7 @@ function formatScanResults(results: ScanResults): string {
   }
 
   // Add scan information
-  if (results.scanInfo && results.scanInfo.engineVersion) {
+  if (results.scanInfo?.engineVersion) {
     report += '### Scan Information\n\n';
     report += `- Scanner Version: ${results.scanInfo.engineVersion}\n`;
     if (results.scanInfo.scanDateTime) {

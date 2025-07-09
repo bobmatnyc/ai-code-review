@@ -5,10 +5,10 @@
  * dependency visualizations using tools like dependency-cruiser.
  */
 
-import { execSync } from 'child_process';
-import fs from 'fs/promises';
+import { execSync } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { globSync } from 'glob';
-import path from 'path';
 import logger from '../logger';
 
 /**
@@ -36,7 +36,7 @@ export async function generateDependencyVisualization(projectPath: string): Prom
       await fs.access(localDepCruiserPath);
       depCruiserCommand = localDepCruiserPath;
       logger.info('Using locally installed dependency-cruiser');
-    } catch (error) {
+    } catch (_error) {
       logger.warn('dependency-cruiser not found in node_modules, checking global installation');
 
       try {
@@ -44,13 +44,13 @@ export async function generateDependencyVisualization(projectPath: string): Prom
         execSync('dependency-cruiser --version', { stdio: 'ignore' });
         depCruiserCommand = 'dependency-cruiser';
         logger.info('Using globally installed dependency-cruiser');
-      } catch (globalError) {
+      } catch (_globalError) {
         // Try depcruise command instead (sometimes installed as depcruise instead of dependency-cruiser)
         try {
           execSync('depcruise --version', { stdio: 'ignore' });
           depCruiserCommand = 'depcruise';
           logger.info('Using globally installed depcruise');
-        } catch (depCruiseError) {
+        } catch (_depCruiseError) {
           logger.error('dependency-cruiser not found globally either');
           logger.info('Installing dependency-cruiser temporarily for analysis...');
 
@@ -78,7 +78,7 @@ export async function generateDependencyVisualization(projectPath: string): Prom
       execSync('dot -V', { stdio: 'ignore' });
       hasDot = true;
       logger.info('Graphviz dot command is available');
-    } catch (dotError) {
+    } catch (_dotError) {
       logger.warn('Graphviz dot command not available, will use JSON output only');
     }
 

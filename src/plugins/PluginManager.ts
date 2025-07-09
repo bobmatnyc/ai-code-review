@@ -5,8 +5,8 @@
  * that provide custom review strategies.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { IReviewStrategy } from '../strategies/ReviewStrategy';
 import logger from '../utils/logger';
 import type { PluginRegistration } from './PluginInterface';
@@ -83,7 +83,7 @@ export class PluginManager {
       // Check if the directory exists
       try {
         await fs.access(pluginsDir);
-      } catch (error) {
+      } catch (_error) {
         // Silently ignore missing plugins directory - this is expected in most cases
         logger.debug(`Plugins directory not found: ${pluginsDir}`);
         return;

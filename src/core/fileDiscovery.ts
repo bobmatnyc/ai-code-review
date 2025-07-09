@@ -5,8 +5,8 @@
  * It handles gitignore patterns, test exclusions, and file system operations.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { getFilesToReview as getFilteredFiles, loadGitignorePatterns } from '../utils/fileFilters';
 import { isDirectory, isPathWithinCwd, pathExists } from '../utils/fileSystem';
 import logger from '../utils/logger';

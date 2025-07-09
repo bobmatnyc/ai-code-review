@@ -6,8 +6,8 @@
  * for identifying project dependencies across various technology ecosystems.
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import logger from '../logger';
 
 /**
@@ -280,7 +280,7 @@ export async function detectTechStacks(projectPath: string): Promise<DetectedSta
           foundFiles++;
           foundDependencyFiles.push(filePath);
           logger.debug(`Found ${depFile.fileType} for ${stack.name} at ${filePath}`);
-        } catch (error) {
+        } catch (_error) {
           if (depFile.required) {
             totalRequired++;
             logger.debug(
@@ -302,7 +302,7 @@ export async function detectTechStacks(projectPath: string): Promise<DetectedSta
             detectionFileMatch = true;
             logger.debug(`Found detection file ${detectionFile} for ${stack.name}`);
             break;
-          } catch (error) {
+          } catch (_error) {
             // Not found, continue checking
           }
         }

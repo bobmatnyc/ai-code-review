@@ -5,7 +5,7 @@
  * based on review type and options.
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 import type { TokenAnalysisResult } from '../../analysis/tokens';
 import { StrategyFactory } from '../../strategies/StrategyFactory';
 import type { ReviewOptions, ReviewResult } from '../../types/review';
@@ -84,7 +84,7 @@ export function determineIfMultiPassNeeded(
   }
 
   // If we have token analysis, use its recommendation
-  if (tokenAnalysis && tokenAnalysis.chunkingRecommendation) {
+  if (tokenAnalysis?.chunkingRecommendation) {
     return tokenAnalysis.chunkingRecommendation.chunkingRecommended;
   }
 

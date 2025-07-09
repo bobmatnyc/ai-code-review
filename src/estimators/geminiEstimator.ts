@@ -179,7 +179,7 @@ export class GeminiTokenEstimator extends AbstractTokenEstimator {
    * @returns Pricing information for the model
    */
   private getModelPricing(modelName: string): ModelPricing {
-    return this.MODEL_PRICING[modelName] || this.MODEL_PRICING['default'];
+    return this.MODEL_PRICING[modelName] || this.MODEL_PRICING.default;
   }
 
   /**

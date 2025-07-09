@@ -112,7 +112,7 @@ export class AnthropicTokenEstimator extends AbstractTokenEstimator {
     // use getApiNameFromKey to get the API identifier
     const apiIdentifier = modelName.includes(':') ? getApiNameFromKey(modelName) : modelName;
 
-    return this.MODEL_PRICING[apiIdentifier] || this.MODEL_PRICING['default'];
+    return this.MODEL_PRICING[apiIdentifier] || this.MODEL_PRICING.default;
   }
 
   /**

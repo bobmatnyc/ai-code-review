@@ -5,7 +5,7 @@
  * including versioned output paths for review results.
  */
 
-import path from 'path';
+import path from 'node:path';
 import { ensureDirectoryExists } from './FileWriter';
 import { pathExists } from './pathValidator';
 
@@ -88,7 +88,7 @@ export async function generateUniqueOutputPath(baseDir: string, filename: string
  * @returns Generated temporary file path
  */
 export function generateTempFilePath(prefix: string, extension: string): string {
-  const timestamp = new Date().getTime();
+  const timestamp = Date.now();
   const randomPart = Math.floor(Math.random() * 10000);
   return path.join(
     process.env.TEMP || process.env.TMP || '/tmp',

@@ -5,8 +5,8 @@
  * JSON configuration files for the AI code review tool.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as YAML from 'yaml';
 import type { CliOptions } from '../cli/argumentParser';
 import type { ReviewOptions } from '../types/review';
@@ -129,7 +129,7 @@ export function loadConfigFile(configFilePath?: string): ConfigFile | null {
         try {
           config = YAML.parse(content) as ConfigFile;
           logger.info(`Loaded configuration from ${filePath} (detected as YAML)`);
-        } catch (yamlError) {
+        } catch (_yamlError) {
           config = JSON.parse(content) as ConfigFile;
           logger.info(`Loaded configuration from ${filePath} (detected as JSON)`);
         }

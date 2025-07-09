@@ -16,7 +16,7 @@
  * standard or enhanced unused code review templates based on availability.
  */
 
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
 import {

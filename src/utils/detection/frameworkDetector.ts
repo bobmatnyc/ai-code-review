@@ -5,8 +5,8 @@
  * allowing for more specific prompts and improved review quality.
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import logger from '../logger';
 
 /**
@@ -342,8 +342,8 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
     // If TypeScript and JavaScript are close, prefer TypeScript
     if (
       primaryLanguage === 'javascript' &&
-      extensionCounts['typescript'] > 0 &&
-      extensionCounts['typescript'] >= extensionCounts['javascript'] * 0.5
+      extensionCounts.typescript > 0 &&
+      extensionCounts.typescript >= extensionCounts.javascript * 0.5
     ) {
       primaryLanguage = 'typescript';
     }
@@ -357,13 +357,13 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
 
       if (packageJsonExists && primaryLanguage !== 'typescript') {
         primaryLanguage = 'typescript';
-      } else if (composerJsonExists && (primaryLanguage === null || extensionCounts['php'] > 0)) {
+      } else if (composerJsonExists && (primaryLanguage === null || extensionCounts.php > 0)) {
         primaryLanguage = 'php';
-      } else if (gemfileExists && (primaryLanguage === null || extensionCounts['ruby'] > 0)) {
+      } else if (gemfileExists && (primaryLanguage === null || extensionCounts.ruby > 0)) {
         primaryLanguage = 'ruby';
       } else if (
         requirementsTxtExists &&
-        (primaryLanguage === null || extensionCounts['python'] > 0)
+        (primaryLanguage === null || extensionCounts.python > 0)
       ) {
         primaryLanguage = 'python';
       }
@@ -514,7 +514,7 @@ async function fileExists(filePath: string): Promise<boolean> {
   try {
     await fs.access(filePath);
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -528,7 +528,7 @@ async function directoryExists(dirPath: string): Promise<boolean> {
   try {
     const stats = await fs.stat(dirPath);
     return stats.isDirectory();
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -632,8 +632,8 @@ async function detectCssFrameworks(
 
   try {
     // Check for CSS frameworks based on FRAMEWORK_SIGNATURES
-    if (FRAMEWORK_SIGNATURES['css']) {
-      for (const signature of FRAMEWORK_SIGNATURES['css']) {
+    if (FRAMEWORK_SIGNATURES.css) {
+      for (const signature of FRAMEWORK_SIGNATURES.css) {
         let score = 0;
         let foundDependency = false;
         let version: string | undefined;
@@ -698,7 +698,7 @@ async function detectCssFrameworks(
               }
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Ignore directory read errors
         }
       }

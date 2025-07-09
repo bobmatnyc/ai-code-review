@@ -6,7 +6,7 @@
  * Projects and from GitHub Projects to PROJECT.md.
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 import { fileExists } from '../utils/fileSystemUtils';
 import {
   getGitHubProjectsConfig,

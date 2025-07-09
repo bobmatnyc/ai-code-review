@@ -40,7 +40,7 @@ export function generateDirectoryStructure(files: FileInfo[]): string {
   function stringifyStructure(obj: Record<string, any>, indent = 0): string {
     let result = '';
     for (const [key, value] of Object.entries(obj)) {
-      result += '  '.repeat(indent) + (value === null ? '📄 ' : '📁 ') + key + '\n';
+      result += `${'  '.repeat(indent) + (value === null ? '📄 ' : '📁 ') + key}\n`;
       if (value !== null) {
         result += stringifyStructure(value, indent + 1);
       }

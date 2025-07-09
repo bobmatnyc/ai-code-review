@@ -6,8 +6,8 @@
  * generating versioned output paths.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { ReviewType } from '../types/review';
 import logger from './logger';
 
@@ -18,7 +18,7 @@ import logger from './logger';
 export async function ensureDirectoryExists(dirPath: string): Promise<void> {
   try {
     await fs.access(dirPath);
-  } catch (error) {
+  } catch (_error) {
     // Directory doesn't exist, create it
     await fs.mkdir(dirPath, { recursive: true });
   }
@@ -121,7 +121,7 @@ export async function fileExists(filePath: string): Promise<boolean> {
   try {
     await fs.access(filePath);
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

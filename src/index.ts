@@ -19,10 +19,10 @@
  *        ai-code-review test-build [options]
  */
 
-import * as dotenv from 'dotenv';
 // Load dotenv as early as possible
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as dotenv from 'dotenv';
 
 // Start diagnostic logging immediately
 console.log('\x1b[35m[ENV-TRACE]\x1b[0m Starting application - checking environment variables');
@@ -103,7 +103,7 @@ for (const dir of possibleToolDirectories) {
       debugLog(`Found tool .env.local at: ${toolEnvPath}`);
       break;
     }
-  } catch (err) {
+  } catch (_err) {
     // Continue to next directory
   }
 }
@@ -151,7 +151,7 @@ if (toolEnvPath) {
         debugLog(`Successfully loaded environment variables from ${envLocalPath}`);
 
         // Check if AI_CODE_REVIEW_LOG_LEVEL was loaded
-        if (result.parsed && result.parsed.AI_CODE_REVIEW_LOG_LEVEL) {
+        if (result.parsed?.AI_CODE_REVIEW_LOG_LEVEL) {
           debugLog(
             `Found AI_CODE_REVIEW_LOG_LEVEL in .env.local: ${result.parsed.AI_CODE_REVIEW_LOG_LEVEL}`,
           );
@@ -299,7 +299,7 @@ async function main() {
             console.log(`Add AI_CODE_REVIEW_LOG_LEVEL=debug to this file for debug logging.`);
             break;
           }
-        } catch (err) {
+        } catch (_err) {
           // Skip errors
         }
       }
@@ -449,7 +449,7 @@ async function main() {
         );
 
         // Add a helpful message about common API issues
-        logger.info('\n' + t('errors.common_solutions.title'));
+        logger.info(`\n${t('errors.common_solutions.title')}`);
         logger.info(t('errors.common_solutions.check_api_keys'));
         logger.info(t('errors.common_solutions.check_internet'));
         logger.info(t('errors.common_solutions.check_services'));
@@ -493,7 +493,7 @@ async function main() {
     );
 
     // Add a helpful message about common issues
-    logger.info('\n' + t('errors.common_solutions.title'));
+    logger.info(`\n${t('errors.common_solutions.title')}`);
     logger.info(t('errors.common_solutions.check_directory'));
     logger.info(t('errors.common_solutions.check_target_path'));
     logger.info(t('errors.common_solutions.run_test_api'));
@@ -515,7 +515,7 @@ main().catch((error) => {
     } else {
       logger.error(`Unhandled error: ${errorMessage}`);
     }
-  } catch (translationError) {
+  } catch (_translationError) {
     // If translation fails, use plain English
     logger.error(`Unhandled error: ${errorMessage}`);
   }

@@ -5,7 +5,7 @@
  * selecting the appropriate API client, and managing the review workflow.
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 import { runApiConnectionTests } from '../__tests__/apiConnection.test';
 import { listModelConfigs, listModels } from '../clients/utils/modelLister';
 import type { ProgrammingLanguage } from '../types/common';

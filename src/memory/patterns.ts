@@ -1,6 +1,6 @@
 /**
  * Code Review Memory Patterns
- * 
+ *
  * Predefined memory patterns for common code review scenarios.
  * These patterns help establish consistent memory storage for the ai-code-review project.
  */
@@ -12,7 +12,6 @@ import type { CodeReviewMemoryEntry } from './types';
  * Collection of predefined memory patterns for code review operations
  */
 export class CodeReviewMemoryPatterns {
-
   /**
    * TypeScript-specific patterns for the ai-code-review project
    */
@@ -30,10 +29,7 @@ function processData(data: any) { ... }
 
 // Good
 function processData<T extends Record<string, unknown>>(data: T): ProcessedData<T> { ... }`,
-        references: [
-          'TypeScript Handbook - Strict Mode',
-          'ai-code-review project standards'
-        ]
+        references: ['TypeScript Handbook - Strict Mode', 'ai-code-review project standards'],
       }),
 
       // Error Handling Patterns
@@ -53,7 +49,7 @@ async function apiCall(): Promise<Result<Data>> {
     return { success: false, error };
   }
 }`,
-        references: ['Functional Error Handling in TypeScript']
+        references: ['Functional Error Handling in TypeScript'],
       }),
 
       // Performance Patterns
@@ -62,7 +58,8 @@ async function apiCall(): Promise<Result<Data>> {
         impact: 'high',
         language: 'typescript',
         framework: 'node.js',
-        description: 'Use dynamic imports to reduce initial bundle size and improve startup performance',
+        description:
+          'Use dynamic imports to reduce initial bundle size and improve startup performance',
         implementation: `// Instead of static imports
 const ClientFactory = () => import('./clients/factory/clientFactory');
 
@@ -75,9 +72,9 @@ async function getClient() {
         metrics: {
           before: 'Initial bundle: 2.5MB, startup: 1200ms',
           after: 'Initial bundle: 800KB, startup: 400ms',
-          improvement: '70% faster startup, 68% smaller initial bundle'
-        }
-      })
+          improvement: '70% faster startup, 68% smaller initial bundle',
+        },
+      }),
     ];
   }
 
@@ -101,10 +98,7 @@ exec(\`git clone \${userRepo}\`);
 // Safe
 const sanitizedRepo = sanitizeGitUrl(userRepo);
 execFile('git', ['clone', sanitizedRepo]);`,
-        references: [
-          'OWASP Command Injection',
-          'Node.js Security Best Practices'
-        ]
+        references: ['OWASP Command Injection', 'Node.js Security Best Practices'],
       }),
 
       // Performance Errors
@@ -122,7 +116,7 @@ process.on('SIGINT', handler);
 const controller = new AbortController();
 process.on('SIGINT', handler, { signal: controller.signal });
 // Later: controller.abort();`,
-        relatedErrors: ['Memory Leaks', 'Resource Management']
+        relatedErrors: ['Memory Leaks', 'Resource Management'],
       }),
 
       // Logic Errors
@@ -150,8 +144,8 @@ async function updateCounter() {
     mutex.release();
   }
 }`,
-        relatedErrors: ['Concurrency Issues', 'State Management']
-      })
+        relatedErrors: ['Concurrency Issues', 'State Management'],
+      }),
     ];
   }
 
@@ -171,8 +165,8 @@ async function updateCounter() {
         examples: [
           'Run `pnpm run lint:fix` before committing',
           'Configure editor to format on save with Biome',
-          'Use Biome configuration in biome.json'
-        ]
+          'Use Biome configuration in biome.json',
+        ],
       }),
 
       // Testing Standards
@@ -187,12 +181,9 @@ async function updateCounter() {
           'Unit tests for all public methods',
           'Integration tests for API endpoints',
           'Performance tests for high-load operations',
-          'Minimum 80% test coverage required'
+          'Minimum 80% test coverage required',
         ],
-        exceptions: [
-          'Legacy code during migration period',
-          'Simple configuration files'
-        ]
+        exceptions: ['Legacy code during migration period', 'Simple configuration files'],
       }),
 
       // Architecture Standards
@@ -206,9 +197,9 @@ async function updateCounter() {
           'Core business logic in /core directory',
           'External dependencies in /clients directory',
           'Data types in /types directory',
-          'Utilities in /utils directory'
-        ]
-      })
+          'Utilities in /utils directory',
+        ],
+      }),
     ];
   }
 
@@ -226,7 +217,7 @@ async function updateCounter() {
         context: 'Increased test coverage with comprehensive Vitest test suite',
         timestamp: new Date(),
         reviewStrategy: 'comprehensive',
-        impact: 'Reduced production bugs by 40%'
+        impact: 'Reduced production bugs by 40%',
       }),
 
       MemorySchemas.createProjectMemory({
@@ -238,7 +229,7 @@ async function updateCounter() {
         context: 'Optimized TypeScript compilation and reduced bundle size',
         timestamp: new Date(),
         reviewStrategy: 'performance',
-        impact: 'Faster CI/CD pipeline execution'
+        impact: 'Faster CI/CD pipeline execution',
       }),
 
       MemorySchemas.createWorkflowMemory({
@@ -252,8 +243,8 @@ async function updateCounter() {
         projectId: 'ai-code-review',
         reviewer: 'ai',
         outcome: 'approved',
-        feedback: 'High code quality with minor issues addressed'
-      })
+        feedback: 'High code quality with minor issues addressed',
+      }),
     ];
   }
 
@@ -270,45 +261,53 @@ async function updateCounter() {
 
       switch (category) {
         case 'PATTERN':
-          patterns.push(MemorySchemas.createPatternMemory({
-            pattern: `High Activity Test Pattern ${i}`,
-            description: `Test pattern for high-activity performance validation - iteration ${i}`,
-            language: 'typescript',
-            complexity: 'low',
-            useCase: 'Performance testing and validation'
-          }));
+          patterns.push(
+            MemorySchemas.createPatternMemory({
+              pattern: `High Activity Test Pattern ${i}`,
+              description: `Test pattern for high-activity performance validation - iteration ${i}`,
+              language: 'typescript',
+              complexity: 'low',
+              useCase: 'Performance testing and validation',
+            }),
+          );
           break;
 
         case 'ERROR':
-          patterns.push(MemorySchemas.createErrorMemory({
-            errorType: `Test Error Pattern ${i}`,
-            description: `Test error for high-activity performance validation - iteration ${i}`,
-            severity: 'low',
-            language: 'typescript',
-            solution: 'This is a test error pattern',
-            prevention: 'Used for performance testing only'
-          }));
+          patterns.push(
+            MemorySchemas.createErrorMemory({
+              errorType: `Test Error Pattern ${i}`,
+              description: `Test error for high-activity performance validation - iteration ${i}`,
+              severity: 'low',
+              language: 'typescript',
+              solution: 'This is a test error pattern',
+              prevention: 'Used for performance testing only',
+            }),
+          );
           break;
 
         case 'TEAM':
-          patterns.push(MemorySchemas.createTeamMemory({
-            teamId: 'test-team',
-            convention: `Test Convention ${i}`,
-            description: `Test team convention for performance validation - iteration ${i}`,
-            category: 'style',
-            enforcement: 'optional'
-          }));
+          patterns.push(
+            MemorySchemas.createTeamMemory({
+              teamId: 'test-team',
+              convention: `Test Convention ${i}`,
+              description: `Test team convention for performance validation - iteration ${i}`,
+              category: 'style',
+              enforcement: 'optional',
+            }),
+          );
           break;
 
         case 'PROJECT':
-          patterns.push(MemorySchemas.createProjectMemory({
-            projectId: 'ai-code-review-test',
-            metric: `Test Metric ${i}`,
-            value: i * 10,
-            trend: 'stable',
-            context: `Test metric for performance validation - iteration ${i}`,
-            timestamp: new Date()
-          }));
+          patterns.push(
+            MemorySchemas.createProjectMemory({
+              projectId: 'ai-code-review-test',
+              metric: `Test Metric ${i}`,
+              value: i * 10,
+              trend: 'stable',
+              context: `Test metric for performance validation - iteration ${i}`,
+              timestamp: new Date(),
+            }),
+          );
           break;
       }
     }
@@ -321,10 +320,10 @@ async function updateCounter() {
    */
   static getAllPatterns(): Array<Omit<CodeReviewMemoryEntry, 'id'>> {
     return [
-      ...this.getTypeScriptPatterns(),
-      ...this.getCommonErrorPatterns(),
-      ...this.getTeamPatterns(),
-      ...this.getProjectPatterns()
+      ...CodeReviewMemoryPatterns.getTypeScriptPatterns(),
+      ...CodeReviewMemoryPatterns.getCommonErrorPatterns(),
+      ...CodeReviewMemoryPatterns.getTeamPatterns(),
+      ...CodeReviewMemoryPatterns.getProjectPatterns(),
     ];
   }
 
@@ -347,7 +346,7 @@ async function updateCounter() {
   "lint:fix": "biome check src/ --write",
   "format": "biome format src/ --write"
 }`,
-        references: ['Biome Documentation', 'ai-code-review toolchain']
+        references: ['Biome Documentation', 'ai-code-review toolchain'],
       }),
 
       // Vitest Configuration
@@ -369,7 +368,7 @@ export default {
     }
   }
 }`,
-        references: ['Vitest Documentation', 'ai-code-review testing setup']
+        references: ['Vitest Documentation', 'ai-code-review testing setup'],
       }),
 
       // Memory System Integration
@@ -383,8 +382,8 @@ export default {
 const memory = new ClaudePMMemory(config);
 await memory.storeMemory('PATTERN', patternContent, metadata);
 const results = await memory.searchMemories({ query: 'typescript performance' });`,
-        references: ['ClaudePMMemory documentation', 'MEM-001/MEM-002 implementation']
-      })
+        references: ['ClaudePMMemory documentation', 'MEM-001/MEM-002 implementation'],
+      }),
     ];
   }
 }

@@ -207,7 +207,6 @@ export function sanitizeContent(
       return sanitizeMarkdown(content);
     case 'json':
       return sanitizeJson(content);
-    case 'text':
     default:
       // For plain text, just remove control characters except for newlines and tabs
       // eslint-disable-next-line no-control-regex

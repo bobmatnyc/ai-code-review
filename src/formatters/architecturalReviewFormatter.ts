@@ -64,7 +64,7 @@ ${fileTree}
     // Find the position to insert (before cost information section)
     const costSectionMatch = baseFormattedReview.match(/^## Cost Information/m);
 
-    if (costSectionMatch && costSectionMatch.index) {
+    if (costSectionMatch?.index) {
       // Insert before cost information
       const position = costSectionMatch.index;
       logger.debug('Inserting file list before Cost Information section');

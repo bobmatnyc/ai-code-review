@@ -9,23 +9,12 @@ import { FewShotPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
 import type { ReviewOptions } from '../../types/review';
 import { formatCIDataForPrompt } from '../../utils/ciDataCollector';
 import logger from '../../utils/logger';
-import type { PromptCache } from '../cache/PromptCache';
-import type { PromptManager } from '../PromptManager';
 import { PromptStrategy } from './PromptStrategy';
 
 /**
  * LangChain-based prompt strategy implementation
  */
 export class LangChainPromptStrategy extends PromptStrategy {
-  /**
-   * Create a new LangChain prompt strategy
-   * @param promptManager Prompt manager instance
-   * @param promptCache Prompt cache instance
-   */
-  constructor(promptManager: PromptManager, promptCache: PromptCache) {
-    super(promptManager, promptCache);
-  }
-
   /**
    * Format a prompt using LangChain
    * @param prompt Raw prompt
@@ -137,7 +126,7 @@ export class LangChainPromptStrategy extends PromptStrategy {
         if (optionKey === 'ciData' && options.ciData) {
           // Use the mapped FILE_PATH value if available, otherwise default to undefined
           // This ensures we don't try to access a property that doesn't exist on ReviewOptions
-          const filePath = inputValues['FILE_PATH'] || undefined;
+          const filePath = inputValues.FILE_PATH || undefined;
           inputValues[variable] = formatCIDataForPrompt(options.ciData, filePath);
         } else {
           inputValues[variable] = String(options[optionKey as keyof ReviewOptions]);

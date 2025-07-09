@@ -101,7 +101,7 @@ export function parseArguments(): any {
           .option('enable-semantic-chunking', {
             describe: 'Enable semantic chunking for intelligent code analysis',
             type: 'boolean',
-            default: process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'false' ? false : true,
+            default: process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING !== 'false',
           })
           .option('interactive', {
             alias: 'i',

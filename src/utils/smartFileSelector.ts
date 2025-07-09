@@ -6,8 +6,8 @@
  * to .gitignore patterns.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { loadGitignorePatterns, shouldExcludeFile } from './fileFilters';
 import logger from './logger';
 
@@ -33,7 +33,7 @@ export async function loadEslintIgnorePatterns(projectDir: string): Promise<stri
     // Check if .eslintignore exists
     try {
       await fs.promises.access(eslintIgnorePath);
-    } catch (error) {
+    } catch (_error) {
       // File doesn't exist
       logger.debug(`No .eslintignore file found at ${eslintIgnorePath}`);
       return [];
@@ -72,7 +72,7 @@ export async function loadTsConfig(projectDir: string): Promise<TsConfig | null>
     // Check if tsconfig.json exists
     try {
       await fs.promises.access(tsConfigPath);
-    } catch (error) {
+    } catch (_error) {
       // File doesn't exist
       logger.debug(`No tsconfig.json file found at ${tsConfigPath}`);
       return null;

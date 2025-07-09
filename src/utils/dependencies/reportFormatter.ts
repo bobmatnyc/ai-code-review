@@ -5,8 +5,8 @@
  * in markdown format with consistent styling and structure.
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { SecurityIssues } from './securityAnalysis';
 
 /**
@@ -130,7 +130,7 @@ export function formatOverallReport(analysis: EnhancedDependencyAnalysis): strin
           devDeps.forEach((dep) => (report += `- \`${dep}\`\n`));
           report += '\n';
         }
-      } catch (error) {
+      } catch (_error) {
         // If we can't determine dev vs prod, just list them all
         displayDeps.forEach((dep) => (report += `- \`${dep}\`\n`));
       }

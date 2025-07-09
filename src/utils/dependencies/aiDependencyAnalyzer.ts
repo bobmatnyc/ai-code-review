@@ -6,10 +6,10 @@
  * need for external tools like dependency-cruiser that can cause installation issues.
  */
 
-import { exec } from 'child_process';
-import fs from 'fs/promises';
-import path from 'path';
-import { promisify } from 'util';
+import { exec } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { promisify } from 'node:util';
 // import { getConfig } from '../../utils/config';
 // import { AbstractClient } from '../../clients/base/abstractClient';
 import { ClientFactory } from '../../clients/factory/clientFactory';

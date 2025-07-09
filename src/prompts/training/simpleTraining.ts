@@ -6,8 +6,8 @@
  * This script demonstrates the training approach without LangChain template issues
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import logger from '../../utils/logger';
 import { PATTERN_TRAINING_EXAMPLES } from './patternTrainingExamples';
 

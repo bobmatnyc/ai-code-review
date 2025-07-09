@@ -91,10 +91,10 @@ Updated: 6-29-2025 - Corrected project structure and testing requirements
 
 ### Automation
 
-* Use `npm` for package management, builds, tests, and CI.
-* `npm run lint && npm run build:types && npm test` required before merge.
+* Use `pnpm` for package management, builds, tests, and CI.
+* `pnpm run lint && pnpm run build:types && pnpm test` required before merge.
 * Feature branches only. Use squash merges.
-* Run full CI checks locally before pushing: `npm run ci:local`
+* Run full CI checks locally before pushing: `pnpm run ci:local`
 
 ---
 
@@ -110,7 +110,7 @@ Updated: 6-29-2025 - Corrected project structure and testing requirements
 ## 🧪 6. Testing Standards
 
 * All utilities and APIs must have unit tests.
-* Use **Jest** (`npm test`).
+* Use **Vitest** (`pnpm test`).
 * Minimum 80% coverage unless annotated with `@low-test-priority`.
 * Avoid snapshots unless explicitly justified.
 * Prefer real API interactions over mocks.
@@ -132,14 +132,14 @@ Before pushing changes or closing tickets:
 
 1. **Run full CI locally:**
    ```bash
-   npm run lint
-   npm run build:types
-   npm test
-   npm run build
+   pnpm run lint
+   pnpm run build:types
+   pnpm test
+   pnpm run build
    ```
 
 2. **Fix all errors before pushing** – don't rely on CI to catch issues
-3. **Verify package-lock.json** is up to date: `npm install`
+3. **Verify pnpm-lock.yaml** is up to date: `pnpm install`
 4. **Check for unused imports** – remove them to avoid lint errors
 5. **Verify module case sensitivity** – ensure all imports match actual filenames
 
@@ -173,9 +173,9 @@ Before pushing changes or closing tickets:
    - Ensure all files are included in `tsconfig.json`
 
 3. **Package Management:**
-   - Always run `npm install` after changing dependencies
-   - Keep `package-lock.json` synchronized
-   - Use npm (not pnpm) for all operations
+   - Always run `pnpm install` after changing dependencies
+   - Keep `pnpm-lock.yaml` synchronized
+   - Use pnpm (not npm) for all operations
 
 ### Fallback Behavior
 
@@ -434,17 +434,17 @@ Run these commands before pushing any changes:
 
 ```bash
 # Full CI check (run all in sequence)
-npm run lint          # Check code style
-npm run build:types   # Check TypeScript types
-npm test             # Run all tests
-npm run build        # Build the project
+pnpm run lint          # Check code style
+pnpm run build:types   # Check TypeScript types
+pnpm test             # Run all tests
+pnpm run build        # Build the project
 
 # Fix common issues
-npm install          # Sync package-lock.json
-npm run lint:fix     # Auto-fix lint issues (if available)
+pnpm install          # Sync pnpm-lock.yaml
+pnpm run lint:fix     # Auto-fix lint issues (if available)
 
 # Verify everything at once
-npm run ci:local     # Run full CI pipeline locally (if configured)
+pnpm run ci:local     # Run full CI pipeline locally (if configured)
 ```
 
 ---

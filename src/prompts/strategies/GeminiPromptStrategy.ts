@@ -5,23 +5,12 @@
  */
 
 import type { ReviewOptions } from '../../types/review';
-import type { PromptCache } from '../cache/PromptCache';
-import type { PromptManager } from '../PromptManager';
 import { PromptStrategy } from './PromptStrategy';
 
 /**
  * Prompt strategy for Gemini models
  */
 export class GeminiPromptStrategy extends PromptStrategy {
-  /**
-   * Create a new Gemini prompt strategy
-   * @param promptManager Prompt manager instance
-   * @param promptCache Prompt cache instance
-   */
-  constructor(promptManager: PromptManager, promptCache: PromptCache) {
-    super(promptManager, promptCache);
-  }
-
   /**
    * Format a prompt for Gemini models
    * @param prompt Raw prompt

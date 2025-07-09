@@ -302,7 +302,7 @@ Files in this pass: ${files.length} / ${this.allFiles.length}
 
     // Truncate if too long
     if (context.length > maxContextLength) {
-      context = context.substring(0, maxContextLength - 3) + '...';
+      context = `${context.substring(0, maxContextLength - 3)}...`;
     }
 
     return context;

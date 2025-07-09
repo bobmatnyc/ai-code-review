@@ -5,7 +5,7 @@
  * It centralizes the logic for displaying review results and handling user interaction.
  */
 
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 import type { ReviewOptions } from '../types/review';
 import logger from '../utils/logger';
 import { displayReviewResults } from '../utils/reviewActionHandler';

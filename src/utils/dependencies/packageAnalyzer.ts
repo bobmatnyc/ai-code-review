@@ -6,8 +6,8 @@
  * requirements.txt, etc.
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import logger from '../logger';
 
 /**
@@ -49,7 +49,7 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
       const packageJsonResult = await parsePackageJson(packageJsonContent, packageJsonPath);
       logger.info(`Found ${packageJsonResult.npm?.length || 0} npm dependencies in package.json`);
       results.push(packageJsonResult);
-    } catch (error) {
+    } catch (_error) {
       // package.json not found or invalid
       logger.debug(`No valid package.json found at ${packageJsonPath}`);
     }
@@ -60,7 +60,7 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
       const composerJsonContent = await fs.readFile(composerJsonPath, 'utf8');
       const composerJsonResult = await parseComposerJson(composerJsonContent, composerJsonPath);
       results.push(composerJsonResult);
-    } catch (error) {
+    } catch (_error) {
       // composer.json not found or invalid
       logger.debug(`No valid composer.json found at ${composerJsonPath}`);
     }
@@ -71,7 +71,7 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
       const requirementsContent = await fs.readFile(requirementsPath, 'utf8');
       const requirementsResult = await parseRequirementsTxt(requirementsContent, requirementsPath);
       results.push(requirementsResult);
-    } catch (error) {
+    } catch (_error) {
       // requirements.txt not found or invalid
       logger.debug(`No valid requirements.txt found at ${requirementsPath}`);
     }
@@ -82,7 +82,7 @@ export async function extractPackageInfo(projectPath: string): Promise<PackageAn
       const gemfileContent = await fs.readFile(gemfilePath, 'utf8');
       const gemfileResult = await parseGemfile(gemfileContent, gemfilePath);
       results.push(gemfileResult);
-    } catch (error) {
+    } catch (_error) {
       // Gemfile not found or invalid
       logger.debug(`No valid Gemfile found at ${gemfilePath}`);
     }

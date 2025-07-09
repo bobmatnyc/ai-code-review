@@ -7,8 +7,8 @@
  * structure, and current state.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { fileExists } from './fileSystem';
 import logger from './logger';
 
@@ -46,7 +46,7 @@ async function readDocFile(filePath: string): Promise<string | undefined> {
         logger.warn(
           `Documentation file ${filePath} is too large, truncating to ${MAX_DOC_SIZE} characters.`,
         );
-        return content.substring(0, MAX_DOC_SIZE) + '\n\n[Content truncated due to size]';
+        return `${content.substring(0, MAX_DOC_SIZE)}\n\n[Content truncated due to size]`;
       }
 
       return content;
@@ -127,23 +127,23 @@ export function formatProjectDocs(docs: ProjectDocs): string {
   const sections: string[] = [];
 
   if (docs.readme) {
-    sections.push('# README.md\n\n' + docs.readme);
+    sections.push(`# README.md\n\n${docs.readme}`);
   }
 
   if (docs.project) {
-    sections.push('# PROJECT.md\n\n' + docs.project);
+    sections.push(`# PROJECT.md\n\n${docs.project}`);
   }
 
   if (docs.architecture) {
-    sections.push('# ARCHITECTURE.md\n\n' + docs.architecture);
+    sections.push(`# ARCHITECTURE.md\n\n${docs.architecture}`);
   }
 
   if (docs.progress) {
-    sections.push('# PROGRESS.md\n\n' + docs.progress);
+    sections.push(`# PROGRESS.md\n\n${docs.progress}`);
   }
 
   if (docs.contributing) {
-    sections.push('# CONTRIBUTING.md\n\n' + docs.contributing);
+    sections.push(`# CONTRIBUTING.md\n\n${docs.contributing}`);
   }
 
   // Add custom documentation files
@@ -166,7 +166,7 @@ export function formatProjectDocs(docs: ProjectDocs): string {
     return '';
   }
 
-  return '## Project Documentation\n\n' + sections.join('\n\n---\n\n');
+  return `## Project Documentation\n\n${sections.join('\n\n---\n\n')}`;
 }
 
 /**

@@ -5,9 +5,9 @@
  * using tools like depcheck and provides actionable information.
  */
 
-import { execSync, spawnSync } from 'child_process';
-import fs from 'fs/promises';
-import path from 'path';
+import { execSync, spawnSync } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import logger from '../logger';
 
 /**
@@ -27,13 +27,13 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
       await fs.access(depcheckPath);
       useLocalDepcheck = true;
       logger.info('Using locally installed depcheck');
-    } catch (error) {
+    } catch (_error) {
       logger.warn('depcheck not found in node_modules, attempting to use global installation');
       // Try to use globally installed depcheck
       try {
         execSync('depcheck --version', { stdio: 'ignore' });
         logger.info('Using globally installed depcheck');
-      } catch (globalError) {
+      } catch (_globalError) {
         logger.error('depcheck not installed globally either');
         logger.info('Installing depcheck temporarily for analysis...');
 

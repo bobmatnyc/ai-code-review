@@ -6,8 +6,8 @@
  * and technology stacks.
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import logger from '../logger';
 import {
   type DetectedStack,
@@ -98,7 +98,7 @@ export async function analyzePackagesWithStackAwareness(
         const relativePackageResults = await extractPackageInfo(packageDir);
 
         packageResults.push(...relativePackageResults);
-      } catch (error) {
+      } catch (_error) {
         // File doesn't exist, skip
         logger.debug(`Package file ${filePath} not found, skipping`);
       }

@@ -5,8 +5,8 @@
  * based on the results they generate and user feedback.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { ApiClientConfig } from '../../core/ApiClientSelector';
 import type { ReviewResult, ReviewType } from '../../types/review';
 import logger from '../../utils/logger';
@@ -109,7 +109,7 @@ export class PromptOptimizer {
       const packagePath = path.resolve(__dirname, 'prompt-optimization.md');
       try {
         return await fs.readFile(packagePath, 'utf-8');
-      } catch (error) {
+      } catch (_error) {
         // If that fails, try to load from the current directory
         const localPath = path.resolve(
           process.cwd(),

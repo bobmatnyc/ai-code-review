@@ -197,7 +197,7 @@ export async function generateReview(
   // with Gemini models. If not, something went wrong with the client selection.
   if (!isCorrect) {
     throw new Error(
-      `Gemini client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
+      `Gemini client was called with an invalid model: ${adapter ? `${adapter}:${modelName}` : 'none specified'}. ` +
         `This is likely a bug in the client selection logic.`,
     );
   }
@@ -288,7 +288,7 @@ export async function generateConsolidatedReview(
   // with Gemini models. If not, something went wrong with the client selection.
   if (!isCorrect) {
     throw new Error(
-      `Gemini client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
+      `Gemini client was called with an invalid model: ${adapter ? `${adapter}:${modelName}` : 'none specified'}. ` +
         `This is likely a bug in the client selection logic.`,
     );
   }
@@ -465,7 +465,7 @@ For each high priority issue:
 Ensure your response is well-formatted Markdown with proper headings, bullet points, and code blocks.
 `;
 
-    const modifiedPrompt = outputInstructions + '\n\n' + prompt;
+    const modifiedPrompt = `${outputInstructions}\n\n${prompt}`;
 
     const result = await withRetry(() =>
       model.generateContent({

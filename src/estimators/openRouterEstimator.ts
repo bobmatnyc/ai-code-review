@@ -96,7 +96,7 @@ export class OpenRouterTokenEstimator extends AbstractTokenEstimator {
             inputTokenCost: this.anthropicEstimator.calculateCost(1000, 0, anthropicModel) / 1000,
             outputTokenCost: this.anthropicEstimator.calculateCost(0, 1000, anthropicModel) / 1000,
           }
-        : this.MODEL_PRICING['default'];
+        : this.MODEL_PRICING.default;
     }
 
     // Check if it's an OpenAI model
@@ -109,11 +109,11 @@ export class OpenRouterTokenEstimator extends AbstractTokenEstimator {
             inputTokenCost: this.openaiEstimator.calculateCost(1000, 0, openaiModel) / 1000,
             outputTokenCost: this.openaiEstimator.calculateCost(0, 1000, openaiModel) / 1000,
           }
-        : this.MODEL_PRICING['default'];
+        : this.MODEL_PRICING.default;
     }
 
     // Default fallback
-    return this.MODEL_PRICING['default'];
+    return this.MODEL_PRICING.default;
   }
 
   /**

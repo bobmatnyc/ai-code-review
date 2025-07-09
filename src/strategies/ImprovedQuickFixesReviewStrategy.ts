@@ -5,7 +5,7 @@
  * integration for enhanced prompt management and structured output.
  */
 
-import path from 'path';
+import path from 'node:path';
 import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { PromptCache } from '../prompts/cache/PromptCache';
 import { PromptManager } from '../prompts/PromptManager';

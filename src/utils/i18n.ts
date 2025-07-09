@@ -6,11 +6,11 @@
  * resources, and provides utility functions for translating text.
  */
 
-import fs from 'fs';
+import fs from 'node:fs';
+import path from 'node:path';
 import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import ICU from 'i18next-icu';
-import path from 'path';
 
 // Default language
 const DEFAULT_LANGUAGE = 'en';
@@ -102,7 +102,7 @@ export function t(key: string, options?: Record<string, any>): string {
     }
 
     return translated;
-  } catch (error) {
+  } catch (_error) {
     // In case of any error, return a fallback
     return options?.message || key;
   }

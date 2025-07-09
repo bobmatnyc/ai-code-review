@@ -326,15 +326,14 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
 
     // Get cost info for detailed reporting
     const costInfo = result.costInfo;
-    const costBreakdown =
-      costInfo && costInfo.perPassCosts
-        ? costInfo.perPassCosts
-            .map(
-              (passCost: PassCostInfo) =>
-                `- Pass ${passCost.passNumber}: ${passCost.inputTokens.toLocaleString()} input + ${passCost.outputTokens.toLocaleString()} output = ${passCost.totalTokens.toLocaleString()} tokens ($${passCost.estimatedCost.toFixed(4)} USD)`,
-            )
-            .join('\n')
-        : 'N/A';
+    const costBreakdown = costInfo?.perPassCosts
+      ? costInfo.perPassCosts
+          .map(
+            (passCost: PassCostInfo) =>
+              `- Pass ${passCost.passNumber}: ${passCost.inputTokens.toLocaleString()} input + ${passCost.outputTokens.toLocaleString()} output = ${passCost.totalTokens.toLocaleString()} tokens ($${passCost.estimatedCost.toFixed(4)} USD)`,
+          )
+          .join('\n')
+      : 'N/A';
 
     return `# Multi-Pass ${this.reviewType.charAt(0).toUpperCase() + this.reviewType.slice(1)} Review Summary
 
@@ -412,7 +411,7 @@ This review used a multi-pass approach with context maintenance between passes t
   private async generateConsolidatedReport(
     multiPassResult: ReviewResult,
     apiClientConfig: ApiClientConfig,
-    files: FileInfo[],
+    _files: FileInfo[],
     projectName: string,
     _projectDocs: ProjectDocs | null,
     _options: ReviewOptions,
@@ -639,7 +638,7 @@ ${Array.from(lowPriorityFindings)
 `;
 
     // Return the consolidated content followed by all pass contents
-    return consolidatedContent + '\n\n' + multiPassResult.content;
+    return `${consolidatedContent}\n\n${multiPassResult.content}`;
   }
 
   /**

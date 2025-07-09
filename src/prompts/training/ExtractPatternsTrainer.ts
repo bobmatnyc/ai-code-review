@@ -106,7 +106,7 @@ export class ExtractPatternsTrainer {
     const fewShotTemplate = new FewShotPromptTemplate({
       examples: fewShotExamples,
       examplePrompt: exampleTemplate,
-      prefix: basePrompt + '\n\n## Training Examples:\n\n',
+      prefix: `${basePrompt}\n\n## Training Examples:\n\n`,
       suffix: `
 ## Your Task:
 Now analyze the provided code using the same systematic approach shown in the examples above.

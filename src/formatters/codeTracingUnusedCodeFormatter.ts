@@ -272,11 +272,11 @@ function formatTracedElementsAsChecklist(elements: TracedUnusedElement[]): strin
             : `(line ${element.location.startLine})`;
       }
 
-      markdown += `- [ ] **${element.name}**${location ? ' ' + location : ''}\n`;
+      markdown += `- [ ] **${element.name}**${location ? ` ${location}` : ''}\n`;
       markdown += `  - **Type**: ${formatElementType(element.elementType)}\n`;
       markdown += `  - **Confidence**: ${element.confidence.toUpperCase()} - ${element.confidenceReason}\n`;
 
-      if (element.codeSnippet && element.codeSnippet.trim()) {
+      if (element.codeSnippet?.trim()) {
         // Clean code snippet - handle improper markdown in the code snippet
         let snippet = element.codeSnippet.trim();
 

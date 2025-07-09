@@ -5,8 +5,8 @@
  * them for future use. It supports both memory-based and file-based caching.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { ReviewType } from '../../types/review';
 import logger from '../../utils/logger';
 

@@ -5,7 +5,7 @@
  * and integrates with architectural reviews to provide security insights.
  */
 
-import fs from 'fs';
+import fs from 'node:fs';
 import logger from '../logger';
 import {
   extractPackageInfo,
@@ -280,7 +280,7 @@ export async function createDependencySecuritySection(projectPath: string): Prom
     // Continue with the original implementation if enhanced analyzer fails
     try {
       // Get tech stack information first, as we'll use it regardless of security analysis method
-      logger.info('Analyzing package stack awareness for project: ' + projectPath);
+      logger.info(`Analyzing package stack awareness for project: ${projectPath}`);
 
       // Validate projectPath
       if (!projectPath) {

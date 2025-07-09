@@ -4,8 +4,8 @@
  * @fileoverview Script that fixes the dependency security scanner by modifying how it handles stack analysis
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 console.log('Fixing dependency scanner...');
 
@@ -84,8 +84,7 @@ const securityScannerPath = path.join(__dirname, 'dependencySecurityScanner.ts')
 
 // Add import for os module
 let scannerContent = fs.readFileSync(securityScannerPath, 'utf8');
-scannerContent =
-  `/**
+scannerContent = `/**
  * @fileoverview Advanced dependency scanning for package security analysis
  * 
  * This module implements comprehensive dependency scanning and vulnerability detection 
@@ -101,7 +100,7 @@ import logger from '../logger';
 import { detectTechStacks } from './dependencyRegistry';
 import { analyzePackagesWithStackAwareness, formatStackSummary } from './stackAwarePackageAnalyzer';
 
-` + scannerContent.substring(scannerContent.indexOf('/**\n * Interface for'));
+${scannerContent.substring(scannerContent.indexOf('/**\n * Interface for'))}`;
 
 // Fix the run function to use proper platform detection
 scannerContent = scannerContent.replace(

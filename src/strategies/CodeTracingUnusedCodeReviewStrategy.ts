@@ -49,8 +49,8 @@ export class CodeTracingUnusedCodeReviewStrategy
    * @returns Promise resolving to the review result
    */
   async execute(
-    files: FileInfo[],
-    projectName: string,
+    _files: FileInfo[],
+    _projectName: string,
     projectDocs: ProjectDocs | null,
     options: ReviewOptions,
     apiClientConfig: ApiClientConfig,

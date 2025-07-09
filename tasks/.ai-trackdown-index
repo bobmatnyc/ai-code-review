@@ -1,0 +1,53 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-07-09T19:07:39.894Z",
+  "projectPath": "/Users/masa/Projects/managed/ai-code-review",
+  "projects": {},
+  "epics": {
+    "EP-0001": {
+      "id": "EP-0001",
+      "title": "Documentation Quality Assurance",
+      "filePath": "/Users/masa/Projects/managed/ai-code-review/tasks/epics/EP-0001-documentation-quality-assurance.md",
+      "status": "planning",
+      "priority": "high",
+      "lastModified": "2025-07-09T19:07:39.888Z",
+      "fileSize": 1480,
+      "issueIds": [
+        "ISS-0031"
+      ],
+      "completion_percentage": 0
+    }
+  },
+  "issues": {
+    "ISS-0031": {
+      "id": "ISS-0031",
+      "title": "CLI Documentation Accuracy Update",
+      "filePath": "/Users/masa/Projects/managed/ai-code-review/tasks/issues/ISS-0031-cli-documentation-accuracy-update.md",
+      "status": "planning",
+      "priority": "high",
+      "lastModified": "2025-07-09T19:07:39.885Z",
+      "fileSize": 1098,
+      "epicId": "EP-0001",
+      "taskIds": [],
+      "prIds": [],
+      "blocked_by": [],
+      "blocks": []
+    }
+  },
+  "tasks": {},
+  "prs": {},
+  "stats": {
+    "totalProjects": 0,
+    "totalEpics": 1,
+    "totalIssues": 1,
+    "totalTasks": 0,
+    "totalPRs": 0,
+    "lastFullScan": "2025-07-09T19:07:33.221Z",
+    "indexSize": 1410,
+    "performanceMetrics": {
+      "lastLoadTime": 1,
+      "lastUpdateTime": 1,
+      "lastRebuildTime": 4
+    }
+  }
+}

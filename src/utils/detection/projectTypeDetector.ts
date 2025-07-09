@@ -6,9 +6,9 @@
  * to set default language options without requiring manual specification.
  */
 
-import { existsSync } from 'fs';
-import fs from 'fs/promises';
-import path from 'path';
+import { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { DEFAULT_LANGUAGE, type ProgrammingLanguage } from '../../types/common';
 import logger from '../logger';
 
@@ -264,10 +264,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       try {
         const packageJsonPath = path.join(projectPath, 'package.json');
         const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-        return (
-          (packageJson.dependencies && packageJson.dependencies.typescript) ||
-          (packageJson.devDependencies && packageJson.devDependencies.typescript)
-        );
+        return packageJson.dependencies?.typescript || packageJson.devDependencies?.typescript;
       } catch {
         return false;
       }

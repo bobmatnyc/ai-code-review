@@ -67,9 +67,9 @@ export async function reviewCode(target: string, options: ReviewOptions): Promis
     }
 
     // Handle confirm option if provided (inverse logic for noConfirm)
-    if ((options as any)['confirm'] !== undefined) {
-      options.noConfirm = !(options as any)['confirm'] as boolean;
-      delete (options as any)['confirm'];
+    if ((options as any).confirm !== undefined) {
+      options.noConfirm = !(options as any).confirm as boolean;
+      delete (options as any).confirm;
     }
 
     // Handle auto-fix option if provided

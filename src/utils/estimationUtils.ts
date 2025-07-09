@@ -7,8 +7,8 @@
  * estimating review-specific token usage patterns.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { estimateTokenCount, formatCost, getCostInfo } from '../estimators';
 import type { FileInfo } from '../types/review';
 import logger from './logger';

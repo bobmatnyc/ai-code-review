@@ -246,7 +246,7 @@ export async function testAnthropicApiAccess(apiKey: string, modelName: string):
       logger.error(`Error reading response: ${error}`);
       return false;
     }
-  } catch (error) {
+  } catch (_error) {
     logger.error(`Error initializing Anthropic model ${modelName}`);
     return false;
   }
@@ -420,7 +420,7 @@ export async function makeAnthropicConversationRequest(
             logger.debug(`Full error response: ${JSON.stringify(errorJson, null, 2)}`);
 
             throw new Error(`Anthropic API error (${errorType}): ${errorMessage}`);
-          } catch (parseError) {
+          } catch (_parseError) {
             // If we can't parse as JSON, use the raw error body
             logger.error(`Anthropic API error: ${errorBody}`);
             throw new Error(`Anthropic API error: ${errorBody}`);

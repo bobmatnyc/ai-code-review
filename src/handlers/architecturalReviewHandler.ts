@@ -6,8 +6,8 @@
  * It coordinates with the appropriate AI client based on available API keys and user preferences.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import {
   generateArchitecturalAnthropicReview,
   initializeAnthropicClient,
@@ -308,7 +308,7 @@ export async function handleArchitecturalReview(
       });
 
       // Check if it's a rate limit error
-      if (apiError.message && apiError.message.includes('Rate limit exceeded')) {
+      if (apiError.message?.includes('Rate limit exceeded')) {
         logger.error('Rate limit exceeded. The review will continue with a fallback model.');
         logger.error(`Error details logged to: ${errorLogPath}`);
         logger.error('You can try again later or reduce the number of files being reviewed.');

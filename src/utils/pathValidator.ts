@@ -5,8 +5,8 @@
  * ensuring they are safe to use and exist on the file system.
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Check if a path is within the current directory or its subdirectories
@@ -29,7 +29,7 @@ export function pathExists(targetPath: string): boolean {
   try {
     fs.accessSync(targetPath);
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -42,7 +42,7 @@ export function pathExists(targetPath: string): boolean {
 export function isDirectory(targetPath: string): boolean {
   try {
     return fs.statSync(targetPath).isDirectory();
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -55,7 +55,7 @@ export function isDirectory(targetPath: string): boolean {
 export function isFile(targetPath: string): boolean {
   try {
     return fs.statSync(targetPath).isFile();
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

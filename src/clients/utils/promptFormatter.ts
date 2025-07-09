@@ -5,7 +5,7 @@
  * including handling code blocks, project context, and review instructions.
  */
 
-import path from 'path';
+import path from 'node:path';
 import type { FileInfo } from '../../types/review';
 import { formatProjectDocs, type ProjectDocs } from '../../utils/projectDocs';
 import { getLanguageFromExtension } from '../utils/languageDetection';

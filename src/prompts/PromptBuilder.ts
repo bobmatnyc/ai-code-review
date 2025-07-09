@@ -88,9 +88,9 @@ export class PromptBuilder {
    * @returns Promise resolving to the built prompt
    */
   async buildPrompt(
-    reviewType: ReviewType,
+    _reviewType: ReviewType,
     options: ReviewOptions,
-    projectDocs?: ProjectDocs | null,
+    _projectDocs?: ProjectDocs | null,
     basePrompt?: string,
   ): Promise<string> {
     try {

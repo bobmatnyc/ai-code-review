@@ -44,13 +44,13 @@ async function listModels() {
         console.log('Models from SDK:', models);
         return;
       }
-    } catch (err) {
+    } catch (_err) {
       console.log('SDK does not support listModels, using REST API instead');
     }
 
     // Make a request to list models using REST API
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1/models?key=' + apiKey,
+      `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
     );
 
     if (!response.ok) {

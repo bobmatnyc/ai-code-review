@@ -20,7 +20,7 @@ Tests the extract-patterns functionality with actual API calls to validate end-t
 
 **Usage:**
 ```bash
-npm run test:extract-patterns:real-api
+pnpm run test:extract-patterns:real-api
 ```
 
 ### 2. Output Quality Validation (`validate-output-quality.js`)
@@ -35,7 +35,7 @@ Validates the quality of extract-patterns output using validation frameworks and
 
 **Usage:**
 ```bash
-npm run test:extract-patterns:quality
+pnpm run test:extract-patterns:quality
 ```
 
 ### 3. External Project Testing (`test-external-projects.js`)
@@ -50,7 +50,7 @@ Tests pattern extraction on well-known TypeScript projects to benchmark effectiv
 
 **Usage:**
 ```bash
-npm run test:extract-patterns:external
+pnpm run test:extract-patterns:external
 ```
 
 ### 4. Master Test Runner (`run-phase2-tests.js`)
@@ -65,7 +65,7 @@ Comprehensive test runner that executes all Phase 2 tests and generates completi
 
 **Usage:**
 ```bash
-npm run test:extract-patterns
+pnpm run test:extract-patterns
 ```
 
 ## Prerequisites
@@ -74,7 +74,7 @@ Before running the tests, ensure you have:
 
 1. **Built the project:**
    ```bash
-   npm run build
+   pnpm run build
    ```
 
 2. **API Keys:** Set at least one of the following environment variables:
@@ -95,7 +95,7 @@ Before running the tests, ensure you have:
 
 Run all Phase 2 tests:
 ```bash
-npm run test:extract-patterns
+pnpm run test:extract-patterns
 ```
 
 ### Individual Tests
@@ -103,13 +103,13 @@ npm run test:extract-patterns
 Run specific test components:
 ```bash
 # Real API testing only
-npm run test:extract-patterns:real-api
+pnpm run test:extract-patterns:real-api
 
 # Quality validation only
-npm run test:extract-patterns:quality
+pnpm run test:extract-patterns:quality
 
 # External projects only (optional, time-intensive)
-npm run test:extract-patterns:external
+pnpm run test:extract-patterns:external
 ```
 
 ### Advanced Options
@@ -187,7 +187,7 @@ The pattern database is tested as part of the master test runner and can be used
    - Check `.env.local` file exists and has valid keys
 
 2. **Project not built**
-   - Run `npm run build` before testing
+   - Run `pnpm run build` before testing
    - Ensure `dist/` directory exists
 
 3. **Rate limiting**
@@ -203,7 +203,7 @@ The pattern database is tested as part of the master test runner and can be used
 
 For detailed debugging, set environment variables:
 ```bash
-DEBUG=ai-code-review:* npm run test:extract-patterns
+DEBUG=ai-code-review:* pnpm run test:extract-patterns
 ```
 
 ## Contributing

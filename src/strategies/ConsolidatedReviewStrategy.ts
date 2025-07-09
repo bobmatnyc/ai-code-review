@@ -7,7 +7,7 @@
 
 import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { generateReview } from '../core/ReviewGenerator';
-import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import type { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
 import { collectCIData } from '../utils/ciDataCollector';
 import logger from '../utils/logger';
 import type { ProjectDocs } from '../utils/projectDocs';
@@ -17,14 +17,6 @@ import { BaseReviewStrategy } from './ReviewStrategy';
  * Strategy for consolidated reviews of multiple files
  */
 export class ConsolidatedReviewStrategy extends BaseReviewStrategy {
-  /**
-   * Create a new consolidated review strategy
-   * @param reviewType Type of review to perform
-   */
-  constructor(reviewType: ReviewType) {
-    super(reviewType);
-  }
-
   /**
    * Execute the consolidated review strategy
    * @param files Files to review

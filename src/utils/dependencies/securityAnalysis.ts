@@ -5,9 +5,9 @@
  * in project dependencies using tools like npm audit.
  */
 
-import { spawnSync } from 'child_process';
-import fs from 'fs/promises';
-import path from 'path';
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import logger from '../logger';
 
 /**
@@ -47,7 +47,7 @@ export async function runNpmAudit(projectPath: string): Promise<SecurityAnalysis
       await fs.access(packageLockPath);
       packageLockExists = true;
       logger.info('Found package-lock.json, proceeding with npm audit');
-    } catch (error) {
+    } catch (_error) {
       logger.warn('No package-lock.json found, npm audit may fail');
     }
 

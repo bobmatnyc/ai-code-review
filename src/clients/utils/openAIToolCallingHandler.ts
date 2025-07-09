@@ -57,7 +57,7 @@ export class OpenAIToolCallingHandler implements ToolCallingHandler {
           name: toolCall.function.name,
           arguments: args,
         };
-      } catch (error) {
+      } catch (_error) {
         // If parsing fails, return the raw arguments
         return {
           id: toolCall.id,
@@ -102,7 +102,7 @@ export class OpenAIToolCallingHandler implements ToolCallingHandler {
       const toolCall = lastMessage.tool_calls?.find((tc) => {
         try {
           return tc.function.name === result.toolName;
-        } catch (e) {
+        } catch (_e) {
           return false;
         }
       });

@@ -5,9 +5,9 @@
  * project type, unused dependencies, security issues, and best practices.
  */
 
-import { execSync } from 'child_process';
-import fs from 'fs/promises';
-import path from 'path';
+import { execSync } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import logger from '../logger';
 // SecurityIssues type is not used in this file
 // import { SecurityIssues } from './securityAnalysis';
@@ -69,14 +69,14 @@ export async function getContextualRecommendations(
         for (const [dep] of Object.entries(dependencies)) {
           if (
             !dep.startsWith('@types/') &&
-            !(devDependencies && devDependencies[`@types/${dep}`]) &&
+            !devDependencies?.[`@types/${dep}`] &&
             !['react-dom', 'react-router-dom'].includes(dep) // these use different @types packages
           ) {
             // Check if @types package might exist (primitive check)
             try {
               execSync(`npm view @types/${dep} version`, { stdio: 'ignore' });
               missingTypes.push(dep);
-            } catch (e) {
+            } catch (_e) {
               // No @types package exists, skip
             }
           }
@@ -91,7 +91,7 @@ export async function getContextualRecommendations(
         // Check for TypeScript-specific patterns
         if (
           !devDependencies['ts-node'] &&
-          (dependencies['typescript'] || devDependencies['typescript'])
+          (dependencies.typescript || devDependencies.typescript)
         ) {
           recommendations.push(
             'Consider adding ts-node as a dev dependency for better TypeScript development experience',

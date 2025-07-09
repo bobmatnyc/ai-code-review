@@ -11,8 +11,8 @@
  * New code should use getUnifiedConfig() from './unifiedConfig' instead.
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { z } from 'zod';
 import type { CliOptions } from '../cli/argumentParser';
 import type { ReviewOptions } from '../types/review';

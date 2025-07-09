@@ -10,7 +10,7 @@ import type { ApiClientConfig } from '../../core/ApiClientSelector';
 // import logger from '../../utils/logger';
 // import { ClientFactory } from '../../clients/factory';
 import { generateReview } from '../../core/ReviewGenerator';
-import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../../types/review';
+import type { FileInfo, ReviewOptions, ReviewResult } from '../../types/review';
 import type { ProjectDocs } from '../../utils/projectDocs';
 import { AbstractStrategy } from '../base';
 
@@ -18,14 +18,6 @@ import { AbstractStrategy } from '../base';
  * Strategy for consolidated code reviews
  */
 export class ConsolidatedReviewStrategy extends AbstractStrategy {
-  /**
-   * Constructor
-   * @param reviewType The type of review to perform
-   */
-  constructor(reviewType: ReviewType) {
-    super(reviewType);
-  }
-
   /**
    * Execute the consolidated review strategy
    * @param files Array of file information objects

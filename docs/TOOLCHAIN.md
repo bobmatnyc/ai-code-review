@@ -2,8 +2,8 @@
 
 **Purpose**: Complete toolchain mastery for the AI Code Review project - technical configurations, tools, frameworks, and standards.
 
-**Updated**: 2025-07-02  
-**Version**: 1.0 (Epic: Documentation Optimization)
+**Updated**: 2025-07-09  
+**Version**: 1.1 (Biome Toolchain Migration)
 
 ---
 
@@ -99,9 +99,10 @@ pnpm config get registry
     "test:coverage": "vitest run --coverage",
     
     // Quality
-    "lint": "eslint . --ext .ts,.js --max-warnings 500",
-    "lint:fix": "eslint . --ext .ts,.js --fix",
-    "format": "prettier --write .",
+    "lint": "biome check src/ --diagnostic-level=error",
+    "lint:fix": "biome check src/ --write",
+    "format": "biome format src/ --write",
+    "format:check": "biome format src/",
     
     // Validation
     "validate:models": "node scripts/validate-models.js",
@@ -126,8 +127,7 @@ pnpm config get registry
 #### Development Dependencies
 - **typescript**: Core TypeScript compiler
 - **vitest**: Testing framework
-- **eslint**: Code linting
-- **prettier**: Code formatting
+- **@biomejs/biome**: Unified linting and formatting toolchain (10x faster than ESLint+Prettier)
 - **ts-node**: TypeScript execution for development
 
 ---
@@ -282,42 +282,87 @@ vi.mock('@anthropic-ai/sdk', () => ({
 
 ## 🎯 Code Quality Tools
 
-### ESLint Configuration
+### Biome Configuration
+The project uses **Biome** as a unified linting and formatting toolchain, providing 10x faster performance than ESLint+Prettier:
+
 ```json
 {
-  "extends": [
-    "@typescript-eslint/recommended",
-    "prettier"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
-  "rules": {
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/no-unused-vars": "warn",
-    "prefer-const": "error",
-    "no-console": "warn"
+  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
   },
-  "ignorePatterns": ["dist/", "node_modules/", "coverage/"]
+  "files": {
+    "includes": ["src/**/*.ts", "!src/**/*.test.ts", "!src/**/__tests__/**"],
+    "ignoreUnknown": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noImplicitAnyLet": "error"
+      },
+      "style": {
+        "noInferrableTypes": "error",
+        "useTemplate": "warn",
+        "useImportType": "error"
+      },
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "warn"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "all",
+      "semicolons": "always",
+      "quoteProperties": "asNeeded",
+      "bracketSameLine": false,
+      "bracketSpacing": true,
+      "arrowParentheses": "always"
+    }
+  }
 }
 ```
 
-### Prettier Configuration
-```json
-{
-  "semi": true,
-  "trailingComma": "es5",
-  "singleQuote": true,
-  "printWidth": 80,
-  "tabWidth": 2,
-  "useTabs": false
-}
+### Biome Commands
+```bash
+# Linting
+pnpm run lint                    # Check for linting errors
+pnpm run lint:fix                # Auto-fix linting issues
+
+# Formatting
+pnpm run format                  # Format code (write mode)
+pnpm run format:check            # Check formatting without writing
+
+# Combined workflow
+biome check src/ --write         # Lint and format in one command
 ```
 
 ### Quality Gates
-- **ESLint**: Maximum 500 warnings, 0 errors
+- **Biome**: 0 linting errors, warnings minimized
 - **TypeScript**: 0 compilation errors
 - **Tests**: 100% pass rate for available tests
 - **Coverage**: 70%+ for core code (excluding docs, scripts, prompts)
+
+### Performance Benefits
+- **10x faster** than ESLint+Prettier combination
+- **Unified toolchain** - single tool for linting and formatting
+- **Zero configuration** - works out of the box with sensible defaults
+- **Git integration** - respects .gitignore and VCS settings
+- **Import organization** - automatic import sorting and optimization
 
 ---
 
@@ -494,7 +539,7 @@ const detectors = {
 ### Local CI Pipeline
 ```bash
 # Complete validation pipeline (run before commits)
-pnpm run lint          # Code quality validation
+pnpm run lint          # Biome linting and formatting check
 pnpm run build:types   # TypeScript compilation check  
 pnpm test              # Full test suite execution
 pnpm run validate:prompts  # Template validation
@@ -596,7 +641,7 @@ pnpm test              # Verify local test success
 # Check for environment-specific dependencies
 
 # Issue: Linting errors
-pnpm run lint:fix      # Auto-fix where possible
+pnpm run lint:fix      # Auto-fix where possible using Biome
 # Manually address remaining issues
 
 # Issue: Coverage below threshold
@@ -628,7 +673,7 @@ ls -la ai-code-review-docs/          # Check output file sizes
 # Development cycle
 pnpm run dev                    # Development execution
 pnpm run test:watch            # Continuous testing
-pnpm run lint                  # Code quality check
+pnpm run lint                  # Biome linting and formatting check
 
 # Before commit
 pnpm run lint && pnpm run build:types && pnpm test

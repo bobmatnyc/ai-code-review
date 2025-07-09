@@ -5,8 +5,8 @@
  * with all available options, API key placeholders, and helpful comments.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { generateSampleConfig, generateSampleConfigJSON } from '../utils/configFileManager';
 import logger from '../utils/logger';
 
@@ -44,7 +44,7 @@ export async function generateConfigCommand(
     logger.info('Next steps:');
     logger.info('1. Edit the configuration file to add your API keys');
     logger.info('2. Customize the settings according to your needs');
-    logger.info('3. Run the tool with: ai-code-review --config ' + path.basename(resolvedPath));
+    logger.info(`3. Run the tool with: ai-code-review --config ${path.basename(resolvedPath)}`);
     logger.info('');
     logger.info('Configuration priority order:');
     logger.info('1. Command-line arguments (highest priority)');

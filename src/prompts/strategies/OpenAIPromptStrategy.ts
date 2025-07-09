@@ -6,23 +6,12 @@
  */
 
 import type { ReviewOptions } from '../../types/review';
-import type { PromptCache } from '../cache/PromptCache';
-import type { PromptManager } from '../PromptManager';
 import { PromptStrategy } from './PromptStrategy';
 
 /**
  * Prompt strategy for OpenAI models
  */
 export class OpenAIPromptStrategy extends PromptStrategy {
-  /**
-   * Create a new OpenAI prompt strategy
-   * @param promptManager Prompt manager instance
-   * @param promptCache Prompt cache instance
-   */
-  constructor(promptManager: PromptManager, promptCache: PromptCache) {
-    super(promptManager, promptCache);
-  }
-
   /**
    * Format a prompt for OpenAI models
    * @param prompt Raw prompt

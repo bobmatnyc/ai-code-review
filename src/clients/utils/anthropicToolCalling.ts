@@ -145,7 +145,7 @@ export async function generateArchitecturalAnthropicReview(
   // with Anthropic models. If not, something went wrong with the client selection.
   if (!isCorrect) {
     throw new Error(
-      `Anthropic client was called with an invalid model: ${adapter ? adapter + ':' + modelName : 'none specified'}. ` +
+      `Anthropic client was called with an invalid model: ${adapter ? `${adapter}:${modelName}` : 'none specified'}. ` +
         `This is likely a bug in the client selection logic.`,
     );
   }

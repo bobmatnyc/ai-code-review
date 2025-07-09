@@ -43,7 +43,7 @@ export function parseReviewJson(jsonString: string): ReviewSchema | null {
           );
           return directJson as ReviewSchema;
         }
-      } catch (e) {
+      } catch (_e) {
         // If direct parsing fails, continue with the extraction approaches
         logger.debug('Direct parsing failed, attempting extraction patterns');
       }

@@ -307,7 +307,7 @@ export class ChunkGenerator {
    * Generate fallback chunks when semantic analysis fails
    */
   private generateFallbackChunks(
-    analysis: SemanticAnalysis,
+    _analysis: SemanticAnalysis,
     lines: string[],
     chunks: CodeChunk[],
     reviewType: string,
@@ -341,7 +341,7 @@ export class ChunkGenerator {
   private createChunkFromDeclaration(
     declaration: Declaration,
     id: string,
-    lines: string[],
+    _lines: string[],
     analysis: SemanticAnalysis,
     reviewType: string,
   ): CodeChunk | null {
@@ -373,7 +373,7 @@ export class ChunkGenerator {
   private createChunkFromDeclarations(
     declarations: Declaration[],
     id: string,
-    lines: string[],
+    _lines: string[],
     analysis: SemanticAnalysis,
     reviewType: string,
   ): CodeChunk | null {
@@ -562,7 +562,7 @@ export class ChunkGenerator {
         if (!dependencyMap.has(dependency)) {
           dependencyMap.set(dependency, []);
         }
-        dependencyMap.get(dependency)!.push(declaration);
+        dependencyMap.get(dependency)?.push(declaration);
       }
     }
 
@@ -700,7 +700,7 @@ export class ChunkGenerator {
    */
   private generateCrossReferences(
     chunks: CodeChunk[],
-    analysis: SemanticAnalysis,
+    _analysis: SemanticAnalysis,
     crossReferences: ChunkRelationship[],
   ): void {
     for (let i = 0; i < chunks.length; i++) {
@@ -959,7 +959,7 @@ export class ChunkGenerator {
    * Generate fallback recommendation when chunking fails
    */
   private generateFallbackRecommendation(
-    analysis: SemanticAnalysis,
+    _analysis: SemanticAnalysis,
     lines: string[],
     reviewType: string,
   ): ChunkingRecommendation {

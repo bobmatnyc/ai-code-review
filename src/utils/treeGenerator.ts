@@ -145,7 +145,7 @@ export function generateFileTree(filePaths: string[]): string {
     const root = buildTree(sortedPaths);
 
     // Generate the markdown
-    return '```\n' + generateMarkdownTree(root) + '```';
+    return `\`\`\`\n${generateMarkdownTree(root)}\`\`\``;
   } catch (error) {
     logger.error(`Error generating file tree: ${error}`);
     return filePaths.map((file) => `- \`${file}\``).join('\n');

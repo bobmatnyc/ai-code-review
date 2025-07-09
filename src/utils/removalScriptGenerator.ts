@@ -5,8 +5,8 @@
  * that can be used to remove unused code identified in reviews.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { ReviewResult } from '../types/review';
 import logger from './logger';
 

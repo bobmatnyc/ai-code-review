@@ -30,7 +30,7 @@ export function getProviderDisplayInfo(modelName: string): { provider: string; m
       provider: provider.charAt(0).toUpperCase() + provider.slice(1).toLowerCase(), // Capitalize provider name
       model: extractedModelName,
     };
-  } catch (error) {
+  } catch (_error) {
     // If parsing fails, use a fallback approach
     const parts = modelName.split(':');
 

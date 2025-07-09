@@ -161,7 +161,7 @@ export async function generateReview(
 
   if (!reviewResult.modelUsed) {
     logger.warn('Review result has no modelUsed. Setting to default value.');
-    reviewResult.modelUsed = apiClientConfig.clientType + ':' + apiClientConfig.modelName;
+    reviewResult.modelUsed = `${apiClientConfig.clientType}:${apiClientConfig.modelName}`;
   }
 
   return reviewResult;

@@ -5,9 +5,9 @@
  * dependency-cruiser and format the results for inclusion in architectural reviews.
  */
 
-import { exec } from 'child_process';
-import { promises as fs } from 'fs';
-import * as path from 'path';
+import { exec } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import * as path from 'node:path';
 import logger from '../logger';
 
 // Define interfaces for dependency-cruiser output
@@ -125,7 +125,7 @@ async function runDependencyCruiser(
   return new Promise((resolve, reject) => {
     const command = `npx dependency-cruiser --output-type ${outputType} --no-config --metrics --output-to "${outputPath}" "${directory}"`;
 
-    exec(command, (error, stdout, stderr) => {
+    exec(command, (error, _stdout, stderr) => {
       if (error && error.code !== 0) {
         reject(new Error(`Dependency-cruiser execution failed: ${stderr}`));
         return;

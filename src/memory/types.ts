@@ -1,6 +1,6 @@
 /**
  * Memory System Type Definitions
- * 
+ *
  * Comprehensive TypeScript definitions for the memory system
  * supporting high-activity code review operations.
  */
@@ -158,12 +158,18 @@ export interface Mem0AIClient {
   /** Add a memory entry */
   add(content: string, userId?: string, metadata?: Record<string, any>): Promise<{ id: string }>;
   /** Search memories */
-  search(query: string, userId?: string, limit?: number): Promise<Array<{
-    id: string;
-    content: string;
-    score: number;
-    metadata?: Record<string, any>;
-  }>>;
+  search(
+    query: string,
+    userId?: string,
+    limit?: number,
+  ): Promise<
+    Array<{
+      id: string;
+      content: string;
+      score: number;
+      metadata?: Record<string, any>;
+    }>
+  >;
   /** Get a specific memory */
   get(memoryId: string): Promise<{
     id: string;
@@ -171,15 +177,21 @@ export interface Mem0AIClient {
     metadata?: Record<string, any>;
   }>;
   /** Update a memory */
-  update(memoryId: string, content: string, metadata?: Record<string, any>): Promise<{ id: string }>;
+  update(
+    memoryId: string,
+    content: string,
+    metadata?: Record<string, any>,
+  ): Promise<{ id: string }>;
   /** Delete a memory */
   delete(memoryId: string): Promise<void>;
   /** Get all memories for a user */
-  getAll(userId?: string): Promise<Array<{
-    id: string;
-    content: string;
-    metadata?: Record<string, any>;
-  }>>;
+  getAll(userId?: string): Promise<
+    Array<{
+      id: string;
+      content: string;
+      metadata?: Record<string, any>;
+    }>
+  >;
 }
 
 /**

@@ -5,8 +5,8 @@
  * extracted patterns from various projects to build a comprehensive pattern library.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { EvaluationResult } from '../evaluation/LangChainEvaluator';
 import type { ExtractPatternsReview } from '../prompts/schemas/extract-patterns-schema';
 import logger from '../utils/logger';
@@ -158,13 +158,13 @@ export class PatternDatabase {
 
       if (criteria.language) {
         filteredIndex = filteredIndex.filter(
-          (item) => item.language.toLowerCase() === criteria.language!.toLowerCase(),
+          (item) => item.language.toLowerCase() === criteria.language?.toLowerCase(),
         );
       }
 
       if (criteria.tags && criteria.tags.length > 0) {
         filteredIndex = filteredIndex.filter((item) =>
-          criteria.tags!.some((tag) => item.tags.includes(tag)),
+          criteria.tags?.some((tag) => item.tags.includes(tag)),
         );
       }
 
@@ -323,7 +323,7 @@ export class PatternDatabase {
     try {
       const content = await fs.readFile(this.indexPath, 'utf8');
       return JSON.parse(content);
-    } catch (error) {
+    } catch (_error) {
       return [];
     }
   }
