@@ -7,12 +7,15 @@
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
     "strict": true,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
     "types": ["vitest/globals", "node"],
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "noErrorTruncation": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "baseUrl": ".",
@@ -36,5 +39,12 @@
     "exactOptionalPropertyTypes": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "test-projects/**/*", "**/examples/**/*"]
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "**/*.test.ts", 
+    "test-projects/**/*", 
+    "**/examples/**/*",
+    "src/prompts/schemas/*-schema.ts"
+  ]
 }

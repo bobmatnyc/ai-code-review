@@ -1,0 +1,92 @@
+---
+template_type: "task"
+version: "1.0"
+created: "2025-07-06"
+---
+
+# **[T-001]** Fix TypeScript Declaration Generation Build Issues
+
+**Type:** Task  
+**Epic:** EP-001 Project Management & Workflow  
+**Priority:** High  
+**Story Points:** 8  
+**Assignee:** @project-claude  
+**Status:** Ready  
+**Sprint:** 1  
+
+### Task Description
+Resolve TypeScript compilation errors that prevent successful declaration file generation during the build process. The errors are caused by complex Zod schema type recursion that leads to "Type instantiation is excessively deep and possibly infinite" errors.
+
+Current failing files:
+- `src/prompts/schemas/code-tracing-unused-code-schema.ts`
+- `src/prompts/schemas/focused-unused-code-schema.ts`
+- `src/prompts/schemas/improved-unused-code-schema.ts`
+- `src/prompts/schemas/quick-fixes-schema.ts`
+- `src/prompts/schemas/unused-code-schema.ts`
+- `src/prompts/utils/LangChainUtils.ts`
+
+### Acceptance Criteria
+- [ ] TypeScript compilation completes without errors
+- [ ] Declaration files (.d.ts) are generated successfully
+- [ ] `pnpm run build:types` executes successfully
+- [ ] All schema functionality remains intact at runtime
+- [ ] Dev mode (`pnpm run dev`) continues to work properly
+
+### Technical Requirements
+- TypeScript 5.8.3 compatibility
+- Zod schema validation must remain functional
+- StructuredOutputParser integration preserved
+- Memory usage within Node.js limits (8GB max)
+- Incremental compilation support maintained
+
+### Steps to Complete
+1. Analyze the specific Zod schema patterns causing type recursion
+2. Research TypeScript compiler options for handling deep type instantiation
+3. Consider schema refactoring approaches:
+   - Split complex schemas into simpler components
+   - Use type assertions where appropriate
+   - Implement conditional type guards
+4. Test alternative approaches:
+   - Separate build configuration for schemas
+   - Runtime schema validation instead of compile-time
+   - Schema generation from simpler type definitions
+5. Validate that all AI provider integrations continue working
+6. Update build scripts and documentation
+
+### Definition of Done
+- [ ] Build process completes successfully
+- [ ] All existing functionality tested and working
+- [ ] Performance impact assessed and acceptable
+- [ ] Documentation updated with any new patterns
+- [ ] No regression in development workflow
+- [ ] CI/CD pipeline compatibility verified
+
+### Dependencies
+- Current incremental compilation setup (T-002 related)
+- Zod library compatibility
+- LangChain integration requirements
+
+### Risks and Considerations
+- Complex schema refactoring might affect AI prompt parsing
+- Type safety could be reduced if using runtime-only validation
+- Performance impact of alternative approaches
+- Backwards compatibility with existing configurations
+
+### Testing/Validation
+- Run full build pipeline: `pnpm run build`
+- Test all review strategies with different AI providers
+- Verify schema validation works correctly at runtime
+- Check memory usage during compilation
+- Validate incremental builds work properly
+
+### GitHub References
+- Related to migration issues found during M01-032
+- Build optimization requirements
+
+### Labels/Tags
+- technical-debt | build-system | typescript | performance
+- dependencies | developer-experience | architecture
+
+---
+
+**Context:** This issue emerged during the ai-code-review migration to local project management. While the tool works perfectly in development mode, the build process fails due to TypeScript's type checking of complex Zod schemas. The issue is blocking full build pipeline functionality but does not affect day-to-day development or tool usage.

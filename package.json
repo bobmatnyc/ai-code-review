@@ -7,7 +7,7 @@
   "scripts": {
     "prebuild": "rm -rf dist && node scripts/generate-version.js",
     "build": "pnpm run test && pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js && node scripts/sync-model-maps.js",
-    "build:types": "pnpm run generate-version && tsc --emitDeclarationOnly",
+    "build:types": "pnpm run generate-version && NODE_OPTIONS='--max-old-space-size=8192' tsc --project tsconfig.build.json",
     "ci:local": "./scripts/ci-local.sh",
     "postbuild": "./scripts/link-global.sh",
     "start": "node dist/index.js",
@@ -41,7 +41,7 @@
     "train-patterns": "tsx src/prompts/training/trainExtractPatterns.ts",
     "demo-training": "node scripts/test-pattern-training.js",
     "simple-training": "tsx src/prompts/training/simpleTraining.ts",
-    "quick-build": "pnpm run generate-version && pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
+    "quick-build": "pnpm run generate-version && NODE_OPTIONS='--max-old-space-size=8192' pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
     "consolidate": "ts-node scripts/consolidate-review.ts",
     "generate-version": "node scripts/generate-version.js",
     "setup:pre-commit": "./scripts/setup-pre-commit.sh",
@@ -103,6 +103,7 @@
     "jsdom": "^26.0.0",
     "langchain": "^0.3.21",
     "markdown-it": "^13.0.2",
+    "mem0ai": "^2.1.34",
     "node-fetch": "^3.3.2",
     "sqlite3": "^5.1.7",
     "tree-sitter": "^0.21.1",
@@ -151,6 +152,7 @@
     "esbuild": "^0.25.3"
   },
   "resolutions": {
-    "esbuild": "^0.25.3"
+    "esbuild": "^0.25.3",
+    "jsdom": "^26.0.0"
   }
 }

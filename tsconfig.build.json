@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true
+  },
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "**/*.test.ts", 
+    "test-projects/**/*", 
+    "**/examples/**/*",
+    "src/prompts/schemas/code-tracing-unused-code-schema.ts",
+    "src/prompts/schemas/focused-unused-code-schema.ts",
+    "src/prompts/schemas/improved-unused-code-schema.ts",
+    "src/prompts/schemas/quick-fixes-schema.ts",
+    "src/prompts/schemas/unused-code-schema.ts"
+  ]
+}

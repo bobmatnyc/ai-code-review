@@ -1,0 +1,68 @@
+version: 1
+project:
+  name: "AI Code Review"
+  id_prefix: "ACR"
+  description: "AI-powered code review and analysis system"
+  
+token_tracking:
+  enabled: true
+  providers:
+    - name: claude
+      model: claude-sonnet-4
+      cost_per_1k_input: 0.003
+      cost_per_1k_output: 0.015
+    - name: openai
+      model: gpt-4
+      cost_per_1k_input: 0.01
+      cost_per_1k_output: 0.03
+  
+  budgets:
+    project_total: 50000
+    epic_default: 15000
+    alert_threshold: 0.8
+
+ai:
+  llms_txt:
+    auto_generate: true
+    include_closed: false
+    context_depth: 2
+    
+formats:
+  date: "YYYY-MM-DDTHH:mm:ssZ"
+  id_pattern: "{type}-{number:03d}"
+
+structure:
+  epics_dir: epics
+  issues_dir: issues
+  tasks_dir: tasks
+  templates_dir: templates
+  prs_dir: prs
+
+naming_conventions:
+  epic_prefix: "EP"
+  issue_prefix: "ISS"
+  task_prefix: "TSK"
+  pr_prefix: "PR"
+  file_extension: "md"
+
+workflow:
+  statuses:
+    - "todo"
+    - "in-progress"
+    - "review"
+    - "done"
+  priorities:
+    - "low"
+    - "medium"
+    - "high"
+    - "critical"
+
+automation:
+  auto_update_timestamps: true
+  auto_calculate_tokens: true
+  auto_sync_status: true
+
+metadata:
+  migratedFrom: trackdown
+  migrationDate: 2025-07-08
+  standardizedConfig: true

@@ -1,0 +1,36 @@
+type: task
+name: default
+description: Default task template
+frontmatter_template:
+  title: Task Title
+  description: Task description
+  status: planning
+  priority: medium
+  assignee: masa
+  created_date: ""
+  updated_date: ""
+  estimated_tokens: 0
+  actual_tokens: 0
+  ai_context:
+    - context/requirements
+    - context/constraints
+    - context/assumptions
+    - context/dependencies
+  sync_status: local
+content_template: |-
+  # Task: {{title}}
+
+  ## Description
+  {{description}}
+
+  ## Steps
+  1. Step 1
+  2. Step 2
+  3. Step 3
+
+  ## Acceptance Criteria
+  - [ ] Criteria 1
+  - [ ] Criteria 2
+
+  ## Notes
+  Add any additional notes here.

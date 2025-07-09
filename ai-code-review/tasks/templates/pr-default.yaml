@@ -1,0 +1,48 @@
+type: pr
+name: default
+description: Default PR template
+frontmatter_template:
+  title: PR Title
+  description: PR description
+  status: planning
+  priority: medium
+  assignee: masa
+  created_date: ""
+  updated_date: ""
+  estimated_tokens: 0
+  actual_tokens: 0
+  ai_context:
+    - context/requirements
+    - context/constraints
+    - context/assumptions
+    - context/dependencies
+  sync_status: local
+content_template: |-
+  # PR: {{title}}
+
+  ## Description
+  {{description}}
+
+  ## Changes
+  - Change 1
+  - Change 2
+  - Change 3
+
+  ## Testing
+  - [ ] Unit tests pass
+  - [ ] Integration tests pass
+  - [ ] Manual testing completed
+
+  ## Checklist
+  - [ ] Code follows style guidelines
+  - [ ] Self-review completed
+  - [ ] Documentation updated
+  - [ ] Tests added/updated
+
+  ## Related
+  - Issue: {{issue_id}}
+  - Branch: {{branch_name}}
+  - Target: {{target_branch}}
+
+  ## Notes
+  Add any additional notes here.

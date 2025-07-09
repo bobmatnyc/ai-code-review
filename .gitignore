@@ -10,6 +10,7 @@ out/
 
 # Auto-generated files
 src/version.ts
+.tsbuildinfo
 
 # Environment variables
 .env
