@@ -1,4 +1,4 @@
-# Installation Guide for AI Code Review v2.1.7
+# Installation Guide for AI Code Review v4.3.0
 
 This guide will help you install and set up the AI Code Review tool.
 

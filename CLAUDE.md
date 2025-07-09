@@ -88,8 +88,11 @@ AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
 AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here
 AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
 AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here
-AI_CODE_REVIEW_DEFAULT_MODEL=gemini-1.5-pro
-AI_CODE_REVIEW_DEFAULT_STRATEGY=quick-fixes
+AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+AI_CODE_REVIEW_WRITER_MODEL=openai:gpt-4o-mini
+AI_CODE_REVIEW_OUTPUT_DIR=ai-code-review-docs
+AI_CODE_REVIEW_LOG_LEVEL=info
+AI_CODE_REVIEW_DEBUG=false
 ```
 
 ## CLI Features

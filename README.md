@@ -23,7 +23,7 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 
 ### Improvements in v4.3.0
 - **Testing Strategy**: Comprehensive testing framework implementation
-  - Achieved 95.6% test pass rate (476/498 tests)
+  - Achieved 96.8% test pass rate (482/498 tests)
   - 100% of test files passing (46/46)
   - Enhanced coverage configuration for core code
 - **CI/CD Infrastructure**: Improved versioning and release automation
@@ -290,13 +290,17 @@ This tool analyzes code from specified files or directories in sibling projects 
 ## Features
 
 - **Multiple Review Types**: Focus on different aspects of code quality:
-  - **Architectural**: Holistic review of code structure, APIs, and package organization
-  - **Quick Fixes**: Identify low-hanging fruit and easy improvements
-  - **Security**: Focus on security vulnerabilities and best practices
-  - **Performance**: Identify performance bottlenecks and optimization opportunities
-  - **Unused Code**: Identify and suggest removal of dead code, redundant functions, and unused variables with deep code tracing capabilities
-  - **Evaluation**: Comprehensive code review combined with developer skill assessment, AI assistance detection, and meta coding quality analysis
-  - **Best Practices**: Code quality review with adherence to language-specific conventions and standards
+  - **quick-fixes**: Fast issue identification and recommendations
+  - **architectural**: Deep structural analysis and design patterns
+  - **security**: Security vulnerability detection and remediation
+  - **performance**: Performance bottleneck identification
+  - **unused-code**: Dead code detection and cleanup recommendations
+  - **focused-unused-code**: Focused unused code analysis
+  - **code-tracing-unused-code**: Code tracing for unused code detection
+  - **improved-quick-fixes**: Enhanced quick fixes with better suggestions
+  - **consolidated**: Consolidated review combining multiple approaches
+  - **evaluation**: Comprehensive code evaluation
+  - **extract-patterns**: Code pattern analysis and best practice suggestions
 - **Interactive Mode**: Process review results interactively, implementing fixes based on priority
 - **Automatic Fixes**: Automatically implement high priority fixes without manual intervention
 - **Prompt-Based Fixes**: Confirm and apply medium and low priority fixes with user input
@@ -354,7 +358,7 @@ Create a `.env.local` file in your project root with your API keys:
 
 ```
 # Required: Model selection
-AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+AI_CODE_REVIEW_MODEL=gemini:gemini-2.5-pro
 # or
 # AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-3-opus
 # or
@@ -420,14 +424,13 @@ ai-code-review app/controllers --type security --language ruby
 # Find unused code that can be safely removed
 ai-code-review src --type unused-code
 
-# Use deep code tracing for high-confidence unused code detection
-ai-code-review src --type unused-code --trace-code
-
-# Use static analysis tools for unused code detection
-ai-code-review src --type unused-code --use-ts-prune --use-eslint
-
-# Use LangChain for enhanced prompt management
-ai-code-review src --type quick-fixes --prompt-strategy langchain
+# Use specific review types
+ai-code-review src --type focused-unused-code
+ai-code-review src --type code-tracing-unused-code
+ai-code-review src --type improved-quick-fixes
+ai-code-review src --type consolidated
+ai-code-review src --type evaluation
+ai-code-review src --type extract-patterns
 
 # Include test files in the review
 ai-code-review src --include-tests
@@ -435,8 +438,11 @@ ai-code-review src --include-tests
 # Specify output format (markdown or json)
 ai-code-review src/index.ts --output json
 
-# Disable including project documentation in the context (enabled by default)
-ai-code-review src/index.ts --no-include-project-docs
+# Specify output directory for review results
+ai-code-review src --output-dir ./reviews
+
+# Use specific model
+ai-code-review src --model anthropic:claude-4-sonnet
 
 # List all available models
 ai-code-review --listmodels
@@ -445,43 +451,46 @@ ai-code-review --listmodels
 ai-code-review --models
 
 # Test a specific model
-ai-code-review model-test gemini:gemini-1.5-pro
+ai-code-review test-model --model gemini:gemini-2.5-pro
 
 # Test all models for a specific provider
-ai-code-review model-test -p anthropic
+ai-code-review test-model --provider anthropic
 
 # Test all available models
-ai-code-review model-test --all
-
-# Use a custom prompt template file
-ai-code-review src/index.ts --prompt custom-prompt.md
-
-# Add a custom prompt fragment
-ai-code-review src/index.ts --prompt-fragment "Focus on performance issues"
-
-# Specify the position of the prompt fragment
-ai-code-review src/index.ts --prompt-fragment "Focus on security issues" --prompt-fragment-position start
-
-# Use a specific prompt strategy
-ai-code-review src/index.ts --prompt-strategy anthropic
+ai-code-review test-model --all
 
 # Estimate token usage and cost without performing a review
 ai-code-review src/utils --estimate
 
-# Skip confirmation for multi-pass reviews (automatically proceed when content exceeds context window)
+# Skip confirmation for multi-pass reviews
 ai-code-review src/utils --no-confirm
+
+# Use multi-pass review for large codebases
+ai-code-review src --multi-pass
+
+# Force single-pass review
+ai-code-review src --force-single-pass
+
+# Test API connections before review
+ai-code-review src --test-api
+
+# Enable interactive mode
+ai-code-review src --interactive
 
 # Check the version of the tool
 ai-code-review --version
 
+# Show version information
+ai-code-review --show-version
+
 # Run in debug mode for additional logging
 ai-code-review src/utils --debug
 
-# Run in quiet mode to suppress non-essential output
-ai-code-review src/utils -q
+# Specify programming language and framework
+ai-code-review src --language typescript --framework next.js
 
-# The AI model is configured in .env.local, not via command line
-# See the Configuration section for details on setting up models
+# Use configuration file
+ai-code-review src --config .ai-code-review.yaml
 ```
 
 ### Options
@@ -489,69 +498,66 @@ ai-code-review src/utils -q
 ```
 Options:
   # Basic Options
-  -t, --type <type>       Type of review (architectural, quick-fixes, security, performance, unused-code) (default: "quick-fixes")
+  -t, --type <type>       Type of review (choices: quick-fixes, architectural, security, performance, unused-code, focused-unused-code, code-tracing-unused-code, improved-quick-fixes, consolidated, evaluation, extract-patterns) (default: "quick-fixes")
   -o, --output <format>   Output format (markdown, json) (default: "markdown")
-  -e, --estimate          Estimate token usage and cost without performing the review (default: false)
+  --output-dir <dir>      Directory to save review output
+  -m, --model <model>     Model to use for the review (format: provider:model) (default: "gemini:gemini-2.5-pro")
   -v, --version           Output the current version
+  --show-version          Show version information (default: false)
   -h, --help              Display help information
+  --debug                 Enable debug logging (default: false)
 
-  # Review Content Options
-  --include-tests         Include test files in the review (normally excluded by default) (default: false)
-  -d, --include-project-docs  Include README.md and other project docs in the AI context for better understanding (default: true)
-  --include-dependency-analysis Include dependency analysis in architectural reviews (default: true)
-  -c, --consolidated      Generate a single consolidated review (default: true)
+  # Processing Options
+  --include-tests         Include test files in the review (default: false)
+  --include-project-docs  Include project documentation in the review context (default: true)
+  --include-dependency-analysis Include dependency analysis in the review (default: false)
+  --enable-semantic-chunking Enable semantic chunking for intelligent code analysis (default: true)
   
-  # Interactive Mode Options
+  # Execution Options
   -i, --interactive       Run in interactive mode, processing review results in real-time (default: false)
-  --auto-fix              Automatically implement high-priority fixes without confirmation in interactive mode (default: true)
-  --prompt-all            Ask for confirmation on all fixes, including high priority ones (overrides --auto-fix) (default: false)
+  --test-api              Test API connections before running the review (default: false)
+  --estimate              Estimate token usage and cost without performing the review (default: false)
   
-  # Model Options
-  --listmodels            Display all available AI models based on your configured API keys (default: false)
-  --models                Show all supported AI models and their configuration details, regardless of API key availability (default: false)
-  --test-api              Verify AI provider API connections before starting the review (default: false)
-  --writer-model <model>  Use a different model for report consolidation/writing (e.g., openai:gpt-4o-mini)
-  --no-confirm            Skip confirmation for multi-pass reviews and proceed automatically (default: false)
+  # Multi-pass Options
+  --multi-pass            Use multi-pass review for large codebases (default: false)
+  --force-single-pass     Force single-pass review even if token analysis suggests multiple passes are needed (default: false)
+  --context-maintenance-factor Context maintenance factor for multi-pass reviews (0-1) (default: 0.15)
   
-  # Unused Code Detection Options (for --type unused-code)
-  --trace-code            Enable deep code tracing for high-confidence unused code detection (default: false)
-  --use-ts-prune          Use ts-prune static analysis to detect unused exports (default: false)
-  --use-eslint            Use eslint static analysis to detect unused variables (default: false)
+  # Configuration Options
+  --no-confirm            Skip confirmation prompts (default: false)
+  --language <language>   Specify the programming language (auto-detected if not specified)
+  --framework <framework> Specify the framework (auto-detected if not specified)
+  --config <path>         Path to JSON configuration file
   
-  # Prompt Customization Options
-  --strategy              Custom review strategy to use (plugin name or path to plugin module)
-  --prompt-file, --prompt Path to a custom prompt template file (overrides built-in prompts)
-  --prompt-fragment       Custom instructions to inject into the AI prompt (focuses the review)
-  --prompt-fragment-position Position of the prompt fragment (start, middle, end) (default: middle) 
-  --prompt-strategy       Prompt formatting strategy to use (anthropic, gemini, openai, langchain)
-  --use-cache             Enable prompt template caching for faster execution (use --no-use-cache to disable) (default: true)
+  # Model and Information Options
+  --listmodels            List available models based on configured API keys (default: false)
+  --models                List all supported models and their configuration names (default: false)
   
-  # Debug Options
-  --debug                 Enable detailed debug logging for troubleshooting (default: false)
-  -q, --quiet             Suppress non-essential output (default: false)
+  # API Key Options
+  --google-api-key <key>  Google API key for Gemini models
+  --openrouter-api-key <key> OpenRouter API key
+  --anthropic-api-key <key> Anthropic API key for Claude models
+  --openai-api-key <key>  OpenAI API key for GPT models
 ```
 
 ### Model Testing Options
 
 ```
-Command: model-test [provider:model]
-Description: Test AI models to verify API keys and model availability
-
-Arguments:
-  provider:model          Provider and model to test (e.g. gemini:gemini-1.5-pro, anthropic:claude-3-opus)
+Command: test-model
+Description: Test the configured model with a simple prompt
 
 Options:
-  --all                   Test all available models
-  -p, --provider <provider>  Test all models for a specific provider
+  -m, --model <model>     Model to test (format: provider:model) (default: "gemini:gemini-2.5-pro")
+  --google-api-key <key>  Google API key for Gemini models
+  --openrouter-api-key <key> OpenRouter API key
+  --anthropic-api-key <key> Anthropic API key for Claude models
+  --openai-api-key <key>  OpenAI API key for GPT models
   -h, --help              Display help information
 
 Command: test-build
-Description: Test all AI models during build process
+Description: Test the build by running a simple command
 
 Options:
-  --fail-on-error         Exit with error code if any model test fails
-  --json                  Output results in JSON format
-  -p, --provider <provider>  Test only models for a specific provider
   -h, --help              Display help information
 ```
 
@@ -782,59 +788,57 @@ There are two ways to specify a writer model:
 
 ### GitHub Projects Integration
 
-You can integrate your PROJECT.md file with GitHub Projects to better manage your project documentation and tasks. This allows you to maintain your project documentation in both Markdown format and in GitHub's project management interface.
+You can sync GitHub projects to local directory for better project management:
 
 ```bash
-# Update GitHub Project readme with PROJECT.md content
-ai-code-review sync-github-projects --description-only
-
-# Create GitHub Project items from PROJECT.md sections
-ai-code-review sync-github-projects
-
-# Sync GitHub Projects to PROJECT.md
-ai-code-review sync-github-projects --direction from-github
-
-# Specify project path
-ai-code-review sync-github-projects --project-path /path/to/project
+# Sync GitHub projects to local directory
+ai-code-review sync-github-projects --token <token> --org <org> --output-dir ./projects
 ```
 
-To use this feature, add the following to your `.env.local` file:
+### Available Subcommands
 
+1. **`ai-code-review code-review [target]`** - Run a code review on the specified target (default)
+2. **`ai-code-review test-model`** - Test the configured model with a simple prompt
+3. **`ai-code-review test-build`** - Test the build by running a simple command
+4. **`ai-code-review sync-github-projects`** - Sync GitHub projects to local directory
+5. **`ai-code-review generate-config`** - Generate a sample configuration file
+
+#### sync-github-projects Options
+- **`--token <token>`** - GitHub token [required]
+- **`--org <org>`** - GitHub organization [required]
+- **`--output-dir <dir>`** - Output directory (default: "./github-projects")
+
+#### generate-config Options
+- **`-o, --output <path>`** - Output file path for the configuration
+- **`-f, --format <format>`** - Configuration file format (choices: yaml, json) (default: "yaml")
+- **`--force`** - Overwrite existing configuration file (default: false)
+
+Generate a sample configuration file:
+```bash
+# Generate YAML configuration
+ai-code-review generate-config --output .ai-code-review.yaml --format yaml
+
+# Generate JSON configuration
+ai-code-review generate-config --output .ai-code-review.json --format json
 ```
-# GitHub API token for accessing GitHub Projects
-GITHUB_TOKEN=your_github_token_here
-
-# GitHub Project number (e.g., 1)
-GITHUB_PROJECT_NUMBER=1
-
-# GitHub owner (default: 'bobmatnyc')
-GITHUB_OWNER=your_github_username
-```
-
-The recommended workflow is to:
-1. First update the GitHub Project readme with your PROJECT.md content using the `--description-only` flag
-2. Then use GitHub Projects to create and manage issues and tasks for ongoing work
-3. Optionally sync back to PROJECT.md if you want to keep a local copy
 
 ### Environment Variables
 
-Create a `.env.local` file in the AI Code Review tool directory with your API keys:
+All environment variables use the `AI_CODE_REVIEW_` prefix:
 
-```
-# For Google Gemini models
+```bash
+# API Keys
 AI_CODE_REVIEW_GOOGLE_API_KEY=your_google_api_key_here
-
-# For OpenRouter models (Claude, GPT-4, etc.)
-AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
-
-# For Anthropic models directly
 AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_api_key_here
-
-# For OpenAI models directly
+AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
 AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_api_key_here
 
-# For dependency security analysis in architectural reviews
-SERPAPI_KEY=your_serpapi_api_key_here
+# Model Configuration
+AI_CODE_REVIEW_MODEL=gemini:gemini-2.5-pro
+AI_CODE_REVIEW_WRITER_MODEL=openai:gpt-4o-mini
+
+# Debug Options
+AI_CODE_REVIEW_LOG_LEVEL=info
 ```
 
 #### Global Installation
@@ -891,7 +895,7 @@ Alternatively, you can manually place your `.env.local` file in one of these loc
 # Model configuration
 # Specify which model to use for code reviews using the format provider:model
 # The tool will automatically map this to the correct API model name
-AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+AI_CODE_REVIEW_MODEL=gemini:gemini-2.5-pro
 # or
 # AI_CODE_REVIEW_MODEL=openai:gpt-4o
 # or
@@ -929,48 +933,51 @@ The model mapping system provides the following benefits:
 
 You can see all available models and their mappings by running `ai-code-review --listmodels`.
 
-### Gemini Models
+### Google Models
 
-| Model Name | Description | API Key Required | API Model Name |
-|------------|-------------|------------------|----------------|
-| `gemini:gemini-1.5-pro` | Recommended for most code reviews | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-1.5-pro` |
-| `gemini:gemini-1.5-flash` | Faster but less detailed reviews | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-1.5-flash` |
-| `gemini:gemini-2.5-pro` | Latest model with improved capabilities | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-2.5-pro` |
-| `gemini:gemini-2.0-flash` | Balanced performance and quality | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-2.0-flash` |
-| `gemini:gemini-pro` | Legacy model | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-pro` |
-| `gemini:gemini-pro-latest` | Latest version of legacy model | `AI_CODE_REVIEW_GOOGLE_API_KEY` | `gemini-pro-latest` |
+| Model Name | Description | Context Window | API Key Required |
+|------------|-------------|----------------|------------------|
+| `gemini:gemini-2.5-pro` | Production-ready advanced reasoning model **(DEFAULT)** | 1M tokens | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-2.5-pro-preview` | Most advanced reasoning and multimodal capabilities | 1M tokens | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-2.0-flash` | Fast, efficient model with strong performance | 1M tokens | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-2.0-flash-lite` | Ultra-fast, cost-efficient model | 1M tokens | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-1.5-pro` | Previous generation large context model | 1M tokens | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
+| `gemini:gemini-1.5-flash` | Previous generation fast model | 1M tokens | `AI_CODE_REVIEW_GOOGLE_API_KEY` |
 
 ### OpenRouter Models
 
-| Model Name | Description | API Key Required | API Model Name |
-|------------|-------------|------------------|----------------|
-| `openrouter:anthropic/claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `anthropic/claude-3-opus` |
-| `openrouter:anthropic/claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `anthropic/claude-3-sonnet` |
-| `openrouter:anthropic/claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `anthropic/claude-3-haiku` |
-| `openrouter:openai/gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `openai/gpt-4o` |
-| `openrouter:openai/gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `openai/gpt-4-turbo` |
-| `openrouter:google/gemini-1.5-pro` | Google's model via OpenRouter | `AI_CODE_REVIEW_OPENROUTER_API_KEY` | `google/gemini-1.5-pro` |
+| Model Name | Description | Context Window | API Key Required |
+|------------|-------------|----------------|------------------|
+| `openrouter:anthropic/claude-4-opus` | Access Claude 4 Opus through OpenRouter | 200K tokens | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:anthropic/claude-4-sonnet` | Access Claude 4 Sonnet through OpenRouter | 200K tokens | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:openai/gpt-4o` | Access GPT-4o through OpenRouter | 128K tokens | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:google/gemini-2.5-pro` | Access Gemini 2.5 Pro through OpenRouter | 1M tokens | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:meta-llama/llama-3.3-70b` | Open source alternative | 131K tokens | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
+| `openrouter:anthropic/claude-3-haiku` | Fast, affordable model | 200K tokens | `AI_CODE_REVIEW_OPENROUTER_API_KEY` |
 
-### Anthropic Models (Direct API)
+### Anthropic Models
 
-| Model Name | Description | API Key Required | API Model Name |
-|------------|-------------|------------------|----------------|
-| `anthropic:claude-4-opus` | **NEW** - Most capable model with advanced reasoning | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-opus-4-20250514` |
-| `anthropic:claude-4-sonnet` | **NEW** - Balanced model with enhanced capabilities | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-sonnet-4-20250514` |
-| `anthropic:claude-3-opus` | Highest quality, most detailed reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-opus-20240229` |
-| `anthropic:claude-3.5-sonnet` | Improved version of Claude 3 Sonnet | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-5-sonnet-20241022` |
-| `anthropic:claude-3-sonnet` | Good balance of quality and speed | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-sonnet-20240229` |
-| `anthropic:claude-3.5-haiku` | Fast and lightweight model | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-5-haiku-20241022` |
-| `anthropic:claude-3-haiku` | Fast, efficient reviews | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` | `claude-3-haiku-20240307` |
+| Model Name | Description | Context Window | API Key Required |
+|------------|-------------|----------------|------------------|
+| `anthropic:claude-4-opus` | Most capable Claude model with superior reasoning | 200K tokens | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| `anthropic:claude-4-sonnet` | Balanced performance and cost for code review | 200K tokens | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| `anthropic:claude-3.5-sonnet` | Enhanced Claude 3 with improved capabilities | 200K tokens | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| `anthropic:claude-3-opus` | DEPRECATED: Migrate to Claude 4 Opus | 200K tokens | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| `anthropic:claude-3-sonnet` | Previous generation balanced model | 200K tokens | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| `anthropic:claude-3.5-haiku` | Fast, cost-effective model | 200K tokens | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
+| `anthropic:claude-3-haiku` | DEPRECATED: Migrate to Claude 3.5 Haiku | 200K tokens | `AI_CODE_REVIEW_ANTHROPIC_API_KEY` |
 
-### OpenAI Models (Direct API)
+### OpenAI Models
 
-| Model Name | Description | API Key Required | API Model Name |
-|------------|-------------|------------------|----------------|
-| `openai:gpt-4-turbo` | Powerful model with good code analysis | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4-turbo-preview` |
-| `openai:gpt-4o` | OpenAI's latest model with strong code understanding | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4o` |
-| `openai:gpt-4` | Original GPT-4 model | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-4` |
-| `openai:gpt-3.5-turbo` | Fast and cost-effective model | `AI_CODE_REVIEW_OPENAI_API_KEY` | `gpt-3.5-turbo` |
+| Model Name | Description | Context Window | API Key Required |
+|------------|-------------|----------------|------------------|
+| `openai:gpt-4o` | Multimodal model with vision capabilities | 128K tokens | `AI_CODE_REVIEW_OPENAI_API_KEY` |
+| `openai:gpt-4.1` | Latest GPT-4 with improved reasoning | 128K tokens | `AI_CODE_REVIEW_OPENAI_API_KEY` |
+| `openai:gpt-4.5` | DEPRECATED: Migrate to GPT-4.1 | 128K tokens | `AI_CODE_REVIEW_OPENAI_API_KEY` |
+| `openai:gpt-4-turbo` | Fast GPT-4 variant | 128K tokens | `AI_CODE_REVIEW_OPENAI_API_KEY` |
+| `openai:gpt-3.5-turbo` | Fast, cost-effective model | 16K tokens | `AI_CODE_REVIEW_OPENAI_API_KEY` |
+| `openai:o3` | Advanced reasoning model | 100K tokens | `AI_CODE_REVIEW_OPENAI_API_KEY` |
+| `openai:o3-mini` | Efficient reasoning model | 60K tokens | `AI_CODE_REVIEW_OPENAI_API_KEY` |
 
 ### Extending the Model Mapping System
 
@@ -1065,14 +1072,17 @@ Code tracing assigns confidence levels to each finding:
 You can test your API connections to verify that your API keys are valid and working correctly:
 
 ```bash
-# Test API connections directly
-ai-code-review test-api
+# Test the configured model
+ai-code-review test-model
+
+# Test a specific model
+ai-code-review test-model --model anthropic:claude-4-sonnet
 
 # Test API connections before running a review
 ai-code-review src --test-api
 ```
 
-This will test connections to both Google Gemini API and OpenRouter API (if configured) and provide detailed feedback on the status of each connection.
+This will test connections to the configured API providers and provide detailed feedback on the status of each connection.
 
 ## Requirements
 

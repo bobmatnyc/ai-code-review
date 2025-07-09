@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 - **Testing Strategy**: Comprehensive testing framework implementation
-  - Achieved 95.6% test pass rate (476/498 tests)
+  - Achieved 96.8% test pass rate (482/498 tests)
   - 100% of test files passing (46/46)
   - Enhanced coverage configuration for core code
 - **CI/CD Infrastructure**: Improved versioning and release automation
@@ -450,7 +450,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved JSON output formatting for interactive mode responses
 - Added support for structured JSON responses in review results
 - Added automatic detection and parsing of JSON content in review outputs
-- Added CI local check script (`npm run ci:local`) for pre-push validation
+- Added CI local check script (`pnpm run ci:local`) for pre-push validation
 - Enhanced workflow instructions in INSTRUCTIONS.md with CI best practices
 - Added CI data collection for all review types with per-file error counts
 - Integrated TypeScript and ESLint error counts into code review prompts
@@ -491,7 +491,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved JSON output formatting for interactive mode responses
 - Added support for structured JSON responses in review results
 - Added automatic detection and parsing of JSON content in review outputs
-- Added CI local check script (`npm run ci:local`) for pre-push validation
+- Added CI local check script (`pnpm run ci:local`) for pre-push validation
 - Enhanced workflow instructions in INSTRUCTIONS.md with CI best practices
 - Added CI data collection for all review types with per-file error counts
 - Integrated TypeScript and ESLint error counts into code review prompts

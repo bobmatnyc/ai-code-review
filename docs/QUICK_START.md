@@ -66,7 +66,7 @@ AI_CODE_REVIEW_ANTHROPIC_API_KEY=your_anthropic_key
 AI_CODE_REVIEW_OPENAI_API_KEY=your_openai_key
 
 # Optional: Set default model
-AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+AI_CODE_REVIEW_MODEL=gemini:gemini-2.5-pro
 ```
 
 ## First Review
@@ -86,13 +86,13 @@ ai-code-review src/
 ### Other Review Types
 ```bash
 # Security review
-ai-code-review security .
+ai-code-review --type security .
 
 # Architectural review
-ai-code-review architectural .
+ai-code-review --type architectural .
 
 # Performance review
-ai-code-review performance .
+ai-code-review --type performance .
 ```
 
 ## Common Commands
@@ -137,7 +137,7 @@ Example output file: `quick-fixes-review-src-2025-06-28.md`
 1. **Read the full documentation**: [README.md](../README.md)
 2. **Configure advanced options**: [Configuration Guide](CONFIGURATION_MIGRATION.md)
 3. **Set up your development workflow**: [Workflow Guide](WORKFLOW.md)
-4. **Explore different review types**: Try `architectural`, `security`, `performance`
+4. **Explore different review types**: Try `--type architectural`, `--type security`, `--type performance`
 
 ## Getting Help
 
