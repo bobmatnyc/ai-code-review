@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.1] - 2025-07-09
+
+### Fixed
+- **CLI Documentation Accuracy**: Comprehensive documentation improvements for better user experience
+  - Updated README.md CLI options section with accurate flag descriptions and examples
+  - Fixed QUICK_START.md command syntax examples to match actual CLI behavior
+  - Standardized environment variable references across all documentation
+  - Corrected package manager references to use consistent pnpm commands
+  - Updated version references throughout documentation to reflect current state
+  - Enhanced CLI help text alignment with actual command functionality
+
 ## [4.3.0] - 2025-06-30
 
 ### Added
