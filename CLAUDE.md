@@ -183,19 +183,74 @@ repos:
         language: node
 ```
 
+## CI/CD Pipeline Requirements
+
+### Pipeline Passing Checklist
+
+**Before Making Changes:**
+1. **Dependency Management**:
+   - Run `pnpm install` after any package.json changes
+   - Commit updated `pnpm-lock.yaml` with package.json changes
+   - Ensure lockfile stays in sync to prevent `ERR_PNPM_OUTDATED_LOCKFILE`
+
+2. **Code Quality Gates**:
+   - Run `pnpm run lint` - Must pass Biome linting (error-level)
+   - Run `pnpm run build:types` - TypeScript compilation must succeed
+   - Run `pnpm test` - All tests must pass without failures
+
+3. **Environment Requirements**:
+   - Node.js 20.x (matches package.json `engines.node: ">=20.0.0"`)
+   - pnpm version auto-detected from `packageManager` field in package.json
+   - Tests run without external API keys (expect warnings, not failures)
+
+**Critical Workflow Notes:**
+- **Always run `pnpm install` after pulling dependency changes**
+- **Never commit with outdated lockfile** - CI will fail immediately
+- **Update GitHub Actions cautiously** - Use latest stable versions only
+- **pnpm/action-setup** should NOT specify version - let it auto-detect from package.json
+
+**Common Failure Patterns:**
+- `ERR_PNPM_OUTDATED_LOCKFILE`: Run `pnpm install` and commit lockfile
+- Node.js version mismatch: Ensure CI uses Node.js 20.x
+- Deprecated actions: Update to latest versions (v4+ for most actions)
+- pnpm version conflicts: Remove explicit version from GitHub Actions
+
+**CI Jobs Overview:**
+1. **Build**: `pnpm run quick-build` (optimized for CI)
+2. **Lint**: `pnpm run lint` (Biome error-level validation)
+3. **Type Check**: `pnpm run build:types` (TypeScript compilation)
+4. **Test**: `pnpm test` (Vitest with coverage reporting)
+5. **Track Down Validation**: Custom project management validation
+
+**Memory/API Considerations:**
+- Tests may show API key warnings (normal in CI without secrets)
+- mem0AI client initialization failures are expected without API keys
+- External API tests are skipped when keys unavailable
+
+### Pre-Commit Workflow
+```bash
+# Recommended pre-push checklist
+pnpm install                    # Ensure dependencies current
+pnpm run lint                   # Fix linting issues
+pnpm run build:types           # Verify TypeScript compilation
+pnpm test                      # Run full test suite
+git add pnpm-lock.yaml         # Include lockfile if changed
+```
+
 ## Project Management
 
 ### Success Criteria
-- [ ] Multi-provider AI integration operational
-- [ ] CLI tool globally installable and functional
-- [ ] Comprehensive test coverage (>80%)
-- [ ] Documentation complete and current
-- [ ] CI/CD pipeline integrated
+- [x] Multi-provider AI integration operational
+- [x] CLI tool globally installable and functional
+- [x] Comprehensive test coverage (>80%)
+- [x] Documentation complete and current
+- [x] CI/CD pipeline integrated and operational
 
 ### Project Compliance
 - **CLAUDE.md**: ✅ Present (this file)
 - **Documentation**: Comprehensive in `/docs/` directory
 - **Testing**: Vitest with extensive coverage
+- **CI/CD**: ✅ GitHub Actions pipeline operational
 - **Task Management**: Local trackdown system integration
 
 ## Notes
@@ -214,4 +269,4 @@ The tool is designed for both standalone use and CI/CD integration, making it va
 
 **Project Integration**: Local project management
 **Development Mode**: Active development and maintenance
-**Last Updated**: 2025-07-06
+**Last Updated**: 2025-07-10

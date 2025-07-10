@@ -1,7 +1,7 @@
 # 🔁 AI Code Review Tool - Development Workflow
 
-**Version**: 2.0
-**Updated**: 2025-06-27
+**Version**: 2.1
+**Updated**: 2025-07-10
 **Repository**: https://github.com/bobmatnyc/ai-code-review.git
 
 This document contains the complete workflow procedures for the AI Code Review tool project, a TypeScript-based CLI tool for automated code reviews using multiple AI providers (Gemini, Claude, OpenAI, OpenRouter).
@@ -60,8 +60,8 @@ corepack enable
 ## 🔧 1. Development Environment Setup
 
 ### Prerequisites
-- Node.js >= 18.0.0
-- npm (or pnpm for some operations)
+- **Node.js >= 20.0.0** (Updated: CI/CD requires Node.js 20.x for consistency)
+- **pnpm** (Package manager - required, not optional)
 - API keys for at least one AI provider
 
 ### Local Setup
@@ -422,7 +422,7 @@ Use this template for PRs:
 
 ```bash
 # Essential validation sequence (run before EVERY commit)
-pnpm run lint                    # ESLint validation (target: <500 warnings, 0 errors)
+pnpm run lint                    # Biome validation (target: 0 errors)
 pnpm run build:types             # TypeScript compilation verification  
 pnpm test                        # Full test suite execution (46 files, 476 tests)
 pnpm run validate:prompts        # Prompt template and metadata validation
@@ -433,6 +433,39 @@ pnpm run test:coverage           # Core code coverage verification (70%+ target)
 pnpm run build                   # Full production build with executable generation
 ./dist/index.js --version        # Verify CLI executable works
 ./dist/index.js --listmodels     # Verify model configurations load
+```
+
+### ⚠️ Critical CI/CD Pipeline Requirements
+
+**MANDATORY: Dependency Lockfile Management**
+```bash
+# ALWAYS run after any package.json changes
+pnpm install                     # Updates pnpm-lock.yaml to match package.json
+git add pnpm-lock.yaml          # MUST commit lockfile with package.json changes
+
+# NEVER commit with outdated lockfile - CI will fail immediately with:
+# ERR_PNPM_OUTDATED_LOCKFILE: Cannot install with "frozen-lockfile" because 
+# pnpm-lock.yaml is not up to date with package.json
+```
+
+**Environment Consistency Requirements:**
+- **Node.js Version**: CI uses Node.js 20.x (matches package.json `engines.node: ">=20.0.0"`)
+- **Package Manager**: pnpm version auto-detected from `packageManager` field in package.json
+- **GitHub Actions**: Use latest stable versions (actions/checkout@v4, pnpm/action-setup@v4, etc.)
+
+**Expected CI Warnings (Normal):**
+- API key warnings for mem0AI, Google, OpenRouter, Anthropic (normal without secrets in CI)
+- "No telemetry ID found" warnings (expected in CI environment)
+
+**Pre-Push Validation Checklist:**
+```bash
+# Complete pre-push validation (recommended workflow)
+pnpm install                    # Ensure dependencies are current
+pnpm run lint                   # Biome linting (must pass)
+pnpm run build:types           # TypeScript compilation (must pass)
+pnpm test                      # Full test suite (must pass)
+git status                     # Check for unstaged lockfile changes
+git add pnpm-lock.yaml         # Stage lockfile if updated
 ```
 
 ### Test Categories with Code-Truth Validation
@@ -933,10 +966,41 @@ tags:
 
 ## 🚀 10. CI/CD & Automation with Track Down Integration
 
+### GitHub Actions CI/CD Pipeline Status ✅
+
+**Current CI Jobs (5 parallel jobs):**
+1. **Build**: `pnpm run quick-build` (optimized build for CI)
+2. **Lint**: `pnpm run lint` (Biome linting with error-level validation)
+3. **Type Check**: `pnpm run build:types` (TypeScript compilation)
+4. **Test**: `pnpm test` (Vitest with coverage reporting to Codecov)
+5. **Track Down Validation**: Custom project management validation
+
+**Configuration Status:**
+- ✅ Node.js 20.x (consistent with package.json requirements)
+- ✅ Latest GitHub Actions (actions/checkout@v4, pnpm/action-setup@v4, etc.)
+- ✅ pnpm auto-detection from package.json `packageManager` field
+- ✅ Parallel job execution for faster feedback
+- ✅ Codecov integration for test coverage reporting
+
+**Common CI Failure Patterns & Solutions:**
+```bash
+# ERR_PNPM_OUTDATED_LOCKFILE (most common)
+pnpm install && git add pnpm-lock.yaml && git commit -m "fix: update lockfile"
+
+# Node.js version mismatch
+# Solution: Ensure CI workflow uses Node.js 20.x (already fixed)
+
+# Deprecated GitHub Actions
+# Solution: Use latest stable versions (already updated)
+
+# pnpm version conflicts  
+# Solution: Remove explicit version from pnpm/action-setup (already fixed)
+```
+
 ### Pre-commit Hooks with Track Down Validation
 ```bash
 # Recommended pre-commit setup with Track Down validation
-npm run lint && npm run test && npm run build
+pnpm run lint && pnpm run test && pnpm run build
 
 # Optional: Validate Track Down files
 python trackdown/scripts/backlog-validator.py
