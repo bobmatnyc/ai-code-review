@@ -1,0 +1,54 @@
+# AI Detection Configuration for Senior Developer Hiring
+# Use case: Technical assessment for senior software engineer position
+# Requirements: High code authenticity, comprehensive evaluation
+
+reviewType: coding-test
+enableAiDetection: true
+aiDetectionThreshold: 0.65  # Strict threshold for senior roles
+aiDetectionAnalyzers: "git,documentation"
+aiDetectionIncludeInReport: true
+aiDetectionFailOnDetection: false  # Allow manual review for borderline cases
+
+# Assignment configuration
+assignment:
+  title: "Senior Backend API Development"
+  description: "Design and implement a RESTful API with authentication, database integration, and comprehensive testing"
+  difficulty: "senior"
+  type: "take-home"
+  timeLimit: 480  # 8 hours
+  requirements:
+    - "Implement JWT-based authentication"
+    - "Design clean database schema"
+    - "Include comprehensive unit and integration tests"
+    - "Provide API documentation"
+    - "Handle edge cases and error scenarios"
+
+# Evaluation criteria weighted for senior role
+criteria:
+  correctness: 25        # Functional requirements met
+  codeQuality: 25        # Clean, maintainable code
+  architecture: 25       # System design and patterns
+  performance: 15        # Optimization and efficiency
+  testing: 10           # Test coverage and quality
+
+# Scoring configuration
+scoring:
+  system: "numeric"
+  maxScore: 100
+  passingThreshold: 75   # High bar for senior role
+  breakdown: true
+
+# Detailed feedback for senior evaluation
+feedback:
+  level: "comprehensive"
+  includeExamples: true
+  includeSuggestions: true
+  includeResources: false  # Senior candidates should know resources
+
+# Technical constraints for senior role
+constraints:
+  allowedLibraries: []    # No restrictions - test decision making
+  forbiddenPatterns: []   # No restrictions - expect good judgment
+  targetLanguage: "typescript"
+  framework: "express"
+  nodeVersion: "18+"

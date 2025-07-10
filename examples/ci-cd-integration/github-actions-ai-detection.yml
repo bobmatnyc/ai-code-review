@@ -1,0 +1,265 @@
+# GitHub Actions workflow for AI detection in pull requests
+# Place this file in .github/workflows/ai-detection.yml
+
+name: AI Detection Code Review
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  
+  # Allow manual triggering for testing
+  workflow_dispatch:
+    inputs:
+      threshold:
+        description: 'AI detection threshold (0.0-1.0)'
+        required: false
+        default: '0.7'
+        type: string
+      analyzers:
+        description: 'Comma-separated analyzers (git,documentation)'
+        required: false
+        default: 'git,documentation'
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write  # Needed to comment on PRs
+
+jobs:
+  ai-detection:
+    name: AI Detection Review
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important: Full git history needed for git analyzer
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install AI Code Review Tool
+        run: |
+          npm install -g @bobmatnyc/ai-code-review
+          echo "AI Code Review tool installed successfully"
+      
+      - name: Set Detection Parameters
+        id: params
+        run: |
+          # Use workflow inputs if manually triggered, otherwise use defaults
+          THRESHOLD="${{ github.event.inputs.threshold || '0.75' }}"
+          ANALYZERS="${{ github.event.inputs.analyzers || 'git,documentation' }}"
+          
+          echo "threshold=$THRESHOLD" >> $GITHUB_OUTPUT
+          echo "analyzers=$ANALYZERS" >> $GITHUB_OUTPUT
+          
+          echo "Using AI detection threshold: $THRESHOLD"
+          echo "Using analyzers: $ANALYZERS"
+      
+      - name: Run AI Detection Analysis
+        id: ai-detection
+        run: |
+          # Create results directory
+          mkdir -p ./ai-detection-results
+          
+          # Run AI detection on the entire repository
+          ai-code-review . \
+            --type coding-test \
+            --enable-ai-detection \
+            --ai-detection-threshold ${{ steps.params.outputs.threshold }} \
+            --ai-detection-analyzers "${{ steps.params.outputs.analyzers }}" \
+            --ai-detection-include-in-report \
+            --format json \
+            --output ./ai-detection-results/full-analysis.json \
+            || echo "Analysis completed with warnings"
+          
+          # Extract key results for further processing
+          if [ -f "./ai-detection-results/full-analysis.json" ]; then
+            AI_DETECTED=$(jq -r '.metadata.aiDetection.isAIGenerated // false' ./ai-detection-results/full-analysis.json)
+            CONFIDENCE=$(jq -r '.metadata.aiDetection.confidenceScore // 0' ./ai-detection-results/full-analysis.json)
+            PATTERNS_COUNT=$(jq -r '.metadata.aiDetection.patternsDetected // 0' ./ai-detection-results/full-analysis.json)
+            
+            echo "ai_detected=$AI_DETECTED" >> $GITHUB_OUTPUT
+            echo "confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
+            echo "patterns_count=$PATTERNS_COUNT" >> $GITHUB_OUTPUT
+            
+            echo "AI Detection Results:"
+            echo "  AI Detected: $AI_DETECTED"
+            echo "  Confidence: $CONFIDENCE"
+            echo "  Patterns: $PATTERNS_COUNT"
+          else
+            echo "Analysis file not found, setting default values"
+            echo "ai_detected=false" >> $GITHUB_OUTPUT
+            echo "confidence=0" >> $GITHUB_OUTPUT
+            echo "patterns_count=0" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Generate Summary Report
+        if: always()
+        run: |
+          # Create a summary markdown file
+          cat > ./ai-detection-results/summary.md << 'EOF'
+          # AI Detection Analysis Report
+          
+          **Pull Request:** #${{ github.event.number }}
+          **Branch:** `${{ github.head_ref }}`
+          **Commit:** `${{ github.event.pull_request.head.sha }}`
+          **Analysis Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          
+          ## Results Summary
+          
+          - **AI Generated:** ${{ steps.ai-detection.outputs.ai_detected }}
+          - **Confidence Score:** ${{ steps.ai-detection.outputs.confidence }}
+          - **Patterns Detected:** ${{ steps.ai-detection.outputs.patterns_count }}
+          - **Threshold Used:** ${{ steps.params.outputs.threshold }}
+          - **Analyzers Used:** ${{ steps.params.outputs.analyzers }}
+          
+          ## Interpretation
+          
+          EOF
+          
+          # Add interpretation based on results
+          if [ "${{ steps.ai-detection.outputs.ai_detected }}" = "true" ]; then
+            cat >> ./ai-detection-results/summary.md << 'EOF'
+          ⚠️ **AI-generated content detected** in this pull request.
+          
+          **Recommended Actions:**
+          - Review the specific patterns that triggered detection
+          - Conduct additional verification (code interview, live demo)
+          - Verify contributor understanding of the implemented features
+          - Consider requesting explanation of specific code sections
+          
+          EOF
+          else
+            cat >> ./ai-detection-results/summary.md << 'EOF'
+          ✅ **No significant AI-generated patterns detected** in this pull request.
+          
+          The code appears to be human-authored based on the analysis.
+          
+          EOF
+          fi
+          
+          cat >> ./ai-detection-results/summary.md << 'EOF'
+          ## Full Analysis
+          
+          For detailed analysis results, check the workflow artifacts.
+          
+          ---
+          *Analysis performed by [AI Code Review](https://github.com/bobmatnyc/ai-code-review) v4.3.1+*
+          EOF
+      
+      - name: Comment on Pull Request
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('./ai-detection-results/summary.md', 'utf8');
+            
+            // Check if we already commented on this PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('AI Detection Analysis Report')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: summary
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary
+              });
+            }
+      
+      - name: Check Detection Results
+        if: steps.ai-detection.outputs.ai_detected == 'true'
+        run: |
+          echo "::warning::AI-generated content detected in pull request"
+          echo "::notice::Confidence score: ${{ steps.ai-detection.outputs.confidence }}"
+          echo "::notice::Patterns detected: ${{ steps.ai-detection.outputs.patterns_count }}"
+          
+          # Don't fail the workflow, just warn
+          # Uncomment the next line to fail on AI detection:
+          # exit 1
+      
+      - name: Upload Analysis Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-detection-results-${{ github.event.pull_request.head.sha }}
+          path: |
+            ./ai-detection-results/
+          retention-days: 30
+      
+      - name: Create Check Run
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const aiDetected = '${{ steps.ai-detection.outputs.ai_detected }}' === 'true';
+            const confidence = parseFloat('${{ steps.ai-detection.outputs.confidence }}');
+            
+            let conclusion = 'success';
+            let title = 'AI Detection: No issues found';
+            let summary = 'No significant AI-generated patterns detected.';
+            
+            if (aiDetected) {
+              conclusion = 'neutral'; // Use 'failure' to block merging
+              title = `AI Detection: Patterns detected (${confidence.toFixed(3)} confidence)`;
+              summary = `AI-generated patterns detected. Manual review recommended.`;
+            }
+            
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'AI Detection Analysis',
+              head_sha: '${{ github.event.pull_request.head.sha }}',
+              status: 'completed',
+              conclusion: conclusion,
+              output: {
+                title: title,
+                summary: summary,
+                text: `Full analysis results available in workflow artifacts.`
+              }
+            });
+
+  # Optional: Notify on high confidence detection
+  notify-high-confidence:
+    name: High Confidence Detection Alert
+    runs-on: ubuntu-latest
+    needs: ai-detection
+    if: needs.ai-detection.outputs.ai_detected == 'true' && needs.ai-detection.outputs.confidence > '0.8'
+    
+    steps:
+      - name: Send High Confidence Alert
+        run: |
+          echo "::error::High confidence AI detection alert!"
+          echo "Confidence score: ${{ needs.ai-detection.outputs.confidence }}"
+          echo "Consider immediate manual review."
+          
+          # Add additional notification logic here:
+          # - Send Slack notification
+          # - Send email alert  
+          # - Create GitHub issue
+          # - etc.

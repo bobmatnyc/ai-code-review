@@ -1,0 +1,55 @@
+# AI Detection Configuration for Junior Developer Hiring
+# Use case: Technical assessment for entry-level or junior developer position
+# Requirements: Moderate threshold, focus on learning potential
+
+reviewType: coding-test
+enableAiDetection: true
+aiDetectionThreshold: 0.8   # More lenient threshold for junior roles
+aiDetectionAnalyzers: "git,documentation"
+aiDetectionIncludeInReport: true
+aiDetectionFailOnDetection: false
+
+# Assignment configuration
+assignment:
+  title: "Junior Full-Stack Web Application"
+  description: "Build a simple web application with basic CRUD operations and user interface"
+  difficulty: "junior"
+  type: "take-home"
+  timeLimit: 240  # 4 hours
+  requirements:
+    - "Create a simple user interface"
+    - "Implement basic CRUD operations"
+    - "Use a database or local storage"
+    - "Include basic form validation"
+    - "Write at least basic tests"
+
+# Evaluation criteria weighted for junior role
+criteria:
+  correctness: 35        # Primary focus on getting it working
+  codeQuality: 20        # Basic code organization
+  architecture: 15       # Simple, clear structure
+  performance: 10        # Basic optimization awareness
+  testing: 10           # Some testing effort
+  documentation: 10      # Clear documentation
+
+# Scoring configuration
+scoring:
+  system: "numeric"
+  maxScore: 100
+  passingThreshold: 60   # Lower bar for junior role
+  breakdown: true
+
+# Supportive feedback for junior evaluation
+feedback:
+  level: "detailed"
+  includeExamples: true
+  includeSuggestions: true
+  includeResources: true   # Help junior developers learn
+
+# Technical constraints with guidance
+constraints:
+  allowedLibraries: ["react", "vue", "express", "fastify", "lodash", "axios"]
+  forbiddenPatterns: ["eval", "document.write"]
+  targetLanguage: "javascript"
+  framework: "react"
+  nodeVersion: "16+"

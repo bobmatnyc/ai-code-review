@@ -10,6 +10,7 @@ import type { ReviewOptions, ReviewType } from '../types/review';
 import logger from '../utils/logger';
 import { ArchitecturalReviewStrategy } from './ArchitecturalReviewStrategy';
 import { CodeTracingUnusedCodeReviewStrategy } from './CodeTracingUnusedCodeReviewStrategy';
+import { CodingTestReviewStrategy } from './CodingTestReviewStrategy';
 import { ConsolidatedReviewStrategy } from './ConsolidatedReviewStrategy';
 import { ExtractPatternsReviewStrategy } from './ExtractPatternsReviewStrategy';
 import { FocusedUnusedCodeReviewStrategy } from './FocusedUnusedCodeReviewStrategy';
@@ -45,6 +46,9 @@ export class StrategyFactory {
     // Use default strategies if no custom strategy is specified or if the custom strategy is not found
     const reviewType = options.type as ReviewType;
 
+    // Debug logging for strategy selection
+    logger.debug(`StrategyFactory.createStrategy: reviewType = "${reviewType}"`);
+
     // Check if multi-pass mode is explicitly requested
     if (options.multiPass) {
       logger.info('Using Multi-Pass Review Strategy');
@@ -52,10 +56,16 @@ export class StrategyFactory {
     }
 
     if (reviewType === 'architectural') {
+      logger.debug('Creating ArchitecturalReviewStrategy');
       return new ArchitecturalReviewStrategy();
     }
     if (reviewType === 'extract-patterns') {
+      logger.debug('Creating ExtractPatternsReviewStrategy');
       return new ExtractPatternsReviewStrategy();
+    }
+    if (reviewType === 'coding-test') {
+      logger.debug('Creating CodingTestReviewStrategy');
+      return new CodingTestReviewStrategy();
     }
     if (reviewType === 'unused-code') {
       // Use code tracing strategy if the traceCode option is set
@@ -66,11 +76,16 @@ export class StrategyFactory {
 
       // Use the focused strategy if the focused option is set or when using LangChain
       const useFocused = options.focused || options.promptStrategy === 'langchain';
+      logger.debug(
+        `Creating ${useFocused ? 'FocusedUnusedCodeReviewStrategy' : 'UnusedCodeReviewStrategy'}`,
+      );
       return useFocused ? new FocusedUnusedCodeReviewStrategy() : new UnusedCodeReviewStrategy();
     }
     if (reviewType === 'quick-fixes' && options.promptStrategy === 'langchain') {
+      logger.debug('Creating ImprovedQuickFixesReviewStrategy');
       return new ImprovedQuickFixesReviewStrategy();
     }
+    logger.debug(`Creating ConsolidatedReviewStrategy for reviewType: "${reviewType}"`);
     return new ConsolidatedReviewStrategy(reviewType);
   }
 }

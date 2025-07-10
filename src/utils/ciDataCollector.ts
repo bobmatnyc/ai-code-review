@@ -121,10 +121,11 @@ function parseTypeCheckErrors(output: string, ciData: CIData, projectPath: strin
         };
       }
 
-      ciData.fileErrors?.[relativeFile].typeCheckErrors++;
-      ciData.fileErrors?.[relativeFile].typeCheckMessages?.push(
-        `Line ${lineNum}:${colNum} - ${errorCode}: ${message}`,
-      );
+      const fileError = ciData.fileErrors?.[relativeFile];
+      if (fileError) {
+        fileError.typeCheckErrors++;
+        fileError.typeCheckMessages?.push(`Line ${lineNum}:${colNum} - ${errorCode}: ${message}`);
+      }
     }
   }
 }
@@ -154,10 +155,11 @@ function parseLintErrors(output: string, ciData: CIData, projectPath: string): v
       const match = line.match(/^\s*(\d+):(\d+)\s+error\s+(.+?)\s+(.+)$/);
       if (match) {
         const [, lineNum, colNum, message, rule] = match;
-        ciData.fileErrors?.[currentFile].lintErrors++;
-        ciData.fileErrors?.[currentFile].lintMessages?.push(
-          `Line ${lineNum}:${colNum} - ${message} (${rule})`,
-        );
+        const fileError = ciData.fileErrors?.[currentFile];
+        if (fileError) {
+          fileError.lintErrors++;
+          fileError.lintMessages?.push(`Line ${lineNum}:${colNum} - ${message} (${rule})`);
+        }
       }
     }
   }

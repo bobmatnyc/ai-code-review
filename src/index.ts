@@ -260,11 +260,20 @@ async function main() {
     // Map to review options
     let args = mapArgsToReviewOptions(argv);
 
+    // Store CLI-specified options to prevent config override
+    const cliSpecifiedOptions = {
+      debug: process.argv.includes('--debug'),
+      type: process.argv.includes('--type'),
+      target:
+        process.argv.some((arg) => arg === './recess-test') ||
+        (process.argv.length > 2 && !process.argv[2].startsWith('--')),
+    };
+
     // Apply YAML configuration to review options if available
     const { loadConfigFile, applyConfigToOptions } = await import('./utils/configFileManager');
     const yamlConfig = loadConfigFile();
     if (yamlConfig) {
-      args = applyConfigToOptions(yamlConfig, args) as typeof args;
+      args = applyConfigToOptions(yamlConfig, args, cliSpecifiedOptions) as typeof args;
     }
 
     // Check for version flag first, before any other processing

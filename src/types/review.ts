@@ -25,7 +25,8 @@ export type ReviewType =
   | 'consolidated'
   | 'best-practices'
   | 'evaluation'
-  | 'extract-patterns';
+  | 'extract-patterns'
+  | 'coding-test';
 
 /**
  * Options for code reviews
@@ -117,6 +118,100 @@ export interface ReviewOptions {
   focused?: boolean;
   /** Whether to use consolidated review */
   consolidated?: boolean;
+
+  // Coding test specific options
+  /** Path to assignment description file */
+  assignmentFile?: string;
+  /** URL to assignment description */
+  assignmentUrl?: string;
+  /** Inline assignment description */
+  assignmentText?: string;
+  /** Path to custom evaluation template */
+  evaluationTemplate?: string;
+  /** URL to evaluation template */
+  templateUrl?: string;
+  /** Path to scoring rubric file */
+  rubricFile?: string;
+  /** Type of assessment */
+  assessmentType?: 'coding-challenge' | 'take-home' | 'live-coding' | 'code-review';
+  /** Difficulty level */
+  difficultyLevel?: 'junior' | 'mid' | 'senior' | 'lead' | 'architect';
+  /** Expected completion time in minutes */
+  timeLimit?: number;
+
+  // Evaluation criteria weights
+  /** Weight for correctness evaluation (0-100) */
+  weightCorrectness?: number;
+  /** Weight for code quality evaluation (0-100) */
+  weightCodeQuality?: number;
+  /** Weight for architecture evaluation (0-100) */
+  weightArchitecture?: number;
+  /** Weight for performance evaluation (0-100) */
+  weightPerformance?: number;
+  /** Weight for testing evaluation (0-100) */
+  weightTesting?: number;
+
+  // Evaluation flags
+  /** Include documentation assessment */
+  evaluateDocumentation?: boolean;
+  /** Include git commit history analysis */
+  evaluateGitHistory?: boolean;
+  /** Focus on edge case handling */
+  evaluateEdgeCases?: boolean;
+  /** Focus on error handling patterns */
+  evaluateErrorHandling?: boolean;
+
+  // Scoring configuration
+  /** Scoring system type */
+  scoringSystem?: 'numeric' | 'letter' | 'pass-fail' | 'custom';
+  /** Maximum possible score */
+  maxScore?: number;
+  /** Minimum passing score */
+  passingThreshold?: number;
+  /** Include detailed score breakdown */
+  scoreBreakdown?: boolean;
+
+  // Feedback options
+  /** Feedback detail level */
+  feedbackLevel?: 'basic' | 'detailed' | 'comprehensive';
+  /** Include code examples in feedback */
+  includeExamples?: boolean;
+  /** Include improvement suggestions */
+  includeSuggestions?: boolean;
+  /** Include learning resources */
+  includeResources?: boolean;
+
+  // Constraints
+  /** Comma-separated list of allowed libraries */
+  allowedLibraries?: string[];
+  /** Comma-separated list of forbidden patterns */
+  forbiddenPatterns?: string[];
+  /** Expected Node.js version */
+  nodeVersion?: string;
+  /** Expected TypeScript version */
+  typescriptVersion?: string;
+  /** Memory constraint in MB */
+  memoryLimit?: number;
+  /** Execution timeout in seconds */
+  executionTimeout?: number;
+
+  /** AI Detection options */
+  /** Enable AI-generated code detection */
+  enableAiDetection?: boolean;
+  /** AI detection confidence threshold (0.0-1.0) */
+  aiDetectionThreshold?: number;
+  /** Comma-separated list of analyzers to use */
+  aiDetectionAnalyzers?: string;
+  /** Include AI detection results in the review report */
+  aiDetectionIncludeInReport?: boolean;
+  /** Automatically fail evaluation if AI-generated code is detected */
+  aiDetectionFailOnDetection?: boolean;
+
+  /** Coding test configuration (internal use) */
+  codingTestConfig?: any;
+
+  /** Metadata about the review (internal use) */
+  metadata?: any;
 }
 
 /**

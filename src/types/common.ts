@@ -111,4 +111,6 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<Exclude<ReviewType, 'consolidated'
   evaluation: 'Developer skill and AI assistance assessment without code improvement suggestions',
   'extract-patterns':
     'Extract detailed code patterns, architecture, and design decisions for creating exemplar project libraries',
+  'coding-test':
+    'Comprehensive coding test assessment against assignment requirements with structured scoring',
 };

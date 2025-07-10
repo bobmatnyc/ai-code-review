@@ -460,6 +460,18 @@ export class PromptManager {
   }
 
   /**
+   * Calculate risk level based on confidence score
+   * @param confidenceScore Confidence score from 0.0 to 1.0
+   * @returns Risk level
+   */
+  private calculateRiskLevel(confidenceScore: number): string {
+    if (confidenceScore >= 0.9) return 'CRITICAL';
+    if (confidenceScore >= 0.8) return 'HIGH';
+    if (confidenceScore >= 0.6) return 'MEDIUM';
+    return 'LOW';
+  }
+
+  /**
    * Process a prompt template by replacing placeholders
    * @param promptTemplate The raw prompt template
    * @param options Review options
@@ -478,6 +490,29 @@ export class PromptManager {
 
     // Prepare variables for templates
     const templateVars: Record<string, any> = {};
+
+    // Add coding test configuration if available
+    if (options?.codingTestConfig) {
+      templateVars.assignment = options.codingTestConfig.assignment;
+      templateVars.criteria = options.codingTestConfig.criteria;
+      templateVars.scoring = options.codingTestConfig.scoring;
+      templateVars.feedback = options.codingTestConfig.feedback;
+      templateVars.constraints = options.codingTestConfig.constraints;
+
+      // Add AI detection data from metadata if available and enabled
+      if (options.codingTestConfig.aiDetection?.includeInReport && options.metadata?.aiDetection) {
+        const aiDetectionMeta = options.metadata.aiDetection;
+        templateVars.aiDetection = {
+          isAIGenerated: aiDetectionMeta.isAIGenerated,
+          confidenceScore: aiDetectionMeta.confidenceScore.toFixed(3),
+          riskLevel: this.calculateRiskLevel(aiDetectionMeta.confidenceScore),
+          patternsDetected: aiDetectionMeta.patternsDetected,
+          highConfidencePatterns: aiDetectionMeta.highConfidencePatterns,
+          analysisTime: aiDetectionMeta.analysisTime,
+          analyzersUsed: aiDetectionMeta.analyzersUsed || [],
+        };
+      }
+    }
 
     // If in interactive mode, include the schema instructions
     if (options?.interactive) {

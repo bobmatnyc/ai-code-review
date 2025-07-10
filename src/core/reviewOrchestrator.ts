@@ -65,6 +65,8 @@ export async function orchestrateReview(target: string, options: ReviewOptions):
 
     // Add debug information if debug mode is enabled
     if (options.debug) {
+      logger.debug(`[ORCHESTRATOR] Effective target: "${effectiveTarget}"`);
+      logger.debug(`[ORCHESTRATOR] Review type: "${options.type}"`);
       logger.debug(`Review options: ${JSON.stringify(options, null, 2)}`);
       logger.debug(
         `Target path: ${effectiveTarget}${!target || target.trim() === '' ? ' (defaulted to ".")' : ''}`,
@@ -97,8 +99,14 @@ export async function orchestrateReview(target: string, options: ReviewOptions):
     // Log the review type
     if (options.type === 'architectural') {
       logger.info(`Starting architectural review for ${effectiveTarget}...`);
+    } else if (options.type === 'coding-test') {
+      logger.info(`Starting coding test evaluation for ${effectiveTarget}...`);
+    } else if (options.type === 'extract-patterns') {
+      logger.info(`Starting pattern extraction for ${effectiveTarget}...`);
+    } else if (options.type === 'unused-code') {
+      logger.info(`Starting unused code review for ${effectiveTarget}...`);
     } else {
-      logger.info(`Starting consolidated ${options.type} review for ${effectiveTarget}...`);
+      logger.info(`Starting ${options.type} review for ${effectiveTarget}...`);
     }
 
     // Determine the project path

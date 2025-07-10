@@ -91,6 +91,14 @@ function initializeHandlebars(): void {
     },
   );
 
+  // Register join helper for arrays
+  Handlebars.registerHelper('join', (array: unknown, separator: string) => {
+    if (Array.isArray(array)) {
+      return array.join(separator);
+    }
+    return '';
+  });
+
   // Register partials by scanning the common directory
   const partialsDir = path.join(getTemplatesDir(), 'common');
   registerPartials(partialsDir, '');

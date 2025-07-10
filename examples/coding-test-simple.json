@@ -1,0 +1,59 @@
+{
+  "assessment": {
+    "type": "coding-challenge",
+    "difficulty": "mid",
+    "timeLimit": 120
+  },
+  "assignment": {
+    "title": "Data Processing Pipeline",
+    "description": "Implement a data processing pipeline that reads CSV files, transforms the data according to business rules, and outputs JSON results with proper error handling.",
+    "requirements": [
+      "Parse CSV input files with validation",
+      "Transform data according to provided business rules",
+      "Generate structured JSON output",
+      "Handle malformed data gracefully",
+      "Include comprehensive error handling",
+      "Write unit tests for core functionality"
+    ]
+  },
+  "evaluation": {
+    "criteria": {
+      "correctness": {
+        "weight": 35,
+        "description": "Functional requirements implementation"
+      },
+      "codeQuality": {
+        "weight": 30,
+        "description": "Code readability and maintainability"
+      },
+      "errorHandling": {
+        "weight": 20,
+        "description": "Robust error handling and validation"
+      },
+      "testing": {
+        "weight": 15,
+        "description": "Test coverage and quality"
+      }
+    }
+  },
+  "scoring": {
+    "system": "numeric",
+    "maxScore": 100,
+    "passingThreshold": 70,
+    "breakdown": true
+  },
+  "feedback": {
+    "level": "detailed",
+    "includeExamples": true,
+    "includeSuggestions": true,
+    "includeResources": false
+  },
+  "constraints": {
+    "targetLanguage": "typescript",
+    "allowedLibraries": ["lodash", "csv-parser", "joi"],
+    "forbiddenPatterns": ["eval", "Function"],
+    "nodeVersion": ">=16.0.0",
+    "memoryLimit": 256,
+    "executionTimeout": 30
+  }
+}

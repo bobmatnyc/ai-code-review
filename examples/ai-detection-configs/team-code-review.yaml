@@ -1,0 +1,48 @@
+# AI Detection Configuration for Internal Team Code Review
+# Use case: Regular code review process for development team
+# Requirements: Awareness and quality assurance, not enforcement
+
+reviewType: coding-test
+enableAiDetection: true
+aiDetectionThreshold: 0.85  # High threshold - focus on obvious cases
+aiDetectionAnalyzers: "git,documentation"
+aiDetectionIncludeInReport: true
+aiDetectionFailOnDetection: false  # No automatic failure for team reviews
+
+# Assignment configuration (used for context)
+assignment:
+  title: "Feature Implementation Review"
+  description: "Standard feature development following team practices"
+  difficulty: "mid"
+  type: "code-review"
+  timeLimit: 0  # No time limit for regular development
+
+# Evaluation criteria for code review
+criteria:
+  correctness: 25        # Feature works as expected
+  codeQuality: 30        # Maintainable, clean code
+  architecture: 20       # Follows team patterns
+  performance: 15        # Reasonable efficiency
+  testing: 10           # Adequate test coverage
+
+# Scoring configuration
+scoring:
+  system: "pass-fail"    # Simple pass/fail for code review
+  maxScore: 100
+  passingThreshold: 70
+  breakdown: false
+
+# Team-focused feedback
+feedback:
+  level: "detailed"
+  includeExamples: true
+  includeSuggestions: true
+  includeResources: false
+
+# Team coding standards
+constraints:
+  allowedLibraries: ["lodash", "axios", "date-fns", "uuid", "joi"]
+  forbiddenPatterns: ["console.log", "debugger", "TODO", "FIXME"]
+  targetLanguage: "typescript"
+  framework: "react"
+  nodeVersion: "18+"

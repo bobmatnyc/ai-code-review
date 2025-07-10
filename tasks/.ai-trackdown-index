@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-07-09T19:07:39.894Z",
+  "lastUpdated": "2025-07-10T03:56:06.491Z",
   "projectPath": "/Users/masa/Projects/managed/ai-code-review",
   "projects": {},
   "epics": {
@@ -14,6 +14,23 @@
       "fileSize": 1480,
       "issueIds": [
         "ISS-0031"
+      ],
+      "completion_percentage": 0
+    },
+    "EP-0002": {
+      "id": "EP-0002",
+      "title": "Coding Assessment and Evaluation Framework",
+      "filePath": "/Users/masa/Projects/managed/ai-code-review/tasks/epics/EP-0002-coding-assessment-and-evaluation-framework.md",
+      "status": "planning",
+      "priority": "medium",
+      "lastModified": "2025-07-10T03:56:06.485Z",
+      "fileSize": 1663,
+      "issueIds": [
+        "ISS-0032",
+        "ISS-0033",
+        "ISS-0034",
+        "ISS-0035",
+        "ISS-0036"
       ],
       "completion_percentage": 0
     }
@@ -32,21 +49,91 @@
       "prIds": [],
       "blocked_by": [],
       "blocks": []
+    },
+    "ISS-0032": {
+      "id": "ISS-0032",
+      "title": "Implement coding-test feature type with assignment and evaluation support",
+      "filePath": "/Users/masa/Projects/managed/ai-code-review/tasks/issues/ISS-0032-implement-coding-test-feature-type-with-assignment-and-evaluation-support.md",
+      "status": "planning",
+      "priority": "medium",
+      "lastModified": "2025-07-09T20:18:11.557Z",
+      "fileSize": 952,
+      "epicId": "EP-0002",
+      "taskIds": [],
+      "prIds": [],
+      "blocked_by": [],
+      "blocks": []
+    },
+    "ISS-0033": {
+      "id": "ISS-0033",
+      "title": "CLI argument parsing ignores --type parameter for coding-test strategy",
+      "filePath": "/Users/masa/Projects/managed/ai-code-review/tasks/issues/ISS-0033-cli-argument-parsing-ignores-type-parameter-for-coding-test-strategy.md",
+      "status": "planning",
+      "priority": "medium",
+      "lastModified": "2025-07-10T02:03:43.666Z",
+      "fileSize": 1046,
+      "epicId": "EP-0002",
+      "taskIds": [],
+      "prIds": [],
+      "blocked_by": [],
+      "blocks": []
+    },
+    "ISS-0034": {
+      "id": "ISS-0034",
+      "title": "Complete CLI path processing and strategy execution for coding-test",
+      "filePath": "/Users/masa/Projects/managed/ai-code-review/tasks/issues/ISS-0034-complete-cli-path-processing-and-strategy-execution-for-coding-test.md",
+      "status": "planning",
+      "priority": "medium",
+      "lastModified": "2025-07-10T02:14:58.692Z",
+      "fileSize": 1068,
+      "epicId": "EP-0002",
+      "taskIds": [],
+      "prIds": [],
+      "blocked_by": [],
+      "blocks": []
+    },
+    "ISS-0035": {
+      "id": "ISS-0035",
+      "title": "Runtime error preventing coding-test strategy execution",
+      "filePath": "/Users/masa/Projects/managed/ai-code-review/tasks/issues/ISS-0035-runtime-error-preventing-coding-test-strategy-execution.md",
+      "status": "planning",
+      "priority": "medium",
+      "lastModified": "2025-07-10T02:33:00.091Z",
+      "fileSize": 1116,
+      "epicId": "EP-0002",
+      "taskIds": [],
+      "prIds": [],
+      "blocked_by": [],
+      "blocks": []
+    },
+    "ISS-0036": {
+      "id": "ISS-0036",
+      "title": "Implement AI-generated code detection for coding test evaluations",
+      "filePath": "/Users/masa/Projects/managed/ai-code-review/tasks/issues/ISS-0036-implement-ai-generated-code-detection-for-coding-test-evaluations.md",
+      "status": "planning",
+      "priority": "medium",
+      "lastModified": "2025-07-10T03:56:06.482Z",
+      "fileSize": 1058,
+      "epicId": "EP-0002",
+      "taskIds": [],
+      "prIds": [],
+      "blocked_by": [],
+      "blocks": []
     }
   },
   "tasks": {},
   "prs": {},
   "stats": {
     "totalProjects": 0,
-    "totalEpics": 1,
-    "totalIssues": 1,
+    "totalEpics": 2,
+    "totalIssues": 6,
     "totalTasks": 0,
     "totalPRs": 0,
     "lastFullScan": "2025-07-09T19:07:33.221Z",
-    "indexSize": 1410,
+    "indexSize": 4594,
     "performanceMetrics": {
       "lastLoadTime": 1,
-      "lastUpdateTime": 1,
+      "lastUpdateTime": 2,
       "lastRebuildTime": 4
     }
   }

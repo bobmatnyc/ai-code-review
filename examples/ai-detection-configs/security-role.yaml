@@ -1,0 +1,54 @@
+# AI Detection Configuration for Security Engineer Role
+# Use case: Security-focused position requiring highest code authenticity
+# Requirements: Maximum scrutiny, automatic failure on detection
+
+reviewType: coding-test
+enableAiDetection: true
+aiDetectionThreshold: 0.6   # Very strict threshold for security roles
+aiDetectionAnalyzers: "git,documentation"
+aiDetectionIncludeInReport: true
+aiDetectionFailOnDetection: true  # Automatic failure for security roles
+
+# Assignment configuration
+assignment:
+  title: "Security Vulnerability Assessment Tool"
+  description: "Develop a tool to analyze code for common security vulnerabilities"
+  difficulty: "senior"
+  type: "take-home"
+  timeLimit: 360  # 6 hours
+  requirements:
+    - "Implement vulnerability scanning algorithms"
+    - "Handle input validation and sanitization"
+    - "Secure coding practices throughout"
+    - "Comprehensive security testing"
+    - "Threat modeling documentation"
+
+# Evaluation criteria heavily weighted for security
+criteria:
+  correctness: 20        # Functional requirements
+  security: 35          # Security implementation and awareness
+  codeQuality: 20        # Clean, secure code
+  architecture: 15       # Secure system design
+  testing: 10           # Security testing focus
+
+# Scoring configuration
+scoring:
+  system: "numeric"
+  maxScore: 100
+  passingThreshold: 80   # High standard for security roles
+  breakdown: true
+
+# Security-focused feedback
+feedback:
+  level: "comprehensive"
+  includeExamples: true
+  includeSuggestions: true
+  includeResources: false  # Security experts should know resources
+
+# Strict security constraints
+constraints:
+  allowedLibraries: []    # Must demonstrate security knowledge
+  forbiddenPatterns: ["eval", "exec", "innerHTML", "document.write", "setTimeout(string"]
+  targetLanguage: "typescript"
+  framework: ""
+  memoryLimit: 256       # Resource constraint awareness

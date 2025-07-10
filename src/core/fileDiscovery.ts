@@ -171,7 +171,9 @@ export async function discoverFiles(
     // Apply smart filtering (tsconfig.json and .eslintignore)
     if (filesToReview.length > 0) {
       logger.info('Applying smart filtering based on project configuration files...');
-      filesToReview = await applySmartFiltering(filesToReview, projectPath);
+      // Use the target directory for finding tsconfig.json, not the project root
+      const configDir = isFileTarget ? path.dirname(targetPath) : targetPath;
+      filesToReview = await applySmartFiltering(filesToReview, configDir);
     }
 
     if (filesToReview.length === 0) {

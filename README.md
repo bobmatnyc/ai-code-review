@@ -1,4 +1,4 @@
-# AI Code Review v4.3.0
+# AI Code Review v4.3.1
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
 
@@ -301,6 +301,7 @@ This tool analyzes code from specified files or directories in sibling projects 
   - **consolidated**: Consolidated review combining multiple approaches
   - **evaluation**: Comprehensive code evaluation
   - **extract-patterns**: Code pattern analysis and best practice suggestions
+- **coding-test**: Comprehensive coding test evaluation with assignment scoring and AI detection
 - **Interactive Mode**: Process review results interactively, implementing fixes based on priority
 - **Automatic Fixes**: Automatically implement high priority fixes without manual intervention
 - **Prompt-Based Fixes**: Confirm and apply medium and low priority fixes with user input
@@ -432,6 +433,15 @@ ai-code-review src --type consolidated
 ai-code-review src --type evaluation
 ai-code-review src --type extract-patterns
 
+# Perform coding test evaluation with AI detection
+ai-code-review ./candidate-submission --type coding-test --enable-ai-detection
+
+# Advanced coding test with custom threshold and specific analyzers
+ai-code-review ./submission --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-threshold 0.8 \
+  --ai-detection-analyzers git,documentation
+
 # Include test files in the review
 ai-code-review src --include-tests
 
@@ -498,7 +508,7 @@ ai-code-review src --config .ai-code-review.yaml
 ```
 Options:
   # Basic Options
-  -t, --type <type>       Type of review (choices: quick-fixes, architectural, security, performance, unused-code, focused-unused-code, code-tracing-unused-code, improved-quick-fixes, consolidated, evaluation, extract-patterns) (default: "quick-fixes")
+  -t, --type <type>       Type of review (choices: quick-fixes, architectural, security, performance, unused-code, focused-unused-code, code-tracing-unused-code, improved-quick-fixes, consolidated, evaluation, extract-patterns, coding-test) (default: "quick-fixes")
   -o, --output <format>   Output format (markdown, json) (default: "markdown")
   --output-dir <dir>      Directory to save review output
   -m, --model <model>     Model to use for the review (format: provider:model) (default: "gemini:gemini-2.5-pro")
@@ -538,6 +548,13 @@ Options:
   --openrouter-api-key <key> OpenRouter API key
   --anthropic-api-key <key> Anthropic API key for Claude models
   --openai-api-key <key>  OpenAI API key for GPT models
+  
+  # AI Detection Options (for coding-test type)
+  --enable-ai-detection   Enable AI-generated code detection (default: false)
+  --ai-detection-threshold <threshold>  AI detection confidence threshold 0.0-1.0 (default: 0.7)
+  --ai-detection-analyzers <analyzers>  Comma-separated list of analyzers: git,documentation,structural,statistical,linguistic (default: "git,documentation")
+  --ai-detection-include-in-report      Include AI detection results in review report (default: true)
+  --ai-detection-fail-on-detection     Automatically fail evaluation if AI-generated code detected (default: false)
 ```
 
 ### Model Testing Options
@@ -1026,6 +1043,279 @@ const fullModelKey = getFullModelKey('anthropic', 'claude-3-opus');
 ```
 
 These utility functions make it easy to work with the model mapping system in your code.
+
+## AI-Generated Code Detection
+
+The tool includes advanced AI detection capabilities specifically designed for coding test evaluations and hiring assessments. This feature analyzes code submissions to identify patterns that suggest AI assistance, helping maintain the integrity of technical assessments.
+
+### How AI Detection Works
+
+The AI detection system uses a multi-analyzer approach that examines various aspects of code submissions:
+
+1. **Git History Analysis**: Examines commit patterns, timing, and message structures that may indicate AI-generated content
+2. **Documentation Analysis**: Analyzes README files, comments, and documentation for AI-typical patterns and structures
+3. **Structural Analysis**: *[Future]* Evaluates code organization, naming conventions, and architectural patterns
+4. **Statistical Analysis**: *[Future]* Performs linguistic analysis of variable names, comments, and coding style
+5. **Linguistic Analysis**: *[Future]* Analyzes natural language patterns in comments and documentation
+
+### Using AI Detection
+
+#### Basic AI Detection
+
+```bash
+# Enable AI detection for coding tests
+ai-code-review ./candidate-submission --type coding-test --enable-ai-detection
+
+# Use AI detection with custom confidence threshold
+ai-code-review ./submission --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-threshold 0.8
+```
+
+#### Advanced Configuration
+
+```bash
+# Specify which analyzers to use
+ai-code-review ./submission --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-analyzers git,documentation \
+  --ai-detection-threshold 0.7
+
+# Fail evaluation automatically if AI is detected
+ai-code-review ./submission --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-fail-on-detection
+
+# Include detailed AI detection results in report
+ai-code-review ./submission --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-include-in-report
+```
+
+### AI Detection Parameters
+
+| Parameter | Description | Default | Type |
+|-----------|-------------|---------|------|
+| `--enable-ai-detection` | Enable AI-generated code detection | `false` | boolean |
+| `--ai-detection-threshold` | Confidence threshold (0.0-1.0) for AI detection | `0.7` | number |
+| `--ai-detection-analyzers` | Comma-separated list of analyzers to use | `git,documentation` | string |
+| `--ai-detection-include-in-report` | Include AI detection results in the review report | `true` | boolean |
+| `--ai-detection-fail-on-detection` | Automatically fail if AI-generated code is detected | `false` | boolean |
+
+### Understanding AI Detection Results
+
+#### Confidence Scores
+
+- **0.9-1.0**: Critical risk - Strong indicators of AI-generated content
+- **0.8-0.9**: High risk - Multiple AI patterns detected
+- **0.6-0.8**: Medium risk - Some concerning patterns
+- **0.4-0.6**: Low risk - Minor indicators present
+- **0.0-0.4**: Minimal risk - Likely human-authored
+
+#### Pattern Types
+
+**High Confidence Patterns:**
+- Large initial commits with complete functionality
+- Uniform commit timing patterns
+- Template-like README structure
+- Excessive or unusually uniform commenting
+
+**Medium Confidence Patterns:**
+- Specific coding style patterns
+- Documentation structure anomalies
+- Variable naming conventions
+
+**Low Confidence Patterns:**
+- Minor stylistic indicators
+- Edge case patterns
+
+### AI Detection in Different Scenarios
+
+#### Hiring and Technical Assessments
+
+```bash
+# Strict evaluation for senior-level positions
+ai-code-review ./candidate-submission --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-threshold 0.6 \
+  --ai-detection-fail-on-detection
+
+# Detailed analysis for code review positions
+ai-code-review ./submission --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-analyzers git,documentation \
+  --ai-detection-include-in-report
+```
+
+#### Educational Settings
+
+```bash
+# Moderate threshold for student assessments
+ai-code-review ./student-project --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-threshold 0.75 \
+  --ai-detection-include-in-report
+```
+
+#### Code Review and Quality Assurance
+
+```bash
+# Light detection for internal code reviews
+ai-code-review ./feature-branch --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-threshold 0.8
+```
+
+### Configuration File Support
+
+You can configure AI detection in your `.ai-code-review.yaml` file:
+
+```yaml
+# .ai-code-review.yaml
+reviewType: coding-test
+enableAiDetection: true
+aiDetectionThreshold: 0.7
+aiDetectionAnalyzers: "git,documentation"
+aiDetectionIncludeInReport: true
+aiDetectionFailOnDetection: false
+
+# Assignment configuration
+assignment:
+  title: "Backend API Implementation"
+  difficulty: "mid"
+  type: "take-home"
+  timeLimit: 240
+
+# Evaluation criteria
+criteria:
+  correctness: 30
+  codeQuality: 25
+  architecture: 20
+  performance: 15
+  testing: 10
+```
+
+### Best Practices for AI Detection
+
+#### For Hiring Managers
+
+1. **Set Appropriate Thresholds**: Use 0.7-0.8 for most positions, 0.6 for senior roles requiring high code authenticity
+2. **Combine with Interviews**: Always follow up high-confidence detections with technical interviews
+3. **Consider Context**: Factor in assignment complexity and time constraints
+4. **Document Decisions**: Keep records of detection results and follow-up actions
+
+#### For Educators
+
+1. **Educational Use**: Use AI detection as a teaching tool to discuss code authenticity
+2. **Clear Policies**: Establish clear guidelines about AI assistance in coursework
+3. **Progressive Thresholds**: Use lower thresholds early in courses, higher for final projects
+4. **Student Discussion**: Use detection results to facilitate conversations about learning
+
+#### For Code Review
+
+1. **Team Standards**: Establish team-wide policies about AI assistance in code development
+2. **Quality Assurance**: Use detection to maintain code quality and authenticity standards
+3. **Process Integration**: Integrate AI detection into existing code review workflows
+
+### Troubleshooting AI Detection
+
+#### Common Issues
+
+**False Positives:**
+- Very clean, well-structured code may trigger detection
+- Developers who follow strict coding standards consistently
+- Code based on well-known patterns or templates
+
+**False Negatives:**
+- AI-generated code that has been significantly modified
+- Sophisticated AI tools that mimic human patterns
+- Mixed human-AI collaboration
+
+#### Debugging Detection Results
+
+```bash
+# Enable debug logging for detailed analysis
+ai-code-review ./submission --type coding-test \
+  --enable-ai-detection \
+  --debug
+
+# Use multiple analyzers for comprehensive analysis
+ai-code-review ./submission --type coding-test \
+  --enable-ai-detection \
+  --ai-detection-analyzers git,documentation,structural
+```
+
+### Integration Examples
+
+#### CI/CD Pipeline Integration
+
+```yaml
+# GitHub Actions example
+name: Code Review with AI Detection
+on: [pull_request]
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Important for git history analysis
+      
+      - name: AI Code Review with Detection
+        run: |
+          npx @bobmatnyc/ai-code-review ./src \
+            --type coding-test \
+            --enable-ai-detection \
+            --ai-detection-threshold 0.8 \
+            --format json \
+            --output ai-review-results.json
+      
+      - name: Check AI Detection Results
+        run: |
+          if grep -q '"isAIGenerated": true' ai-review-results.json; then
+            echo "::warning::AI-generated code detected"
+            exit 1
+          fi
+```
+
+#### Batch Processing
+
+```bash
+#!/bin/bash
+# Process multiple candidate submissions
+
+for submission in ./candidates/*/; do
+  candidate=$(basename "$submission")
+  echo "Analyzing $candidate..."
+  
+  ai-code-review "$submission" \
+    --type coding-test \
+    --enable-ai-detection \
+    --ai-detection-threshold 0.7 \
+    --format json \
+    --output "results/${candidate}-analysis.json"
+done
+
+# Generate summary report
+echo "Generating summary report..."
+node scripts/generate-summary-report.js results/
+```
+
+### Security and Privacy Considerations
+
+- **Data Privacy**: AI detection analysis is performed locally; no code is sent to external services
+- **False Positives**: Always verify high-confidence detections through additional assessment methods
+- **Legal Compliance**: Ensure AI detection usage complies with local employment and education laws
+- **Transparency**: Consider disclosing AI detection usage to candidates and students
+
+### Supported File Types
+
+AI detection works best with:
+- Git repositories with commit history
+- Projects with README files and documentation
+- Standard project structures (package.json, etc.)
+- Multiple file types for comprehensive analysis
 
 ## Code Tracing for Unused Code Detection
 

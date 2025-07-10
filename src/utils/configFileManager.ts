@@ -157,7 +157,11 @@ export function loadConfigFile(configFilePath?: string): ConfigFile | null {
  * @param options The review options to modify
  * @returns The modified review options
  */
-export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions): ReviewOptions {
+export function applyConfigToOptions(
+  config: ConfigFile,
+  options: ReviewOptions,
+  cliSpecifiedOptions?: { debug?: boolean; type?: boolean; target?: boolean },
+): ReviewOptions {
   // Make a copy of the options to avoid modifying the original
   const newOptions = { ...options };
 
@@ -173,7 +177,7 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
 
   // Apply review configuration
   if (config.review) {
-    if (config.review.type && newOptions.type === undefined) {
+    if (config.review.type && newOptions.type === undefined && !cliSpecifiedOptions?.type) {
       newOptions.type = config.review.type as any;
     }
     if (config.review.interactive !== undefined && newOptions.interactive === undefined) {
@@ -279,7 +283,11 @@ export function applyConfigToOptions(config: ConfigFile, options: ReviewOptions)
 
   // Apply system configuration
   if (config.system) {
-    if (config.system.debug !== undefined && newOptions.debug === undefined) {
+    if (
+      config.system.debug !== undefined &&
+      newOptions.debug === undefined &&
+      !cliSpecifiedOptions?.debug
+    ) {
       newOptions.debug = config.system.debug;
     }
     if (config.system.log_level && !(newOptions as CliOptions).logLevel) {

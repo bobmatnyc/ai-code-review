@@ -107,15 +107,27 @@ export async function loadTsConfig(projectDir: string): Promise<TsConfig | null>
  * @returns Regular expression pattern
  */
 function convertTsGlobToRegex(pattern: string): RegExp {
-  // Replace special characters with their regex equivalents
-  const regexPattern = pattern
-    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*/g, '.*')
-    .replace(/\*/g, '[^/]*')
-    .replace(/\?/g, '[^/]');
+  // Escape special regex characters first, but preserve glob patterns
+  let regexPattern = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\?/g, '[^/]');
 
-  // Add standard regex markers
-  return new RegExp(`^${regexPattern}$|^${regexPattern}/|/${regexPattern}$|/${regexPattern}/`);
+  // Handle ** patterns (match zero or more directories)
+  // **/ at the beginning means match any number of directories
+  // /** at the end means match any number of directories
+  // /**/  in the middle means match any number of directories
+  regexPattern = regexPattern
+    .replace(/\*\*\//g, '(?:.*/)?') // **/ matches zero or more directories
+    .replace(/\/\*\*/g, '(?:/.*)?') // /** matches zero or more directories
+    .replace(/\*\*/g, '.*'); // ** by itself matches anything
+
+  // Handle single * patterns (match anything except directory separators)
+  regexPattern = regexPattern.replace(/\*/g, '[^/]*');
+
+  // Create regex that matches both full paths and relative paths
+  // The pattern should match if:
+  // 1. The full path matches the pattern
+  // 2. The relative path matches the pattern
+  // 3. The pattern matches from any directory level
+  return new RegExp(`(^|/)${regexPattern}$`, 'i');
 }
 
 /**
@@ -157,30 +169,32 @@ export function matchesTsConfig(filePath: string, tsConfig: TsConfig, projectDir
 
   // Then check include patterns
   if (tsConfig.include && tsConfig.include.length > 0) {
-    // For the test case 'should match files that are included in tsconfig.json'
-    // We need to make sure these test paths match the src/**/* pattern
-
     // Find if file matches any include pattern
     for (const pattern of tsConfig.include) {
       const regex = convertTsGlobToRegex(pattern);
 
-      // Check both the full path and the relative path
-      if (regex.test(normalizedPath) || regex.test(relativePath)) {
-        return true;
-      }
+      // Test the pattern against different path representations
+      const testPaths = [
+        normalizedPath,
+        relativePath,
+        path.basename(filePath),
+        // Also test with leading slash removed for relative paths
+        relativePath.startsWith('/') ? relativePath.slice(1) : relativePath,
+      ];
 
-      // Special handling for test cases with src/**/* pattern
-      if (
-        pattern === 'src/**/*' &&
-        (relativePath.startsWith('src/') ||
-          normalizedPath.includes('/src/') ||
-          normalizedPath.endsWith('/src'))
-      ) {
-        return true;
+      for (const testPath of testPaths) {
+        if (regex.test(testPath)) {
+          logger.debug(
+            `File ${filePath} matched by tsconfig.json pattern: ${pattern} (tested path: ${testPath})`,
+          );
+          return true;
+        }
       }
     }
 
-    logger.debug(`File ${filePath} not included by any tsconfig.json include pattern`);
+    logger.debug(
+      `File ${filePath} not included by any tsconfig.json include pattern (patterns: ${tsConfig.include.join(', ')})`,
+    );
     return false;
   }
 

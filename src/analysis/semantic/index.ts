@@ -138,7 +138,7 @@ export class SemanticAnalysisSystem {
         fallbackUsed: false,
         metadata: {
           filePath,
-          language: analysisResult.analysis?.language,
+          language: analysisResult.analysis?.language || 'unknown',
           reviewType,
           analyzedAt: new Date(),
           totalChunks: chunkingRecommendation.chunks.length,

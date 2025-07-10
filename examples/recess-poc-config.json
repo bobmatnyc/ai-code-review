@@ -1,0 +1,254 @@
+{
+  "assignment": {
+    "title": "Events Platform API Development - Recess Evaluation POC",
+    "description": "Build a RESTful API for an events platform that allows users to create, manage, and attend events. The platform should support user authentication, event management, and attendance tracking. This configuration replicates the actual Recess assignment evaluation framework.",
+    "requirements": [
+      "Implement user authentication and authorization",
+      "Create event management endpoints (CRUD operations)",
+      "Add event attendance/booking functionality", 
+      "Include proper error handling and validation",
+      "Write comprehensive tests for core functionality",
+      "Provide API documentation",
+      "Implement proper database design and relationships",
+      "Add search and filtering capabilities for events",
+      "Include proper logging and monitoring"
+    ],
+    "type": "take-home",
+    "difficulty": "senior",
+    "timeLimit": 240
+  },
+  
+  "evaluation": {
+    "criteria": {
+      "technicalImplementation": {
+        "weight": 25,
+        "description": "Functional requirements implementation, API correctness, and build success"
+      },
+      "codeQuality": {
+        "weight": 20,
+        "description": "Code readability, maintainability, TypeScript best practices, and error handling"
+      },
+      "security": {
+        "weight": 15,
+        "description": "Authentication, input validation, rate limiting, and vulnerability prevention"
+      },
+      "testing": {
+        "weight": 15,
+        "description": "Test coverage, test quality, testing strategy, and quality assurance"
+      },
+      "architecture": {
+        "weight": 10,
+        "description": "API design, database schema, architectural decisions, and scalability"
+      },
+      "documentation": {
+        "weight": 10,
+        "description": "Code documentation, API docs, README quality, and inline comments"
+      },
+      "gitWorkflow": {
+        "weight": 5,
+        "description": "Git history analysis, development process, and commit quality"
+      }
+    }
+  },
+
+  "scoring": {
+    "system": "numeric",
+    "maxScore": 100,
+    "passingThreshold": 70,
+    "breakdown": true
+  },
+
+  "feedback": {
+    "level": "comprehensive",
+    "includeExamples": true,
+    "includeSuggestions": true,
+    "includeResources": true
+  },
+
+  "constraints": {
+    "targetLanguage": "typescript",
+    "framework": "nextjs",
+    "allowedLibraries": [
+      "next",
+      "react",
+      "prisma",
+      "express",
+      "joi",
+      "zod",
+      "jsonwebtoken",
+      "bcrypt",
+      "mongoose",
+      "sequelize",
+      "typeorm",
+      "lodash",
+      "moment",
+      "date-fns",
+      "uuid",
+      "cors",
+      "helmet",
+      "winston",
+      "pino",
+      "jest",
+      "vitest",
+      "supertest",
+      "ts-jest",
+      "tailwindcss"
+    ],
+    "forbiddenPatterns": [
+      "eval",
+      "Function",
+      "with",
+      "arguments.caller",
+      "arguments.callee"
+    ],
+    "nodeVersion": ">=16.0.0",
+    "typescriptVersion": ">=4.5.0",
+    "memoryLimit": 512,
+    "executionTimeout": 30
+  },
+
+  "additionalCriteria": {
+    "databaseDesign": {
+      "weight": 5,
+      "description": "Database schema design and relationship modeling"
+    },
+    "apiDesign": {
+      "weight": 5,
+      "description": "RESTful API design principles and conventions" 
+    },
+    "performanceOptimization": {
+      "weight": 5,
+      "description": "Bundle size, query optimization, caching, and scalability"
+    },
+    "accessibilityCompliance": {
+      "weight": 3,
+      "description": "WCAG compliance, semantic HTML, and screen reader support"
+    },
+    "seoOptimization": {
+      "weight": 2,
+      "description": "SEO best practices, metadata, and structured data"
+    }
+  },
+
+  "deliverables": [
+    "Complete Next.js TypeScript application with functional event management",
+    "Database schema with proper relationships (Prisma or equivalent)",
+    "Comprehensive test suite with >80% coverage",
+    "API documentation (OpenAPI/Swagger preferred)",
+    "README with setup and usage instructions",
+    "Environment configuration examples (.env.example)",
+    "Postman collection or equivalent for API testing"
+  ],
+
+  "technicalRequirements": {
+    "authentication": "JWT-based authentication required",
+    "database": "SQL or NoSQL database (PostgreSQL, MongoDB, or MySQL)",
+    "validation": "Input validation and sanitization required (Zod/Joi)",
+    "errorHandling": "Proper error handling with appropriate HTTP status codes",
+    "logging": "Structured logging implementation required",
+    "testing": "Unit tests and integration tests required",
+    "documentation": "API documentation and inline code comments required",
+    "typeScript": "Strict TypeScript usage - no 'any' types allowed",
+    "buildSuccess": "Application must build and run without errors",
+    "codeStyle": "ESLint configuration and consistent formatting required"
+  },
+
+  "bonusPoints": [
+    "Docker containerization with docker-compose",
+    "CI/CD pipeline setup (GitHub Actions)",
+    "Rate limiting implementation", 
+    "Caching strategy (Redis/Memory)",
+    "Real-time features (WebSockets/SSE)",
+    "Email notifications system",
+    "File upload functionality",
+    "Advanced search with filters and pagination",
+    "Soft delete functionality",
+    "Performance monitoring and analytics",
+    "Internationalization (i18n) support",
+    "Progressive Web App (PWA) features"
+  ],
+
+  "commonPitfalls": [
+    "Hardcoded secrets or configuration in code",
+    "SQL injection vulnerabilities",
+    "Missing input validation and sanitization",
+    "Poor error handling or generic error messages",
+    "Lack of authentication on protected routes",
+    "Inconsistent API response formats",
+    "Missing or poor test coverage (<80%)",
+    "No API documentation or outdated docs",
+    "Inefficient database queries (N+1 problems)",
+    "Missing logging or monitoring capabilities",
+    "Using 'any' types defeating TypeScript benefits",
+    "Build failures or deployment issues",
+    "Missing accessibility considerations",
+    "No code comments or documentation",
+    "Inconsistent code formatting or style"
+  ],
+
+  "aiUsageDetection": {
+    "enabled": true,
+    "analysisAreas": [
+      "development velocity patterns",
+      "commit frequency and timing",
+      "code complexity vs development time",
+      "error handling completeness",
+      "testing coverage patterns",
+      "documentation quality vs code quality ratio"
+    ],
+    "suspiciousPatterns": [
+      "Complete MVP implementation in unusually short timeframe",
+      "Perfect first implementation without iteration",
+      "Comprehensive feature set without learning curve evidence",
+      "No debugging or refactoring commits",
+      "Advanced patterns implemented flawlessly on first try"
+    ]
+  },
+
+  "evaluationFramework": {
+    "phases": [
+      {
+        "name": "Initial Assessment",
+        "criteria": ["builds successfully", "runs without errors", "basic functionality works"]
+      },
+      {
+        "name": "Code Quality Review", 
+        "criteria": ["TypeScript usage", "error handling", "code organization", "documentation"]
+      },
+      {
+        "name": "Security Analysis",
+        "criteria": ["authentication implementation", "input validation", "vulnerability scanning"]
+      },
+      {
+        "name": "Testing Evaluation",
+        "criteria": ["test coverage", "test quality", "edge case handling"]
+      },
+      {
+        "name": "Architecture Review",
+        "criteria": ["API design", "database schema", "scalability considerations"]
+      },
+      {
+        "name": "Professional Standards",
+        "criteria": ["documentation quality", "Git workflow", "deployment readiness"]
+      }
+    ]
+  },
+
+  "reportingFormat": {
+    "sections": [
+      "Executive Summary with overall grade",
+      "Technical Implementation Analysis",
+      "Code Quality Assessment", 
+      "Security Evaluation",
+      "Testing and Quality Assurance Review",
+      "Architecture and Design Analysis",
+      "AI Usage Detection Report",
+      "Professional Development Process Review",
+      "Recommendations and Action Items",
+      "Final Scoring Breakdown"
+    ],
+    "includeCodeExamples": true,
+    "includeMetrics": true,
+    "includeComparisons": true
+  }
+}

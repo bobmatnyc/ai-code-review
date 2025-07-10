@@ -1,0 +1,55 @@
+# AI Detection Configuration for University Computer Science Course
+# Use case: Final project evaluation for advanced programming course
+# Requirements: Educational focus, detailed feedback, moderate enforcement
+
+reviewType: coding-test
+enableAiDetection: true
+aiDetectionThreshold: 0.75  # Moderate threshold for educational setting
+aiDetectionAnalyzers: "git,documentation"
+aiDetectionIncludeInReport: true
+aiDetectionFailOnDetection: false  # Educational discussion rather than automatic failure
+
+# Assignment configuration
+assignment:
+  title: "Data Structures and Algorithms Final Project"
+  description: "Implement a graph-based application demonstrating advanced algorithms and data structures"
+  difficulty: "mid"
+  type: "take-home"
+  timeLimit: 1440  # 24 hours (flexible for students)
+  requirements:
+    - "Implement at least two graph algorithms"
+    - "Use appropriate data structures"
+    - "Include complexity analysis"
+    - "Provide comprehensive documentation"
+    - "Include unit tests with good coverage"
+
+# Evaluation criteria for educational assessment
+criteria:
+  correctness: 30        # Algorithm implementation
+  codeQuality: 20        # Clean, readable code
+  architecture: 15       # Good design principles
+  performance: 15        # Algorithmic efficiency
+  testing: 10           # Test coverage
+  documentation: 10      # Clear explanations
+
+# Scoring configuration
+scoring:
+  system: "letter"       # A-F grading system
+  maxScore: 100
+  passingThreshold: 70   # Standard academic threshold
+  breakdown: true
+
+# Educational feedback
+feedback:
+  level: "comprehensive"
+  includeExamples: true
+  includeSuggestions: true
+  includeResources: true   # Help students learn
+
+# Academic constraints
+constraints:
+  allowedLibraries: []    # Students should implement algorithms themselves
+  forbiddenPatterns: ["import graph_library", "from algorithms import"]
+  targetLanguage: "python"
+  framework: ""
+  memoryLimit: 512       # Reasonable constraint for algorithms

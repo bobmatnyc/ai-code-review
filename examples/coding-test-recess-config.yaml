@@ -1,0 +1,148 @@
+# Recess Events Platform Coding Test Configuration
+# This configuration demonstrates how to evaluate a take-home coding assignment
+# similar to the Recess events platform assessment
+
+assessment:
+  type: "take-home"
+  difficulty: "senior"
+  timeLimit: 240  # 4 hours
+  
+assignment:
+  title: "Events Platform API Development"
+  description: |
+    Build a RESTful API for an events platform that allows users to create, manage, and attend events.
+    The platform should support user authentication, event management, and attendance tracking.
+  requirements:
+    - "Implement user authentication and authorization"
+    - "Create event management endpoints (CRUD operations)"
+    - "Add event attendance/booking functionality"
+    - "Include proper error handling and validation"
+    - "Write comprehensive tests for core functionality"
+    - "Provide API documentation"
+    - "Implement proper database design and relationships"
+    - "Add search and filtering capabilities for events"
+    - "Include proper logging and monitoring"
+  
+evaluation:
+  criteria:
+    correctness:
+      weight: 35
+      description: "Functional requirements implementation and API correctness"
+    codeQuality:
+      weight: 25
+      description: "Code readability, maintainability, and TypeScript best practices"
+    architecture:
+      weight: 20
+      description: "API design, database schema, and architectural decisions"
+    performance:
+      weight: 10
+      description: "Efficiency considerations and scalability"
+    testing:
+      weight: 10
+      description: "Test coverage, test quality, and testing strategy"
+  
+scoring:
+  system: "numeric"
+  maxScore: 100
+  passingThreshold: 75
+  breakdown: true
+  
+feedback:
+  level: "comprehensive"
+  includeExamples: true
+  includeSuggestions: true
+  includeResources: true
+  
+constraints:
+  targetLanguage: "typescript"
+  framework: "express"
+  allowedLibraries: 
+    - "express"
+    - "joi"
+    - "jsonwebtoken"
+    - "bcrypt"
+    - "mongoose"
+    - "sequelize"
+    - "typeorm"
+    - "lodash"
+    - "moment"
+    - "date-fns"
+    - "uuid"
+    - "cors"
+    - "helmet"
+    - "winston"
+    - "pino"
+    - "jest"
+    - "supertest"
+    - "ts-jest"
+  forbiddenPatterns:
+    - "eval"
+    - "Function"
+    - "with"
+    - "arguments.caller"
+    - "arguments.callee"
+  nodeVersion: ">=16.0.0"
+  typescriptVersion: ">=4.5.0"
+  memoryLimit: 512  # MB
+  executionTimeout: 30  # seconds
+
+# Additional evaluation criteria specific to this assignment
+additionalCriteria:
+  databaseDesign:
+    weight: 5
+    description: "Database schema design and relationship modeling"
+  apiDesign:
+    weight: 5
+    description: "RESTful API design principles and conventions"
+  security:
+    weight: 5
+    description: "Security best practices and vulnerability prevention"
+  documentation:
+    weight: 5
+    description: "Code documentation, API docs, and README quality"
+
+# Expected deliverables checklist
+deliverables:
+  - "Complete Express.js TypeScript application"
+  - "Database schema with proper relationships"
+  - "Comprehensive test suite with >80% coverage"
+  - "API documentation (OpenAPI/Swagger preferred)"
+  - "README with setup and usage instructions"
+  - "Environment configuration examples"
+  - "Postman collection or equivalent for API testing"
+
+# Technical requirements
+technicalRequirements:
+  authentication: "JWT-based authentication required"
+  database: "SQL or NoSQL database (PostgreSQL, MongoDB, or MySQL)"
+  validation: "Input validation and sanitization required"
+  errorHandling: "Proper error handling with appropriate HTTP status codes"
+  logging: "Structured logging implementation"
+  testing: "Unit tests and integration tests required"
+  documentation: "API documentation required"
+  
+# Bonus points (optional but valued)
+bonusPoints:
+  - "Docker containerization"
+  - "CI/CD pipeline setup"
+  - "Rate limiting implementation"
+  - "Caching strategy"
+  - "Real-time features (WebSockets/SSE)"
+  - "Email notifications"
+  - "File upload functionality"
+  - "Advanced search with filters"
+  - "Pagination implementation"
+  - "Soft delete functionality"
+
+# Common pitfalls to avoid
+commonPitfalls:
+  - "Hardcoded secrets or configuration"
+  - "SQL injection vulnerabilities"
+  - "Missing input validation"
+  - "Poor error handling"
+  - "Lack of authentication on protected routes"
+  - "Inconsistent API response formats"
+  - "Missing or poor test coverage"
+  - "No API documentation"
+  - "Inefficient database queries"
+  - "Missing logging or monitoring"
