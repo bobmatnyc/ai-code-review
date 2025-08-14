@@ -93,3 +93,10 @@ ai-report/quick-fixes-review---gemini-2-5-pro-2025-05-20T20-03-00-100Z.md
 
 # Incoming documentation (temporary files)
 docs/incoming/
+.claude-mpm/
+.claude-pm/
+.claude/
+.env.local.backup
+memory.db*
+recess-test/
+examples/coding-test-sample/
