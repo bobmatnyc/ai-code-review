@@ -123,14 +123,20 @@ export class OpenRouterClient extends AbstractClient {
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    // During consolidation, the model may have been overridden. We should check if we're already initialized
+    // with a valid model rather than checking the current environment variable.
+    if (!this.isInitialized || !this.modelName) {
+      // If not initialized, check against the current environment variable
+      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
 
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`,
-      );
+      // Make sure this is the correct client
+      if (!isCorrect) {
+        throw new Error(
+          `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`,
+        );
+      }
     }
+    // If we're already initialized with a model, trust that initialization was correct
 
     try {
       // Initialize if needed
@@ -216,6 +222,36 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         }
 
         const content = data.choices[0].message.content;
+
+        // Check for truncated response
+        const usage = data.usage;
+        if (usage && usage.completion_tokens < 50) {
+          logger.warn(
+            `Response appears truncated - only ${usage.completion_tokens} output tokens generated. ` +
+              `This may indicate an API issue with model ${this.modelName}.`,
+          );
+
+          // If response is truncated and appears to be incomplete JSON
+          if (content.trim().startsWith('{') && !content.includes('}')) {
+            const errorMessage =
+              `The AI model response was truncated and incomplete. ` +
+              `Only ${usage.completion_tokens} tokens were generated instead of the expected response. ` +
+              `This is likely an issue with the OpenRouter API or the ${this.modelName} model. ` +
+              `Please try again or use a different model.`;
+
+            logger.error(`Truncated response detected: ${content.substring(0, 100)}...`);
+            throw new Error(errorMessage);
+          }
+        }
+
+        // Log response details for debugging
+        if (usage) {
+          logger.debug(
+            `OpenRouter response stats - Input tokens: ${usage.prompt_tokens}, ` +
+              `Output tokens: ${usage.completion_tokens}, Total: ${usage.total_tokens}`,
+          );
+        }
+
         logger.info(`Successfully generated review with OpenRouter ${this.modelName}`);
 
         // Create and return the review result
@@ -251,14 +287,20 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    // During consolidation, the model may have been overridden. We should check if we're already initialized
+    // with a valid model rather than checking the current environment variable.
+    if (!this.isInitialized || !this.modelName) {
+      // If not initialized, check against the current environment variable
+      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
 
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`,
-      );
+      // Make sure this is the correct client
+      if (!isCorrect) {
+        throw new Error(
+          `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`,
+        );
+      }
     }
+    // If we're already initialized with a model, trust that initialization was correct
 
     try {
       // Initialize if needed
@@ -345,6 +387,36 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         }
 
         const content = data.choices[0].message.content;
+
+        // Check for truncated response
+        const usage = data.usage;
+        if (usage && usage.completion_tokens < 50) {
+          logger.warn(
+            `Response appears truncated - only ${usage.completion_tokens} output tokens generated. ` +
+              `This may indicate an API issue with model ${this.modelName}.`,
+          );
+
+          // If response is truncated and appears to be incomplete JSON
+          if (content.trim().startsWith('{') && !content.includes('}')) {
+            const errorMessage =
+              `The AI model response was truncated and incomplete. ` +
+              `Only ${usage.completion_tokens} tokens were generated instead of the expected response. ` +
+              `This is likely an issue with the OpenRouter API or the ${this.modelName} model. ` +
+              `Please try again or use a different model.`;
+
+            logger.error(`Truncated response detected: ${content.substring(0, 100)}...`);
+            throw new Error(errorMessage);
+          }
+        }
+
+        // Log response details for debugging
+        if (usage) {
+          logger.debug(
+            `OpenRouter response stats - Input tokens: ${usage.prompt_tokens}, ` +
+              `Output tokens: ${usage.completion_tokens}, Total: ${usage.total_tokens}`,
+          );
+        }
+
         logger.info(`Successfully generated consolidated review with OpenRouter ${this.modelName}`);
 
         // Create and return the review result

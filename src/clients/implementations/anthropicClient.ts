@@ -134,14 +134,20 @@ export class AnthropicClient extends AbstractClient {
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    // During consolidation, the model may have been overridden. We should check if we're already initialized
+    // with a valid model rather than checking the current environment variable.
+    if (!this.isInitialized || !this.modelName) {
+      // If not initialized, check against the current environment variable
+      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
 
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `Anthropic client was called with an invalid model. This is likely a bug in the client selection logic.`,
-      );
+      // Make sure this is the correct client
+      if (!isCorrect) {
+        throw new Error(
+          `Anthropic client was called with an invalid model. This is likely a bug in the client selection logic.`,
+        );
+      }
     }
+    // If we're already initialized with a model, trust that initialization was correct
 
     try {
       // Initialize if needed
@@ -249,14 +255,20 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    // During consolidation, the model may have been overridden. We should check if we're already initialized
+    // with a valid model rather than checking the current environment variable.
+    if (!this.isInitialized || !this.modelName) {
+      // If not initialized, check against the current environment variable
+      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
 
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `Anthropic client was called with an invalid model. This is likely a bug in the client selection logic.`,
-      );
+      // Make sure this is the correct client
+      if (!isCorrect) {
+        throw new Error(
+          `Anthropic client was called with an invalid model. This is likely a bug in the client selection logic.`,
+        );
+      }
     }
+    // If we're already initialized with a model, trust that initialization was correct
 
     try {
       // Initialize if needed

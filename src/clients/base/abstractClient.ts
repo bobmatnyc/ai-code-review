@@ -26,6 +26,14 @@ export abstract class AbstractClient {
   protected isInitialized = false;
 
   /**
+   * Check if the client is initialized
+   * @returns True if initialized, false otherwise
+   */
+  public getIsInitialized(): boolean {
+    return this.isInitialized;
+  }
+
+  /**
    * Check if the provided model name is supported by this client
    * @param modelName The full model name (potentially with provider prefix)
    * @returns Object indicating if this is the correct client for the model, and parsed model info

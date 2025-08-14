@@ -176,15 +176,91 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
         totalPasses: chunks.length,
       };
 
-      // Generate review for this chunk
-      const chunkResult = await generateReview(
-        chunkFiles,
-        projectName,
-        this.reviewType,
-        enhancedProjectDocs,
-        chunkOptions,
-        apiClientConfig,
-      );
+      // Generate review for this chunk with error handling
+      let chunkResult: ReviewResult | undefined;
+      let chunkRetryCount = 0;
+      const maxChunkRetries = 2;
+
+      while (chunkRetryCount <= maxChunkRetries) {
+        try {
+          chunkResult = await generateReview(
+            chunkFiles,
+            projectName,
+            this.reviewType,
+            enhancedProjectDocs,
+            chunkOptions,
+            apiClientConfig,
+          );
+
+          // Validate that we got valid content
+          if (!chunkResult || !chunkResult.content || chunkResult.content.trim() === '') {
+            throw new Error(`Empty or invalid chunk result for pass ${passNumber}`);
+          }
+
+          // Success - break out of retry loop
+          break;
+        } catch (chunkError) {
+          chunkRetryCount++;
+          logger.error(
+            `Error generating review for pass ${passNumber} (attempt ${chunkRetryCount}/${maxChunkRetries + 1}): ${
+              chunkError instanceof Error ? chunkError.message : String(chunkError)
+            }`,
+          );
+
+          if (chunkRetryCount > maxChunkRetries) {
+            // Create a fallback result for this chunk
+            logger.warn(
+              `Creating fallback result for pass ${passNumber} after ${maxChunkRetries + 1} attempts`,
+            );
+            chunkResult = {
+              content: `## Error in Pass ${passNumber}\n\nFailed to generate review for ${chunkFiles.length} files after ${maxChunkRetries + 1} attempts.\n\nFiles attempted:\n${chunkFiles.map((f) => `- ${f.path}`).join('\n')}\n\nError: ${chunkError instanceof Error ? chunkError.message : String(chunkError)}`,
+              filePath: 'error-pass',
+              files: chunkFiles,
+              reviewType: this.reviewType,
+              timestamp: new Date().toISOString(),
+              costInfo: {
+                inputTokens: 0,
+                outputTokens: 0,
+                totalTokens: 0,
+                estimatedCost: 0,
+                formattedCost: '$0.00 USD',
+                cost: 0,
+              },
+            };
+            break;
+          }
+
+          // Wait before retrying
+          const waitTime = Math.min(2000 * 2 ** (chunkRetryCount - 1), 8000);
+          logger.info(
+            `Waiting ${waitTime}ms before retry ${chunkRetryCount + 1}/${maxChunkRetries + 1} for pass ${passNumber}`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+        }
+      }
+
+      // Ensure we have a valid result
+      if (!chunkResult) {
+        // This should never happen, but provide a safety fallback
+        logger.error(
+          `No chunk result generated for pass ${passNumber} - creating emergency fallback`,
+        );
+        chunkResult = {
+          content: `## Error in Pass ${passNumber}\n\nNo result generated for ${chunkFiles.length} files.\n\nFiles attempted:\n${chunkFiles.map((f) => `- ${f.path}`).join('\n')}\n\nEmergency fallback result.`,
+          filePath: 'emergency-fallback',
+          files: chunkFiles,
+          reviewType: this.reviewType,
+          timestamp: new Date().toISOString(),
+          costInfo: {
+            inputTokens: 0,
+            outputTokens: 0,
+            totalTokens: 0,
+            estimatedCost: 0,
+            formattedCost: '$0.00 USD',
+            cost: 0,
+          },
+        };
+      }
 
       // Extract findings from this pass and update the context
       this.updateContextFromReviewResults(reviewContext, chunkResult, chunkFiles);
@@ -241,8 +317,23 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
     // Set the consolidation phase for the final AI analysis
     newProgressTracker.setPhase('consolidating');
 
-    // Create a final consolidated report through AI
+    // Create a final consolidated report through AI with robust error handling
     logger.info('Generating final consolidated review report with grading...');
+
+    // Check if we have enough valid content to consolidate
+    const validPassCount = consolidatedResult.content.split('## Pass').length - 1;
+    const errorPassCount = consolidatedResult.content.split('## Error in Pass').length - 1;
+
+    if (validPassCount === 0) {
+      logger.error('No valid passes to consolidate - all passes failed');
+      consolidatedResult = {
+        ...consolidatedResult,
+        content: `# Review Failed\n\nAll ${totalPasses} passes failed to generate valid reviews. Please check the logs for details.\n\n${consolidatedResult.content}`,
+      };
+    } else if (errorPassCount > validPassCount * 0.5) {
+      logger.warn(`High error rate: ${errorPassCount}/${totalPasses} passes failed`);
+    }
+
     try {
       logger.debug(
         'Starting consolidation phase with model provider: ' +
@@ -265,18 +356,21 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
       );
 
       // If the final report was generated successfully, use it instead
-      if (finalReport) {
+      if (finalReport?.content && finalReport.content.trim() !== '') {
         logger.info('Successfully generated consolidated report with grading');
         consolidatedResult = finalReport;
       } else {
         // If the final report wasn't generated (returned undefined), log a more detailed warning
-        logger.warn('Consolidation function returned undefined - likely due to API error');
-        logger.warn('Creating fallback consolidated report');
+        logger.warn('Consolidation function returned empty or undefined result');
+        logger.warn('Creating enhanced fallback consolidated report');
 
-        // Create a fallback consolidated report
+        // Create an enhanced fallback consolidated report
         const fallbackReport = {
           ...consolidatedResult,
-          content: this.createFallbackConsolidation(consolidatedResult, apiClientConfig.modelName),
+          content: this.createEnhancedFallbackConsolidation(
+            consolidatedResult,
+            apiClientConfig.modelName,
+          ),
         };
         consolidatedResult = fallbackReport;
       }
@@ -288,12 +382,15 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
       if (error instanceof Error && error.stack) {
         logger.error(error.stack);
       }
-      logger.warn('Creating fallback consolidated report');
+      logger.warn('Creating enhanced fallback consolidated report');
 
-      // Create a fallback consolidated report even in the case of an exception
+      // Create an enhanced fallback consolidated report even in the case of an exception
       const fallbackReport = {
         ...consolidatedResult,
-        content: this.createFallbackConsolidation(consolidatedResult, apiClientConfig.modelName),
+        content: this.createEnhancedFallbackConsolidation(
+          consolidatedResult,
+          apiClientConfig.modelName,
+        ),
       };
       consolidatedResult = fallbackReport;
     }
@@ -509,6 +606,304 @@ This review used a multi-pass approach with context maintenance between passes t
       );
       return undefined;
     }
+  }
+
+  /**
+   * Creates an enhanced fallback consolidation with better error handling
+   * @param multiPassResult The combined result from all passes
+   * @param modelName The name of the model
+   * @returns An enhanced consolidated review content
+   */
+  private createEnhancedFallbackConsolidation(
+    multiPassResult: ReviewResult,
+    modelName: string,
+  ): string {
+    logger.info('Creating enhanced fallback consolidation from multi-pass results...');
+
+    // Analyze pass content for errors
+    const passRegex =
+      /## (Pass|Error in Pass) (\d+)[:\s]+(?:Review of (\d+) Files)?([\s\S]*?)(?=## (?:Pass|Error in Pass) \d+:|$)/g;
+    const passes: { passNumber: number; fileCount: number; content: string; hasError: boolean }[] =
+      [];
+
+    let match;
+    while ((match = passRegex.exec(multiPassResult.content)) !== null) {
+      const [, passType, passNumberStr, fileCountStr, passContent] = match;
+      passes.push({
+        passNumber: parseInt(passNumberStr, 10),
+        fileCount: fileCountStr ? parseInt(fileCountStr, 10) : 0,
+        content: passContent.trim(),
+        hasError: passType.includes('Error'),
+      });
+    }
+
+    const validPasses = passes.filter((p) => !p.hasError);
+    const errorPasses = passes.filter((p) => p.hasError);
+
+    // Extract and deduplicate findings
+    const findings = this.extractFindingsFromPasses(validPasses);
+
+    // Create comprehensive fallback report
+    return `# Consolidated ${this.reviewType.charAt(0).toUpperCase() + this.reviewType.slice(1)} Review Report
+    
+## Executive Summary
+
+This consolidated review was generated from ${passes.length} passes (${validPasses.length} successful, ${errorPasses.length} failed) analyzing ${multiPassResult.files?.length || 0} files.
+
+### Review Status
+- **Model Used**: ${modelName}
+- **Total Passes**: ${passes.length}
+- **Successful Passes**: ${validPasses.length}
+- **Failed Passes**: ${errorPasses.length}
+- **Files Analyzed**: ${multiPassResult.files?.length || 0}
+- **Total Tokens Used**: ${multiPassResult.costInfo?.totalTokens?.toLocaleString() || 'N/A'}
+- **Estimated Cost**: ${multiPassResult.costInfo?.formattedCost || 'N/A'}
+
+### Key Findings Summary
+- **Critical Issues**: ${findings.high.size} unique high-priority issues
+- **Important Issues**: ${findings.medium.size} unique medium-priority issues  
+- **Minor Issues**: ${findings.low.size} unique low-priority issues
+
+${errorPasses.length > 0 ? `\n### ⚠️ Warning\n${errorPasses.length} pass(es) failed during review. Some files may not have been fully analyzed.\n` : ''}
+
+## Grading
+
+Based on the ${validPasses.length} successful passes and identified issues:
+
+| Category | Grade | Justification |
+|----------|-------|---------------|
+| Functionality | ${this.calculateGrade(findings, 'functionality')} | ${this.getGradeJustification(findings, 'functionality')} |
+| Code Quality | ${this.calculateGrade(findings, 'quality')} | ${this.getGradeJustification(findings, 'quality')} |
+| Documentation | ${this.calculateGrade(findings, 'documentation')} | ${this.getGradeJustification(findings, 'documentation')} |
+| Testing | ${this.calculateGrade(findings, 'testing')} | ${this.getGradeJustification(findings, 'testing')} |
+| Maintainability | ${this.calculateGrade(findings, 'maintainability')} | ${this.getGradeJustification(findings, 'maintainability')} |
+| Security | ${this.calculateGrade(findings, 'security')} | ${this.getGradeJustification(findings, 'security')} |
+| Performance | ${this.calculateGrade(findings, 'performance')} | ${this.getGradeJustification(findings, 'performance')} |
+
+**Overall Grade: ${this.calculateOverallGrade(findings)}**
+
+## Critical Issues (High Priority)
+
+${
+  findings.high.size > 0
+    ? Array.from(findings.high)
+        .map((issue) => `- ${issue}`)
+        .join('\n')
+    : 'No critical issues identified in the successful passes.'
+}
+
+## Important Issues (Medium Priority)
+
+${
+  findings.medium.size > 0
+    ? Array.from(findings.medium)
+        .map((issue) => `- ${issue}`)
+        .join('\n')
+    : 'No important issues identified in the successful passes.'
+}
+
+## Minor Issues (Low Priority)
+
+${
+  findings.low.size > 0
+    ? Array.from(findings.low)
+        .map((issue) => `- ${issue}`)
+        .join('\n')
+    : 'No minor issues identified in the successful passes.'
+}
+
+## Recommendations
+
+${this.generateRecommendations(findings, errorPasses.length > 0)}
+
+---
+
+**Note:** This consolidated report was automatically generated using fallback logic due to an issue with AI-assisted consolidation. The analysis is based on ${validPasses.length} successful review passes.
+`;
+  }
+
+  /**
+   * Extract findings from valid passes
+   */
+  private extractFindingsFromPasses(validPasses: Array<{ content: string }>) {
+    const highPriorityFindings = new Set<string>();
+    const mediumPriorityFindings = new Set<string>();
+    const lowPriorityFindings = new Set<string>();
+
+    // Multiple regex patterns to catch different formats
+    const patterns = {
+      high: [
+        /### (?:High Priority|Critical Issues?)([\s\S]*?)(?=###|## Pass|$)/gi,
+        /#### (Critical|Severe|High Priority)[:\s]+([^\n]+)/gi,
+      ],
+      medium: [
+        /### (?:Medium Priority|Important Issues?)([\s\S]*?)(?=###|## Pass|$)/gi,
+        /#### (Important|Medium Priority|Moderate)[:\s]+([^\n]+)/gi,
+      ],
+      low: [
+        /### (?:Low Priority|Minor Issues?)([\s\S]*?)(?=###|## Pass|$)/gi,
+        /#### (Minor|Low Priority|Small)[:\s]+([^\n]+)/gi,
+      ],
+    };
+
+    validPasses.forEach((pass) => {
+      // Extract high priority
+      patterns.high.forEach((regex) => {
+        regex.lastIndex = 0;
+        let match;
+        while ((match = regex.exec(pass.content)) !== null) {
+          const content = match[1] || match[2] || '';
+          this.extractIssueTexts(content).forEach((issue) => highPriorityFindings.add(issue));
+        }
+      });
+
+      // Extract medium priority
+      patterns.medium.forEach((regex) => {
+        regex.lastIndex = 0;
+        let match;
+        while ((match = regex.exec(pass.content)) !== null) {
+          const content = match[1] || match[2] || '';
+          this.extractIssueTexts(content).forEach((issue) => mediumPriorityFindings.add(issue));
+        }
+      });
+
+      // Extract low priority
+      patterns.low.forEach((regex) => {
+        regex.lastIndex = 0;
+        let match;
+        while ((match = regex.exec(pass.content)) !== null) {
+          const content = match[1] || match[2] || '';
+          this.extractIssueTexts(content).forEach((issue) => lowPriorityFindings.add(issue));
+        }
+      });
+    });
+
+    return { high: highPriorityFindings, medium: mediumPriorityFindings, low: lowPriorityFindings };
+  }
+
+  /**
+   * Extract individual issue texts from content
+   */
+  private extractIssueTexts(content: string): string[] {
+    const issues: string[] = [];
+
+    // Try multiple extraction patterns
+    const patterns = [
+      /- \*\*Issue title:\*\* (.*?)(?=\n|$)/g,
+      /- \*\*(.*?):\*\* (.*?)(?=\n|$)/g,
+      /^[\s-]*\*?\s*(.+?)$/gm,
+    ];
+
+    patterns.forEach((pattern) => {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        const issue = (match[1] + (match[2] ? `: ${match[2]}` : '')).trim();
+        if (
+          issue &&
+          !issue.startsWith('Location:') &&
+          !issue.startsWith('Type:') &&
+          !issue.startsWith('Description:') &&
+          !issue.startsWith('Impact:') &&
+          issue.length > 10 &&
+          issue.length < 200
+        ) {
+          issues.push(issue);
+        }
+      }
+    });
+
+    return issues;
+  }
+
+  /**
+   * Calculate grade based on findings
+   */
+  private calculateGrade(
+    findings: { high: Set<string>; medium: Set<string>; low: Set<string> },
+    _category: string,
+  ): string {
+    const weights = { high: 3, medium: 2, low: 1 };
+    const score =
+      findings.high.size * weights.high +
+      findings.medium.size * weights.medium +
+      findings.low.size * weights.low;
+
+    if (score === 0) return 'A';
+    if (score <= 3) return 'A-';
+    if (score <= 6) return 'B+';
+    if (score <= 10) return 'B';
+    if (score <= 15) return 'B-';
+    if (score <= 20) return 'C+';
+    if (score <= 30) return 'C';
+    if (score <= 40) return 'C-';
+    if (score <= 50) return 'D+';
+    if (score <= 60) return 'D';
+    return 'F';
+  }
+
+  /**
+   * Get justification for grade
+   */
+  private getGradeJustification(
+    findings: { high: Set<string>; medium: Set<string>; low: Set<string> },
+    _category: string,
+  ): string {
+    const total = findings.high.size + findings.medium.size + findings.low.size;
+    if (total === 0) return 'No issues found in this category.';
+    if (findings.high.size > 0)
+      return `${findings.high.size} critical issues need immediate attention.`;
+    if (findings.medium.size > 0)
+      return `${findings.medium.size} important issues should be addressed.`;
+    return `${findings.low.size} minor issues for consideration.`;
+  }
+
+  /**
+   * Calculate overall grade
+   */
+  private calculateOverallGrade(findings: {
+    high: Set<string>;
+    medium: Set<string>;
+    low: Set<string>;
+  }): string {
+    return this.calculateGrade(findings, 'overall');
+  }
+
+  /**
+   * Generate recommendations based on findings
+   */
+  private generateRecommendations(
+    findings: { high: Set<string>; medium: Set<string>; low: Set<string> },
+    hasErrors: boolean,
+  ): string {
+    const recommendations: string[] = [];
+
+    if (findings.high.size > 0) {
+      recommendations.push(
+        '1. **Immediate Action Required**: Address all critical issues before deployment.',
+      );
+    }
+    if (findings.medium.size > 0) {
+      recommendations.push(
+        `${recommendations.length + 1}. **Short-term Improvements**: Plan to address important issues in the next sprint.`,
+      );
+    }
+    if (findings.low.size > 0) {
+      recommendations.push(
+        `${recommendations.length + 1}. **Long-term Optimization**: Consider addressing minor issues during refactoring.`,
+      );
+    }
+    if (hasErrors) {
+      recommendations.push(
+        `${recommendations.length + 1}. **Incomplete Review**: Re-run review for files that failed to ensure complete coverage.`,
+      );
+    }
+    if (recommendations.length === 0) {
+      recommendations.push(
+        '1. **Excellent Code Quality**: Continue maintaining current standards.',
+      );
+    }
+
+    return recommendations.join('\n');
   }
 
   /**

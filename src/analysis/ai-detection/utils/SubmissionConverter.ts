@@ -5,9 +5,9 @@
  * into the CodeSubmission format required by the AI detection engine.
  */
 
-import { execSync } from 'child_process';
-import { readFileSync, statSync } from 'fs';
-import path from 'path';
+import { execSync } from 'node:child_process';
+import { statSync } from 'node:fs';
+import path from 'node:path';
 import type { FileInfo } from '../../../types/review';
 import type { ProjectDocs } from '../../../utils/projectDocs';
 import type {
@@ -34,7 +34,7 @@ export class SubmissionConverter {
    */
   static async convert(
     files: FileInfo[],
-    projectName: string,
+    _projectName: string,
     projectDocs: ProjectDocs | null,
     projectPath: string = process.cwd(),
   ): Promise<CodeSubmission> {
@@ -127,7 +127,7 @@ export class SubmissionConverter {
         }
       } else if (collectingFiles && currentCommit && line.trim()) {
         // File name line
-        currentCommit.changedFiles!.push(line.trim());
+        currentCommit.changedFiles?.push(line.trim());
       }
     }
 

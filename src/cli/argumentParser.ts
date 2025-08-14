@@ -12,7 +12,7 @@ import type { ReviewOptions, ReviewType } from '../types/review';
 import { displayConfigError, loadConfigSafe } from '../utils/config';
 import logger from '../utils/logger';
 
-// Define valid review types
+// Define valid review types for display
 const validReviewTypes: ReviewType[] = [
   'quick-fixes',
   'architectural',
@@ -21,11 +21,17 @@ const validReviewTypes: ReviewType[] = [
   'unused-code',
   'focused-unused-code',
   'code-tracing-unused-code',
-  'improved-quick-fixes',
   'consolidated',
   'evaluation',
   'extract-patterns',
   'coding-test',
+];
+
+// Define all accepted values including aliases (for validation)
+// 'improved-quick-fixes' is a hidden alias that maps to 'quick-fixes'
+const _acceptedReviewTypes: string[] = [
+  ...validReviewTypes,
+  'improved-quick-fixes', // Hidden alias, mapped to 'quick-fixes'
 ];
 
 // Define valid output formats
@@ -69,8 +75,15 @@ export function parseArguments(): any {
             .option('type', {
               alias: 't',
               describe: 'Type of review to perform',
-              choices: validReviewTypes,
+              choices: validReviewTypes, // Show only the valid types in help
               // No default here - will be set after config file is applied
+              coerce: (value: string) => {
+                // Transform improved-quick-fixes to quick-fixes before validation
+                if (value === 'improved-quick-fixes') {
+                  return 'quick-fixes';
+                }
+                return value;
+              },
             })
             .option('output', {
               alias: 'o',
@@ -367,6 +380,11 @@ export function parseArguments(): any {
               type: 'boolean',
               default: false,
             })
+            .option('diagram', {
+              describe: 'Generate Mermaid architecture diagrams for architectural reviews',
+              type: 'boolean',
+              default: false,
+            })
         );
       },
     )
@@ -575,11 +593,14 @@ interface ParsedArguments {
   aiDetectionAnalyzers?: string;
   aiDetectionIncludeInReport?: boolean;
   aiDetectionFailOnDetection?: boolean;
+  diagram?: boolean;
 }
 
 export function mapArgsToReviewOptions(
   argv: ParsedArguments,
 ): ReviewOptions & { target: string } & { apiKeys?: Record<string, string> } {
+  // Note: improved-quick-fixes aliasing is handled by yargs coerce function
+
   const options: ReviewOptions & { target: string } & { apiKeys?: Record<string, string> } = {
     type: (argv.type as ReviewType) || 'quick-fixes', // Apply default if not set by CLI or config
     output: argv.output,
@@ -668,6 +689,7 @@ export function mapArgsToReviewOptions(
     aiDetectionAnalyzers: argv.aiDetectionAnalyzers,
     aiDetectionIncludeInReport: argv.aiDetectionIncludeInReport,
     aiDetectionFailOnDetection: argv.aiDetectionFailOnDetection,
+    diagram: argv.diagram,
   };
 
   // Add API keys if provided
@@ -704,6 +726,8 @@ export function validateArguments(options: ParsedArguments): ParsedArguments {
   if (validated.type === 'arch') {
     validated.type = 'architectural';
   }
+
+  // Note: improved-quick-fixes alias is handled by yargs coerce function
 
   // Map ui-language to uiLanguage and remove the original property
   if (validated['ui-language']) {

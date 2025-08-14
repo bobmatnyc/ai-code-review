@@ -85,6 +85,24 @@ export class InvalidResponseError extends ApiError {
 }
 
 /**
+ * Error thrown when token limit is exceeded
+ */
+export class TokenLimitError extends ApiError {
+  constructor(
+    message: string,
+    public tokenCount?: number,
+    public tokenLimit?: number,
+    statusCode?: number,
+    details?: unknown,
+  ) {
+    super(message, statusCode, details);
+    this.name = 'TokenLimitError';
+    // Ensure instanceof works correctly in ES5
+    Object.setPrototypeOf(this, TokenLimitError.prototype);
+  }
+}
+
+/**
  * Handle a fetch response and throw appropriate errors if needed
  *
  * This function processes a fetch response and throws appropriate error types

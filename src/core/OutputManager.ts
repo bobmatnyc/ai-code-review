@@ -10,6 +10,7 @@ import path from 'node:path';
 import { formatReviewOutput } from '../formatters/outputFormatter';
 import type { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
 import { createAIDependencyAnalysis } from '../utils/dependencies/aiDependencyAnalyzer';
+import { processDiagrams } from '../utils/diagramGenerator';
 import { logError } from '../utils/errorLogger';
 import { generateUniqueOutputPath, generateVersionedOutputPath } from '../utils/fileSystem';
 import logger from '../utils/logger';
@@ -223,6 +224,14 @@ export async function saveReviewOutput(
     logger.debug(`Writing formatted review output to: ${outputPath}`);
     await fs.writeFile(outputPath, formattedOutput);
     logger.info(`Review output saved to: ${outputPath}`);
+
+    // Process and save any Mermaid diagrams if requested
+    if (options.diagram && options.type === 'architectural') {
+      const diagramPaths = await processDiagrams(formattedOutput, outputPath, options);
+      if (diagramPaths.length > 0) {
+        logger.info(`Generated ${diagramPaths.length} architecture diagram file(s)`);
+      }
+    }
 
     // Optionally save raw review data for debugging (only if debug mode is enabled)
     if (options.debug) {

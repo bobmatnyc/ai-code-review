@@ -296,7 +296,7 @@ export class LangChainUtils {
         });
     }
 
-    return StructuredOutputParser.fromZodSchema(schema);
+    return StructuredOutputParser.fromZodSchema(schema as any);
   }
 
   /**

@@ -29,6 +29,11 @@ export async function fetchWithRetry(
       const res = await fetch(url, options);
 
       if (res.ok) {
+        // Log successful response headers for debugging (OpenRouter specific)
+        const requestId = res.headers.get('x-request-id') || res.headers.get('request-id');
+        if (requestId) {
+          logger.debug(`Successful API response - Request ID: ${requestId}`);
+        }
         return res;
       }
 

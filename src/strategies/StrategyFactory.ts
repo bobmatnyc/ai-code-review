@@ -81,6 +81,8 @@ export class StrategyFactory {
       );
       return useFocused ? new FocusedUnusedCodeReviewStrategy() : new UnusedCodeReviewStrategy();
     }
+    // Use ImprovedQuickFixesReviewStrategy for quick-fixes when using langchain
+    // This handles both 'quick-fixes' and the aliased 'improved-quick-fixes'
     if (reviewType === 'quick-fixes' && options.promptStrategy === 'langchain') {
       logger.debug('Creating ImprovedQuickFixesReviewStrategy');
       return new ImprovedQuickFixesReviewStrategy();

@@ -185,6 +185,11 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
     inputTokenCost: 0.003, // $3.00 per 1M tokens
     outputTokenCost: 0.015, // $15.00 per 1M tokens
   },
+  'anthropic/claude-3-haiku': {
+    type: 'standard',
+    inputTokenCost: 0.00025, // $0.25 per 1M tokens
+    outputTokenCost: 0.00125, // $1.25 per 1M tokens
+  },
   'openai/gpt-4-turbo': {
     type: 'standard',
     inputTokenCost: 0.01, // $10.00 per 1M tokens

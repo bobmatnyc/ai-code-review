@@ -217,9 +217,10 @@ export type ImprovedUnusedCodeReview = z.infer<typeof ImprovedUnusedCodeReviewSc
 
 /**
  * LangChain parser for improved unused code review output
+ * Simplified to avoid TypeScript deep instantiation issues
  */
 export const improvedUnusedCodeReviewParser = StructuredOutputParser.fromZodSchema(
-  ImprovedUnusedCodeReviewSchema,
+  ImprovedUnusedCodeReviewSchema as any,
 );
 
 /**

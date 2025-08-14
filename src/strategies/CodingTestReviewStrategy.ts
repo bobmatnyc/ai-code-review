@@ -19,7 +19,6 @@ import {
   convertToCodingTestConfig,
   createDefaultCodingTestConfig,
   loadCodingTestConfig,
-  loadCodingTestConfigFromUrl,
   parseAssignmentText,
 } from '../utils/codingTestConfigLoader';
 import logger from '../utils/logger';
@@ -652,7 +651,7 @@ export class CodingTestReviewStrategy extends BaseReviewStrategy {
       prompt += `- **${this.formatCriterionName(criterion)}:** ${weight}% weight\n`;
     });
 
-    return prompt + '\n';
+    return `${prompt}\n`;
   }
 
   /**
@@ -670,7 +669,7 @@ export class CodingTestReviewStrategy extends BaseReviewStrategy {
       prompt += '**Score Breakdown:** Required for each criterion\n';
     }
 
-    return prompt + '\n';
+    return `${prompt}\n`;
   }
 
   /**
@@ -696,7 +695,7 @@ export class CodingTestReviewStrategy extends BaseReviewStrategy {
       prompt += '- Include relevant learning resources\n';
     }
 
-    return prompt + '\n';
+    return `${prompt}\n`;
   }
 
   /**
@@ -737,7 +736,7 @@ export class CodingTestReviewStrategy extends BaseReviewStrategy {
       prompt += `**Execution Timeout:** ${constraints.executionTimeout} seconds\n`;
     }
 
-    return prompt + '\n';
+    return `${prompt}\n`;
   }
 
   /**
@@ -904,7 +903,7 @@ export class CodingTestReviewStrategy extends BaseReviewStrategy {
       prompt += `- AI detection indicates likely human authorship\n`;
     }
 
-    return prompt + '\n';
+    return `${prompt}\n`;
   }
 
   /**

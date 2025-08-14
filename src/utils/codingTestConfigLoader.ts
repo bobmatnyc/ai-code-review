@@ -184,9 +184,9 @@ function validateAndNormalizeConfig(
       // Normalize weights to sum to 100
       const normalizationFactor = 100 / criteriaTotal;
       Object.keys(normalized.evaluation.criteria).forEach((key) => {
-        const criterion = normalized.evaluation!.criteria![key];
-        if (typeof criterion === 'number') {
-          normalized.evaluation!.criteria![key] = Math.round(criterion * normalizationFactor);
+        const criterion = normalized.evaluation?.criteria?.[key];
+        if (typeof criterion === 'number' && normalized.evaluation?.criteria) {
+          normalized.evaluation.criteria[key] = Math.round(criterion * normalizationFactor);
         } else if (criterion && typeof criterion === 'object' && 'weight' in criterion) {
           criterion.weight = Math.round(criterion.weight * normalizationFactor);
         }
@@ -409,7 +409,7 @@ function parseBasicYaml(yamlContent: string): ExtendedCodingTestConfig {
     // For now, we'll try to parse as JSON if possible, or create a basic structure
 
     // Remove comments and clean up
-    const lines = yamlContent
+    const _lines = yamlContent
       .split('\n')
       .map((line) => line.replace(/#.*$/, '').trim())
       .filter((line) => line.length > 0);
@@ -457,7 +457,7 @@ function parseBasicYaml(yamlContent: string): ExtendedCodingTestConfig {
         forbiddenPatterns: ['eval', 'Function'],
       },
     };
-  } catch (error) {
+  } catch (_error) {
     logger.warn('Failed to parse YAML content, using default configuration');
     throw new Error(
       'YAML parsing failed. Please use JSON format or install js-yaml for YAML support.',

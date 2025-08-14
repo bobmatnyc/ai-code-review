@@ -36,6 +36,8 @@ export async function consolidateReview(review: ReviewResult): Promise<string> {
 
     // Temporarily override the model environment variable for client initialization
     const originalModel = process.env.AI_CODE_REVIEW_MODEL;
+    logger.debug('[CONSOLIDATION] Original model:', originalModel || 'not set');
+    logger.debug('[CONSOLIDATION] Consolidation model:', consolidationModel);
     process.env.AI_CODE_REVIEW_MODEL = consolidationModel;
 
     try {
@@ -44,9 +46,18 @@ export async function consolidateReview(review: ReviewResult): Promise<string> {
       logger.debug('[CONSOLIDATION] Created client:', {
         clientType: client.constructor.name,
         model: consolidationModel,
+        isInitialized: client.getIsInitialized ? client.getIsInitialized() : 'unknown',
       });
-      await client.initialize();
-      logger.debug('[CONSOLIDATION] Client initialized successfully');
+
+      try {
+        await client.initialize();
+        logger.debug('[CONSOLIDATION] Client initialized successfully');
+      } catch (initError) {
+        logger.error('[CONSOLIDATION] Failed to initialize client:', initError);
+        throw new Error(
+          `Failed to initialize ${consolidationModel} client for consolidation: ${initError instanceof Error ? initError.message : String(initError)}`,
+        );
+      }
 
       // Extract provider from the configured model
       // const [_provider] = consolidationModel.split(':'); // Not used in this implementation
@@ -122,19 +133,127 @@ export async function consolidateReview(review: ReviewResult): Promise<string> {
 
         logger.debug('[CONSOLIDATION] Making direct OpenAI API call with custom prompts');
 
-        const response = await fetchWithRetry('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify(requestBody),
-        });
+        // Retry logic for API calls with JSON validation
+        let retryCount = 0;
+        const maxRetries = 3;
+        let data: any = null;
 
-        const data = await response.json();
+        while (retryCount < maxRetries && !data) {
+          try {
+            const response = await fetchWithRetry('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify(requestBody),
+            });
 
-        if (!data.choices?.[0]?.message?.content) {
-          throw new Error('Invalid API response');
+            const responseText = await response.text();
+
+            // Validate that we have actual content before parsing
+            if (!responseText || responseText.trim() === '') {
+              throw new Error('Empty response from API');
+            }
+
+            // Check if response looks like JSON
+            const trimmedResponse = responseText.trim();
+            if (!trimmedResponse.startsWith('{') && !trimmedResponse.startsWith('[')) {
+              logger.warn(`[CONSOLIDATION] Non-JSON response on attempt ${retryCount + 1}`);
+              throw new Error('Response is not valid JSON');
+            }
+
+            // Try to parse JSON
+            try {
+              data = JSON.parse(responseText);
+
+              // Validate the structure
+              if (!data || typeof data !== 'object') {
+                throw new Error('Parsed data is not an object');
+              }
+
+              if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+                throw new Error('Response missing choices array');
+              }
+
+              if (!data.choices[0].message || !data.choices[0].message.content) {
+                throw new Error('Response missing message content');
+              }
+
+              // Successfully parsed and validated
+              logger.debug(`[CONSOLIDATION] Successfully parsed JSON on attempt ${retryCount + 1}`);
+              break;
+            } catch (jsonError) {
+              logger.error(
+                `[CONSOLIDATION] JSON parse error on attempt ${retryCount + 1}:`,
+                jsonError,
+              );
+              logger.debug(
+                '[CONSOLIDATION] Raw response (first 1000 chars):',
+                responseText.substring(0, 1000),
+              );
+
+              // Try to recover partial content from malformed JSON
+              if (retryCount === maxRetries - 1) {
+                // Last attempt - try to extract content
+                const patterns = [
+                  /"content":\s*"([^"]+(?:\\.[^"]+)*)"/, // Standard JSON string
+                  /"content":\s*'([^']+(?:\\.[^']+)*)'/, // Single quotes (non-standard)
+                  /content['":\s]+([^,}]+)/, // Loose pattern
+                ];
+
+                for (const pattern of patterns) {
+                  const match = responseText.match(pattern);
+                  if (match?.[1]) {
+                    logger.warn(
+                      '[CONSOLIDATION] Attempting to extract partial content from malformed JSON',
+                    );
+                    let extractedContent = match[1];
+
+                    // Unescape common sequences
+                    extractedContent = extractedContent
+                      .replace(/\\n/g, '\n')
+                      .replace(/\\r/g, '\r')
+                      .replace(/\\t/g, '\t')
+                      .replace(/\\"/g, '"')
+                      .replace(/\\\\/g, '\\');
+
+                    if (extractedContent && extractedContent.trim().length > 100) {
+                      logger.warn('[CONSOLIDATION] Successfully extracted partial content');
+                      return extractedContent;
+                    }
+                  }
+                }
+              }
+
+              throw jsonError;
+            }
+          } catch (error) {
+            retryCount++;
+            logger.warn(
+              `[CONSOLIDATION] Attempt ${retryCount} failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
+
+            if (retryCount < maxRetries) {
+              const waitTime = Math.min(1000 * 2 ** retryCount, 5000);
+              logger.info(
+                `[CONSOLIDATION] Waiting ${waitTime}ms before retry ${retryCount + 1}/${maxRetries}`,
+              );
+              await new Promise((resolve) => setTimeout(resolve, waitTime));
+            } else {
+              logger.error('[CONSOLIDATION] All retry attempts exhausted');
+              throw new Error(
+                `Failed after ${maxRetries} attempts: ${error instanceof Error ? error.message : String(error)}`,
+              );
+            }
+          }
+        }
+
+        // Data should be validated by this point
+        if (!data || !data.choices?.[0]?.message?.content) {
+          logger.error('[CONSOLIDATION] Unexpected: data validation passed but content missing');
+          logger.debug('[CONSOLIDATION] Response data:', JSON.stringify(data).substring(0, 500));
+          throw new Error('Invalid API response structure after validation');
         }
 
         const consolidatedContent = data.choices[0].message.content;
@@ -170,22 +289,52 @@ ${consolidationPrompt}`;
           '[CONSOLIDATION] Using generateReview method with custom consolidation prompt',
         );
 
-        const consolidationResult = await client.generateReview(
-          fullConsolidationPrompt, // Use our custom consolidation prompt as the file content
-          'CONSOLIDATION_TASK', // Special file path to indicate this is a consolidation
-          'architectural', // Use architectural review type as it's most comprehensive
-          null, // No project docs needed
-          {
-            type: 'architectural',
-            skipFileContent: true, // Don't try to include file content in the prompt
-            isConsolidation: true,
-            includeTests: false,
-            output: 'markdown',
-            interactive: false,
-          },
-        );
+        let consolidationResult;
+        let retryCount = 0;
+        const maxRetries = 3;
 
-        return consolidationResult?.content || createFallbackConsolidation(review);
+        while (retryCount < maxRetries) {
+          try {
+            consolidationResult = await client.generateReview(
+              fullConsolidationPrompt, // Use our custom consolidation prompt as the file content
+              'CONSOLIDATION_TASK', // Special file path to indicate this is a consolidation
+              'architectural', // Use architectural review type as it's most comprehensive
+              null, // No project docs needed
+              {
+                type: 'architectural',
+                skipFileContent: true, // Don't try to include file content in the prompt
+                isConsolidation: true,
+                includeTests: false,
+                output: 'markdown',
+                interactive: false,
+              },
+            );
+
+            // Validate the response
+            if (consolidationResult?.content && consolidationResult.content.trim() !== '') {
+              return consolidationResult.content;
+            }
+
+            logger.warn(
+              `[CONSOLIDATION] Attempt ${retryCount + 1} returned empty content, retrying...`,
+            );
+          } catch (retryError) {
+            logger.warn(`[CONSOLIDATION] Attempt ${retryCount + 1} failed:`, retryError);
+          }
+
+          retryCount++;
+          if (retryCount < maxRetries) {
+            // Wait before retrying (exponential backoff)
+            const waitTime = Math.min(1000 * 2 ** retryCount, 5000);
+            logger.info(
+              `[CONSOLIDATION] Waiting ${waitTime}ms before retry ${retryCount + 1}/${maxRetries}`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+          }
+        }
+
+        logger.error(`[CONSOLIDATION] All ${maxRetries} attempts failed, using fallback`);
+        return createFallbackConsolidation(review);
       }
       // If generateReview is not available, try a direct API approach
       logger.warn(
@@ -226,8 +375,13 @@ ${consolidationPrompt}`;
     }
   } catch (error) {
     logger.error(
-      `Error consolidating review: ${error instanceof Error ? error.message : String(error)}`,
+      `[CONSOLIDATION] Error consolidating review: ${error instanceof Error ? error.message : String(error)}`,
     );
+    logger.debug('[CONSOLIDATION] Error details:', {
+      errorType: error?.constructor?.name,
+      stack: error instanceof Error ? error.stack?.split('\n').slice(0, 5) : undefined,
+    });
+    logger.warn('[CONSOLIDATION] Falling back to automatic consolidation without AI');
     return createFallbackConsolidation(review);
   }
 }
@@ -343,6 +497,23 @@ function createFallbackConsolidation(review: ReviewResult): string {
   }
 
   logger.debug(`Found ${passes.length} passes in multi-pass review`);
+
+  // If we couldn't extract passes, try alternative format
+  if (passes.length === 0) {
+    logger.warn('Could not extract passes using standard format, trying alternative patterns');
+    // Try simpler pass detection
+    const altPassRegex = /Pass (\d+)[:\s]+([\s\S]*?)(?=Pass \d+|$)/gi;
+    let altMatch;
+    while ((altMatch = altPassRegex.exec(review.content)) !== null) {
+      const [, passNumberStr, passContent] = altMatch;
+      passes.push({
+        passNumber: parseInt(passNumberStr, 10),
+        fileCount: 0, // Unknown
+        content: passContent.trim(),
+      });
+    }
+    logger.debug(`Found ${passes.length} passes using alternative pattern`);
+  }
 
   // Deduplicate findings across passes
   const highPriorityFindings = new Set<string>();

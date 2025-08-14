@@ -12,8 +12,10 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { getSystemPrompt } from '../clients/utils/systemPrompts';
 import type { ReviewOptions, ReviewType } from '../types/review';
 import { getSchemaInstructions } from '../types/reviewSchema';
+import { enhancePromptForDiagrams } from '../utils/diagramGenerator';
 import logger from '../utils/logger';
 import { getBundledPrompt } from './bundledPrompts';
 import { PromptCache } from './cache/PromptCache';
@@ -305,10 +307,10 @@ export class PromptManager {
   }
 
   /**
-   * Get a prompt template
+   * Get a prompt template with integrated system prompts
    * @param reviewType Type of review
    * @param options Review options
-   * @returns Promise resolving to the prompt template content
+   * @returns Promise resolving to the prompt template content with system prompts
    *
    * IMPORTANT: This method prioritizes prompts in the following order:
    * 1. Custom prompt file specified in options
@@ -441,6 +443,24 @@ export class PromptManager {
   }
 
   /**
+   * Get a complete prompt with system instructions integrated
+   * @param reviewType Type of review
+   * @param options Review options
+   * @returns Promise resolving to the complete prompt with system instructions
+   */
+  async getCompletePrompt(reviewType: ReviewType, options?: ReviewOptions): Promise<string> {
+    // Get the processed prompt template
+    const promptTemplate = await this.getPromptTemplate(reviewType, options);
+
+    // Get the appropriate system prompt
+    const systemPrompt = getSystemPrompt(reviewType, false, options);
+
+    // Combine system prompt with user prompt
+    // The system prompt should come first to set the context
+    return `${systemPrompt}\n\n${promptTemplate}`;
+  }
+
+  /**
    * IMPORTANT: The loadPromptTemplateFromFileSystem method has been removed.
    * We now use bundled prompts as the PRIMARY AND ONLY SOURCE for prompts.
    *
@@ -472,10 +492,10 @@ export class PromptManager {
   }
 
   /**
-   * Process a prompt template by replacing placeholders
+   * Process a prompt template by replacing placeholders and integrating system prompts
    * @param promptTemplate The raw prompt template
    * @param options Review options
-   * @returns The processed prompt template
+   * @returns The processed prompt template with system prompts integrated
    */
   private async processPromptTemplate(
     promptTemplate: string,
@@ -622,7 +642,15 @@ export class PromptManager {
 
       logger.debug(`Added ${options.promptFragments.length} prompt fragments`);
 
-      return finalPrompt;
+      promptTemplate = finalPrompt;
+    }
+
+    // Enhance prompt for diagram generation if requested
+    if (options?.diagram && options.type === 'architectural') {
+      const projectName = options.projectName || 'Project';
+      const framework = options.framework || undefined;
+      promptTemplate = enhancePromptForDiagrams(promptTemplate, options, projectName, framework);
+      logger.debug('Enhanced prompt with diagram generation instructions');
     }
 
     return promptTemplate;
