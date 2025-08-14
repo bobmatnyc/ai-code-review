@@ -282,8 +282,14 @@ export async function orchestrateReview(target: string, options: ReviewOptions):
           );
 
           // Special note for Gemini models
-          if (apiClientConfig.modelName.includes('gemini-1.5')) {
-            logger.info('Using Gemini 1.5 model with 1M token context window in single-pass mode.');
+          if (
+            apiClientConfig.modelName.includes('gemini-1.5') ||
+            apiClientConfig.modelName.includes('gemini-2.')
+          ) {
+            const version = apiClientConfig.modelName.includes('gemini-2.') ? '2.x' : '1.5';
+            logger.info(
+              `Using Gemini ${version} model with 1,048,576 token context window in single-pass mode.`,
+            );
           }
         }
 
@@ -311,7 +317,41 @@ export async function orchestrateReview(target: string, options: ReviewOptions):
     // Handle review output
     await handleReviewOutput(reviewResult, options, outputBaseDir);
   } catch (error) {
-    // Handle any uncaught errors
+    // Import TokenLimitError for specific handling
+    const { TokenLimitError } = await import('../utils/apiErrorHandler');
+
+    // Handle token limit errors with helpful guidance
+    if (error instanceof TokenLimitError) {
+      logger.error('');
+      logger.error('==========================================');
+      logger.error('TOKEN LIMIT EXCEEDED');
+      logger.error('==========================================');
+      logger.error(`The codebase is too large for single-pass review.`);
+      if (error.tokenCount) {
+        logger.error(`Content size: ${error.tokenCount.toLocaleString()} tokens`);
+      }
+      logger.error('');
+      logger.error(
+        'SOLUTION: Use the --multi-pass flag to automatically split the review into multiple passes:',
+      );
+      logger.error('');
+      logger.error('  ai-code-review --multi-pass');
+      logger.error('');
+      logger.error(
+        'This will intelligently chunk your codebase and maintain context between passes.',
+      );
+      logger.error('==========================================');
+      logger.error('');
+
+      if (options.debug && error.stack) {
+        logger.debug(`Error stack trace: ${error.stack}`);
+      }
+
+      // Re-throw with a cleaner message
+      throw new Error('Token limit exceeded. Please use --multi-pass flag for large codebases.');
+    }
+
+    // Handle any other errors
     logger.error(`Review failed: ${error instanceof Error ? error.message : String(error)}`);
 
     if (error instanceof Error && error.stack && options.debug) {

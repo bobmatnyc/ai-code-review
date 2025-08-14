@@ -6,7 +6,7 @@
  * client implementations and reduce duplication.
  */
 
-import type { ReviewType } from '../../types/review';
+import type { ReviewOptions, ReviewType } from '../../types/review';
 
 /**
  * Standard system prompt for code reviews
@@ -97,15 +97,54 @@ ESSENTIAL TASK: For ALL major dependencies in the project, you MUST thoroughly c
 Always include a dedicated "Dependency Security Analysis" section in your review that summarizes the findings from your dependency security checks. This is a critical part of the architectural review.`;
 
 /**
+ * System prompt extension for architectural reviews with diagram generation
+ */
+export const ARCHITECTURAL_DIAGRAM_PROMPT = `
+
+ADDITIONAL REQUIREMENT: Generate Mermaid Architecture Diagrams
+
+Please include one or more Mermaid diagrams in your review to visualize the architecture. Create diagrams that show:
+
+1. **Component Architecture**: Show the main components/modules and their relationships
+2. **Data Flow**: Illustrate how data flows through the system
+3. **Dependencies**: Show external services, databases, and APIs
+4. **Layered Architecture**: If applicable, show the layers (presentation, business logic, data access)
+
+Use Mermaid syntax wrapped in triple backticks with 'mermaid' language identifier:
+
+\`\`\`mermaid
+graph TB
+    subgraph "Your actual architecture here"
+        Component1[Component Name]
+        Component2[Another Component]
+    end
+    Component1 --> Component2
+\`\`\`
+
+Ensure the diagrams accurately reflect the analyzed codebase structure. Include multiple diagrams if needed to properly represent different architectural aspects.`;
+
+/**
  * Get the appropriate system prompt for a given review type
  * @param reviewType The type of review to get the system prompt for
  * @param useMarkdown Whether to use Markdown formatting instead of JSON
+ * @param options Optional review options for additional context
  * @returns The system prompt for the specified review type
  */
-export function getSystemPrompt(reviewType: ReviewType, useMarkdown = false): string {
+export function getSystemPrompt(
+  reviewType: ReviewType,
+  useMarkdown = false,
+  options?: ReviewOptions,
+): string {
   // For architectural reviews, use the architectural review system prompt
   if (reviewType === 'architectural') {
-    return ARCHITECTURAL_REVIEW_SYSTEM_PROMPT;
+    let prompt = ARCHITECTURAL_REVIEW_SYSTEM_PROMPT;
+
+    // Add diagram generation instructions if requested
+    if (options?.diagram) {
+      prompt += ARCHITECTURAL_DIAGRAM_PROMPT;
+    }
+
+    return prompt;
   }
 
   // For other reviews, use the standard system prompt (JSON or Markdown)

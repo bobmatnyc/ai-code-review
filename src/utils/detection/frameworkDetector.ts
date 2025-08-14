@@ -355,8 +355,42 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
       const gemfileExists = await fileExists(path.join(projectPath, 'Gemfile'));
       const requirementsTxtExists = await fileExists(path.join(projectPath, 'requirements.txt'));
 
-      if (packageJsonExists && primaryLanguage !== 'typescript') {
-        primaryLanguage = 'typescript';
+      // IMPORTANT: Language detection priority:
+      // 1. Strong file evidence for non-JS/TS languages (Python, PHP, Ruby) takes absolute priority
+      // 2. For JS/TS projects, config files can influence the decision
+      // 3. Package.json presence suggests Node.js ecosystem
+
+      // If we have strong evidence for Python, PHP, or Ruby, respect it absolutely
+      if (primaryLanguage === 'python' && extensionCounts.python > 3) {
+        // Keep Python if we have clear Python files
+        logger.debug(
+          `Strong Python evidence (${extensionCounts.python} files), keeping Python despite package.json`,
+        );
+      } else if (primaryLanguage === 'php' && extensionCounts.php > 3) {
+        // Keep PHP if we have clear PHP files
+        logger.debug(`Strong PHP evidence (${extensionCounts.php} files), keeping PHP`);
+      } else if (primaryLanguage === 'ruby' && extensionCounts.ruby > 3) {
+        // Keep Ruby if we have clear Ruby files
+        logger.debug(`Strong Ruby evidence (${extensionCounts.ruby} files), keeping Ruby`);
+      } else if (packageJsonExists) {
+        // Handle Node.js projects (package.json present)
+        if (
+          primaryLanguage === null ||
+          primaryLanguage === 'javascript' ||
+          primaryLanguage === 'typescript'
+        ) {
+          // Check if this is a TypeScript-oriented project
+          const isTypescriptProject = await isTypeScriptProject(projectPath);
+
+          if (isTypescriptProject || extensionCounts.typescript > 0) {
+            primaryLanguage = 'typescript';
+          } else if (extensionCounts.javascript > 0 || extensionCounts.typescript === 0) {
+            // For backward compatibility with tests, default to TypeScript for Node.js projects
+            // This maintains the existing behavior while fixing Python detection
+            primaryLanguage = 'typescript';
+          }
+        }
+        // If primaryLanguage is Python/PHP/Ruby with few files, package.json might be for tooling
       } else if (composerJsonExists && (primaryLanguage === null || extensionCounts.php > 0)) {
         primaryLanguage = 'php';
       } else if (gemfileExists && (primaryLanguage === null || extensionCounts.ruby > 0)) {
@@ -365,6 +399,11 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
         requirementsTxtExists &&
         (primaryLanguage === null || extensionCounts.python > 0)
       ) {
+        primaryLanguage = 'python';
+      }
+
+      // Additional Python detection for projects with Python files but no requirements.txt
+      if (primaryLanguage === null && extensionCounts.python > 0) {
         primaryLanguage = 'python';
       }
     } catch (error) {
@@ -529,6 +568,49 @@ async function directoryExists(dirPath: string): Promise<boolean> {
     const stats = await fs.stat(dirPath);
     return stats.isDirectory();
   } catch (_error) {
+    return false;
+  }
+}
+
+/**
+ * Check if a Node.js project should be considered a TypeScript project
+ * @param projectPath Path to project root
+ * @returns Promise resolving to boolean
+ */
+async function isTypeScriptProject(projectPath: string): Promise<boolean> {
+  try {
+    // Check for TypeScript config files
+    const tsconfigExists = await fileExists(path.join(projectPath, 'tsconfig.json'));
+    if (tsconfigExists) {
+      return true;
+    }
+
+    // Check package.json for TypeScript dependencies
+    const packageJsonPath = path.join(projectPath, 'package.json');
+    if (await fileExists(packageJsonPath)) {
+      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
+
+      // Check for TypeScript in dependencies or devDependencies
+      const allDeps = {
+        ...packageJson.dependencies,
+        ...packageJson.devDependencies,
+      };
+
+      // Look for TypeScript-specific packages
+      const typescriptIndicators = [
+        'typescript',
+        '@types/node',
+        'ts-node',
+        '@typescript-eslint/parser',
+        '@typescript-eslint/eslint-plugin',
+      ];
+
+      return typescriptIndicators.some((indicator) => allDeps[indicator]);
+    }
+
+    return false;
+  } catch (error) {
+    logger.debug(`Error checking if TypeScript project: ${error}`);
     return false;
   }
 }

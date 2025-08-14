@@ -48,14 +48,6 @@ export class OpenAIClient extends AbstractClient {
   }
 
   /**
-   * Check if the client is initialized
-   * @returns True if initialized, false otherwise
-   */
-  public getIsInitialized(): boolean {
-    return this.isInitialized;
-  }
-
-  /**
    * Check if the provided model name is supported by this client
    * @param modelName The full model name (potentially with provider prefix)
    * @returns Object indicating if this is the correct client for the model
@@ -165,14 +157,20 @@ export class OpenAIClient extends AbstractClient {
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    // During consolidation, the model may have been overridden. We should check if we're already initialized
+    // with a valid model rather than checking the current environment variable.
+    if (!this.isInitialized || !this.modelName) {
+      // If not initialized, check against the current environment variable
+      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
 
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
-      );
+      // Make sure this is the correct client
+      if (!isCorrect) {
+        throw new Error(
+          `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
+        );
+      }
     }
+    // If we're already initialized with a model, trust that initialization was correct
 
     try {
       // Initialize if needed
@@ -306,14 +304,21 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
     logger.debug(`[O3 DEBUG] generateConsolidatedReview called with model: ${this.modelName}`);
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
 
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
-      );
+    // During consolidation, the model may have been overridden. We should check if we're already initialized
+    // with a valid model rather than checking the current environment variable.
+    if (!this.isInitialized || !this.modelName) {
+      // If not initialized, check against the current environment variable
+      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+
+      // Make sure this is the correct client
+      if (!isCorrect) {
+        throw new Error(
+          `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
+        );
+      }
     }
+    // If we're already initialized with a model, trust that initialization was correct
 
     try {
       // Initialize if needed
@@ -452,14 +457,20 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    // During consolidation, the model may have been overridden. We should check if we're already initialized
+    // with a valid model rather than checking the current environment variable.
+    if (!this.isInitialized || !this.modelName) {
+      // If not initialized, check against the current environment variable
+      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
 
-    // Make sure this is the correct client
-    if (!isCorrect) {
-      throw new Error(
-        `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
-      );
+      // Make sure this is the correct client
+      if (!isCorrect) {
+        throw new Error(
+          `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
+        );
+      }
     }
+    // If we're already initialized with a model, trust that initialization was correct
 
     try {
       // Initialize if needed

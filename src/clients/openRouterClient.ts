@@ -15,7 +15,7 @@
  */
 
 import type { CostInfo, FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
-import { ApiError } from '../utils/apiErrorHandler';
+import { ApiError, TokenLimitError } from '../utils/apiErrorHandler';
 import { getConfig } from '../utils/config';
 import logger from '../utils/logger';
 import type { ProjectDocs /* , addProjectDocsToPrompt */ } from '../utils/projectDocs'; // addProjectDocsToPrompt not used
@@ -199,6 +199,29 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // Check for token limit errors
+        const errorMessage = JSON.stringify(errorData).toLowerCase();
+        if (
+          errorMessage.includes('token') &&
+          (errorMessage.includes('limit') ||
+            errorMessage.includes('exceed') ||
+            errorMessage.includes('too long') ||
+            errorMessage.includes('too many'))
+        ) {
+          // Extract token count from prompt if possible
+          const { countTokens } = await import('../tokenizers');
+          const tokenCount = countTokens(prompt, modelName);
+
+          throw new TokenLimitError(
+            `Token limit exceeded for model ${modelName}. Content has ${tokenCount.toLocaleString()} tokens. Consider using --multi-pass flag for large codebases.`,
+            tokenCount,
+            undefined,
+            response.status,
+            errorData,
+          );
+        }
+
         throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
       }
 
@@ -212,7 +235,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Calculate cost information
       try {
-        cost = getCostInfoFromText(prompt + content, `openrouter:${modelName}`);
+        cost = getCostInfoFromText(prompt, content, `openrouter:${modelName}`);
       } catch (error) {
         logger.warn(
           `Failed to calculate cost information: ${
@@ -221,6 +244,11 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         );
       }
     } catch (error) {
+      // Re-throw TokenLimitError with additional context
+      if (error instanceof TokenLimitError) {
+        throw error;
+      }
+
       throw new ApiError(
         `Failed to generate review with OpenRouter ${modelName}: ${
           error instanceof Error ? error.message : String(error)
@@ -376,6 +404,29 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // Check for token limit errors
+        const errorMessage = JSON.stringify(errorData).toLowerCase();
+        if (
+          errorMessage.includes('token') &&
+          (errorMessage.includes('limit') ||
+            errorMessage.includes('exceed') ||
+            errorMessage.includes('too long') ||
+            errorMessage.includes('too many'))
+        ) {
+          // Extract token count from prompt if possible
+          const { countTokens } = await import('../tokenizers');
+          const tokenCount = countTokens(prompt, modelName);
+
+          throw new TokenLimitError(
+            `Token limit exceeded for model ${modelName}. Content has ${tokenCount.toLocaleString()} tokens. Consider using --multi-pass flag for large codebases.`,
+            tokenCount,
+            undefined,
+            response.status,
+            errorData,
+          );
+        }
+
         throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
       }
 
@@ -389,7 +440,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       // Calculate cost information
       try {
-        cost = getCostInfoFromText(prompt + content, `openrouter:${modelName}`);
+        cost = getCostInfoFromText(prompt, content, `openrouter:${modelName}`);
       } catch (error) {
         logger.warn(
           `Failed to calculate cost information: ${

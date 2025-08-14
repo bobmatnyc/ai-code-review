@@ -140,7 +140,7 @@ export class SemanticAnalyzer {
       }
 
       // Parse the code
-      let tree;
+      let tree: any;
       try {
         tree = parser.parse(content);
       } catch (parseError) {

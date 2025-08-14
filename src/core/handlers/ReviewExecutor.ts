@@ -30,32 +30,43 @@ export async function executeReview(
   projectDocs: unknown = null,
   tokenAnalysis: TokenAnalysisResult | null = null,
 ): Promise<ReviewResult> {
-  // Create strategy based on review type
-  const strategy = StrategyFactory.createStrategy(options);
+  // Determine if we need multi-pass review based on token analysis
+  const needsMultiPass = determineIfMultiPassNeeded(options, tokenAnalysis);
+
+  // Update options to enable multi-pass if needed
+  const effectiveOptions = { ...options };
+  if (needsMultiPass && !options.forceSinglePass) {
+    logger.info('Token analysis indicates multi-pass review is needed');
+    logger.info(
+      `Content has ${tokenAnalysis?.estimatedTotalTokens?.toLocaleString() || 'unknown'} tokens, exceeding model context window`,
+    );
+    effectiveOptions.multiPass = true;
+  }
+
+  // Create strategy based on review type and updated options
+  const strategy = StrategyFactory.createStrategy(effectiveOptions);
 
   if (!strategy) {
     throw new Error(`Unsupported review type: ${options.type}`);
   }
 
-  logger.info(`Using ${options.type} review strategy`);
+  logger.info(`Using ${effectiveOptions.multiPass ? 'multi-pass' : options.type} review strategy`);
 
-  // Determine if we need multi-pass review
-  const needsMultiPass = determineIfMultiPassNeeded(options, tokenAnalysis);
-
-  if (needsMultiPass) {
-    logger.info('Using multi-pass review due to content size or complexity');
+  if (needsMultiPass && options.forceSinglePass) {
+    logger.warn('Multi-pass review recommended but single-pass forced by user');
+    logger.warn('This may result in token limit errors or incomplete reviews');
   }
 
   // Get project name
   const projectPath = process.cwd();
   const projectName = path.basename(projectPath);
 
-  // Execute the review
+  // Execute the review with effective options (may have multiPass enabled)
   const reviewResult = await strategy.execute(
     fileInfos,
     projectName,
     projectDocs as any,
-    options,
+    effectiveOptions,
     apiClientConfig as any,
   );
 

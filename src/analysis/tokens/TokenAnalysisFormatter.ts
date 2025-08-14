@@ -43,8 +43,23 @@ export function formatTokenAnalysis(
   modelName: string,
   includeFiles = false,
 ): string {
-  // Extract provider and model if available
-  const [provider, model] = modelName.includes(':') ? modelName.split(':') : [undefined, modelName];
+  // Extract provider and model from both colon and slash formats
+  // Handle formats: "provider:model", "provider/model", or just "model"
+  let provider: string | undefined;
+  let model: string;
+
+  if (modelName.includes(':')) {
+    // Traditional format: "provider:model"
+    [provider, model] = modelName.split(':', 2);
+  } else if (modelName.includes('/')) {
+    // OpenRouter format: "provider/model"
+    [provider, model] = modelName.split('/', 2);
+  } else {
+    // Just model name
+    provider = undefined;
+    model = modelName;
+  }
+
   const displayModel = model || modelName;
   const displayProvider = provider
     ? `${provider.charAt(0).toUpperCase() + provider.slice(1)}`

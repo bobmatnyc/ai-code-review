@@ -360,9 +360,10 @@ export type CodeTracingUnusedCodeReview = z.infer<typeof CodeTracingUnusedCodeRe
 
 /**
  * LangChain parser for code tracing unused code review
+ * Simplified to avoid TypeScript deep instantiation issues
  */
 export const codeTracingUnusedCodeReviewParser = StructuredOutputParser.fromZodSchema(
-  CodeTracingUnusedCodeReviewSchema,
+  CodeTracingUnusedCodeReviewSchema as any,
 );
 
 /**

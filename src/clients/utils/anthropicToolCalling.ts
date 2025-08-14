@@ -32,7 +32,13 @@ import { executeToolCall } from './toolExecutor';
 /**
  * System prompt specific for architectural review with tool calling
  */
-const ARCHITECTURAL_SYSTEM_PROMPT = `You are an expert code reviewer and software architect. Focus on providing actionable feedback on the project's architecture, dependencies, and overall design. You will be given a codebase to review.
+/**
+ * Get the architectural system prompt, optionally with diagram generation
+ * @param includeDiagram Whether to include diagram generation instructions
+ * @returns System prompt for architectural review
+ */
+function getArchitecturalSystemPrompt(includeDiagram = false): string {
+  let prompt = `You are an expert code reviewer and software architect. Focus on providing actionable feedback on the project's architecture, dependencies, and overall design. You will be given a codebase to review.
 
 IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE ARCHITECTURAL REVIEW CONTENT.
 
@@ -48,6 +54,35 @@ ESSENTIAL TASK: For ALL major dependencies in the project, you MUST use these to
 5. Maintenance status
 
 Always include a dedicated "Dependency Security Analysis" section in your review that summarizes the findings from your dependency security checks. This is a critical part of the architectural review.`;
+
+  if (includeDiagram) {
+    prompt += `
+
+ADDITIONAL REQUIREMENT: Generate Mermaid Architecture Diagrams
+
+Please include one or more Mermaid diagrams in your review to visualize the architecture. Create diagrams that show:
+
+1. **Component Architecture**: Show the main components/modules and their relationships
+2. **Data Flow**: Illustrate how data flows through the system
+3. **Dependencies**: Show external services, databases, and APIs
+4. **Layered Architecture**: If applicable, show the layers (presentation, business logic, data access)
+
+Use Mermaid syntax wrapped in triple backticks with 'mermaid' language identifier:
+
+\`\`\`mermaid
+graph TB
+    subgraph "Your actual architecture here"
+        Component1[Component Name]
+        Component2[Another Component]
+    end
+    Component1 --> Component2
+\`\`\`
+
+Ensure the diagrams accurately reflect the analyzed codebase structure. Include multiple diagrams if needed to properly represent different architectural aspects.`;
+  }
+
+  return prompt;
+}
 
 /**
  * Interface for tool call results
@@ -266,10 +301,11 @@ export async function generateArchitecturalAnthropicReview(
           throw new Error('Anthropic API key is missing');
         }
 
+        const systemPrompt = getArchitecturalSystemPrompt(options?.diagram || false);
         const data = await makeAnthropicRequest(
           apiKey,
           apiModelName,
-          ARCHITECTURAL_SYSTEM_PROMPT,
+          systemPrompt,
           userPrompt,
           0.2,
           tools,

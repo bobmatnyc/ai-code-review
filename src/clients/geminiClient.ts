@@ -19,8 +19,9 @@
 
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
-import { ApiError } from '../utils/apiErrorHandler';
+import { ApiError, TokenLimitError } from '../utils/apiErrorHandler';
 import { getApiKeyForProvider, getConfig } from '../utils/config';
+import { enhancePromptForDiagrams } from '../utils/diagramGenerator';
 import logger from '../utils/logger';
 import type { ProjectDocs } from '../utils/projectDocs';
 import { globalRateLimiter } from '../utils/rateLimiter';
@@ -34,6 +35,7 @@ import {
 } from './utils/promptFormatter';
 // import { formatProjectDocs } from '../utils/projectDocs'; // Not used in this specific implementation
 import { loadPromptTemplate } from './utils/promptLoader';
+import { getSystemPrompt } from './utils/systemPrompts';
 import { getCostInfoFromText } from './utils/tokenCounter';
 
 /**
@@ -225,25 +227,33 @@ export async function generateReview(
     // Calculate cost information
     const cost = getCostInfoFromText(prompt, response, `gemini:${selectedGeminiModel?.name}`);
 
-    // Try to parse the response as JSON
+    // Try to parse the response as JSON, but skip for architectural reviews with diagrams
     let structuredData = null;
-    try {
-      // First, check if the response is wrapped in a code block
-      const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      const jsonContent = jsonMatch ? jsonMatch[1] : response;
 
-      // Check if the content is valid JSON
-      structuredData = JSON.parse(jsonContent);
+    // For architectural reviews with diagrams, keep the Markdown format
+    if (!(reviewType === 'architectural' && options?.diagram)) {
+      try {
+        // First, check if the response is wrapped in a code block
+        const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        const jsonContent = jsonMatch ? jsonMatch[1] : response;
 
-      // Validate that it has the expected structure
-      if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        // Check if the content is valid JSON
+        structuredData = JSON.parse(jsonContent);
+
+        // Validate that it has the expected structure
+        if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
+          logger.warn('Response is valid JSON but does not have the expected structure');
+        }
+      } catch (parseError) {
+        logger.debug(
+          `Response is not JSON (expected for architectural reviews with diagrams): ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+        );
+        // Keep the original response as content
       }
-    } catch (parseError) {
-      logger.warn(
-        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+    } else {
+      logger.debug(
+        'Skipping JSON parsing for architectural review with diagrams - keeping Markdown format',
       );
-      // Keep the original response as content
     }
 
     // Return the review result
@@ -255,6 +265,10 @@ export async function generateReview(
       reviewType,
       timestamp: new Date().toISOString(),
       structuredData,
+      metadata: {
+        ...options?.metadata,
+        diagramRequested: options?.diagram,
+      },
     };
   } catch (error) {
     logger.error(
@@ -302,7 +316,18 @@ export async function generateConsolidatedReview(
     await globalRateLimiter.acquire();
 
     // Load the appropriate prompt template
-    const promptTemplate = await loadPromptTemplate(reviewType, options);
+    let promptTemplate = await loadPromptTemplate(reviewType, options);
+
+    // Enhance prompt for diagram generation if requested for architectural reviews
+    if (options?.diagram && reviewType === 'architectural') {
+      promptTemplate = enhancePromptForDiagrams(
+        promptTemplate,
+        { ...options, type: reviewType },
+        projectName,
+        options?.framework,
+      );
+      logger.debug('Enhanced prompt with diagram generation instructions');
+    }
 
     // Format the prompt
     const prompt = formatConsolidatedReviewPrompt(
@@ -322,25 +347,33 @@ export async function generateConsolidatedReview(
     // Calculate cost information
     const cost = getCostInfoFromText(prompt, response, `gemini:${selectedGeminiModel?.name}`);
 
-    // Try to parse the response as JSON
+    // Try to parse the response as JSON, but skip for architectural reviews with diagrams
     let structuredData = null;
-    try {
-      // First, check if the response is wrapped in a code block
-      const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      const jsonContent = jsonMatch ? jsonMatch[1] : response;
 
-      // Check if the content is valid JSON
-      structuredData = JSON.parse(jsonContent);
+    // For architectural reviews with diagrams, keep the Markdown format
+    if (!(reviewType === 'architectural' && options?.diagram)) {
+      try {
+        // First, check if the response is wrapped in a code block
+        const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        const jsonContent = jsonMatch ? jsonMatch[1] : response;
 
-      // Validate that it has the expected structure
-      if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
-        logger.warn('Response is valid JSON but does not have the expected structure');
+        // Check if the content is valid JSON
+        structuredData = JSON.parse(jsonContent);
+
+        // Validate that it has the expected structure
+        if (!structuredData.summary || !Array.isArray(structuredData.issues)) {
+          logger.warn('Response is valid JSON but does not have the expected structure');
+        }
+      } catch (parseError) {
+        logger.debug(
+          `Response is not JSON (expected for architectural reviews with diagrams): ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+        );
+        // Keep the original response as content
       }
-    } catch (parseError) {
-      logger.warn(
-        `Response is not valid JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+    } else {
+      logger.debug(
+        'Skipping JSON parsing for architectural review with diagrams - keeping Markdown format',
       );
-      // Keep the original response as content
     }
 
     // Return the review result
@@ -352,6 +385,10 @@ export async function generateConsolidatedReview(
       reviewType,
       timestamp: new Date().toISOString(),
       structuredData,
+      metadata: {
+        ...options?.metadata,
+        diagramRequested: options?.diagram,
+      },
     };
   } catch (error) {
     logger.error(
@@ -408,10 +445,7 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
  * @param options Review options
  * @returns Promise resolving to the response text
  */
-async function generateGeminiResponse(
-  prompt: string,
-  _options?: ReviewOptions, // Unused parameter, prefixed with underscore
-): Promise<string> {
+async function generateGeminiResponse(prompt: string, options?: ReviewOptions): Promise<string> {
   if (!genAI || !selectedGeminiModel) {
     throw new Error('Gemini client not initialized');
   }
@@ -426,46 +460,16 @@ async function generateGeminiResponse(
 
     const model = genAI.getGenerativeModel(modelOptions);
 
-    // Generate content
-    // Add a prefix to the prompt to instruct the model not to repeat the instructions
-    // and to provide output in Markdown format rather than JSON to match other models
-    const outputInstructions = `
-You are a helpful AI assistant that provides code reviews. Focus on providing actionable feedback. Do not repeat the instructions in your response.
+    // Get the appropriate system prompt based on review type and options
+    // Use Markdown format for better compatibility and diagram support
+    const systemPrompt = getSystemPrompt(
+      options?.type || 'quick-fixes',
+      true, // Use Markdown format for Gemini
+      options,
+    );
 
-IMPORTANT: Format your response as a well-structured Markdown document with the following sections:
-
-# Code Review
-
-## Summary
-A brief summary of the code review.
-
-## Issues
-
-### High Priority
-For each high priority issue:
-- Issue title
-- File path and line numbers
-- Description of the issue
-- Code snippet (if relevant)
-- Suggested fix
-- Impact of the issue
-
-### Medium Priority
-(Same format as high priority)
-
-### Low Priority
-(Same format as high priority)
-
-## General Recommendations
-- List of general recommendations
-
-## Positive Aspects
-- List of positive aspects of the code
-
-Ensure your response is well-formatted Markdown with proper headings, bullet points, and code blocks.
-`;
-
-    const modifiedPrompt = `${outputInstructions}\n\n${prompt}`;
+    // Combine system prompt with user prompt
+    const modifiedPrompt = `${systemPrompt}\n\n${prompt}`;
 
     const result = await withRetry(() =>
       model.generateContent({
@@ -492,6 +496,30 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
   } catch (error) {
     // Handle API errors
     if (error instanceof Error) {
+      const errorMessage = error.message.toLowerCase();
+
+      // Check for token limit errors
+      if (
+        errorMessage.includes('token') &&
+        (errorMessage.includes('limit') ||
+          errorMessage.includes('exceed') ||
+          errorMessage.includes('too long') ||
+          errorMessage.includes('too many'))
+      ) {
+        // Extract token count from prompt if possible
+        const { countTokens } = await import('../tokenizers');
+        const modelName = selectedGeminiModel?.name || 'gemini';
+        const tokenCount = countTokens(prompt, modelName);
+
+        throw new TokenLimitError(
+          `Token limit exceeded for Gemini model ${modelName}. Content has ${tokenCount.toLocaleString()} tokens. Consider using --multi-pass flag for large codebases.`,
+          tokenCount,
+          undefined,
+          undefined,
+          error.message,
+        );
+      }
+
       throw new ApiError(`Gemini API error: ${error.message}`);
     }
     throw new ApiError(`Unknown Gemini API error: ${String(error)}`);

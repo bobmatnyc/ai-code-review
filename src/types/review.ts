@@ -21,7 +21,6 @@ export type ReviewType =
   | 'unused-code'
   | 'focused-unused-code'
   | 'code-tracing-unused-code'
-  | 'improved-quick-fixes'
   | 'consolidated'
   | 'best-practices'
   | 'evaluation'
@@ -118,6 +117,8 @@ export interface ReviewOptions {
   focused?: boolean;
   /** Whether to use consolidated review */
   consolidated?: boolean;
+  /** Whether to generate Mermaid architecture diagrams */
+  diagram?: boolean;
 
   // Coding test specific options
   /** Path to assignment description file */

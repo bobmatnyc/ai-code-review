@@ -92,7 +92,6 @@ export const VALID_REVIEW_TYPES: ReviewType[] = [
   'code-tracing-unused-code',
   'best-practices',
   'focused-unused-code',
-  'improved-quick-fixes',
 ];
 
 /**
@@ -107,7 +106,6 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<Exclude<ReviewType, 'consolidated'
   'code-tracing-unused-code': 'Deep code tracing for high-confidence unused code detection',
   'best-practices': 'Best practices review focusing on language-specific idioms and patterns',
   'focused-unused-code': 'Focused unused code review with targeted analysis',
-  'improved-quick-fixes': 'Enhanced quick fixes review with more comprehensive suggestions',
   evaluation: 'Developer skill and AI assistance assessment without code improvement suggestions',
   'extract-patterns':
     'Extract detailed code patterns, architecture, and design decisions for creating exemplar project libraries',

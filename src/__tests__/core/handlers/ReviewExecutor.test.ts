@@ -91,7 +91,7 @@ describe('ReviewExecutor', () => {
         null
       );
       
-      expect(logger.info).toHaveBeenCalledWith('Using multi-pass review due to content size or complexity');
+      expect(logger.info).toHaveBeenCalledWith('Using multi-pass review strategy');
     });
   });
 

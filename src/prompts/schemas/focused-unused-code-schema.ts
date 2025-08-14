@@ -4,7 +4,6 @@
  * This module defines a simplified schema focused solely on detecting unused code.
  */
 
-import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import { z } from 'zod';
 
 /**

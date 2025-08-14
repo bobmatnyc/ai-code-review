@@ -103,7 +103,7 @@ export interface TokenAnalysisOptions {
  */
 export class TokenAnalyzer {
   private static DEFAULT_PROMPT_OVERHEAD = 1500;
-  private static DEFAULT_CONTEXT_MAINTENANCE_FACTOR = 0.15;
+  private static DEFAULT_CONTEXT_MAINTENANCE_FACTOR = 0.08; // Reduced to 8% for better efficiency
   private static DEFAULT_SAFETY_MARGIN_FACTOR = 0.1; // Use 90% of context window by default
   private static DEFAULT_CONTEXT_WINDOW = 100000; // Default fallback
 
@@ -138,19 +138,19 @@ export class TokenAnalyzer {
 
     // Try pattern matching for known model families
     if (baseName) {
-      // Gemini 2.x models
+      // Gemini 2.x models - Use accurate 1,048,576 token limit
       if (/gemini-2\.[05]-(pro|flash)/i.test(baseName)) {
-        const size = 1000000; // All Gemini 2.x models have 1M context
+        const size = 1048576; // Actual Gemini 2.x context window
         logger.info(`Detected Gemini 2.x model variant: ${baseName}`);
-        logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
+        logger.info(`Using context window size: ${size.toLocaleString()} tokens (actual limit)`);
         return size;
       }
 
-      // Gemini 1.5 models
+      // Gemini 1.5 models - Use accurate 1,048,576 token limit
       if (/gemini-1\.5-(pro|flash)/i.test(baseName)) {
-        const size = 1000000; // All Gemini 1.5 models have 1M context
+        const size = 1048576; // Actual Gemini 1.5 context window
         logger.info(`Detected Gemini 1.5 model variant: ${baseName}`);
-        logger.info(`Using context window size: ${size.toLocaleString()} tokens`);
+        logger.info(`Using context window size: ${size.toLocaleString()} tokens (actual limit)`);
         return size;
       }
 
@@ -273,14 +273,14 @@ export class TokenAnalyzer {
     // Special handling for Gemini 1.5/2.x models - add extra logging
     if (options.modelName.includes('gemini-1.5') || options.modelName.includes('gemini-2.')) {
       const modelVersion = options.modelName.includes('gemini-2.') ? '2.x' : '1.5';
-      logger.info(`Using Gemini ${modelVersion} model with 1M token context window`);
+      logger.info(`Using Gemini ${modelVersion} model with 1,048,576 token context window`);
       if (chunkingRecommendation.chunkingRecommended) {
         logger.info(
-          `Note: Even with Gemini ${modelVersion}'s large context window, chunking is recommended because the content exceeds ${((effectiveContextWindowSize / 1000000) * 100).toFixed(0)}% of the context window`,
+          `Note: Even with Gemini ${modelVersion}'s large context window, chunking is recommended because the content exceeds ${((effectiveContextWindowSize / 1048576) * 100).toFixed(0)}% of the context window`,
         );
       } else {
         logger.info(
-          `Note: Using Gemini ${modelVersion}'s large context window (1M tokens) for single-pass review`,
+          `Note: Using Gemini ${modelVersion}'s large context window (1,048,576 tokens) for single-pass review`,
         );
       }
     }
@@ -357,9 +357,6 @@ export class TokenAnalyzer {
       `Generating chunking recommendation with context maintenance factor: ${contextMaintenanceFactor}`,
     );
 
-    // Sort files by token count (largest first)
-    const sortedFiles = [...fileAnalyses].sort((a, b) => b.tokenCount - a.tokenCount);
-
     // Calculate effective context window size accounting for context maintenance
     const effectiveContextSize = Math.floor(contextWindowSize * (1 - contextMaintenanceFactor));
 
@@ -367,62 +364,376 @@ export class TokenAnalyzer {
       `Effective context size for chunking: ${effectiveContextSize.toLocaleString()} tokens (${Math.round((1 - contextMaintenanceFactor) * 100)}% of ${contextWindowSize.toLocaleString()} tokens)`,
     );
 
-    // Create chunks of files that fit within the effective context size
-    const chunks: FileChunk[] = [];
-    let currentChunk: FileChunk = {
-      files: [],
-      estimatedTokenCount: 0,
-      priority: 1,
-    };
+    // Use optimized bin-packing algorithm for better chunk distribution
+    const chunks = TokenAnalyzer.optimizedBinPacking(
+      fileAnalyses,
+      effectiveContextSize,
+      contextWindowSize,
+    );
 
-    for (const file of sortedFiles) {
-      // Check if this individual file is too large for the context window
-      if (file.tokenCount > effectiveContextSize) {
-        logger.warn(
-          `File "${file.path}" is too large for the context window (${file.tokenCount.toLocaleString()} > ${effectiveContextSize.toLocaleString()} tokens)`,
-        );
-        logger.warn(`This file will be processed alone but may exceed the model's capacity`);
-      }
-
-      // If this file would exceed the chunk size, start a new chunk
-      if (
-        currentChunk.estimatedTokenCount + file.tokenCount > effectiveContextSize &&
-        currentChunk.files.length > 0
-      ) {
-        logger.debug(
-          `Chunk ${chunks.length + 1} complete with ${currentChunk.files.length} files and ${currentChunk.estimatedTokenCount.toLocaleString()} tokens`,
-        );
-        chunks.push(currentChunk);
-        currentChunk = {
-          files: [],
-          estimatedTokenCount: 0,
-          priority: chunks.length + 1,
-        };
-      }
-
-      // Add the file to the current chunk
-      currentChunk.files.push(file.path);
-      currentChunk.estimatedTokenCount += file.tokenCount;
-      logger.debug(
-        `Added file "${file.path}" (${file.tokenCount.toLocaleString()} tokens) to chunk ${chunks.length + 1}`,
-      );
-    }
-
-    // Add the last chunk if it's not empty
-    if (currentChunk.files.length > 0) {
-      logger.debug(
-        `Final chunk ${chunks.length + 1} complete with ${currentChunk.files.length} files and ${currentChunk.estimatedTokenCount.toLocaleString()} tokens`,
-      );
-      chunks.push(currentChunk);
-    }
-
-    logger.info(`Created ${chunks.length} chunks for multi-pass review`);
+    logger.info(`Created ${chunks.length} optimized chunks for multi-pass review`);
 
     return {
       chunkingRecommended: true,
       recommendedChunks: chunks,
       reason: `Content exceeds model context window (${estimatedTotalTokens.toLocaleString()} > ${contextWindowSize.toLocaleString()} tokens)`,
     };
+  }
+
+  /**
+   * Optimized bin-packing algorithm to minimize the number of chunks
+   * Uses an advanced first-fit decreasing with multi-level optimization
+   * @param fileAnalyses Array of file token analyses
+   * @param maxChunkSize Maximum size for each chunk in tokens
+   * @param contextWindowSize Original context window for logging
+   * @returns Array of optimized file chunks
+   */
+  private static optimizedBinPacking(
+    fileAnalyses: FileTokenAnalysis[],
+    maxChunkSize: number,
+    _contextWindowSize: number,
+  ): FileChunk[] {
+    // Sort files by token count (largest first) for first-fit decreasing
+    const sortedFiles = [...fileAnalyses].sort((a, b) => b.tokenCount - a.tokenCount);
+
+    // Calculate target chunk size for optimal distribution
+    const totalTokens = sortedFiles.reduce((sum, f) => sum + f.tokenCount, 0);
+    const minChunksNeeded = Math.ceil(totalTokens / maxChunkSize);
+    const targetChunkSize = Math.floor(totalTokens / minChunksNeeded);
+
+    logger.debug(`Bin-packing optimization:`);
+    logger.debug(`  - Total tokens: ${totalTokens.toLocaleString()}`);
+    logger.debug(`  - Max chunk size: ${maxChunkSize.toLocaleString()}`);
+    logger.debug(`  - Min chunks needed: ${minChunksNeeded}`);
+    logger.debug(`  - Target chunk size: ${targetChunkSize.toLocaleString()}`);
+
+    // Initialize chunks array
+    const chunks: FileChunk[] = [];
+
+    // Track oversized files separately
+    const oversizedFiles: FileTokenAnalysis[] = [];
+    const largeFiles: FileTokenAnalysis[] = [];
+    const mediumFiles: FileTokenAnalysis[] = [];
+    const smallFiles: FileTokenAnalysis[] = [];
+
+    // Categorize files by size for better packing
+    for (const file of sortedFiles) {
+      if (file.tokenCount > maxChunkSize) {
+        oversizedFiles.push(file);
+        logger.warn(
+          `File "${file.path}" is oversized (${file.tokenCount.toLocaleString()} > ${maxChunkSize.toLocaleString()} tokens)`,
+        );
+      } else if (file.tokenCount > maxChunkSize * 0.5) {
+        largeFiles.push(file);
+      } else if (file.tokenCount > maxChunkSize * 0.2) {
+        mediumFiles.push(file);
+      } else {
+        smallFiles.push(file);
+      }
+    }
+
+    logger.debug(`File categorization:`);
+    logger.debug(`  - Oversized: ${oversizedFiles.length}`);
+    logger.debug(`  - Large (>50% of max): ${largeFiles.length}`);
+    logger.debug(`  - Medium (20-50% of max): ${mediumFiles.length}`);
+    logger.debug(`  - Small (<20% of max): ${smallFiles.length}`);
+
+    // Process oversized files first (split them if possible)
+    for (const file of oversizedFiles) {
+      // For now, put oversized files in their own chunks
+      // TODO: In future, we could split file content
+      chunks.push({
+        files: [file.path],
+        estimatedTokenCount: file.tokenCount,
+        priority: chunks.length + 1,
+      });
+      logger.debug(
+        `Created dedicated chunk ${chunks.length} for oversized file "${file.path}" (${file.tokenCount.toLocaleString()} tokens)`,
+      );
+    }
+
+    // Process large files - try to pair them optimally
+    for (const file of largeFiles) {
+      let placed = false;
+
+      // Try to find a chunk with complementary space
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const remainingSpace = maxChunkSize - chunk.estimatedTokenCount;
+
+        // Check if this file fits well (within 80% efficiency)
+        if (
+          remainingSpace >= file.tokenCount &&
+          chunk.estimatedTokenCount + file.tokenCount >= targetChunkSize * 0.8
+        ) {
+          chunk.files.push(file.path);
+          chunk.estimatedTokenCount += file.tokenCount;
+          placed = true;
+          logger.debug(
+            `Added large file "${file.path}" (${file.tokenCount.toLocaleString()} tokens) to chunk ${i + 1}`,
+          );
+          break;
+        }
+      }
+
+      if (!placed) {
+        // Create a new chunk for this large file
+        chunks.push({
+          files: [file.path],
+          estimatedTokenCount: file.tokenCount,
+          priority: chunks.length + 1,
+        });
+        logger.debug(
+          `Created new chunk ${chunks.length} for large file "${file.path}" (${file.tokenCount.toLocaleString()} tokens)`,
+        );
+      }
+    }
+
+    // Process medium files - use first-fit with efficiency threshold
+    for (const file of mediumFiles) {
+      let placed = false;
+
+      // Find first chunk where this file fits efficiently
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const remainingSpace = maxChunkSize - chunk.estimatedTokenCount;
+
+        if (remainingSpace >= file.tokenCount) {
+          chunk.files.push(file.path);
+          chunk.estimatedTokenCount += file.tokenCount;
+          placed = true;
+          logger.debug(
+            `Added medium file "${file.path}" (${file.tokenCount.toLocaleString()} tokens) to chunk ${i + 1}`,
+          );
+          break;
+        }
+      }
+
+      if (!placed) {
+        // Create a new chunk
+        chunks.push({
+          files: [file.path],
+          estimatedTokenCount: file.tokenCount,
+          priority: chunks.length + 1,
+        });
+        logger.debug(
+          `Created new chunk ${chunks.length} for medium file "${file.path}" (${file.tokenCount.toLocaleString()} tokens)`,
+        );
+      }
+    }
+
+    // Process small files - pack them to fill gaps
+    // Sort small files for better packing (largest first)
+    smallFiles.sort((a, b) => b.tokenCount - a.tokenCount);
+
+    for (const file of smallFiles) {
+      let placed = false;
+
+      // Find the fullest chunk that can still fit this file
+      let bestChunkIndex = -1;
+      let bestChunkFullness = 0;
+
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const remainingSpace = maxChunkSize - chunk.estimatedTokenCount;
+        const chunkFullness = chunk.estimatedTokenCount / maxChunkSize;
+
+        if (remainingSpace >= file.tokenCount && chunkFullness > bestChunkFullness) {
+          bestChunkIndex = i;
+          bestChunkFullness = chunkFullness;
+        }
+      }
+
+      if (bestChunkIndex !== -1) {
+        const chunk = chunks[bestChunkIndex];
+        chunk.files.push(file.path);
+        chunk.estimatedTokenCount += file.tokenCount;
+        placed = true;
+        logger.debug(
+          `Added small file "${file.path}" (${file.tokenCount.toLocaleString()} tokens) to chunk ${bestChunkIndex + 1}`,
+        );
+      }
+
+      if (!placed) {
+        // Create a new chunk only if absolutely necessary
+        chunks.push({
+          files: [file.path],
+          estimatedTokenCount: file.tokenCount,
+          priority: chunks.length + 1,
+        });
+        logger.debug(
+          `Created new chunk ${chunks.length} for small file "${file.path}" (${file.tokenCount.toLocaleString()} tokens)`,
+        );
+      }
+    }
+
+    // Perform aggressive balancing to minimize chunk count
+    const balancedChunks = TokenAnalyzer.aggressiveBalance(chunks, fileAnalyses, maxChunkSize);
+
+    // Log chunk statistics
+    const avgTokensPerChunk = Math.round(
+      balancedChunks.reduce((sum, c) => sum + c.estimatedTokenCount, 0) / balancedChunks.length,
+    );
+    const maxTokensInChunk = Math.max(...balancedChunks.map((c) => c.estimatedTokenCount));
+    const minTokensInChunk = Math.min(...balancedChunks.map((c) => c.estimatedTokenCount));
+
+    logger.info(`Chunk statistics:`);
+    logger.info(`  - Total chunks: ${balancedChunks.length}`);
+    logger.info(`  - Average tokens per chunk: ${avgTokensPerChunk.toLocaleString()}`);
+    logger.info(`  - Max tokens in a chunk: ${maxTokensInChunk.toLocaleString()}`);
+    logger.info(`  - Min tokens in a chunk: ${minTokensInChunk.toLocaleString()}`);
+    logger.info(`  - Chunk efficiency: ${((avgTokensPerChunk / maxChunkSize) * 100).toFixed(1)}%`);
+
+    return balancedChunks;
+  }
+
+  /**
+   * Aggressive balancing to minimize chunk count and maximize efficiency
+   * @param chunks Initial chunks from bin-packing
+   * @param fileAnalyses Original file analyses for lookup
+   * @param maxChunkSize Maximum size for each chunk
+   * @returns Balanced chunks with minimized count
+   */
+  private static aggressiveBalance(
+    chunks: FileChunk[],
+    fileAnalyses: FileTokenAnalysis[],
+    maxChunkSize: number,
+  ): FileChunk[] {
+    // Create a map for quick file lookups
+    const fileMap = new Map<string, FileTokenAnalysis>();
+    for (const file of fileAnalyses) {
+      fileMap.set(file.path, file);
+    }
+
+    // First pass: Try to merge small chunks
+    const mergedChunks: FileChunk[] = [];
+    const sortedForMerging = [...chunks].sort(
+      (a, b) => a.estimatedTokenCount - b.estimatedTokenCount,
+    );
+    const usedChunks = new Set<number>();
+
+    for (let i = 0; i < sortedForMerging.length; i++) {
+      if (usedChunks.has(i)) continue;
+
+      const chunk1 = sortedForMerging[i];
+      const mergedChunk: FileChunk = {
+        files: [...chunk1.files],
+        estimatedTokenCount: chunk1.estimatedTokenCount,
+        priority: mergedChunks.length + 1,
+      };
+      usedChunks.add(i);
+
+      // Try to merge with other small chunks
+      for (let j = i + 1; j < sortedForMerging.length; j++) {
+        if (usedChunks.has(j)) continue;
+
+        const chunk2 = sortedForMerging[j];
+        const combinedSize = mergedChunk.estimatedTokenCount + chunk2.estimatedTokenCount;
+
+        // Merge if combined size is still within limits
+        if (combinedSize <= maxChunkSize) {
+          mergedChunk.files.push(...chunk2.files);
+          mergedChunk.estimatedTokenCount = combinedSize;
+          usedChunks.add(j);
+          logger.debug(
+            `Merged chunks: ${chunk2.files.length} files (${chunk2.estimatedTokenCount.toLocaleString()} tokens) into chunk with ${mergedChunk.files.length} files`,
+          );
+        }
+      }
+
+      mergedChunks.push(mergedChunk);
+    }
+
+    logger.debug(`Chunk merging reduced count from ${chunks.length} to ${mergedChunks.length}`);
+
+    // Second pass: Balance the merged chunks
+    const sortedChunks = [...mergedChunks].sort(
+      (a, b) => a.estimatedTokenCount - b.estimatedTokenCount,
+    );
+
+    // Try to move files to achieve better balance
+    let improved = true;
+    let iterations = 0;
+    const maxIterations = 20; // More iterations for aggressive optimization
+
+    while (improved && iterations < maxIterations) {
+      improved = false;
+      iterations++;
+
+      // Find the most and least full chunks
+      sortedChunks.sort((a, b) => a.estimatedTokenCount - b.estimatedTokenCount);
+
+      for (let i = 0; i < Math.floor(sortedChunks.length / 2); i++) {
+        const smallChunk = sortedChunks[i];
+        const largeChunk = sortedChunks[sortedChunks.length - 1 - i];
+
+        // Calculate variance threshold based on chunk count
+        const varianceThreshold = Math.max(500, maxChunkSize * 0.05); // 5% of max or 500 tokens
+
+        // Skip if chunks are already well balanced
+        if (largeChunk.estimatedTokenCount - smallChunk.estimatedTokenCount < varianceThreshold) {
+          continue;
+        }
+
+        // Try to find optimal file to move
+        let bestFile: string | null = null;
+        let bestImprovement = 0;
+
+        for (const filePath of largeChunk.files) {
+          const file = fileMap.get(filePath);
+          if (!file) continue;
+
+          const newSmallSize = smallChunk.estimatedTokenCount + file.tokenCount;
+          const newLargeSize = largeChunk.estimatedTokenCount - file.tokenCount;
+
+          // Check if moving this file would improve balance
+          if (newSmallSize <= maxChunkSize && newLargeSize > 0) {
+            const currentDiff = largeChunk.estimatedTokenCount - smallChunk.estimatedTokenCount;
+            const newDiff = Math.abs(newLargeSize - newSmallSize);
+            const improvement = currentDiff - newDiff;
+
+            if (improvement > bestImprovement) {
+              bestFile = filePath;
+              bestImprovement = improvement;
+            }
+          }
+        }
+
+        // Move the best file if found
+        if (bestFile && bestImprovement > 100) {
+          const file = fileMap.get(bestFile)!;
+          largeChunk.files = largeChunk.files.filter((f) => f !== bestFile);
+          smallChunk.files.push(bestFile);
+
+          // Update token counts
+          largeChunk.estimatedTokenCount -= file.tokenCount;
+          smallChunk.estimatedTokenCount += file.tokenCount;
+
+          logger.debug(
+            `Balanced: Moved file "${bestFile}" (${file.tokenCount.toLocaleString()} tokens) - improvement: ${bestImprovement.toLocaleString()} tokens`,
+          );
+
+          improved = true;
+        }
+      }
+    }
+
+    // Final pass: Remove any empty chunks
+    const finalChunks = sortedChunks.filter((chunk) => chunk.files.length > 0);
+
+    // Re-assign priorities based on token count (largest first for processing)
+    finalChunks.sort((a, b) => b.estimatedTokenCount - a.estimatedTokenCount);
+    finalChunks.forEach((chunk, index) => {
+      chunk.priority = index + 1;
+    });
+
+    if (iterations === maxIterations) {
+      logger.debug(`Aggressive balancing stopped after ${maxIterations} iterations`);
+    } else {
+      logger.debug(`Aggressive balancing completed in ${iterations} iterations`);
+    }
+
+    return finalChunks;
   }
 
   /**

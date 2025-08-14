@@ -174,8 +174,11 @@ export type QuickFixesReview = z.infer<typeof QuickFixesReviewSchema>;
 
 /**
  * LangChain parser for quick fixes review output
+ * Simplified to avoid TypeScript deep instantiation issues
  */
-export const quickFixesReviewParser = StructuredOutputParser.fromZodSchema(QuickFixesReviewSchema);
+export const quickFixesReviewParser = StructuredOutputParser.fromZodSchema(
+  QuickFixesReviewSchema as any,
+);
 
 /**
  * Get format instructions for the quick fixes review parser

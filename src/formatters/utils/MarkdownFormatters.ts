@@ -31,11 +31,58 @@ export function formatAsMarkdown(review: ReviewResult): string {
 
   // Check if the content is JSON that should be formatted as structured data
   let actualStructuredData = structuredData;
-  if (!actualStructuredData && content && typeof content === 'string') {
+
+  // For architectural reviews with diagrams, always prefer Markdown format
+  const forceMarkdown = reviewType === 'architectural' && review.metadata?.diagramRequested;
+
+  if (!actualStructuredData && content && typeof content === 'string' && !forceMarkdown) {
     // Improved JSON detection - check for both raw JSON and code blocks
     const trimmedContent = content.trim();
 
-    // First, try to extract JSON from code blocks with improved regex
+    // First, check if this looks like truncated/incomplete JSON
+    if (trimmedContent.startsWith('{') && !trimmedContent.includes('}')) {
+      logger.warn('Content appears to be truncated JSON - missing closing brace');
+
+      // For architectural reviews, try to salvage what we can
+      if (reviewType === 'architectural') {
+        try {
+          // Try to close the JSON and parse what we have
+          const closedJson = `${trimmedContent}}}}}`; // Add multiple closing braces
+          const partialData = JSON.parse(closedJson.substring(0, closedJson.lastIndexOf('}') + 1));
+
+          // If we got some data, convert it
+          if (partialData && typeof partialData === 'object') {
+            logger.info('Salvaged partial JSON data for architectural review');
+            // Import the converter function
+            const { formatArchitecturalReview } = require('../architecturalReviewFormatter');
+            const salvaged = formatArchitecturalReview(
+              { ...review, content: JSON.stringify(partialData) },
+              'markdown',
+              [],
+            );
+            return salvaged;
+          }
+        } catch (_e) {
+          // Couldn't salvage, continue with warning
+        }
+      }
+
+      // Don't try to parse incomplete JSON, just return it as plain text with a warning
+      const warningMessage =
+        '⚠️ **Warning**: The AI response appears to be incomplete or truncated. ' +
+        'This may be due to token limits or API issues. Please try again or use a different model.\n\n' +
+        '**Partial response received:**\n\n';
+      return formatSimpleMarkdown(
+        `${warningMessage}\`\`\`json\n${content}\n\`\`\``,
+        filePath || '',
+        reviewType,
+        timestamp,
+        costInfo,
+        modelInfo,
+      );
+    }
+
+    // Try to extract JSON from code blocks with improved regex
     // This regex matches code blocks with or without the json language specifier
     const jsonBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
     const jsonBlocks = [...trimmedContent.matchAll(jsonBlockRegex)];
@@ -74,7 +121,8 @@ export function formatAsMarkdown(review: ReviewResult): string {
   }
 
   // If we have structured data, format it as Markdown
-  if (actualStructuredData) {
+  // But skip JSON parsing for architectural reviews with diagrams - keep original Markdown
+  if (actualStructuredData && !forceMarkdown) {
     try {
       let structuredReview: any;
 
