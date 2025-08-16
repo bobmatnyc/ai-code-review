@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.4] - 2025-08-16
+
+### Added
+- **Unified Client System**: New architecture for API client management
+  - BaseApiClient interface for consistent client behavior
+  - UnifiedClientFactory for streamlined client creation
+  - OpenAIApiClient implementation with enhanced error handling
+  - Improved configuration service for client settings
+- **Build Number Tracking**: Comprehensive build tracking system
+  - Automatic build number incrementation during builds
+  - Build metadata tracking with timestamps
+  - Enhanced version reporting with build information
+- **Enhanced Consolidation Service**: Improved multi-pass review consolidation
+  - Dedicated ConsolidationService for better separation of concerns
+  - Enhanced error handling and fallback mechanisms
+  - Improved AI-powered consolidation with better prompt handling
+- **New Prompt Templates**: Extended prompt template library
+  - AI Integration Review template for AI-assisted development analysis
+  - Cloud Native Review template for cloud architecture assessment
+  - Developer Experience Review template for DX evaluation
+  - Java and Rust language-specific best practices templates
+- **Prompt Schema Validation**: JSON schema for prompt frontmatter validation
+  - Structured validation for prompt metadata
+  - Consistent prompt template format enforcement
+  - Enhanced prompt development workflow
+
+### Improved
+- **Documentation Organization**: Comprehensive documentation restructuring
+  - Moved all documentation files to dedicated docs/ directory
+  - Enhanced documentation for unified client system
+  - Improved build number tracking documentation
+  - Better organization of migration guides and architectural docs
+- **Code Quality**: Enhanced testing and validation
+  - New unit tests for consolidation bug fixes
+  - Improved test coverage for unified client system
+  - Enhanced validation scripts for prompt templates
+- **Project Structure**: Cleaner codebase organization
+  - Replaced old task management system with new tickets/ structure
+  - Removed temporary debug files and test directories
+  - Better separation of concerns in core services
+
+### Fixed
+- **Consolidation Bug**: Fixed issue where consolidation instructions were treated as source code
+  - Consolidation prompts now properly passed in projectDocs.readme field
+  - Empty string passed as fileContent to prevent code wrapping
+  - Enhanced test coverage to prevent regression
+- **Token Analysis**: Improved token counting and analysis accuracy
+- **Client Factory**: Enhanced client creation and initialization logic
+
+### Removed
+- **Legacy Task System**: Removed old tasks/ directory structure
+- **Debug Files**: Cleaned up temporary debug and test files
+- **Duplicate Documentation**: Consolidated documentation in docs/ directory
+
 ## [4.3.1] - 2025-07-09
 
 ### Fixed
