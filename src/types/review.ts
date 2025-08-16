@@ -25,7 +25,10 @@ export type ReviewType =
   | 'best-practices'
   | 'evaluation'
   | 'extract-patterns'
-  | 'coding-test';
+  | 'coding-test'
+  | 'ai-integration'
+  | 'cloud-native'
+  | 'developer-experience';
 
 /**
  * Options for code reviews
@@ -39,6 +42,8 @@ export interface ReviewOptions {
   outputDir?: string;
   /** Model to use for the review */
   model?: string;
+  /** Model to use for consolidating multi-pass reviews (defaults to main model) */
+  writerModel?: string;
   /** Whether to include test files in the review */
   includeTests?: boolean;
   /** Whether to include project documentation in the review context */
@@ -119,6 +124,8 @@ export interface ReviewOptions {
   consolidated?: boolean;
   /** Whether to generate Mermaid architecture diagrams */
   diagram?: boolean;
+  /** Force maximum tokens per batch (for testing consolidation) */
+  batchTokenLimit?: number;
 
   // Coding test specific options
   /** Path to assignment description file */

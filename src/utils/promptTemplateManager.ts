@@ -57,6 +57,10 @@ const reviewTypeMapping: Record<string, string> = {
   evaluation: 'evaluation',
   'extract-patterns': 'extract-patterns-review',
   'coding-test': 'coding-test',
+  // Contemporary development patterns
+  'ai-integration': 'ai-integration-review',
+  'cloud-native': 'cloud-native-review',
+  'developer-experience': 'developer-experience-review',
 };
 
 /**

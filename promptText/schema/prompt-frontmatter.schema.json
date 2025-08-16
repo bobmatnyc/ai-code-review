@@ -1,0 +1,143 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Code Review Prompt Frontmatter Schema",
+  "description": "Schema for YAML frontmatter in AI code review prompt templates",
+  "type": "object",
+  "required": [
+    "name",
+    "description",
+    "version",
+    "author",
+    "reviewType",
+    "language",
+    "tags",
+    "lastModified"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the prompt template",
+      "minLength": 5,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of what this prompt template does",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the prompt template (e.g., '1.0.0')"
+    },
+    "author": {
+      "type": "string",
+      "description": "Author of the prompt template",
+      "enum": ["AI Code Review Tool"]
+    },
+    "reviewType": {
+      "type": "string",
+      "description": "Type of code review this prompt performs",
+      "enum": [
+        "architectural",
+        "best-practices",
+        "quick-fixes",
+        "security",
+        "performance",
+        "unused-code",
+        "consolidated",
+        "evaluation",
+        "extract-patterns",
+        "coding-test",
+        "ai-integration",
+        "cloud-native",
+        "developer-experience"
+      ]
+    },
+    "language": {
+      "type": "string",
+      "description": "Programming language this prompt is designed for",
+      "enum": [
+        "generic",
+        "typescript",
+        "javascript",
+        "python",
+        "java",
+        "csharp",
+        "go",
+        "rust",
+        "ruby",
+        "php",
+        "swift",
+        "kotlin"
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags for categorizing and searching prompts",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 30
+      },
+      "minItems": 1,
+      "maxItems": 10,
+      "uniqueItems": true
+    },
+    "lastModified": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "Last modification date in YYYY-MM-DD format"
+    },
+    "aliases": {
+      "type": "array",
+      "description": "Alternative names or identifiers for this prompt",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 50
+      },
+      "uniqueItems": true
+    },
+    "framework": {
+      "type": "string",
+      "description": "Specific framework this prompt targets (optional)",
+      "enum": [
+        "react",
+        "vue",
+        "angular",
+        "svelte",
+        "nextjs",
+        "nuxt",
+        "express",
+        "fastapi",
+        "django",
+        "flask",
+        "spring",
+        "laravel",
+        "rails"
+      ]
+    },
+    "complexity": {
+      "type": "string",
+      "description": "Complexity level of the analysis this prompt performs",
+      "enum": ["basic", "intermediate", "advanced", "expert"]
+    },
+    "estimatedTokens": {
+      "type": "integer",
+      "description": "Estimated token count for this prompt template",
+      "minimum": 100,
+      "maximum": 10000
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Other prompt templates this one depends on",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -235,13 +235,13 @@ import { PromptManager } from './prompts/PromptManager';
 // Import other dependencies after environment setup
 import { getConfig, hasAnyApiKey, validateConfigForSelectedModel } from './utils/config';
 import { initI18n, t } from './utils/i18n';
-import { VERSION } from './version';
+import { VERSION, VERSION_WITH_BUILD } from './version';
 
 // Main function to run the application
 async function main() {
   try {
-    // Always display version at startup
-    logger.info(`AI Code Review Tool v${VERSION}`);
+    // Always display version at startup with build number
+    logger.info(`AI Code Review Tool v${VERSION_WITH_BUILD}`);
 
     // Initialize i18n early with default language
     // This ensures translations are available for error messages
@@ -278,7 +278,7 @@ async function main() {
 
     // Check for version flag first, before any other processing
     if ((argv as any).version || (argv as any)['show-version']) {
-      console.log(VERSION);
+      console.log(VERSION_WITH_BUILD);
       return;
     }
 

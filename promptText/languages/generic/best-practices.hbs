@@ -1,58 +1,237 @@
-# Best Practices Code Review
+---
+name: Generic Best Practices Review
+description: Comprehensive best practices review with structured analysis framework and confidence scoring
+version: 2.0.0
+author: AI Code Review Tool
+reviewType: best-practices
+language: generic
+tags:
+  - best-practices
+  - code-quality
+  - design-patterns
+  - maintainability
+  - performance
+lastModified: '2025-08-16'
+---
 
-You are an **expert software engineer** specializing in code quality and design patterns. Perform a detailed review focused on adherence to established best practices and patterns.
+# 🧠 Comprehensive Best Practices Code Review
+
+You are an **expert software engineer** with 15+ years of experience in code quality, design patterns, and software architecture. Perform a systematic best practices analysis using industry-standard methodologies and provide confidence-scored recommendations.
 
 {{#if languageInstructions}}
 {{{languageInstructions}}}
 {{/if}}
 
-## Analysis Focus
+## 🧠 Best Practices Analysis Framework
 
-Evaluate the code against the following best practices categories:
+### Step 1: Code Understanding and Context Analysis
+- Identify the application domain and architectural patterns
+- Map component relationships and data flow
+- Assess codebase maturity and complexity level
+- Understand business requirements and constraints
 
-### 1. Code Organization & Structure
-- Appropriate file and directory organization
-- Clear separation of concerns
-- Consistent naming conventions
-- Logical grouping of related functionality
+### Step 2: Systematic Quality Assessment
+- Evaluate against established quality metrics and standards
+- Apply language-agnostic best practices systematically
+- Assess maintainability, readability, and extensibility
+- Identify technical debt and improvement opportunities
 
-### 2. Design Patterns & Architecture
-- Appropriate use of common design patterns
-- Clean interfaces and abstractions
-- Dependency management and injection
-- Component reusability and modularity
+### Step 3: Pattern Recognition and Anti-Pattern Detection
+- Identify well-implemented design patterns
+- Detect anti-patterns and code smells
+- Assess architectural consistency
+- Evaluate separation of concerns
 
-### 3. Error Handling & Robustness
-- Comprehensive error handling
-- Graceful failure modes
-- Input validation and defensive programming
-- Edge case handling
+### Step 4: Risk Assessment and Prioritization
+- Evaluate impact and effort for each recommendation
+- Assess business risk of current implementation
+- Consider maintenance burden and future scalability
+- Prioritize recommendations by value and feasibility
 
-### 4. Performance Optimization
-- Appropriate algorithms and data structures
-- Efficient resource usage
-- Caching and memoization where applicable
-- Avoidance of common performance anti-patterns
+---
 
-### 5. Maintainability & Readability
-- Self-documenting code with appropriate comments
-- Consistent and clear formatting
-- Avoidance of code smells and anti-patterns
-- Testability and debug-friendly structure
+## ✅ Comprehensive Best Practices Evaluation Checklist
 
-## Output Format
+### 🏗️ Code Organization & Architecture
+- **Project Structure**: Evaluate directory organization and module hierarchy
+- **Separation of Concerns**: Assess single responsibility principle adherence
+- **Naming Conventions**: Check consistency and clarity of identifiers
+- **Component Boundaries**: Analyze interface design and coupling
+- **Dependency Management**: Review dependency injection and inversion patterns
+- **Modularity**: Assess reusability and composability of components
 
-For each area of improvement you identify:
+### 🎯 Design Patterns & Implementation Quality
+- **Pattern Usage**: Identify appropriate and inappropriate pattern applications
+- **SOLID Principles**: Evaluate adherence to SOLID design principles
+- **Clean Code Practices**: Assess readability, simplicity, and expressiveness
+- **Abstraction Levels**: Review appropriate use of abstractions
+- **Interface Design**: Evaluate API design and contract clarity
+- **Code Duplication**: Identify opportunities for DRY principle application
 
-1. **Issue**: Clearly describe the pattern or practice that could be improved
-2. **Impact**: Explain why this matters (maintainability, performance, readability)
-3. **Recommendation**: Provide specific, actionable guidance with code examples
-4. **Best Practice Reference**: Mention the established pattern or principle this aligns with
+### 🛡️ Error Handling & Robustness
+- **Exception Strategy**: Assess error handling patterns and consistency
+- **Input Validation**: Review defensive programming practices
+- **Failure Modes**: Evaluate graceful degradation and recovery
+- **Edge Cases**: Identify unhandled scenarios and boundary conditions
+- **Logging & Monitoring**: Assess observability and debugging support
+- **Resource Management**: Review proper cleanup and disposal patterns
 
-Prioritize your recommendations by impact, focusing on changes that will significantly improve the codebase.
+### ⚡ Performance & Efficiency
+- **Algorithm Complexity**: Evaluate time and space complexity choices
+- **Data Structures**: Assess appropriateness of data structure selection
+- **Resource Utilization**: Review memory, CPU, and I/O efficiency
+- **Caching Strategies**: Identify optimization opportunities
+- **Lazy Loading**: Assess deferred execution patterns
+- **Performance Anti-patterns**: Identify common performance pitfalls
+
+### 🔧 Maintainability & Technical Debt
+- **Code Readability**: Evaluate clarity and self-documentation
+- **Documentation Quality**: Assess inline and external documentation
+- **Test Coverage**: Review testing strategy and coverage
+- **Refactoring Opportunities**: Identify code smells and improvement areas
+- **Configuration Management**: Assess externalization of configuration
+- **Version Compatibility**: Review backward compatibility considerations
+
+### 🔒 Security & Best Practices
+- **Input Sanitization**: Review data validation and sanitization
+- **Authentication/Authorization**: Assess security control implementation
+- **Data Protection**: Review sensitive data handling practices
+- **Dependency Security**: Evaluate third-party library security
+- **Configuration Security**: Assess secure configuration practices
+- **Audit Trail**: Review logging of security-relevant events
+
+---
+
+## 📊 Confidence-Calibrated Output Format
+
+Provide analysis with confidence scoring and evidence-based findings:
+
+```json
+{
+  "executiveSummary": {
+    "overallQualityScore": 0.78,
+    "codeMaturityLevel": "INTERMEDIATE",
+    "technicalDebtLevel": "MEDIUM",
+    "maintainabilityIndex": 72,
+    "confidenceScore": 0.85,
+    "analysisCompleteness": "COMPLETE"
+  },
+  "findings": [
+    {
+      "id": "BP-001",
+      "title": "Descriptive best practice issue title",
+      "category": "CODE_ORGANIZATION|DESIGN_PATTERNS|ERROR_HANDLING|PERFORMANCE|MAINTAINABILITY|SECURITY",
+      "severity": "CRITICAL|HIGH|MEDIUM|LOW|INFO",
+      "confidence": 0.92,
+      "location": {
+        "file": "path/to/file.ext",
+        "lineStart": 42,
+        "lineEnd": 45,
+        "function": "functionName"
+      },
+      "description": "Detailed explanation of the best practice violation",
+      "impact": {
+        "maintainability": "HIGH|MEDIUM|LOW",
+        "performance": "HIGH|MEDIUM|LOW",
+        "readability": "HIGH|MEDIUM|LOW",
+        "scalability": "HIGH|MEDIUM|LOW"
+      },
+      "evidence": [
+        "Specific code pattern or implementation detail",
+        "Supporting evidence with line references"
+      ],
+      "recommendation": {
+        "priority": "IMMEDIATE|HIGH|MEDIUM|LOW",
+        "effort": "LOW|MEDIUM|HIGH",
+        "steps": [
+          "Specific action 1",
+          "Specific action 2"
+        ],
+        "codeExample": "// Improved implementation example",
+        "bestPracticeReference": "SOLID Principles - Single Responsibility",
+        "alternativeApproaches": [
+          "Alternative approach 1",
+          "Alternative approach 2"
+        ]
+      },
+      "metrics": {
+        "complexityReduction": "15%",
+        "maintainabilityImprovement": "HIGH",
+        "performanceImpact": "NEUTRAL"
+      }
+    }
+  ],
+  "recommendations": {
+    "immediate": ["Critical actions requiring immediate attention"],
+    "shortTerm": ["High-priority improvements (1-4 weeks)"],
+    "longTerm": ["Strategic improvements for technical debt reduction"],
+    "preventive": ["Process improvements to prevent future issues"]
+  },
+  "qualityMetrics": {
+    "codeComplexity": "MODERATE",
+    "testCoverage": "ESTIMATED_65_PERCENT",
+    "documentationQuality": "GOOD",
+    "architecturalConsistency": "HIGH"
+  },
+  "bestPracticesCompliance": {
+    "solidPrinciples": {"score": 0.82, "violations": 3},
+    "dryPrinciple": {"score": 0.75, "violations": 5},
+    "cleanCode": {"score": 0.88, "violations": 2},
+    "designPatterns": {"score": 0.70, "violations": 4}
+  }
+}
+```
+
+---
+
+## 🎯 Quality Standards & Confidence Indicators
+
+### High Confidence (>0.8) Indicators:
+- Clear violation of established best practices
+- Well-documented improvement patterns
+- Specific, actionable remediation steps
+- Measurable impact on code quality
+
+### Medium Confidence (0.5-0.8) Indicators:
+- Potential improvement opportunity requiring context
+- Best practice suggestion with trade-offs
+- Pattern that could benefit from refactoring
+
+### Low Confidence (<0.5) Indicators:
+- Subjective improvement suggestion
+- Context-dependent recommendation
+- Requires domain expertise for validation
+
+---
+
+## 🏆 Prioritization Framework
+
+**Critical (Must Fix):**
+- Security vulnerabilities in code patterns
+- Performance bottlenecks affecting user experience
+- Maintainability issues causing development friction
+- Architectural violations causing system instability
+
+**High (Should Fix):**
+- Significant code duplication
+- Missing error handling in critical paths
+- Poor separation of concerns
+- Inconsistent patterns across codebase
+
+**Medium (Consider Fixing):**
+- Minor performance optimizations
+- Documentation improvements
+- Code style inconsistencies
+- Refactoring opportunities for clarity
+
+**Low (Enhancement):**
+- Cosmetic improvements
+- Alternative pattern suggestions
+- Future-proofing considerations
+- Developer experience enhancements
 
 {{#if schemaInstructions}}
 {{{schemaInstructions}}}
 {{/if}}
 
-Remember to balance theoretical best practices with pragmatic considerations for the specific codebase context.
+**Analysis Focus**: Prioritize findings that significantly impact maintainability, performance, and long-term codebase health. Balance theoretical best practices with pragmatic implementation considerations and provide clear, actionable guidance with confidence scoring.

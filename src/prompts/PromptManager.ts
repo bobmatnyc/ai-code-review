@@ -560,6 +560,10 @@ export class PromptManager {
       // Otherwise, remove the schema instructions placeholder for legacy templates
       if (!isHandlebarsTemplate) {
         promptTemplate = promptTemplate.replace('{{SCHEMA_INSTRUCTIONS}}', '');
+      } else {
+        // For Handlebars templates, ensure schemaInstructions is not set
+        templateVars.schemaInstructions = '';
+        templateVars.SCHEMA_INSTRUCTIONS = ''; // For backward compatibility
       }
     }
 

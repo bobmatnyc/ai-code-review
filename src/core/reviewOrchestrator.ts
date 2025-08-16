@@ -270,6 +270,7 @@ export async function orchestrateReview(target: string, options: ReviewOptions):
           modelName: apiClientConfig.modelName,
           contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15,
           forceSinglePass: options.forceSinglePass,
+          batchTokenLimit: options.batchTokenLimit,
         };
 
         // Log if forceSinglePass is enabled

@@ -260,6 +260,128 @@
           "Streamlined file handling"
         ]
       }
+    },
+    "spring": {
+      "latest": {
+        "version": "6.2.x",
+        "releaseDate": "November 2024",
+        "supportedUntil": "2026",
+        "javaVersions": ["17+"]
+      },
+      "previous": {
+        "version": "6.1.x",
+        "releaseDate": "2023",
+        "supportedUntil": "2025",
+        "javaVersions": ["17+"]
+      },
+      "features": {
+        "latest": [
+          "Native compilation with GraalVM",
+          "Virtual threads support (Project Loom)",
+          "Enhanced observability with Micrometer",
+          "Improved AOT processing",
+          "Jakarta EE 10 support"
+        ],
+        "previous": [
+          "Reactive programming with WebFlux",
+          "Functional web framework",
+          "Native image support",
+          "R2DBC reactive database access",
+          "GraphQL integration"
+        ]
+      }
+    },
+    "springboot": {
+      "latest": {
+        "version": "3.4.x",
+        "releaseDate": "November 2024",
+        "supportedUntil": "2026",
+        "javaVersions": ["17+"],
+        "springVersion": "6.2.x"
+      },
+      "previous": {
+        "version": "3.2.x",
+        "releaseDate": "2023",
+        "supportedUntil": "2025",
+        "javaVersions": ["17+"],
+        "springVersion": "6.1.x"
+      },
+      "features": {
+        "latest": [
+          "Virtual threads auto-configuration",
+          "Enhanced Docker Compose support",
+          "Improved SSL bundle management",
+          "Native image optimizations",
+          "Testcontainers integration"
+        ],
+        "previous": [
+          "Auto-configuration for common patterns",
+          "Embedded server support",
+          "Production-ready features (Actuator)",
+          "Spring Boot CLI",
+          "Starter dependencies"
+        ]
+      }
+    },
+    "axum": {
+      "latest": {
+        "version": "0.7.x",
+        "releaseDate": "2024",
+        "supportedUntil": "2025",
+        "rustVersions": ["1.75+"]
+      },
+      "previous": {
+        "version": "0.6.x",
+        "releaseDate": "2023",
+        "supportedUntil": "2024",
+        "rustVersions": ["1.70+"]
+      },
+      "features": {
+        "latest": [
+          "Async/await native support",
+          "Type-safe extractors",
+          "Middleware system",
+          "WebSocket support",
+          "Tower ecosystem integration"
+        ],
+        "previous": [
+          "Handler functions with extractors",
+          "Routing with nested routes",
+          "State sharing",
+          "Error handling",
+          "Testing utilities"
+        ]
+      }
+    },
+    "actix": {
+      "latest": {
+        "version": "4.9.x",
+        "releaseDate": "2024",
+        "supportedUntil": "2025",
+        "rustVersions": ["1.75+"]
+      },
+      "previous": {
+        "version": "4.8.x",
+        "releaseDate": "2023",
+        "supportedUntil": "2024",
+        "rustVersions": ["1.70+"]
+      },
+      "features": {
+        "latest": [
+          "Actor-based architecture",
+          "High-performance HTTP server",
+          "WebSocket support",
+          "Middleware system",
+          "Static file serving"
+        ],
+        "previous": [
+          "Request routing",
+          "JSON/form data extraction",
+          "Session management",
+          "CORS support",
+          "SSL/TLS support"
+        ]
+      }
     }
   }
 }

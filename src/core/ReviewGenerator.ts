@@ -22,14 +22,69 @@ import {
   generateOpenRouterConsolidatedReview,
   initializeAnyOpenRouterModel,
 } from '../clients/openRouterClientWrapper';
+// Import the unified client system
+import { createUnifiedClient, initializeUnifiedClients } from '../clients/unified';
 import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
 // Other imports
 import logger from '../utils/logger';
 import type { ProjectDocs } from '../utils/projectDocs';
+import { getConfig } from '../utils/config';
 import type { ApiClientConfig } from './ApiClientSelector';
 
 /**
- * Generate a code review using the appropriate API client
+ * Generate a review using the unified client system (new approach)
+ * @param fileInfos Array of file information objects
+ * @param projectName Name of the project
+ * @param reviewType Type of review to perform
+ * @param projectDocs Optional project documentation
+ * @param options Review options
+ * @returns Promise resolving to the review result
+ */
+export async function generateReviewWithUnifiedClient(
+  fileInfos: FileInfo[],
+  projectName: string,
+  reviewType: ReviewType,
+  projectDocs: ProjectDocs | null,
+  options: ReviewOptions,
+): Promise<ReviewResult> {
+  try {
+    // Initialize unified clients if not already done
+    initializeUnifiedClients();
+
+    // Get the configured model
+    const config = getConfig();
+    const modelName = config.selectedModel || 'gemini:gemini-2.5-pro';
+
+    // Create the unified client
+    const client = await createUnifiedClient(modelName);
+
+    // Generate the review
+    if (fileInfos.length === 1) {
+      const file = fileInfos[0];
+      return await client.generateReview(
+        file.content,
+        file.path,
+        reviewType,
+        projectDocs,
+        options,
+      );
+    } else {
+      return await client.generateConsolidatedReview(
+        fileInfos,
+        projectName,
+        reviewType,
+        projectDocs,
+        options,
+      );
+    }
+  } catch (error) {
+    logger.debug(`Unified client failed: ${error}`);
+    throw error;
+  }
+}
+
+/**
+ * Generate a code review using the appropriate API client (legacy approach)
  * @param fileInfos Array of file information objects
  * @param project Project name
  * @param reviewType Type of review to perform
@@ -56,49 +111,71 @@ export async function generateReview(
     logger.debug('generateReview: Using OpenRouter client');
     // Use the imported OpenRouter client wrapper
 
-    // Initialize the OpenRouter client before using it
-    await initializeAnyOpenRouterModel();
+    try {
+      // Initialize the OpenRouter client before using it
+      await initializeAnyOpenRouterModel();
 
-    result = generateOpenRouterConsolidatedReview(
-      fileInfos,
-      project,
-      reviewType,
-      projectDocs,
-      options,
-    );
+      result = generateOpenRouterConsolidatedReview(
+        fileInfos,
+        project,
+        reviewType,
+        projectDocs,
+        options,
+      );
+    } catch (error) {
+      logger.error(`Error initializing or calling OpenRouter client: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
   } else if (apiClientConfig.clientType === 'Google') {
     logger.debug('generateReview: Using Gemini client via factory');
-    // Use the new client factory for Gemini
-    const client = ClientFactory.createClient(apiClientConfig.modelName);
-    await client.initialize();
+    try {
+      // Use the new client factory for Gemini
+      const client = ClientFactory.createClient(apiClientConfig.modelName);
+      await client.initialize();
 
-    result = client.generateConsolidatedReview(
-      fileInfos,
-      project,
-      reviewType,
-      projectDocs,
-      options,
-    );
+      result = client.generateConsolidatedReview(
+        fileInfos,
+        project,
+        reviewType,
+        projectDocs,
+        options,
+      );
+    } catch (error) {
+      logger.error(`Error initializing or calling Google client: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
   } else if (apiClientConfig.clientType === 'Anthropic') {
-    // Use the imported Anthropic client wrapper
+    logger.debug('generateReview: Using Anthropic client');
+    try {
+      // Use the imported Anthropic client wrapper
 
-    // Initialize the Anthropic client before using it
-    await initializeAnthropicClient();
+      // Initialize the Anthropic client before using it
+      await initializeAnthropicClient();
 
-    result = generateAnthropicConsolidatedReview(
-      fileInfos,
-      project,
-      reviewType,
-      projectDocs,
-      options,
-    );
+      result = generateAnthropicConsolidatedReview(
+        fileInfos,
+        project,
+        reviewType,
+        projectDocs,
+        options,
+      );
+    } catch (error) {
+      logger.error(`Error initializing or calling Anthropic client: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
   } else if (apiClientConfig.clientType === 'OpenAI') {
-    // Use the imported OpenAI client wrapper
+    logger.debug('generateReview: Using OpenAI client');
+    try {
+      // Use the imported OpenAI client wrapper
 
-    // Initialize the OpenAI client before using it
-    await initializeAnyOpenAIModel();
+      // Initialize the OpenAI client before using it
+      await initializeAnyOpenAIModel();
 
-    result = generateOpenAIConsolidatedReview(fileInfos, project, reviewType, projectDocs, options);
+      result = generateOpenAIConsolidatedReview(fileInfos, project, reviewType, projectDocs, options);
+    } catch (error) {
+      logger.error(`Error initializing or calling OpenAI client: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
   } else {
     // Fallback to Gemini client with mock responses
     logger.warn('No API client available. Using mock responses.');
@@ -107,6 +184,15 @@ export async function generateReview(
 
   // Add metadata to the review result
   const reviewResult = await result;
+
+  // Enhanced logging for debugging empty content issues
+  logger.debug(`generateReview completed:`);
+  logger.debug(`  Client type: ${apiClientConfig.clientType}`);
+  logger.debug(`  Model: ${apiClientConfig.modelName}`);
+  logger.debug(`  Result exists: ${!!reviewResult}`);
+  logger.debug(`  Content exists: ${!!(reviewResult && reviewResult.content)}`);
+  logger.debug(`  Content length: ${reviewResult && reviewResult.content ? reviewResult.content.length : 'N/A'}`);
+  logger.debug(`  Content preview: ${reviewResult && reviewResult.content ? reviewResult.content.substring(0, 100).replace(/\n/g, ' ') + '...' : 'N/A'}`);
 
   // Get package version from process.env or hardcoded value
   const packageVersion = process.env.npm_package_version || '2.1.1';
@@ -162,6 +248,18 @@ export async function generateReview(
   if (!reviewResult.modelUsed) {
     logger.warn('Review result has no modelUsed. Setting to default value.');
     reviewResult.modelUsed = `${apiClientConfig.clientType}:${apiClientConfig.modelName}`;
+  }
+
+  // Final validation before returning
+  if (!reviewResult.content || reviewResult.content.trim() === '') {
+    logger.error('CRITICAL: generateReview is about to return a result with empty content!');
+    logger.error(`  Client: ${apiClientConfig.clientType}:${apiClientConfig.modelName}`);
+    logger.error(`  Files: ${fileInfos.length} files`);
+    logger.error(`  Review type: ${reviewType}`);
+    logger.error(`  Project: ${project}`);
+
+    // This is a critical error that should be investigated
+    throw new Error(`generateReview produced empty content for ${apiClientConfig.clientType}:${apiClientConfig.modelName}`);
   }
 
   return reviewResult;

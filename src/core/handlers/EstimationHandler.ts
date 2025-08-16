@@ -46,6 +46,7 @@ export async function performEstimation(
       modelName: modelName,
       contextMaintenanceFactor: options.contextMaintenanceFactor || 0.15,
       forceSinglePass: options.forceSinglePass,
+      batchTokenLimit: options.batchTokenLimit,
     };
 
     const tokenAnalysis = TokenAnalyzer.analyzeFiles(fileInfos, tokenAnalysisOptions);

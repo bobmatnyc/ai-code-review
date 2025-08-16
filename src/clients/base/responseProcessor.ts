@@ -27,33 +27,135 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
       return match ? match[1] : null;
     },
 
-    // Strategy 2: Extract JSON from mixed content (find first complete JSON object)
+    // Strategy 2: Extract JSON from markdown code blocks (most common case)
     (text: string) => {
-      const match = text.match(/({[\s\S]*?})\s*$/);
-      return match ? match[1] : null;
+      // Match various code block formats
+      const patterns = [
+        /```(?:json)?\s*([\s\S]*?)\s*```/,
+        /```(?:typescript|javascript|ts|js)?\s*([\s\S]*?)\s*```/,
+        /`([\s\S]*?)`/,  // Single backtick blocks
+      ];
+      
+      for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          const content = match[1].trim();
+          // Check if it looks like JSON
+          if (content.startsWith('{') && content.endsWith('}')) {
+            return content;
+          }
+        }
+      }
+      return null;
     },
 
-    // Strategy 3: Look for JSON between quotes (e.g., "typescript\n{...}")
+    // Strategy 3: Extract JSON from mixed content (find first complete JSON object)
+    (text: string) => {
+      // Find balanced braces
+      const startIdx = text.indexOf('{');
+      if (startIdx === -1) return null;
+      
+      let depth = 0;
+      let inString = false;
+      let escapeNext = false;
+      
+      for (let i = startIdx; i < text.length; i++) {
+        const char = text[i];
+        
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
+        
+        if (char === '\\') {
+          escapeNext = true;
+          continue;
+        }
+        
+        if (char === '"' && !escapeNext) {
+          inString = !inString;
+          continue;
+        }
+        
+        if (!inString) {
+          if (char === '{') depth++;
+          else if (char === '}') {
+            depth--;
+            if (depth === 0) {
+              return text.substring(startIdx, i + 1);
+            }
+          }
+        }
+      }
+      
+      return null;
+    },
+
+    // Strategy 4: Look for JSON between quotes (e.g., "typescript\n{...}")
     (text: string) => {
       const match = text.match(/"[^"]*"\s*\n?\s*({[\s\S]*})/);
       return match ? match[1] : null;
     },
 
-    // Strategy 4: Remove everything before the first opening brace
+    // Strategy 5: Remove everything before the first opening brace
     (text: string) => {
       const braceIndex = text.indexOf('{');
       if (braceIndex === -1) return null;
       return text.substring(braceIndex);
     },
 
-    // Strategy 5: Try to extract from code blocks with language prefixes
+    // Strategy 6: Fix unterminated strings by closing them
     (text: string) => {
-      const match = text.match(/```(?:json|typescript|javascript)?\s*([^`]+)\s*```/i);
-      if (!match) return null;
-      const blockContent = match[1].trim();
-      // Remove language identifier if it's at the start
-      const cleanContent = blockContent.replace(/^(?:typescript|javascript|json|ts|js)\s*\n?/i, '');
-      return cleanContent.startsWith('{') ? cleanContent : null;
+      // If JSON parse fails due to unterminated string, try to fix it
+      const braceIndex = text.indexOf('{');
+      if (braceIndex === -1) return null;
+      
+      let jsonStr = text.substring(braceIndex);
+      
+      // Count open and closing quotes
+      let inString = false;
+      let escapeNext = false;
+      let lastQuoteIndex = -1;
+      
+      for (let i = 0; i < jsonStr.length; i++) {
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
+        
+        if (jsonStr[i] === '\\') {
+          escapeNext = true;
+          continue;
+        }
+        
+        if (jsonStr[i] === '"') {
+          inString = !inString;
+          if (inString) {
+            lastQuoteIndex = i;
+          }
+        }
+      }
+      
+      // If we're still in a string at the end, close it
+      if (inString && lastQuoteIndex !== -1) {
+        // Find a reasonable place to close the string
+        // Look for common JSON structure patterns
+        const patterns = ['}', ']', ','];
+        let closeIndex = jsonStr.length;
+        
+        for (const pattern of patterns) {
+          const idx = jsonStr.lastIndexOf(pattern);
+          if (idx > lastQuoteIndex) {
+            closeIndex = idx;
+            break;
+          }
+        }
+        
+        // Insert closing quote before the structural character
+        jsonStr = jsonStr.substring(0, closeIndex) + '"' + jsonStr.substring(closeIndex);
+      }
+      
+      return jsonStr;
     },
   ];
 
@@ -92,16 +194,29 @@ export function extractStructuredData(content: string): StructuredReview | undef
     // 3. ```{...}```
     // 4. Plain JSON without code blocks
 
-    // Enhanced regex to handle various language markers, especially typescript
+    // Enhanced regex to handle various language markers
+    // First try to find explicit JSON blocks
     jsonBlockMatch = content.match(/```(?:json)\s*([\s\S]*?)\s*```/) || null;
 
-    // If no explicit JSON block, look for any code block (with any language marker or none)
-    // that contains what looks like JSON content (starting with { and ending with })
+    // If no explicit JSON block, look for any code block
     if (!jsonBlockMatch) {
-      anyCodeBlockMatch = content.match(/```(?:[\w]*)?[\s\n]*([\s\S]*?)[\s\n]*```/) || null;
+      // Try different code block patterns
+      const codeBlockPatterns = [
+        /```(?:typescript|ts)\s*([\s\S]*?)\s*```/,
+        /```(?:javascript|js)\s*([\s\S]*?)\s*```/,
+        /```\s*([\s\S]*?)\s*```/,  // Code block without language
+      ];
+      
+      for (const pattern of codeBlockPatterns) {
+        anyCodeBlockMatch = content.match(pattern);
+        if (anyCodeBlockMatch) {
+          logger.debug(`Found code block with pattern: ${pattern.source}`);
+          break;
+        }
+      }
 
       // Additional check for typescript blocks specifically
-      if (anyCodeBlockMatch && content.includes('```typescript')) {
+      if (anyCodeBlockMatch && (content.includes('```typescript') || content.includes('```ts'))) {
         logger.debug('Detected typescript code block, will check if it contains valid JSON');
       }
     }

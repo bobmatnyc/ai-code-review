@@ -96,6 +96,8 @@ export interface TokenAnalysisOptions {
   safetyMarginFactor?: number;
   /** Force single pass mode regardless of token count */
   forceSinglePass?: boolean;
+  /** Force maximum tokens per batch (for testing consolidation) */
+  batchTokenLimit?: number;
 }
 
 /**
@@ -260,6 +262,7 @@ export class TokenAnalyzer {
       effectiveContextWindowSize,
       contextMaintenanceFactor,
       options.forceSinglePass,
+      options.batchTokenLimit,
     );
 
     // Log chunking decision
@@ -307,6 +310,7 @@ export class TokenAnalyzer {
    * @param contextWindowSize Maximum context window size
    * @param contextMaintenanceFactor Context maintenance overhead factor
    * @param forceSinglePass Force single pass mode regardless of token count
+   * @param batchTokenLimit Force maximum tokens per batch (for testing)
    * @returns Chunking recommendation
    */
   private static generateChunkingRecommendation(
@@ -315,6 +319,7 @@ export class TokenAnalyzer {
     contextWindowSize: number,
     contextMaintenanceFactor: number,
     forceSinglePass?: boolean,
+    batchTokenLimit?: number,
   ): ChunkingRecommendation {
     // If forceSinglePass is true, skip chunking regardless of token count
     if (forceSinglePass) {
@@ -332,10 +337,20 @@ export class TokenAnalyzer {
       };
     }
 
+    // If batchTokenLimit is provided, use it to force smaller batches
+    let effectiveContextLimit = contextWindowSize;
+    if (batchTokenLimit && batchTokenLimit > 0) {
+      effectiveContextLimit = Math.min(batchTokenLimit, contextWindowSize);
+      logger.info(`Using batch token limit: ${batchTokenLimit.toLocaleString()} tokens (forcing smaller batches for testing)`);
+      if (batchTokenLimit < contextWindowSize) {
+        logger.info(`This will force chunking even if content would fit in the model's context window`);
+      }
+    }
+
     // If content fits within context window, no chunking needed
-    if (estimatedTotalTokens <= contextWindowSize) {
+    if (estimatedTotalTokens <= effectiveContextLimit) {
       logger.debug(
-        `Content fits within context window (${estimatedTotalTokens.toLocaleString()} <= ${contextWindowSize.toLocaleString()} tokens)`,
+        `Content fits within effective limit (${estimatedTotalTokens.toLocaleString()} <= ${effectiveContextLimit.toLocaleString()} tokens)`,
       );
       return {
         chunkingRecommended: false,
@@ -346,37 +361,42 @@ export class TokenAnalyzer {
             priority: 1,
           },
         ],
-        reason: 'Content fits within model context window',
+        reason: batchTokenLimit ? 'Content fits within batch token limit' : 'Content fits within model context window',
       };
     }
 
     logger.debug(
-      `Content exceeds context window (${estimatedTotalTokens.toLocaleString()} > ${contextWindowSize.toLocaleString()} tokens)`,
+      `Content exceeds effective limit (${estimatedTotalTokens.toLocaleString()} > ${effectiveContextLimit.toLocaleString()} tokens)`,
     );
     logger.debug(
       `Generating chunking recommendation with context maintenance factor: ${contextMaintenanceFactor}`,
     );
 
     // Calculate effective context window size accounting for context maintenance
-    const effectiveContextSize = Math.floor(contextWindowSize * (1 - contextMaintenanceFactor));
+    const effectiveContextSize = Math.floor(effectiveContextLimit * (1 - contextMaintenanceFactor));
 
     logger.debug(
-      `Effective context size for chunking: ${effectiveContextSize.toLocaleString()} tokens (${Math.round((1 - contextMaintenanceFactor) * 100)}% of ${contextWindowSize.toLocaleString()} tokens)`,
+      `Effective context size for chunking: ${effectiveContextSize.toLocaleString()} tokens (${Math.round((1 - contextMaintenanceFactor) * 100)}% of ${effectiveContextLimit.toLocaleString()} tokens)`,
     );
 
     // Use optimized bin-packing algorithm for better chunk distribution
     const chunks = TokenAnalyzer.optimizedBinPacking(
       fileAnalyses,
       effectiveContextSize,
-      contextWindowSize,
+      effectiveContextLimit,
     );
 
     logger.info(`Created ${chunks.length} optimized chunks for multi-pass review`);
 
+    let reason = `Content exceeds effective limit (${estimatedTotalTokens.toLocaleString()} > ${effectiveContextLimit.toLocaleString()} tokens)`;
+    if (batchTokenLimit && batchTokenLimit < contextWindowSize) {
+      reason = `Batch token limit forcing smaller batches (limit: ${batchTokenLimit.toLocaleString()} tokens)`;
+    }
+
     return {
       chunkingRecommended: true,
       recommendedChunks: chunks,
-      reason: `Content exceeds model context window (${estimatedTotalTokens.toLocaleString()} > ${contextWindowSize.toLocaleString()} tokens)`,
+      reason,
     };
   }
 

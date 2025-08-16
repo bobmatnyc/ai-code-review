@@ -28,11 +28,16 @@ export async function consolidateReview(review: ReviewResult): Promise<string> {
       firstChars: review.content?.substring(0, 200) || 'N/A',
     });
 
-    // Use the writer model if configured, otherwise fall back to the main model
+    // Use the writer model if configured, otherwise fall back to the model used for the review
+    // This ensures consistency - the same model that reviewed the code should consolidate it
     const config = getConfig();
-    const consolidationModel = config.writerModel || config.selectedModel;
+    const consolidationModel = config.writerModel || review.modelUsed || config.selectedModel;
 
-    logger.info(`Creating client with model ${consolidationModel} for consolidation`);
+    logger.info(`[CONSOLIDATION] Determining consolidation model:`);
+    logger.info(`[CONSOLIDATION] - config.writerModel: ${config.writerModel || 'not set'}`);
+    logger.info(`[CONSOLIDATION] - review.modelUsed: ${review.modelUsed || 'not set'}`);
+    logger.info(`[CONSOLIDATION] - config.selectedModel: ${config.selectedModel || 'not set'}`);
+    logger.info(`[CONSOLIDATION] - Final consolidationModel: ${consolidationModel}`);
 
     // Temporarily override the model environment variable for client initialization
     const originalModel = process.env.AI_CODE_REVIEW_MODEL;
@@ -90,11 +95,76 @@ export async function consolidateReview(review: ReviewResult): Promise<string> {
         },
       });
 
+      // Create a combined prompt for providers that don't support separate system/user prompts
+      const fullConsolidationPrompt = `${consolidationSystemPrompt}
+
+---
+
+${consolidationPrompt}`;
+
       // Make a direct API call with our custom prompts for consolidation
       // This is necessary because the standard generateConsolidatedReview doesn't support custom prompts
       const [provider, modelName] = consolidationModel.split(':');
 
-      if (provider === 'openai') {
+      if (provider === 'openrouter') {
+        // For OpenRouter, we need to handle it specially since it can use various underlying models
+        logger.info(`Using OpenRouter for consolidation with model: ${modelName}`);
+        
+        // OpenRouter client should handle generateReview properly
+        if (client.generateReview) {
+          logger.debug('[CONSOLIDATION] Using OpenRouter generateReview method');
+          
+          let consolidationResult;
+          let retryCount = 0;
+          const maxRetries = 3;
+          
+          while (retryCount < maxRetries) {
+            try {
+              // Instead of passing the consolidation prompt as file content,
+              // pass an empty string and include the consolidation prompt in project docs
+              consolidationResult = await client.generateReview(
+                '', // Empty file content since we're not reviewing a specific file
+                'CONSOLIDATION_TASK',
+                'consolidated', // Use 'consolidated' review type for proper markdown output
+                {
+                  // Pass the consolidation prompt as project documentation
+                  readme: fullConsolidationPrompt,
+                  contributing: '',
+                  architecture: '',
+                  project: '',
+                  progress: '',
+                }, // Include consolidation prompt as project docs
+                {
+                  type: 'consolidated', // Use 'consolidated' review type for markdown output
+                  skipFileContent: true,
+                  isConsolidation: true,
+                  includeTests: false,
+                  output: 'markdown',
+                  interactive: false,
+                },
+              );
+              
+              if (consolidationResult?.content && consolidationResult.content.trim() !== '') {
+                return consolidationResult.content;
+              }
+              
+              logger.warn(`[CONSOLIDATION] OpenRouter attempt ${retryCount + 1} returned empty content`);
+            } catch (error) {
+              logger.warn(`[CONSOLIDATION] OpenRouter attempt ${retryCount + 1} failed:`, error);
+            }
+            
+            retryCount++;
+            if (retryCount < maxRetries) {
+              const waitTime = Math.min(1000 * 2 ** retryCount, 5000);
+              logger.info(`[CONSOLIDATION] Waiting ${waitTime}ms before retry ${retryCount + 1}/${maxRetries}`);
+              await new Promise((resolve) => setTimeout(resolve, waitTime));
+            }
+          }
+          
+          logger.error('[CONSOLIDATION] All OpenRouter attempts failed, using fallback');
+          return createFallbackConsolidation(review);
+        }
+      } else if (provider === 'openai') {
         // Use direct OpenAI API call with custom prompts
         const apiKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
         if (!apiKey) {
@@ -124,10 +194,12 @@ export async function consolidateReview(review: ReviewResult): Promise<string> {
         };
 
         // Add appropriate max tokens parameter based on model
+        // Use higher token limits for consolidation since it needs to generate comprehensive reports
+        const consolidationMaxTokens = 12000; // Higher limit for consolidation
         if (modelName.startsWith('o3')) {
-          requestBody.max_completion_tokens = 4096;
+          requestBody.max_completion_tokens = consolidationMaxTokens;
         } else {
-          requestBody.max_tokens = 4096;
+          requestBody.max_tokens = consolidationMaxTokens;
           requestBody.temperature = 0.2;
         }
 
@@ -275,13 +347,6 @@ export async function consolidateReview(review: ReviewResult): Promise<string> {
       // We'll send the consolidation as a single review request with custom prompt
       logger.info(`Using custom consolidation approach for ${provider} provider`);
 
-      // Create a custom prompt that includes both system and user prompts
-      const fullConsolidationPrompt = `${consolidationSystemPrompt}
-
----
-
-${consolidationPrompt}`;
-
       // For Gemini and other providers, we'll use generateReview with a special prompt
       // This avoids the issue of the content being treated as source code
       if (client.generateReview) {
@@ -295,13 +360,22 @@ ${consolidationPrompt}`;
 
         while (retryCount < maxRetries) {
           try {
+            // Instead of passing the consolidation prompt as file content,
+            // pass an empty string and include the consolidation prompt in project docs
             consolidationResult = await client.generateReview(
-              fullConsolidationPrompt, // Use our custom consolidation prompt as the file content
+              '', // Empty file content since we're not reviewing a specific file
               'CONSOLIDATION_TASK', // Special file path to indicate this is a consolidation
-              'architectural', // Use architectural review type as it's most comprehensive
-              null, // No project docs needed
+              'consolidated', // Use 'consolidated' review type for proper markdown output
               {
-                type: 'architectural',
+                // Pass the consolidation prompt as project documentation
+                readme: fullConsolidationPrompt,
+                contributing: '',
+                architecture: '',
+                project: '',
+                progress: '',
+              }, // Include consolidation prompt as project docs
+              {
+                type: 'consolidated', // Use 'consolidated' review type for markdown output
                 skipFileContent: true, // Don't try to include file content in the prompt
                 isConsolidation: true,
                 includeTests: false,
@@ -352,10 +426,10 @@ ${consolidationPrompt}`;
           },
         ],
         review.projectName || 'ai-code-review',
-        'architectural', // Use architectural type
+        'consolidated', // Use 'consolidated' review type for proper markdown output
         null,
         {
-          type: 'architectural',
+          type: 'consolidated', // Use 'consolidated' review type for markdown output
           includeTests: false,
           output: 'markdown',
           isConsolidation: true,

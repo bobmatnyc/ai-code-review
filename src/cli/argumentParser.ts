@@ -7,10 +7,10 @@
  */
 
 import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 import type { ReviewOptions, ReviewType } from '../types/review';
 import { displayConfigError, loadConfigSafe } from '../utils/config';
 import logger from '../utils/logger';
+import { VERSION_WITH_BUILD } from '../version';
 
 // Define valid review types for display
 const validReviewTypes: ReviewType[] = [
@@ -22,9 +22,13 @@ const validReviewTypes: ReviewType[] = [
   'focused-unused-code',
   'code-tracing-unused-code',
   'consolidated',
+  'best-practices',
   'evaluation',
   'extract-patterns',
   'coding-test',
+  'ai-integration',
+  'cloud-native',
+  'developer-experience',
 ];
 
 // Define all accepted values including aliases (for validation)
@@ -58,7 +62,7 @@ export function parseArguments(): any {
 
   // Parse command-line arguments using yargs
   // Filter out the '--' separator that may be added by npm scripts
-  const filteredArgs = hideBin(process.argv).filter((arg) => arg !== '--');
+  const filteredArgs = process.argv.slice(2).filter((arg) => arg !== '--');
 
   const argv = yargs(filteredArgs)
     .command(
@@ -235,6 +239,14 @@ export function parseArguments(): any {
               describe: 'Difficulty level',
               choices: ['junior', 'mid', 'senior', 'lead', 'architect'],
               default: 'mid',
+            })
+            .option('writer-model', {
+              describe: 'Model to use for consolidating multi-pass reviews (defaults to main model)',
+              type: 'string',
+            })
+            .option('batch-token-limit', {
+              describe: 'Force maximum tokens per batch (for testing consolidation)',
+              type: 'number',
             })
             .option('time-limit', {
               describe: 'Expected completion time in minutes',
@@ -474,6 +486,7 @@ export function parseArguments(): any {
     })
     .help()
     .alias('help', 'h')
+    .version(VERSION_WITH_BUILD)
     .alias('version', 'v')
     .strict()
     .demandCommand(0) // Don't require a command for version/help flags
@@ -594,6 +607,10 @@ interface ParsedArguments {
   aiDetectionIncludeInReport?: boolean;
   aiDetectionFailOnDetection?: boolean;
   diagram?: boolean;
+  'writer-model'?: string;
+  writerModel?: string;
+  'batch-token-limit'?: number;
+  batchTokenLimit?: number;
 }
 
 export function mapArgsToReviewOptions(
@@ -623,6 +640,8 @@ export function mapArgsToReviewOptions(
     listmodels: argv.listmodels,
     models: argv.models,
     target: argv.target || '.',
+    writerModel: argv['writer-model'] || argv.writerModel,
+    batchTokenLimit: argv['batch-token-limit'] || argv.batchTokenLimit,
 
     // Coding test specific options
     assignmentFile: argv.assignmentFile,

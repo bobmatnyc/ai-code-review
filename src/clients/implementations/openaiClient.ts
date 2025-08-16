@@ -78,8 +78,10 @@ export class OpenAIClient extends AbstractClient {
       return true;
     }
 
-    // Get model information
-    const { isCorrect, modelName } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    // Get model information - clean the model name to handle malformed input
+    const rawModel = process.env.AI_CODE_REVIEW_MODEL || '';
+    const cleanedModel = rawModel.replace(/['"``]/g, '').trim();
+    const { isCorrect, modelName } = this.isModelSupported(cleanedModel);
 
     // If this is not an OpenAI model, just return true without initializing
     if (!isCorrect) {
@@ -157,26 +159,36 @@ export class OpenAIClient extends AbstractClient {
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    // During consolidation, the model may have been overridden. We should check if we're already initialized
-    // with a valid model rather than checking the current environment variable.
-    if (!this.isInitialized || !this.modelName) {
+    // During consolidation, the model may have been overridden. 
+    // If we're already initialized with a valid model, trust that initialization was correct.
+    // Only check the environment if we're not initialized.
+    if (!this.isInitialized) {
       // If not initialized, check against the current environment variable
-      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+      const rawModel = process.env.AI_CODE_REVIEW_MODEL || '';
+      // Clean the model name to handle malformed input (quotes, backticks, whitespace)
+      const currentModel = rawModel.replace(/['"``]/g, '').trim();
+      const { isCorrect } = this.isModelSupported(currentModel);
 
       // Make sure this is the correct client
       if (!isCorrect) {
+        logger.error(`[OpenAI] Invalid model for OpenAI client: ${currentModel} (original: ${rawModel})`);
+        logger.error(`[OpenAI] This client should not have been created for this model`);
         throw new Error(
-          `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
+          `OpenAI client was called with an invalid model: ${currentModel}. This is likely a bug in the client selection logic.`,
         );
       }
+      
+      // Initialize if this is the correct client
+      await this.initialize();
     }
-    // If we're already initialized with a model, trust that initialization was correct
+    
+    // At this point we should be initialized with a valid model
+    if (!this.modelName) {
+      logger.error(`[OpenAI] Client is initialized but has no model name`);
+      throw new Error(`OpenAI client is in an invalid state: initialized but no model name`);
+    }
 
     try {
-      // Initialize if needed
-      if (!this.isInitialized) {
-        await this.initialize();
-      }
 
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);
@@ -305,26 +317,33 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
   ): Promise<ReviewResult> {
     logger.debug(`[O3 DEBUG] generateConsolidatedReview called with model: ${this.modelName}`);
 
-    // During consolidation, the model may have been overridden. We should check if we're already initialized
-    // with a valid model rather than checking the current environment variable.
-    if (!this.isInitialized || !this.modelName) {
+    // During consolidation, the model may have been overridden.
+    // If we're already initialized with a valid model, trust that initialization was correct.
+    // Only check the environment if we're not initialized.
+    if (!this.isInitialized) {
       // If not initialized, check against the current environment variable
-      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+      const currentModel = process.env.AI_CODE_REVIEW_MODEL || '';
+      const { isCorrect } = this.isModelSupported(currentModel);
 
       // Make sure this is the correct client
       if (!isCorrect) {
+        logger.error(`[OpenAI] Invalid model for OpenAI client in consolidatedReview: ${currentModel}`);
         throw new Error(
-          `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
+          `OpenAI client was called with an invalid model: ${currentModel}. This is likely a bug in the client selection logic.`,
         );
       }
+      
+      // Initialize if this is the correct client
+      await this.initialize();
     }
-    // If we're already initialized with a model, trust that initialization was correct
+    
+    // At this point we should be initialized with a valid model
+    if (!this.modelName) {
+      logger.error(`[OpenAI] Client is initialized but has no model name in consolidatedReview`);
+      throw new Error(`OpenAI client is in an invalid state: initialized but no model name`);
+    }
 
     try {
-      // Initialize if needed
-      if (!this.isInitialized) {
-        await this.initialize();
-      }
 
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);
@@ -457,26 +476,33 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    // During consolidation, the model may have been overridden. We should check if we're already initialized
-    // with a valid model rather than checking the current environment variable.
-    if (!this.isInitialized || !this.modelName) {
+    // During consolidation, the model may have been overridden.
+    // If we're already initialized with a valid model, trust that initialization was correct.
+    // Only check the environment if we're not initialized.
+    if (!this.isInitialized) {
       // If not initialized, check against the current environment variable
-      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+      const currentModel = process.env.AI_CODE_REVIEW_MODEL || '';
+      const { isCorrect } = this.isModelSupported(currentModel);
 
       // Make sure this is the correct client
       if (!isCorrect) {
+        logger.error(`[OpenAI] Invalid model for OpenAI client in architecturalReview: ${currentModel}`);
         throw new Error(
-          `OpenAI client was called with an invalid model. This is likely a bug in the client selection logic.`,
+          `OpenAI client was called with an invalid model: ${currentModel}. This is likely a bug in the client selection logic.`,
         );
       }
+      
+      // Initialize if this is the correct client
+      await this.initialize();
     }
-    // If we're already initialized with a model, trust that initialization was correct
+    
+    // At this point we should be initialized with a valid model
+    if (!this.modelName) {
+      logger.error(`[OpenAI] Client is initialized but has no model name in architecturalReview`);
+      throw new Error(`OpenAI client is in an invalid state: initialized but no model name`);
+    }
 
     try {
-      // Initialize if needed
-      if (!this.isInitialized) {
-        await this.initialize();
-      }
 
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate('architectural', options);
