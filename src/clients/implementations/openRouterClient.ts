@@ -74,8 +74,10 @@ export class OpenRouterClient extends AbstractClient {
       return true;
     }
 
-    // Get model information
-    const { isCorrect, modelName } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+    // Get model information - clean the model name to handle malformed input
+    const rawModel = process.env.AI_CODE_REVIEW_MODEL || '';
+    const cleanedModel = rawModel.replace(/['"``]/g, '').trim();
+    const { isCorrect, modelName } = this.isModelSupported(cleanedModel);
 
     // If this is not an OpenRouter model, just return true without initializing
     if (!isCorrect) {
@@ -123,26 +125,35 @@ export class OpenRouterClient extends AbstractClient {
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    // During consolidation, the model may have been overridden. We should check if we're already initialized
-    // with a valid model rather than checking the current environment variable.
-    if (!this.isInitialized || !this.modelName) {
+    // During consolidation, the model may have been overridden.
+    // If we're already initialized with a valid model, trust that initialization was correct.
+    // Only check the environment if we're not initialized.
+    if (!this.isInitialized) {
       // If not initialized, check against the current environment variable
-      const { isCorrect } = this.isModelSupported(process.env.AI_CODE_REVIEW_MODEL || '');
+      const rawModel = process.env.AI_CODE_REVIEW_MODEL || '';
+      // Clean the model name to handle malformed input (quotes, backticks, whitespace)
+      const currentModel = rawModel.replace(/['"``]/g, '').trim();
+      const { isCorrect } = this.isModelSupported(currentModel);
 
       // Make sure this is the correct client
       if (!isCorrect) {
+        logger.error(`[OpenRouter] Invalid model for OpenRouter client: ${currentModel} (original: ${rawModel})`);
         throw new Error(
-          `OpenRouter client was called with an invalid model. This is likely a bug in the client selection logic.`,
+          `OpenRouter client was called with an invalid model: ${currentModel}. This is likely a bug in the client selection logic.`,
         );
       }
+      
+      // Initialize if this is the correct client
+      await this.initialize();
     }
-    // If we're already initialized with a model, trust that initialization was correct
+    
+    // At this point we should be initialized with a valid model
+    if (!this.modelName) {
+      logger.error(`[OpenRouter] Client is initialized but has no model name`);
+      throw new Error(`OpenRouter client is in an invalid state: initialized but no model name`);
+    }
 
     try {
-      // Initialize if needed
-      if (!this.isInitialized) {
-        await this.initialize();
-      }
 
       // Get the language from file extension
       // const language = getLanguageFromExtension(filePath); // Currently unused
@@ -174,45 +185,13 @@ export class OpenRouterClient extends AbstractClient {
             model: this.modelName,
             messages: [
               {
-                role: 'system',
-                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
-
-IMPORTANT: Your response MUST be in the following JSON format:
-
-{
-  "summary": "A brief summary of the code review",
-  "issues": [
-    {
-      "title": "Issue title",
-      "priority": "high|medium|low",
-      "type": "bug|security|performance|maintainability|readability|architecture|best-practice|documentation|testing|other",
-      "filePath": "Path to the file",
-      "lineNumbers": "Line number or range (e.g., 10 or 10-15)",
-      "description": "Detailed description of the issue",
-      "codeSnippet": "Relevant code snippet",
-      "suggestedFix": "Suggested code fix",
-      "impact": "Impact of the issue"
-    }
-  ],
-  "recommendations": [
-    "General recommendation 1",
-    "General recommendation 2"
-  ],
-  "positiveAspects": [
-    "Positive aspect 1",
-    "Positive aspect 2"
-  ]
-}
-
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.`,
-              },
-              {
                 role: 'user',
                 content: prompt,
               },
             ],
             temperature: 0.2,
-            max_tokens: MAX_TOKENS_PER_REQUEST,
+            // For consolidation, don't limit tokens to avoid truncation
+            ...(options?.isConsolidation ? {} : { max_tokens: MAX_TOKENS_PER_REQUEST }),
           }),
         });
 
@@ -339,45 +318,13 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
             model: this.modelName,
             messages: [
               {
-                role: 'system',
-                content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
-
-IMPORTANT: Your response MUST be in the following JSON format:
-
-{
-  "summary": "A brief summary of the code review",
-  "issues": [
-    {
-      "title": "Issue title",
-      "priority": "high|medium|low",
-      "type": "bug|security|performance|maintainability|readability|architecture|best-practice|documentation|testing|other",
-      "filePath": "Path to the file",
-      "lineNumbers": "Line number or range (e.g., 10 or 10-15)",
-      "description": "Detailed description of the issue",
-      "codeSnippet": "Relevant code snippet",
-      "suggestedFix": "Suggested code fix",
-      "impact": "Impact of the issue"
-    }
-  ],
-  "recommendations": [
-    "General recommendation 1",
-    "General recommendation 2"
-  ],
-  "positiveAspects": [
-    "Positive aspect 1",
-    "Positive aspect 2"
-  ]
-}
-
-Ensure your response is valid JSON. Do not include any text outside the JSON structure.`,
-              },
-              {
                 role: 'user',
                 content: prompt,
               },
             ],
             temperature: 0.2,
-            max_tokens: MAX_TOKENS_PER_REQUEST,
+            // For consolidated reviews, don't limit tokens to avoid truncation
+            // max_tokens is omitted to allow unlimited output
           }),
         });
 
