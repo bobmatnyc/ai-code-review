@@ -248,8 +248,21 @@ export function getConfig(cliOptions?: CliOptions): AppConfig {
  * @returns True if at least one API key is available
  */
 export function hasAnyApiKey(): boolean {
-  const { googleApiKey, openRouterApiKey, anthropicApiKey, openAIApiKey } = getConfig();
-  return !!(googleApiKey || openRouterApiKey || anthropicApiKey || openAIApiKey);
+  // Check API keys directly without triggering warnings for unused keys
+  const googleApiKeyResult = getGoogleApiKey();
+  const openRouterApiKeyResult = getOpenRouterApiKey();
+  const anthropicApiKeyResult = getAnthropicApiKey();
+
+  // Only check OpenAI if no other keys are available to avoid unnecessary warnings
+  const hasOtherKeys = !!(googleApiKeyResult.apiKey || openRouterApiKeyResult.apiKey || anthropicApiKeyResult.apiKey);
+
+  if (hasOtherKeys) {
+    return true;
+  }
+
+  // Only check OpenAI as a last resort
+  const openAIApiKeyResult = getOpenAIApiKey();
+  return !!openAIApiKeyResult.apiKey;
 }
 
 /**
