@@ -1,11 +1,11 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "4.4.2",
+  "version": "4.4.3",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "bin": "./dist/index.js",
   "scripts": {
-    "prebuild": "rm -rf dist && node scripts/generate-version.js",
+    "prebuild": "rm -rf dist && node scripts/increment-build-number.js",
     "build": "pnpm run test && pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js && node scripts/sync-model-maps.js",
     "build:types": "pnpm run generate-version && NODE_OPTIONS='--max-old-space-size=8192' tsc --project tsconfig.build.json",
     "ci:local": "./scripts/ci-local.sh",
@@ -41,9 +41,11 @@
     "train-patterns": "tsx src/prompts/training/trainExtractPatterns.ts",
     "demo-training": "node scripts/test-pattern-training.js",
     "simple-training": "tsx src/prompts/training/simpleTraining.ts",
-    "quick-build": "pnpm run generate-version && NODE_OPTIONS='--max-old-space-size=8192' pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
+    "quick-build": "node scripts/increment-build-number.js && NODE_OPTIONS='--max-old-space-size=8192' pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js",
     "consolidate": "ts-node scripts/consolidate-review.ts",
     "generate-version": "node scripts/generate-version.js",
+    "build:info": "node scripts/manage-build-number.js",
+    "build:reset": "node scripts/manage-build-number.js --reset",
     "setup:pre-commit": "./scripts/setup-pre-commit.sh",
     "setup:pnpm": "./scripts/migrate-to-pnpm.sh"
   },
