@@ -25,6 +25,7 @@ const frameworkMapping: Record<string, string> = {
   fastapi: 'fastapi',
   pyramid: 'pyramid',
   laravel: 'laravel',
+  flutter: 'flutter',
 };
 
 /**
@@ -36,6 +37,7 @@ const languageMapping: Record<string, string> = {
   python: 'python',
   php: 'php',
   ruby: 'ruby',
+  dart: 'dart',
 };
 
 /**
@@ -61,6 +63,7 @@ const reviewTypeMapping: Record<string, string> = {
   'ai-integration': 'ai-integration-review',
   'cloud-native': 'cloud-native-review',
   'developer-experience': 'developer-experience-review',
+  comprehensive: 'comprehensive',
 };
 
 /**

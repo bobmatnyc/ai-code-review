@@ -191,6 +191,16 @@ const FRAMEWORK_SIGNATURES: Record<string, FrameworkSignature[]> = {
       type: 'backend',
     },
   ],
+  dart: [
+    {
+      name: 'flutter',
+      files: ['pubspec.yaml', 'lib/main.dart', 'android/app/build.gradle', 'ios/Runner.xcodeproj/project.pbxproj'],
+      directories: ['lib', 'android', 'ios'],
+      dependencies: ['flutter'],
+      weight: 0.9,
+      type: 'ui',
+    },
+  ],
   css: [
     {
       name: 'tailwind',
@@ -313,6 +323,7 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
       php: ['.php'],
       python: ['.py'],
       ruby: ['.rb'],
+      dart: ['.dart'],
     };
 
     // Count files by extension
@@ -348,19 +359,20 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
       primaryLanguage = 'typescript';
     }
 
-    // Check for special cases: package.json (Node.js), composer.json (PHP), Gemfile (Ruby), requirements.txt (Python)
+    // Check for special cases: package.json (Node.js), composer.json (PHP), Gemfile (Ruby), requirements.txt (Python), pubspec.yaml (Dart/Flutter)
     try {
       const packageJsonExists = await fileExists(path.join(projectPath, 'package.json'));
       const composerJsonExists = await fileExists(path.join(projectPath, 'composer.json'));
       const gemfileExists = await fileExists(path.join(projectPath, 'Gemfile'));
       const requirementsTxtExists = await fileExists(path.join(projectPath, 'requirements.txt'));
+      const pubspecYamlExists = await fileExists(path.join(projectPath, 'pubspec.yaml'));
 
       // IMPORTANT: Language detection priority:
       // 1. Strong file evidence for non-JS/TS languages (Python, PHP, Ruby) takes absolute priority
       // 2. For JS/TS projects, config files can influence the decision
       // 3. Package.json presence suggests Node.js ecosystem
 
-      // If we have strong evidence for Python, PHP, or Ruby, respect it absolutely
+      // If we have strong evidence for Python, PHP, Ruby, or Dart, respect it absolutely
       if (primaryLanguage === 'python' && extensionCounts.python > 3) {
         // Keep Python if we have clear Python files
         logger.debug(
@@ -372,6 +384,9 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
       } else if (primaryLanguage === 'ruby' && extensionCounts.ruby > 3) {
         // Keep Ruby if we have clear Ruby files
         logger.debug(`Strong Ruby evidence (${extensionCounts.ruby} files), keeping Ruby`);
+      } else if (primaryLanguage === 'dart' && extensionCounts.dart > 0) {
+        // Keep Dart if we have any Dart files - Dart projects are usually pure Dart
+        logger.debug(`Strong Dart evidence (${extensionCounts.dart} files), keeping Dart`);
       } else if (packageJsonExists) {
         // Handle Node.js projects (package.json present)
         if (
@@ -400,11 +415,18 @@ export async function detectPrimaryLanguage(projectPath: string): Promise<string
         (primaryLanguage === null || extensionCounts.python > 0)
       ) {
         primaryLanguage = 'python';
+      } else if (pubspecYamlExists && (primaryLanguage === null || extensionCounts.dart > 0)) {
+        primaryLanguage = 'dart';
       }
 
       // Additional Python detection for projects with Python files but no requirements.txt
       if (primaryLanguage === null && extensionCounts.python > 0) {
         primaryLanguage = 'python';
+      }
+
+      // Additional Dart detection for projects with Dart files but no pubspec.yaml
+      if (primaryLanguage === null && extensionCounts.dart > 0) {
+        primaryLanguage = 'dart';
       }
     } catch (error) {
       logger.debug(`Error checking for special files: ${error}`);
@@ -684,6 +706,56 @@ async function getDependencies(
               const packageName = parts[0].trim().toLowerCase();
               const version = parts.length >= 3 ? parts[1] + parts[2] : '*';
               if (packageName) {
+                dependencies[packageName] = version;
+              }
+            }
+          }
+        }
+      }
+    } else if (language === 'dart') {
+      // Parse pubspec.yaml
+      const pubspecPath = path.join(projectPath, 'pubspec.yaml');
+      if (await fileExists(pubspecPath)) {
+        const pubspecContent = await fs.readFile(pubspecPath, 'utf-8');
+
+        // Simple YAML parsing for dependencies
+        const lines = pubspecContent.split('\n');
+        let inDependencies = false;
+        let inDevDependencies = false;
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+
+          // Check for dependencies sections
+          if (trimmedLine === 'dependencies:') {
+            inDependencies = true;
+            inDevDependencies = false;
+            continue;
+          } else if (trimmedLine === 'dev_dependencies:') {
+            inDependencies = false;
+            inDevDependencies = true;
+            continue;
+          } else if (trimmedLine.endsWith(':') && !trimmedLine.startsWith(' ')) {
+            // New top-level section
+            inDependencies = false;
+            inDevDependencies = false;
+            continue;
+          }
+
+          // Parse dependency lines
+          if ((inDependencies || inDevDependencies) && trimmedLine && !trimmedLine.startsWith('#')) {
+            // Handle different dependency formats:
+            // package_name: ^1.0.0
+            // package_name:
+            //   sdk: flutter
+            const colonIndex = trimmedLine.indexOf(':');
+            if (colonIndex > 0) {
+              const packageName = trimmedLine.substring(0, colonIndex).trim();
+              const versionPart = trimmedLine.substring(colonIndex + 1).trim();
+
+              // Skip SDK dependencies and empty values
+              if (packageName && !versionPart.startsWith('sdk:') && packageName !== 'sdk') {
+                const version = versionPart || '*';
                 dependencies[packageName] = version;
               }
             }

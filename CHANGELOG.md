@@ -7,7 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.4.6] - 2025-08-17
 
+### Added
+- **🎯 Flutter/Dart Language Support**: Complete Flutter and Dart project support
+  - Automatic Flutter project detection via pubspec.yaml, lib/ directory, and .dart files
+  - Flutter-specific comprehensive review templates covering widget optimization, state management, and mobile performance
+  - Dart language-specific templates for modern Dart 3.x features, null safety, and async programming patterns
+  - Enhanced framework detection with improved confidence scoring for Flutter projects
+- **📋 Comprehensive Review Type**: New review type combining all analysis perspectives
+  - Integrates quick-fixes, security analysis, performance review, and architectural assessment
+  - Available for all supported languages and frameworks with specialized templates
+  - Provides complete codebase health assessment with prioritized recommendations
+  - Structured output with executive summary, implementation roadmap, and summary metrics
+
+### Improved
+- **🔧 Framework Detection System**: Enhanced automatic project detection
+  - Added Dart language detection to primary language analysis in frameworkDetector.ts
+  - Improved pubspec.yaml parsing for Flutter dependency analysis
+  - Better semantic analysis integration with TreeSitter for Dart code
+  - Fixed issue where Flutter projects were incorrectly detected as TypeScript
+- **📚 Documentation Enhancement**: Comprehensive "Supported Languages and Frameworks" section
+  - Detailed language support matrix with framework-specific features
+  - Auto-detection confidence levels and detection methods
+  - Language-specific usage examples and best practices
+  - Consolidated scattered language information into organized reference
+
 ### Fixed
+- **Framework Detection Bug**: Fixed Flutter projects being detected as TypeScript instead of Dart
+  - Added missing Dart (.dart) file extension to language detection map
+  - Added pubspec.yaml detection for Flutter project identification
+  - Enhanced language priority logic to properly handle Dart projects
+  - Improved dependency parsing to support pubspec.yaml format
 - **Model Maps Synchronization**: Fixed model-maps.js generation during build process
   - Resolved issue where model data files were not found during sync-model-maps.js execution
   - Ensured model-maps.js is properly generated with current model mappings

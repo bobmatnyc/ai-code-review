@@ -44,6 +44,7 @@ const SUPPORTED_EXTENSIONS = [
   '.cs',
   '.swift',
   '.kt',
+  '.dart',
 ];
 
 /**
@@ -200,6 +201,8 @@ export function getLanguageForFile(filePath: string): string {
       return 'swift';
     case '.kt':
       return 'kotlin';
+    case '.dart':
+      return 'dart';
     case '.json':
       return 'json';
     case '.md':

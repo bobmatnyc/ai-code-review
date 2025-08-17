@@ -1,6 +1,46 @@
-# AI Code Review v4.4.5
+# AI Code Review v4.4.6
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
+
+## What's New in v4.4.6
+
+### Flutter/Dart Support and Comprehensive Review Type in v4.4.6
+- **🎯 Flutter/Dart Language Support**: Complete Flutter and Dart project support with specialized templates
+  - Automatic Flutter project detection via pubspec.yaml, lib/ directory, and .dart files
+  - Flutter-specific comprehensive review templates covering widget optimization, state management, and mobile performance
+  - Dart language-specific templates for modern Dart 3.x features, null safety, and async programming patterns
+  - Enhanced framework detection with improved confidence scoring for Flutter projects
+- **📋 Comprehensive Review Type**: New review type combining all analysis perspectives in a single assessment
+  - Integrates quick-fixes, security analysis, performance review, and architectural assessment
+  - Available for all supported languages and frameworks with specialized templates
+  - Provides complete codebase health assessment with prioritized recommendations
+  - Structured output with executive summary, implementation roadmap, and summary metrics
+- **🔧 Framework Detection Improvements**: Enhanced automatic detection for better developer experience
+  - Added Dart language detection to primary language analysis
+  - Improved pubspec.yaml parsing for Flutter dependency analysis
+  - Better semantic analysis integration with TreeSitter for Dart code
+
+## What's New in v4.4.6
+
+### Flutter/Dart Support and Comprehensive Review Type in v4.4.6
+- **🎯 Flutter/Dart Language Support**: Complete Flutter and Dart project support with specialized templates
+  - Automatic Flutter project detection via pubspec.yaml, lib/ directory, and .dart files
+  - Flutter-specific comprehensive review templates covering widget optimization, state management, and mobile performance
+  - Dart language-specific templates for modern Dart 3.x features, null safety, and async programming patterns
+  - Enhanced framework detection with improved confidence scoring for Flutter projects
+- **📋 Comprehensive Review Type**: New review type combining all analysis perspectives in a single assessment
+  - Integrates quick-fixes, security analysis, performance review, and architectural assessment
+  - Available for all supported languages and frameworks with specialized templates
+  - Provides complete codebase health assessment with prioritized recommendations
+  - Structured output with executive summary, implementation roadmap, and summary metrics
+- **🔧 Framework Detection Improvements**: Enhanced automatic detection for better developer experience
+  - Added Dart language detection to primary language analysis
+  - Improved pubspec.yaml parsing for Flutter dependency analysis
+  - Better semantic analysis integration with TreeSitter for Dart code
+- **📚 Enhanced Documentation**: Comprehensive "Supported Languages and Frameworks" section
+  - Detailed language support matrix with framework-specific features
+  - Auto-detection confidence levels and detection methods
+  - Language-specific usage examples and best practices
 
 ## What's New in v4.4.5
 
@@ -98,6 +138,7 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 For detailed version history and release notes, see [CHANGELOG.md](CHANGELOG.md).
 
 ### Recent Releases
+- **v4.4.6** (2025-08-17): Flutter/Dart support, comprehensive review type, enhanced framework detection, improved documentation
 - **v4.4.5** (2025-08-17): Documentation consistency improvements, enhanced CLAUDE.md, updated review types documentation
 - **v4.4.4** (2025-08-16): Unified Client System, Build Number Tracking, Enhanced Consolidation Service
 - **v4.3.0** (2025-06-30): Prompt Template Manager, Extract Patterns Review Type, YAML Configuration Support
@@ -309,6 +350,7 @@ This tool analyzes code from specified files or directories in sibling projects 
 ## Features
 
 - **Multiple Review Types**: Focus on different aspects of code quality:
+  - **comprehensive**: Complete analysis combining quick-fixes, security, performance, and architecture ⭐ **NEW**
   - **quick-fixes**: Fast issue identification and recommendations
   - **architectural**: Deep structural analysis and design patterns
   - **security**: Security vulnerability detection and remediation
@@ -338,6 +380,104 @@ This tool analyzes code from specified files or directories in sibling projects 
 - **Memory Optimized**: Process large codebases efficiently with optimized memory usage
 - **Error Recovery**: Robust error handling with graceful recovery
 - **Code Focus**: Analyzes executable code files only, excluding configuration and documentation files
+
+## Supported Languages and Frameworks
+
+AI Code Review provides comprehensive support for multiple programming languages and frameworks with specialized analysis templates and automatic project detection.
+
+### 🎯 **Languages with Full Support**
+
+| Language | Auto-Detection | Specialized Templates | Framework Support | Key Features |
+|----------|----------------|----------------------|-------------------|--------------|
+| **TypeScript** | ✅ `.ts`, `.tsx` files | ✅ All review types | React, Next.js, Angular, Vue | Type system analysis, modern TS features |
+| **JavaScript** | ✅ `.js`, `.jsx` files | ✅ All review types | React, Next.js, Vue, Node.js | ES6+, async patterns, framework-specific |
+| **Dart** | ✅ `.dart` files, `pubspec.yaml` | ✅ All review types | **Flutter** | Null safety, async/await, widget optimization |
+| **Python** | ✅ `.py` files, `requirements.txt` | ✅ All review types | Django, Flask, FastAPI | PEP compliance, async patterns, web frameworks |
+| **Ruby** | ✅ `.rb` files, `Gemfile` | ✅ All review types | **Ruby on Rails** | Rails conventions, ActiveRecord, security |
+| **PHP** | ✅ `.php` files, `composer.json` | ✅ All review types | Laravel, Symfony | Modern PHP, framework patterns, security |
+| **Go** | ✅ `.go` files, `go.mod` | ✅ All review types | Gin, Echo, Fiber | Idiomatic Go, concurrency, performance |
+| **Java** | ✅ `.java` files | ✅ Best practices | Spring, Spring Boot | Enterprise patterns, dependency injection |
+| **Rust** | ✅ `.rs` files, `Cargo.toml` | ✅ Best practices | Actix, Rocket, Axum | Memory safety, ownership, async |
+
+### 🚀 **Framework-Specific Features**
+
+#### **Flutter (Dart)**
+- **Widget Architecture**: StatelessWidget vs StatefulWidget optimization
+- **State Management**: Riverpod, BLoC, Provider, GetX analysis
+- **Performance**: Widget rebuilds, memory management, rendering optimization
+- **Platform Integration**: Android/iOS specific considerations
+- **Material Design**: UI/UX best practices and accessibility
+
+#### **React/Next.js (TypeScript/JavaScript)**
+- **Component Patterns**: Hooks, context, performance optimization
+- **Next.js Features**: SSR, SSG, API routes, middleware analysis
+- **State Management**: Redux, Zustand, React Query patterns
+- **Performance**: Bundle analysis, lazy loading, Core Web Vitals
+
+#### **Ruby on Rails**
+- **Rails Conventions**: MVC patterns, ActiveRecord best practices
+- **Security**: Rails-specific vulnerabilities, OWASP compliance
+- **Performance**: N+1 queries, caching strategies, background jobs
+- **Testing**: RSpec patterns, factory usage, test organization
+
+#### **Django/Flask (Python)**
+- **Django ORM**: Query optimization, model relationships
+- **Security**: Django security middleware, CSRF protection
+- **API Design**: DRF patterns, serialization, authentication
+- **Performance**: Database optimization, caching, async views
+
+### 🔍 **Automatic Project Detection**
+
+The tool automatically detects your project type based on:
+
+| Detection Method | Files/Patterns | Confidence |
+|------------------|----------------|------------|
+| **Package Files** | `package.json`, `pubspec.yaml`, `Gemfile`, `composer.json`, `go.mod`, `Cargo.toml` | High (0.9-1.0) |
+| **File Extensions** | `.dart`, `.ts`, `.py`, `.rb`, `.php`, `.go`, `.rs`, `.java` | Medium (0.7-0.8) |
+| **Directory Structure** | `lib/` (Flutter), `app/` (Rails), `src/` (general) | Medium (0.6-0.7) |
+| **Framework Files** | `next.config.js`, `angular.json`, `django/settings.py` | High (0.9) |
+
+### 📋 **Review Types by Language**
+
+All languages support these review types with language-specific optimizations:
+
+- **`comprehensive`** - Complete analysis combining all review types ⭐ **NEW**
+- **`quick-fixes`** - Language-specific syntax and best practices
+- **`architectural`** - Framework patterns and design principles
+- **`security`** - Language/framework-specific vulnerabilities
+- **`performance`** - Runtime optimization and efficiency
+- **`best-practices`** - Idiomatic code patterns and conventions
+
+### 🛠 **Usage Examples**
+
+```bash
+# Automatic detection (recommended)
+ai-code-review . --type comprehensive
+
+# Flutter/Dart project
+ai-code-review . --type comprehensive --language dart --framework flutter
+
+# React/TypeScript project
+ai-code-review src --type architectural --language typescript --framework react
+
+# Rails application
+ai-code-review app --type security --language ruby --framework rails
+
+# Python Django project
+ai-code-review . --type performance --language python --framework django
+
+# Go web service
+ai-code-review . --type best-practices --language go
+```
+
+### 🎯 **Language-Specific Highlights**
+
+- **Flutter/Dart**: Widget lifecycle, state management, platform channels, performance profiling
+- **TypeScript**: Type safety, generics, decorators, modern language features
+- **Python**: Type hints, async/await, context managers, Pythonic patterns
+- **Ruby**: Metaprogramming, blocks/procs, Rails magic, gem best practices
+- **Go**: Goroutines, channels, interfaces, error handling patterns
+- **Java**: Design patterns, Spring ecosystem, enterprise architecture
 
 ## Security Best Practices
 

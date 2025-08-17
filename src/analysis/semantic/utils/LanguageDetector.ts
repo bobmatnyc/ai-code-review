@@ -21,6 +21,7 @@ export function detectLanguage(filePath: string): string {
     py: 'python',
     rb: 'ruby',
     php: 'php',
+    dart: 'dart',
   };
 
   return extensionMap[extension || ''] || 'unknown';

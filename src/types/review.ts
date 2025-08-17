@@ -28,7 +28,8 @@ export type ReviewType =
   | 'coding-test'
   | 'ai-integration'
   | 'cloud-native'
-  | 'developer-experience';
+  | 'developer-experience'
+  | 'comprehensive';
 
 /**
  * Options for code reviews

@@ -382,6 +382,36 @@
           "SSL/TLS support"
         ]
       }
+    },
+    "flutter": {
+      "latest": {
+        "version": "3.27.2",
+        "releaseDate": "December 2024",
+        "supportedUntil": "2026",
+        "dartVersion": "3.6.0"
+      },
+      "previous": {
+        "version": "3.24.x",
+        "releaseDate": "July 2024",
+        "supportedUntil": "2025",
+        "dartVersion": "3.5.x"
+      },
+      "features": {
+        "latest": [
+          "Impeller rendering engine improvements",
+          "Enhanced Cupertino widgets",
+          "Performance optimizations",
+          "Dart 3.6 with pub workspaces",
+          "Improved hot reload and debugging"
+        ],
+        "previous": [
+          "Material Design 3 support",
+          "Impeller on Android",
+          "Web assembly compilation",
+          "Enhanced accessibility features",
+          "Improved DevTools"
+        ]
+      }
     }
   }
 }

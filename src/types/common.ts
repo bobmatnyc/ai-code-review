@@ -98,6 +98,7 @@ export const VALID_REVIEW_TYPES: ReviewType[] = [
   'ai-integration',
   'cloud-native',
   'developer-experience',
+  'comprehensive',
 ];
 
 /**
@@ -123,4 +124,6 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<Exclude<ReviewType, 'consolidated'
     'Cloud-native architecture review focusing on Kubernetes, serverless, and scalability patterns',
   'developer-experience':
     'Developer experience review focusing on productivity, tooling, and workflow optimization',
+  comprehensive:
+    'Comprehensive review combining quick-fixes, security, performance, and architectural analysis in a single thorough assessment',
 };

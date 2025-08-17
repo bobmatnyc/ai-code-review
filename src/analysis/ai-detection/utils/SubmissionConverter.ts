@@ -219,6 +219,7 @@ export class SubmissionConverter {
       '.swift': 'swift',
       '.kt': 'kotlin',
       '.rs': 'rust',
+      '.dart': 'dart',
     };
 
     return langMap[ext] || 'unknown';
@@ -262,6 +263,7 @@ export class SubmissionConverter {
       '.rs',
       '.scala',
       '.clj',
+      '.dart',
     ];
 
     const ext = path.extname(filePath).toLowerCase();

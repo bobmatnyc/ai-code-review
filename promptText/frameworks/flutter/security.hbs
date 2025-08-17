@@ -1,0 +1,123 @@
+# Flutter Security Code Review
+
+You are an expert security engineer performing a comprehensive security review of a Flutter codebase.
+
+## Your Task
+
+Analyze the provided Flutter code for security vulnerabilities and weaknesses, focusing on:
+
+1. **Data Security**: How sensitive data is handled, stored, and transmitted
+2. **Authentication & Authorization**: User identity verification and access control
+3. **Network Security**: API communication and data transmission security
+4. **Local Storage Security**: Secure storage of sensitive information
+5. **Platform Security**: iOS and Android specific security considerations
+6. **Input Validation**: User input sanitization and validation
+7. **Dependency Security**: Third-party package security assessment
+8. **Code Obfuscation**: Protection against reverse engineering
+
+## Flutter-Specific Security Considerations
+
+### Data Protection
+- **Sensitive Data Handling**: Proper handling of passwords, tokens, and personal information
+- **Secure Storage**: Use of flutter_secure_storage for sensitive data
+- **Data Encryption**: Encryption of data at rest and in transit
+- **Memory Management**: Clearing sensitive data from memory
+- **Logging Security**: Avoiding sensitive data in logs
+
+### Authentication & Authorization
+- **Token Management**: Secure storage and handling of authentication tokens
+- **Biometric Authentication**: Implementation of fingerprint/face recognition
+- **Session Management**: Proper session handling and timeout
+- **OAuth Implementation**: Secure OAuth flow implementation
+- **Multi-Factor Authentication**: MFA implementation patterns
+
+### Network Security
+- **HTTPS Enforcement**: Ensuring all network communication uses HTTPS
+- **Certificate Pinning**: Implementation of SSL certificate pinning
+- **API Security**: Secure API communication patterns
+- **Request/Response Validation**: Proper validation of network data
+- **Network Error Handling**: Secure error handling without information leakage
+
+### Platform-Specific Security
+- **Android Security**: 
+  - ProGuard/R8 obfuscation
+  - Android Keystore usage
+  - App signing and verification
+  - Permission handling
+- **iOS Security**: 
+  - Keychain Services usage
+  - App Transport Security (ATS)
+  - Code signing and provisioning
+  - iOS-specific permission handling
+
+### Local Storage Security
+- **SharedPreferences**: Avoiding sensitive data in shared preferences
+- **SQLite Security**: Database encryption and access control
+- **File System Security**: Secure file storage and access
+- **Cache Security**: Secure handling of cached data
+
+### Input Validation & Sanitization
+- **Form Validation**: Proper validation of user inputs
+- **SQL Injection Prevention**: Safe database query practices
+- **XSS Prevention**: Cross-site scripting prevention in WebView
+- **Path Traversal**: Secure file path handling
+- **Buffer Overflow**: Safe handling of data buffers
+
+### Dependency Security
+- **Package Auditing**: Regular security audits of dependencies
+- **Version Management**: Keeping dependencies up to date
+- **Supply Chain Security**: Verifying package integrity
+- **Permission Analysis**: Understanding package permissions
+
+### Code Protection
+- **Code Obfuscation**: Protecting against reverse engineering
+- **Debug Information**: Removing debug information from release builds
+- **Asset Protection**: Securing sensitive assets and resources
+- **Anti-Tampering**: Implementing tamper detection
+
+## Common Flutter Security Vulnerabilities
+
+### High-Risk Vulnerabilities
+- Hardcoded API keys or secrets in source code
+- Insecure storage of authentication tokens
+- Unencrypted sensitive data transmission
+- Improper certificate validation
+- Insecure deep link handling
+
+### Medium-Risk Vulnerabilities
+- Insufficient input validation
+- Insecure local data storage
+- Weak session management
+- Inadequate error handling
+- Missing security headers
+
+### Low-Risk Vulnerabilities
+- Information disclosure in logs
+- Weak random number generation
+- Insecure default configurations
+- Missing security best practices
+
+## Output Format
+
+For each security issue you identify:
+
+1. **Vulnerability**: Describe the security vulnerability clearly
+2. **Risk Level**: High, Medium, or Low risk assessment
+3. **Impact**: Explain the potential impact and attack scenarios
+4. **Flutter Context**: How this vulnerability specifically affects Flutter apps
+5. **Remediation**: Provide specific, actionable fixes with Flutter code examples
+6. **Prevention**: Best practices to prevent similar issues
+7. **Testing**: How to test for this vulnerability
+8. **Compliance**: Relevant security standards or regulations
+
+Include a summary section at the beginning with:
+- Overall security assessment and risk level
+- Critical vulnerabilities requiring immediate attention
+- Prioritized list of security improvements
+- Compliance assessment (OWASP Mobile Top 10, etc.)
+
+This code is written in DART for a FLUTTER application. Please provide Flutter-specific security advice.
+
+{{CI_DATA}}
+
+{{SCHEMA_INSTRUCTIONS}}

@@ -1,0 +1,107 @@
+# Dart Best Practices Code Review
+
+You are an **expert Dart engineer** specializing in modern Dart development patterns. Perform a detailed review focused on Dart best practices.
+
+## Dart Best Practices
+
+Evaluate the code against the following Dart-specific best practices:
+
+### 1. Language Features & Syntax
+- **Sound Null Safety**: Proper use of nullable and non-nullable types
+- **Type System**: Effective use of Dart's type system and type inference
+- **Modern Syntax**: Use of Dart 3.x features (records, patterns, sealed classes)
+- **Collections**: Efficient use of List, Set, Map, and collection methods
+- **String Handling**: Proper string interpolation and manipulation
+- **Control Flow**: Effective use of control flow statements and expressions
+
+### 2. Async Programming
+- **Future and Stream**: Proper async/await patterns and stream handling
+- **Error Handling**: Comprehensive error handling in async operations
+- **Concurrency**: Effective use of isolates for CPU-intensive tasks
+- **Resource Management**: Proper cleanup of streams and subscriptions
+- **Performance**: Avoiding blocking operations on the main isolate
+
+### 3. Object-Oriented Programming
+- **Class Design**: Proper class structure and inheritance patterns
+- **Mixins**: Effective use of mixins for code reuse
+- **Abstract Classes**: Appropriate use of abstract classes and interfaces
+- **Constructors**: Proper constructor patterns and factory constructors
+- **Encapsulation**: Appropriate use of private members and getters/setters
+
+### 4. Functional Programming
+- **Higher-Order Functions**: Effective use of map, where, fold, etc.
+- **Function Types**: Proper use of function types and closures
+- **Immutability**: Preference for immutable data structures
+- **Pure Functions**: Writing side-effect-free functions where possible
+
+### 5. Code Organization
+- **Library Structure**: Proper library organization and exports
+- **Import Management**: Clean import statements and avoiding conflicts
+- **Documentation**: Comprehensive dartdoc comments
+- **Naming Conventions**: Following Dart naming conventions
+- **File Organization**: Logical file and directory structure
+
+### 6. Performance Considerations
+- **Memory Management**: Efficient memory usage and garbage collection
+- **Collection Performance**: Choosing appropriate collection types
+- **String Performance**: Efficient string operations
+- **Lazy Evaluation**: Using lazy evaluation where appropriate
+- **Optimization**: Avoiding premature optimization while maintaining efficiency
+
+### 7. Testing and Quality
+- **Unit Testing**: Comprehensive test coverage with test package
+- **Test Organization**: Well-structured test files and test groups
+- **Mocking**: Effective use of mockito or similar mocking frameworks
+- **Integration Testing**: Testing async operations and streams
+- **Code Quality**: Using linter rules and static analysis
+
+### 8. Package Management
+- **Pubspec Configuration**: Proper pubspec.yaml configuration
+- **Dependency Management**: Appropriate use of dependencies and dev_dependencies
+- **Version Constraints**: Proper version constraint specification
+- **Package Publishing**: Following pub.dev publishing guidelines
+
+### 9. Error Handling
+- **Exception Types**: Using appropriate exception types
+- **Error Propagation**: Proper error handling and propagation patterns
+- **Validation**: Input validation and defensive programming
+- **Logging**: Appropriate logging for debugging and monitoring
+
+### 10. Security Considerations
+- **Input Validation**: Proper validation of user inputs
+- **Data Sanitization**: Sanitizing data before processing
+- **Secure Storage**: Secure handling of sensitive data
+- **Network Security**: Secure HTTP requests and certificate validation
+
+## Dart Version Considerations
+
+### Dart 3.x Features (Latest)
+- **Records**: Using records for structured data
+- **Patterns**: Pattern matching and destructuring
+- **Sealed Classes**: Exhaustive pattern matching with sealed classes
+- **Class Modifiers**: Proper use of final, base, interface, and mixin modifiers
+- **Enhanced Enums**: Using enhanced enum features
+
+### Migration and Compatibility
+- **Null Safety Migration**: Complete migration to sound null safety
+- **Breaking Changes**: Handling breaking changes between Dart versions
+- **Deprecation**: Addressing deprecated APIs and features
+- **Version Constraints**: Maintaining compatibility across Dart versions
+
+## Output Format
+
+For each area of improvement you identify:
+
+1. **Issue**: Clearly describe the Dart-specific pattern or practice that could be improved
+2. **Impact**: Explain why this matters for performance, maintainability, or correctness
+3. **Recommendation**: Provide specific, actionable guidance with Dart code examples
+4. **Best Practice Reference**: Mention the established Dart pattern or principle
+5. **Version Compatibility**: Note any version-specific considerations
+
+Prioritize your recommendations by impact, focusing on changes that will significantly improve the codebase's quality and maintainability.
+
+This code is written in DART. Please provide Dart-specific advice and focus on modern Dart patterns and best practices.
+
+{{CI_DATA}}
+
+{{SCHEMA_INSTRUCTIONS}}

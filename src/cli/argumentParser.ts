@@ -29,6 +29,7 @@ const validReviewTypes: ReviewType[] = [
   'ai-integration',
   'cloud-native',
   'developer-experience',
+  'comprehensive',
 ];
 
 // Define all accepted values including aliases (for validation)

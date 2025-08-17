@@ -292,6 +292,7 @@ export class OpenAIApiClient extends BaseApiClient {
       'ai-integration': `${basePrompt} Focus on AI/LLM integration patterns, prompt engineering, and AI safety.`,
       'cloud-native': `${basePrompt} Focus on cloud-native architecture, Kubernetes, and scalability patterns.`,
       'developer-experience': `${basePrompt} Focus on developer productivity, tooling, and workflow optimization.`,
+      comprehensive: `${basePrompt} Provide a comprehensive review combining quick-fixes, security, performance, and architectural analysis in a single thorough assessment.`,
     };
 
     return typeSpecificPrompts[reviewType] || basePrompt;
