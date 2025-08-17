@@ -1,4 +1,4 @@
-# Installation Guide for AI Code Review v4.3.1
+# Installation Guide for AI Code Review v4.4.5
 
 This guide will help you install and set up the AI Code Review tool.
 
@@ -64,11 +64,11 @@ AI_CODE_REVIEW_OPENROUTER_API_KEY=your_openrouter_api_key_here
 SERPAPI_KEY=your_serpapi_api_key_here
 
 # Model configuration (examples)
-AI_CODE_REVIEW_MODEL=gemini:gemini-1.5-pro
+AI_CODE_REVIEW_MODEL=gemini:gemini-2.5-pro
 # or
-# AI_CODE_REVIEW_MODEL=anthropic:claude-3-opus
+# AI_CODE_REVIEW_MODEL=anthropic:claude-4-sonnet
 # or
-# AI_CODE_REVIEW_MODEL=openrouter:openai/gpt-4o
+# AI_CODE_REVIEW_MODEL=openrouter:anthropic/claude-4-opus
 ```
 
 ## Verifying Installation

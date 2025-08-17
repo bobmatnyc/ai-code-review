@@ -1,15 +1,15 @@
 /**
  * @fileoverview Consolidation Service for Multi-Pass Reviews
- * 
+ *
  * This service handles the consolidation of multi-pass review results into
  * a single cohesive report. It manages both AI-powered consolidation and
  * fallback consolidation when AI services are unavailable.
  */
 
-import type { ApiClientConfig } from './ApiClientSelector';
 import type { ReviewResult } from '../types/review';
-import { consolidateReview } from '../utils/review/consolidateReview';
 import logger from '../utils/logger';
+import { consolidateReview } from '../utils/review/consolidateReview';
+import type { ApiClientConfig } from './ApiClientSelector';
 
 /**
  * Service for consolidating multi-pass review results
@@ -30,18 +30,18 @@ export class ConsolidationService {
       modelName: string;
       totalPasses: number;
       passResults: ReviewResult[];
-    }
+    },
   ): Promise<string> {
     const { projectName, modelName, totalPasses, passResults } = options;
 
     try {
       logger.info(`Generating consolidated report for ${projectName} using ${modelName}...`);
-      
+
       // Attempt AI-powered consolidation
       const consolidatedContent = await this.attemptAiConsolidation(
         multiPassResult,
         apiClientConfig,
-        options
+        options,
       );
 
       if (consolidatedContent) {
@@ -52,7 +52,6 @@ export class ConsolidationService {
       // Fall back to manual consolidation
       logger.warn('AI consolidation failed, falling back to enhanced manual consolidation');
       return this.createEnhancedFallbackConsolidation(multiPassResult, modelName, options);
-
     } catch (error) {
       logger.error('Error during consolidation:', error);
       logger.info('Creating fallback consolidation due to error');
@@ -75,7 +74,7 @@ export class ConsolidationService {
       modelName: string;
       totalPasses: number;
       passResults: ReviewResult[];
-    }
+    },
   ): Promise<string | null> {
     try {
       // Set the project name in the result for consolidation
@@ -92,7 +91,6 @@ export class ConsolidationService {
 
       logger.warn('AI consolidation returned empty content');
       return null;
-
     } catch (error) {
       logger.error('AI consolidation failed:', error);
       return null;
@@ -113,7 +111,7 @@ export class ConsolidationService {
       projectName: string;
       totalPasses: number;
       passResults: ReviewResult[];
-    }
+    },
   ): string {
     logger.info('Creating enhanced fallback consolidation from multi-pass results...');
 
@@ -122,7 +120,7 @@ export class ConsolidationService {
 
     // Extract findings from all passes
     const findings = this.extractFindingsFromPasses(passResults);
-    
+
     // Calculate grades and recommendations
     const overallGrade = this.calculateOverallGrade(findings);
     const recommendations = this.generateRecommendations(findings, false);
@@ -138,7 +136,7 @@ export class ConsolidationService {
       '## Executive Summary',
       '',
       `This multi-pass review analyzed the ${projectName} codebase across ${totalPasses} passes, ` +
-      `identifying ${findings.high.size + findings.medium.size + findings.low.size} total issues.`,
+        `identifying ${findings.high.size + findings.medium.size + findings.low.size} total issues.`,
       '',
       `**Overall Grade:** ${overallGrade}`,
       '',
@@ -148,7 +146,7 @@ export class ConsolidationService {
       '',
       '## Recommendations',
       '',
-      ...recommendations.map(rec => `- ${rec}`),
+      ...recommendations.map((rec) => `- ${rec}`),
       '',
       '## Pass Summary',
       '',
@@ -156,7 +154,7 @@ export class ConsolidationService {
       '',
       '---',
       '',
-      '*This report was generated using enhanced fallback consolidation due to AI service limitations.*'
+      '*This report was generated using enhanced fallback consolidation due to AI service limitations.*',
     ];
 
     return sections.join('\n');
@@ -187,7 +185,7 @@ export class ConsolidationService {
       '',
       '---',
       '',
-      '*This report was generated using basic fallback consolidation.*'
+      '*This report was generated using basic fallback consolidation.*',
     ].join('\n');
   }
 
@@ -209,7 +207,7 @@ export class ConsolidationService {
 
       for (const issue of issueTexts) {
         const lowerIssue = issue.toLowerCase();
-        
+
         // Categorize by priority keywords
         if (this.isHighPriority(lowerIssue)) {
           highPriorityFindings.add(issue);
@@ -235,16 +233,16 @@ export class ConsolidationService {
    */
   private extractIssueTexts(content: string): string[] {
     const issues: string[] = [];
-    
+
     // Extract bullet points and numbered items
     const bulletRegex = /^[\s]*[-*•]\s+(.+)$/gm;
     const numberedRegex = /^[\s]*\d+\.\s+(.+)$/gm;
-    
+
     let match;
     while ((match = bulletRegex.exec(content)) !== null) {
       issues.push(match[1].trim());
     }
-    
+
     while ((match = numberedRegex.exec(content)) !== null) {
       issues.push(match[1].trim());
     }
@@ -259,10 +257,18 @@ export class ConsolidationService {
    */
   private isHighPriority(issue: string): boolean {
     const highPriorityKeywords = [
-      'security', 'vulnerability', 'critical', 'error', 'bug', 'crash',
-      'memory leak', 'performance', 'sql injection', 'xss'
+      'security',
+      'vulnerability',
+      'critical',
+      'error',
+      'bug',
+      'crash',
+      'memory leak',
+      'performance',
+      'sql injection',
+      'xss',
     ];
-    return highPriorityKeywords.some(keyword => issue.includes(keyword));
+    return highPriorityKeywords.some((keyword) => issue.includes(keyword));
   }
 
   /**
@@ -272,10 +278,16 @@ export class ConsolidationService {
    */
   private isMediumPriority(issue: string): boolean {
     const mediumPriorityKeywords = [
-      'warning', 'deprecated', 'inefficient', 'refactor', 'improve',
-      'optimization', 'maintainability', 'readability'
+      'warning',
+      'deprecated',
+      'inefficient',
+      'refactor',
+      'improve',
+      'optimization',
+      'maintainability',
+      'readability',
     ];
-    return mediumPriorityKeywords.some(keyword => issue.includes(keyword));
+    return mediumPriorityKeywords.some((keyword) => issue.includes(keyword));
   }
 
   /**
@@ -289,7 +301,7 @@ export class ConsolidationService {
     low: Set<string>;
   }): string {
     const totalIssues = findings.high.size + findings.medium.size + findings.low.size;
-    
+
     if (findings.high.size > 5) return 'D';
     if (findings.high.size > 2) return 'C';
     if (findings.medium.size > 10) return 'C+';
@@ -308,7 +320,7 @@ export class ConsolidationService {
    */
   private generateRecommendations(
     findings: { high: Set<string>; medium: Set<string>; low: Set<string> },
-    hasErrors: boolean
+    hasErrors: boolean,
   ): string[] {
     const recommendations: string[] = [];
 
@@ -317,15 +329,21 @@ export class ConsolidationService {
     }
 
     if (findings.high.size > 0) {
-      recommendations.push(`Address ${findings.high.size} high-priority security and critical issues immediately`);
+      recommendations.push(
+        `Address ${findings.high.size} high-priority security and critical issues immediately`,
+      );
     }
 
     if (findings.medium.size > 5) {
-      recommendations.push(`Review and address ${findings.medium.size} medium-priority maintainability issues`);
+      recommendations.push(
+        `Review and address ${findings.medium.size} medium-priority maintainability issues`,
+      );
     }
 
     if (findings.low.size > 10) {
-      recommendations.push(`Consider addressing ${findings.low.size} low-priority style and minor issues`);
+      recommendations.push(
+        `Consider addressing ${findings.low.size} low-priority style and minor issues`,
+      );
     }
 
     if (recommendations.length === 0) {
@@ -349,7 +367,11 @@ export class ConsolidationService {
 
     if (findings.high.size > 0) {
       sections.push(`**High Priority (${findings.high.size}):**`);
-      sections.push(...Array.from(findings.high).slice(0, 5).map(f => `- ${f}`));
+      sections.push(
+        ...Array.from(findings.high)
+          .slice(0, 5)
+          .map((f) => `- ${f}`),
+      );
       if (findings.high.size > 5) {
         sections.push(`- ... and ${findings.high.size - 5} more`);
       }
@@ -358,7 +380,11 @@ export class ConsolidationService {
 
     if (findings.medium.size > 0) {
       sections.push(`**Medium Priority (${findings.medium.size}):**`);
-      sections.push(...Array.from(findings.medium).slice(0, 3).map(f => `- ${f}`));
+      sections.push(
+        ...Array.from(findings.medium)
+          .slice(0, 3)
+          .map((f) => `- ${f}`),
+      );
       if (findings.medium.size > 3) {
         sections.push(`- ... and ${findings.medium.size - 3} more`);
       }
@@ -367,7 +393,11 @@ export class ConsolidationService {
 
     if (findings.low.size > 0) {
       sections.push(`**Low Priority (${findings.low.size}):**`);
-      sections.push(...Array.from(findings.low).slice(0, 2).map(f => `- ${f}`));
+      sections.push(
+        ...Array.from(findings.low)
+          .slice(0, 2)
+          .map((f) => `- ${f}`),
+      );
       if (findings.low.size > 2) {
         sections.push(`- ... and ${findings.low.size - 2} more`);
       }
@@ -382,10 +412,12 @@ export class ConsolidationService {
    * @returns Pass summary string
    */
   private generatePassSummary(passResults: ReviewResult[]): string {
-    return passResults.map((result, index) => {
-      const passNum = index + 1;
-      const wordCount = result.content ? result.content.split(/\s+/).length : 0;
-      return `**Pass ${passNum}:** ${wordCount} words of analysis`;
-    }).join('\n');
+    return passResults
+      .map((result, index) => {
+        const passNum = index + 1;
+        const wordCount = result.content ? result.content.split(/\s+/).length : 0;
+        return `**Pass ${passNum}:** ${wordCount} words of analysis`;
+      })
+      .join('\n');
   }
 }

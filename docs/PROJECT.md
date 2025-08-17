@@ -218,9 +218,14 @@ Based on source code analysis (`src/types/review.ts`):
 
 ## 📈 Current Development Status & Roadmap
 
-### Recently Completed (v4.3.0)
+### Recently Completed (v4.4.4)
+- **Unified Client System**: Revolutionary architecture for API client management
+- **Build Number Tracking**: Comprehensive build tracking and versioning system
+- **Enhanced Consolidation Service**: Improved multi-pass review consolidation
+- **Extended Prompt Templates**: AI Integration, Cloud Native, Developer Experience, Java, and Rust templates
+- **Documentation Organization**: Comprehensive restructuring with dedicated docs/ directory
 - **Enhanced Model Maps**: Comprehensive provider and model support
-- **Semantic Chunking**: AI-guided intelligent code segmentation  
+- **Semantic Chunking**: AI-guided intelligent code segmentation
 - **Evaluation Review Type**: Developer skill assessment capabilities
 - **Extract Patterns**: Codebase pattern identification and documentation
 - **Testing Infrastructure**: 482 comprehensive tests with 96.8% pass rate

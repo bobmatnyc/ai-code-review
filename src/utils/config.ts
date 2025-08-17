@@ -143,8 +143,14 @@ function buildConfigObject(cliOptions?: CliOptions) {
   const anthropicApiKeyResult = getAnthropicApiKey();
 
   // Only check OpenAI if no other keys are available to avoid unnecessary warnings
-  const hasOtherKeys = !!(googleApiKeyResult.apiKey || openRouterApiKeyResult.apiKey || anthropicApiKeyResult.apiKey);
-  const openAIApiKeyResult = hasOtherKeys ? { apiKey: undefined, source: 'none', message: 'Skipped to avoid warnings' } : getOpenAIApiKey();
+  const hasOtherKeys = !!(
+    googleApiKeyResult.apiKey ||
+    openRouterApiKeyResult.apiKey ||
+    anthropicApiKeyResult.apiKey
+  );
+  const openAIApiKeyResult = hasOtherKeys
+    ? { apiKey: undefined, source: 'none', message: 'Skipped to avoid warnings' }
+    : getOpenAIApiKey();
 
   // Override API keys with merged options if provided (support both apiKey and apiKeys)
   const googleApiKey =
@@ -257,7 +263,11 @@ export function hasAnyApiKey(): boolean {
   const anthropicApiKeyResult = getAnthropicApiKey();
 
   // Only check OpenAI if no other keys are available to avoid unnecessary warnings
-  const hasOtherKeys = !!(googleApiKeyResult.apiKey || openRouterApiKeyResult.apiKey || anthropicApiKeyResult.apiKey);
+  const hasOtherKeys = !!(
+    googleApiKeyResult.apiKey ||
+    openRouterApiKeyResult.apiKey ||
+    anthropicApiKeyResult.apiKey
+  );
 
   if (hasOtherKeys) {
     return true;

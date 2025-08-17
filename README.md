@@ -1,90 +1,109 @@
-# AI Code Review v4.3.1
+# AI Code Review v4.4.5
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
 
+## What's New in v4.4.5
+
+### Documentation Improvements in v4.4.5
+- **Comprehensive Documentation Review**: Updated all documentation to ensure consistency with current codebase
+- **Version Consistency**: Updated all version references across README.md, INSTALL.md, and CLAUDE.md
+- **Enhanced CLAUDE.md**: Added comprehensive project context, development guidelines, and troubleshooting
+- **Review Types Documentation**: Updated to include all 15 current review types including new ai-integration, cloud-native, and developer-experience types
+- **CLI Documentation**: Fixed command examples and ensured all documented features match current implementation
+- **Model References**: Updated to current recommended models (gemini-2.5-pro, claude-4-sonnet)
+
+## What's New in v4.4.4
+
+### New Features in v4.4.4
+- **Unified Client System**: Revolutionary architecture for API client management
+  - BaseApiClient interface for consistent client behavior across all providers
+  - UnifiedClientFactory for streamlined client creation and configuration
+  - Enhanced OpenAIApiClient implementation with improved error handling
+  - Better separation of concerns and improved maintainability
+- **Build Number Tracking**: Comprehensive build tracking and versioning system
+  - Automatic build number incrementation during builds
+  - Build metadata tracking with timestamps for better release management
+  - Enhanced version reporting with detailed build information
+- **Enhanced Consolidation Service**: Improved multi-pass review consolidation
+  - Dedicated ConsolidationService for better separation of concerns
+  - Enhanced error handling and fallback mechanisms for robust operation
+  - Improved AI-powered consolidation with better prompt handling
+- **Extended Prompt Templates**: Expanded template library for specialized reviews
+  - AI Integration Review template for AI-assisted development analysis
+  - Cloud Native Review template for cloud architecture assessment
+  - Developer Experience Review template for DX evaluation
+  - Java and Rust language-specific best practices templates
+- **Prompt Schema Validation**: JSON schema validation for prompt frontmatter
+  - Structured validation for prompt metadata consistency
+  - Consistent prompt template format enforcement
+  - Enhanced prompt development workflow with validation
+
+### Improvements in v4.4.4
+- **Documentation Organization**: Comprehensive documentation restructuring
+  - Moved all documentation files to dedicated docs/ directory
+  - Enhanced documentation for unified client system
+  - Improved build number tracking documentation
+  - Better organization of migration guides and architectural docs
+- **Code Quality**: Enhanced testing and validation infrastructure
+  - New unit tests for consolidation bug fixes
+  - Improved test coverage for unified client system
+  - Enhanced validation scripts for prompt templates
+- **Project Structure**: Cleaner codebase organization
+  - Replaced old task management system with new tickets/ structure
+  - Removed temporary debug files and test directories
+  - Better separation of concerns in core services
+
+### Fixed in v4.4.4
+- **Consolidation Bug**: Fixed critical issue where consolidation instructions were treated as source code
+- **Token Analysis**: Improved token counting and analysis accuracy
+- **Client Factory**: Enhanced client creation and initialization logic
+
 ## What's New in v4.3.0
 
-### New Features in v4.3.0
-- **Prompt Template Manager**: Handlebars integration for dynamic prompt templates
-  - Support for conditional logic and loops in prompts
-  - Partial template support for reusable components
-  - Helper functions for common operations
-- **Extract Patterns Review Type**: Phase 2 implementation with validation & enhancement
-  - Pattern validation and quality scoring
-  - Structured output for detected patterns
-  - Enhanced pattern extraction capabilities
+### Key Features in v4.3.0
+- **Prompt Template Manager**: Handlebars integration for dynamic prompt templates with conditional logic and reusable components
+- **Extract Patterns Review Type**: Phase 2 implementation with pattern validation and structured output
 - **Output Directory Override**: New `--output-dir` flag for custom review output locations
-  - Flexible file organization for review results
-  - Maintains backward compatibility with default locations
-- **YAML Configuration Support**: `.ai-code-review.yaml` configuration files
-  - Human-readable configuration format
-  - JSON configuration still supported for backward compatibility
-  - Automatic configuration file discovery
-
-### Improvements in v4.3.0
-- **Testing Strategy**: Comprehensive testing framework implementation
-  - Achieved 96.8% test pass rate (482/498 tests)
-  - 100% of test files passing (46/46)
-  - Enhanced coverage configuration for core code
-- **CI/CD Infrastructure**: Improved versioning and release automation
-  - Better version management across the codebase
-  - Enhanced build and deployment processes
+- **YAML Configuration Support**: `.ai-code-review.yaml` configuration files with automatic discovery
+- **Enhanced Testing**: Achieved 96.8% test pass rate with comprehensive framework implementation
 
 ## What's New in v4.2.0
 
-### New Features in v4.2.0
-- **Evaluation Review Type**: Comprehensive code review with developer skill assessment
-  - Performs thorough code review PLUS developer assessment in one analysis
-  - Analyzes coding skill level: Beginner/Intermediate/Advanced/Expert
-  - Detects AI assistance likelihood and professional maturity
-  - Includes meta coding quality indicators (documentation, testing, workflow)
-  - Structured schema output for consistent evaluation results
-- **Golang Language Support**: Comprehensive support for Go/Golang projects
-  - Golang-specific prompt templates for all review types
-  - Idiomatic Go pattern analysis and best practices
-  - Go project type detection and file filtering
-  - Concurrency, interface design, and error handling expertise
-- **Enhanced Grading System**: Academic-style grading for consolidated reviews
-  - A+ to F grading scale for code quality assessment
-  - Multiple grade categories: functionality, code quality, documentation, testing
-  - Integrated into multi-file review workflows
+### Key Features in v4.2.0
+- **Evaluation Review Type**: Comprehensive code review with developer skill assessment (Beginner to Expert levels)
+- **Golang Language Support**: Complete Go/Golang project support with idiomatic patterns and best practices
+- **Enhanced Grading System**: Academic-style A+ to F grading for code quality assessment
 
 ## What's New in v4.1.x
 
-### Changed in v4.1.0
+### Key Changes in v4.1.0
 - **Deprecated** `--individual` flag (single-file behavior is automatic based on target)
 - **Repurposed** `-i` as alias for `--interactive` mode for better user experience
 - **Simplified** codebase by removing redundant individual file review logic
 
-### Fixed in v4.0.2
-- **🔧 Complete TypeScript Error Resolution**: Fixed all 15 TypeScript compilation errors that were preventing clean builds
-  - Resolved parameter mismatches in TokenAnalysisOptions requiring reviewType and modelName
-  - Fixed ReviewType casting issues with proper type assertions
-  - Corrected function call signatures and missing object properties
-- **🧹 Code Quality Improvements**: Achieved zero ESLint errors (373 warnings under configured limit)
-  - Removed unused imports and variables across semantic analysis modules
-  - Fixed type mismatches in ChunkGenerator and SemanticChunkingIntegration
-  - Added proper SystemStats interface for better type safety
-- **✅ Build Pipeline Stability**: Full compilation success with clean CI/CD pipeline
-  - All TypeScript compilation now passes without errors
-  - Build infrastructure fully operational and ready for production
-  - Stable foundation for future v4.x releases
+## What's New in v4.0.x
 
-This release focuses on build stability and code quality, ensuring a solid foundation for the advanced semantic chunking features introduced in v4.0.0.
-
-## Version History
-
-### v4.0.2 (2025-01-21)
-- **🔧 TypeScript Compilation**: Fixed all 15 TypeScript compilation errors in test files
-- **🧹 Code Quality**: Eliminated all ESLint errors, cleaned up unused imports and variables
-- **✅ Build Pipeline**: Achieved stable, error-free build process ready for production
-- **🛠️ Type Safety**: Added proper interfaces and fixed type mismatches across codebase
-
-### v4.0.0 (2025-06-04)
+### Major Features in v4.0.0
 - **🧠 AI-Guided Semantic Chunking**: Revolutionary TreeSitter-based code analysis with 95%+ token reduction
 - **🎯 Intelligent Strategies**: 5 chunking strategies optimized for different review types and code structures
 - **⚡ Performance**: Solved context limit problems, reducing typical 196K+ token reviews to ~4K tokens
-- **🔧 Environment Control**: New environment variables and CLI flags for semantic chunking control
+
+### Fixed in v4.0.2
+- **🔧 Complete TypeScript Error Resolution**: Fixed all 15 TypeScript compilation errors
+- **🧹 Code Quality Improvements**: Achieved zero ESLint errors with proper type safety
+- **✅ Build Pipeline Stability**: Full compilation success with clean CI/CD pipeline
+
+## Version History
+
+For detailed version history and release notes, see [CHANGELOG.md](CHANGELOG.md).
+
+### Recent Releases
+- **v4.4.5** (2025-08-17): Documentation consistency improvements, enhanced CLAUDE.md, updated review types documentation
+- **v4.4.4** (2025-08-16): Unified Client System, Build Number Tracking, Enhanced Consolidation Service
+- **v4.3.0** (2025-06-30): Prompt Template Manager, Extract Patterns Review Type, YAML Configuration Support
+- **v4.2.0** (2025-06-24): Evaluation Review Type, Golang Language Support, Enhanced Grading System
+- **v4.1.0** (2025-06-08): CLI improvements, deprecated `--individual` flag, enhanced user experience
+- **v4.0.0** (2025-06-04): AI-Guided Semantic Chunking, 95%+ token reduction, intelligent strategies
 
 ### v3.2.15 (2025-06-01)
 - **Re-added O3 Models**: Re-added support for OpenAI o3 and o3-mini reasoning models
@@ -297,11 +316,14 @@ This tool analyzes code from specified files or directories in sibling projects 
   - **unused-code**: Dead code detection and cleanup recommendations
   - **focused-unused-code**: Focused unused code analysis
   - **code-tracing-unused-code**: Code tracing for unused code detection
-  - **improved-quick-fixes**: Enhanced quick fixes with better suggestions
   - **consolidated**: Consolidated review combining multiple approaches
-  - **evaluation**: Comprehensive code evaluation
+  - **best-practices**: Best practices analysis and recommendations
+  - **evaluation**: Comprehensive code evaluation with developer skill assessment
   - **extract-patterns**: Code pattern analysis and best practice suggestions
-- **coding-test**: Comprehensive coding test evaluation with assignment scoring and AI detection
+  - **coding-test**: Comprehensive coding test evaluation with assignment scoring and AI detection
+  - **ai-integration**: AI-assisted development analysis and recommendations
+  - **cloud-native**: Cloud architecture assessment and optimization
+  - **developer-experience**: Developer experience evaluation and improvements
 - **Interactive Mode**: Process review results interactively, implementing fixes based on priority
 - **Automatic Fixes**: Automatically implement high priority fixes without manual intervention
 - **Prompt-Based Fixes**: Confirm and apply medium and low priority fixes with user input
@@ -428,10 +450,13 @@ ai-code-review src --type unused-code
 # Use specific review types
 ai-code-review src --type focused-unused-code
 ai-code-review src --type code-tracing-unused-code
-ai-code-review src --type improved-quick-fixes
 ai-code-review src --type consolidated
+ai-code-review src --type best-practices
 ai-code-review src --type evaluation
 ai-code-review src --type extract-patterns
+ai-code-review src --type ai-integration
+ai-code-review src --type cloud-native
+ai-code-review src --type developer-experience
 
 # Perform coding test evaluation with AI detection
 ai-code-review ./candidate-submission --type coding-test --enable-ai-detection
@@ -461,13 +486,13 @@ ai-code-review --listmodels
 ai-code-review --models
 
 # Test a specific model
-ai-code-review test-model --model gemini:gemini-2.5-pro
+ai-code-review model-test gemini:gemini-2.5-pro
 
 # Test all models for a specific provider
-ai-code-review test-model --provider anthropic
+ai-code-review model-test --provider anthropic
 
 # Test all available models
-ai-code-review test-model --all
+ai-code-review model-test --all
 
 # Estimate token usage and cost without performing a review
 ai-code-review src/utils --estimate
@@ -508,7 +533,7 @@ ai-code-review src --config .ai-code-review.yaml
 ```
 Options:
   # Basic Options
-  -t, --type <type>       Type of review (choices: quick-fixes, architectural, security, performance, unused-code, focused-unused-code, code-tracing-unused-code, improved-quick-fixes, consolidated, evaluation, extract-patterns, coding-test) (default: "quick-fixes")
+  -t, --type <type>       Type of review (choices: quick-fixes, architectural, security, performance, unused-code, focused-unused-code, code-tracing-unused-code, consolidated, best-practices, evaluation, extract-patterns, coding-test, ai-integration, cloud-native, developer-experience) (default: "quick-fixes")
   -o, --output <format>   Output format (markdown, json) (default: "markdown")
   --output-dir <dir>      Directory to save review output
   -m, --model <model>     Model to use for the review (format: provider:model) (default: "gemini:gemini-2.5-pro")
@@ -560,15 +585,15 @@ Options:
 ### Model Testing Options
 
 ```
-Command: test-model
-Description: Test the configured model with a simple prompt
+Command: model-test
+Description: Test AI models to verify API keys and model availability
+
+Arguments:
+  [provider:model]        Provider and model to test (e.g. gemini:gemini-2.5-pro, anthropic:claude-3-opus)
 
 Options:
-  -m, --model <model>     Model to test (format: provider:model) (default: "gemini:gemini-2.5-pro")
-  --google-api-key <key>  Google API key for Gemini models
-  --openrouter-api-key <key> OpenRouter API key
-  --anthropic-api-key <key> Anthropic API key for Claude models
-  --openai-api-key <key>  OpenAI API key for GPT models
+  --all                   Test all available models
+  -p, --provider <provider> Test all models for a specific provider
   -h, --help              Display help information
 
 Command: test-build

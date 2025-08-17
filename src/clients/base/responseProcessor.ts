@@ -33,9 +33,9 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
       const patterns = [
         /```(?:json)?\s*([\s\S]*?)\s*```/,
         /```(?:typescript|javascript|ts|js)?\s*([\s\S]*?)\s*```/,
-        /`([\s\S]*?)`/,  // Single backtick blocks
+        /`([\s\S]*?)`/, // Single backtick blocks
       ];
-      
+
       for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match && match[1]) {
@@ -54,29 +54,29 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
       // Find balanced braces
       const startIdx = text.indexOf('{');
       if (startIdx === -1) return null;
-      
+
       let depth = 0;
       let inString = false;
       let escapeNext = false;
-      
+
       for (let i = startIdx; i < text.length; i++) {
         const char = text[i];
-        
+
         if (escapeNext) {
           escapeNext = false;
           continue;
         }
-        
+
         if (char === '\\') {
           escapeNext = true;
           continue;
         }
-        
+
         if (char === '"' && !escapeNext) {
           inString = !inString;
           continue;
         }
-        
+
         if (!inString) {
           if (char === '{') depth++;
           else if (char === '}') {
@@ -87,7 +87,7 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
           }
         }
       }
-      
+
       return null;
     },
 
@@ -109,25 +109,25 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
       // If JSON parse fails due to unterminated string, try to fix it
       const braceIndex = text.indexOf('{');
       if (braceIndex === -1) return null;
-      
+
       let jsonStr = text.substring(braceIndex);
-      
+
       // Count open and closing quotes
       let inString = false;
       let escapeNext = false;
       let lastQuoteIndex = -1;
-      
+
       for (let i = 0; i < jsonStr.length; i++) {
         if (escapeNext) {
           escapeNext = false;
           continue;
         }
-        
+
         if (jsonStr[i] === '\\') {
           escapeNext = true;
           continue;
         }
-        
+
         if (jsonStr[i] === '"') {
           inString = !inString;
           if (inString) {
@@ -135,14 +135,14 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
           }
         }
       }
-      
+
       // If we're still in a string at the end, close it
       if (inString && lastQuoteIndex !== -1) {
         // Find a reasonable place to close the string
         // Look for common JSON structure patterns
         const patterns = ['}', ']', ','];
         let closeIndex = jsonStr.length;
-        
+
         for (const pattern of patterns) {
           const idx = jsonStr.lastIndexOf(pattern);
           if (idx > lastQuoteIndex) {
@@ -150,11 +150,11 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
             break;
           }
         }
-        
+
         // Insert closing quote before the structural character
         jsonStr = jsonStr.substring(0, closeIndex) + '"' + jsonStr.substring(closeIndex);
       }
-      
+
       return jsonStr;
     },
   ];
@@ -204,9 +204,9 @@ export function extractStructuredData(content: string): StructuredReview | undef
       const codeBlockPatterns = [
         /```(?:typescript|ts)\s*([\s\S]*?)\s*```/,
         /```(?:javascript|js)\s*([\s\S]*?)\s*```/,
-        /```\s*([\s\S]*?)\s*```/,  // Code block without language
+        /```\s*([\s\S]*?)\s*```/, // Code block without language
       ];
-      
+
       for (const pattern of codeBlockPatterns) {
         anyCodeBlockMatch = content.match(pattern);
         if (anyCodeBlockMatch) {

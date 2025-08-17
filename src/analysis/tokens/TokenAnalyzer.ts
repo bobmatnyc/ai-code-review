@@ -341,9 +341,13 @@ export class TokenAnalyzer {
     let effectiveContextLimit = contextWindowSize;
     if (batchTokenLimit && batchTokenLimit > 0) {
       effectiveContextLimit = Math.min(batchTokenLimit, contextWindowSize);
-      logger.info(`Using batch token limit: ${batchTokenLimit.toLocaleString()} tokens (forcing smaller batches for testing)`);
+      logger.info(
+        `Using batch token limit: ${batchTokenLimit.toLocaleString()} tokens (forcing smaller batches for testing)`,
+      );
       if (batchTokenLimit < contextWindowSize) {
-        logger.info(`This will force chunking even if content would fit in the model's context window`);
+        logger.info(
+          `This will force chunking even if content would fit in the model's context window`,
+        );
       }
     }
 
@@ -361,7 +365,9 @@ export class TokenAnalyzer {
             priority: 1,
           },
         ],
-        reason: batchTokenLimit ? 'Content fits within batch token limit' : 'Content fits within model context window',
+        reason: batchTokenLimit
+          ? 'Content fits within batch token limit'
+          : 'Content fits within model context window',
       };
     }
 

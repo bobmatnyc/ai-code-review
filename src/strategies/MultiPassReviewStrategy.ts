@@ -7,8 +7,8 @@
  */
 
 import { ReviewContext } from '../analysis/context';
-import { formatTokenAnalysis, type TokenAnalysisResult, TokenAnalyzer } from '../analysis/tokens';
 import { FindingsExtractor } from '../analysis/FindingsExtractor';
+import { formatTokenAnalysis, type TokenAnalysisResult, TokenAnalyzer } from '../analysis/tokens';
 import type { PassCostInfo } from '../clients/utils/tokenCounter';
 import type { ApiClientConfig } from '../core/ApiClientSelector';
 import { ConsolidationService } from '../core/ConsolidationService';
@@ -191,7 +191,9 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
       while (chunkRetryCount <= maxChunkRetries) {
         try {
           // Enhanced logging before API call
-          logger.debug(`Attempting to generate review for pass ${passNumber}, attempt ${chunkRetryCount + 1}/${maxChunkRetries + 1}`);
+          logger.debug(
+            `Attempting to generate review for pass ${passNumber}, attempt ${chunkRetryCount + 1}/${maxChunkRetries + 1}`,
+          );
           logger.debug(`  Files in chunk: ${chunkFiles.length}`);
           logger.debug(`  API client: ${apiClientConfig.clientType}:${apiClientConfig.modelName}`);
           logger.debug(`  Review type: ${this.reviewType}`);
@@ -209,8 +211,12 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
           logger.debug(`API call completed for pass ${passNumber}, attempt ${chunkRetryCount + 1}`);
           logger.debug(`  Result exists: ${!!chunkResult}`);
           logger.debug(`  Content exists: ${!!(chunkResult && chunkResult.content)}`);
-          logger.debug(`  Content length: ${chunkResult && chunkResult.content ? chunkResult.content.length : 'N/A'}`);
-          logger.debug(`  Model used: ${chunkResult && chunkResult.modelUsed ? chunkResult.modelUsed : 'N/A'}`);
+          logger.debug(
+            `  Content length: ${chunkResult && chunkResult.content ? chunkResult.content.length : 'N/A'}`,
+          );
+          logger.debug(
+            `  Model used: ${chunkResult && chunkResult.modelUsed ? chunkResult.modelUsed : 'N/A'}`,
+          );
 
           // Validate that we got valid content
           if (!chunkResult || !chunkResult.content || chunkResult.content.trim() === '') {
@@ -218,17 +224,23 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
             logger.error(`Empty or invalid chunk result for pass ${passNumber}:`);
             logger.error(`  chunkResult exists: ${!!chunkResult}`);
             logger.error(`  chunkResult.content exists: ${!!(chunkResult && chunkResult.content)}`);
-            logger.error(`  chunkResult.content length: ${chunkResult && chunkResult.content ? chunkResult.content.length : 'N/A'}`);
-            logger.error(`  chunkResult.modelUsed: ${chunkResult && chunkResult.modelUsed ? chunkResult.modelUsed : 'N/A'}`);
+            logger.error(
+              `  chunkResult.content length: ${chunkResult && chunkResult.content ? chunkResult.content.length : 'N/A'}`,
+            );
+            logger.error(
+              `  chunkResult.modelUsed: ${chunkResult && chunkResult.modelUsed ? chunkResult.modelUsed : 'N/A'}`,
+            );
             logger.error(`  chunkFiles count: ${chunkFiles.length}`);
-            logger.error(`  chunkFiles paths: ${chunkFiles.map(f => f.path).join(', ')}`);
+            logger.error(`  chunkFiles paths: ${chunkFiles.map((f) => f.path).join(', ')}`);
             logger.error(`  apiClientConfig: ${JSON.stringify(apiClientConfig)}`);
 
             // Log the full chunkResult for debugging (but limit size)
             if (chunkResult) {
               const resultForLogging = {
                 ...chunkResult,
-                content: chunkResult.content ? `[${chunkResult.content.length} chars]: ${chunkResult.content.substring(0, 200)}...` : 'null/undefined'
+                content: chunkResult.content
+                  ? `[${chunkResult.content.length} chars]: ${chunkResult.content.substring(0, 200)}...`
+                  : 'null/undefined',
               };
               logger.error(`  Full chunkResult: ${JSON.stringify(resultForLogging, null, 2)}`);
             }
@@ -414,7 +426,7 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
             modelName: apiClientConfig.modelName,
             totalPasses: consolidatedResult.totalPasses || 1,
             passResults,
-          }
+          },
         );
         const fallbackReport = {
           ...consolidatedResult,
@@ -442,7 +454,7 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
           modelName: apiClientConfig.modelName,
           totalPasses: consolidatedResult.totalPasses || 1,
           passResults,
-        }
+        },
       );
       const fallbackReport = {
         ...consolidatedResult,
@@ -590,7 +602,7 @@ This review used a multi-pass approach with context maintenance between passes t
           modelName: apiClientConfig.modelName,
           totalPasses: multiPassResult.totalPasses || 1,
           passResults,
-        }
+        },
       );
 
       // If the consolidation failed (empty content), return undefined
@@ -652,8 +664,6 @@ This review used a multi-pass approach with context maintenance between passes t
     return passResults;
   }
 
-
-
   /**
    * Extract findings from valid passes using the FindingsExtractor service
    */
@@ -681,8 +691,6 @@ This review used a multi-pass approach with context maintenance between passes t
   ): string[] {
     return this.findingsExtractor.generateRecommendations(findings, hasErrors);
   }
-
-
 
   /**
    * Update the review context with findings from multiple review results

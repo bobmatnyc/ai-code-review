@@ -117,7 +117,10 @@ export const REVIEW_TYPE_DESCRIPTIONS: Record<Exclude<ReviewType, 'consolidated'
     'Extract detailed code patterns, architecture, and design decisions for creating exemplar project libraries',
   'coding-test':
     'Comprehensive coding test assessment against assignment requirements with structured scoring',
-  'ai-integration': 'AI/LLM integration review focusing on prompt engineering, AI safety, and modern AI workflows',
-  'cloud-native': 'Cloud-native architecture review focusing on Kubernetes, serverless, and scalability patterns',
-  'developer-experience': 'Developer experience review focusing on productivity, tooling, and workflow optimization',
+  'ai-integration':
+    'AI/LLM integration review focusing on prompt engineering, AI safety, and modern AI workflows',
+  'cloud-native':
+    'Cloud-native architecture review focusing on Kubernetes, serverless, and scalability patterns',
+  'developer-experience':
+    'Developer experience review focusing on productivity, tooling, and workflow optimization',
 };

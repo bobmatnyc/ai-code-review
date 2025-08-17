@@ -109,15 +109,15 @@ ${consolidationPrompt}`;
       if (provider === 'openrouter') {
         // For OpenRouter, we need to handle it specially since it can use various underlying models
         logger.info(`Using OpenRouter for consolidation with model: ${modelName}`);
-        
+
         // OpenRouter client should handle generateReview properly
         if (client.generateReview) {
           logger.debug('[CONSOLIDATION] Using OpenRouter generateReview method');
-          
+
           let consolidationResult;
           let retryCount = 0;
           const maxRetries = 3;
-          
+
           while (retryCount < maxRetries) {
             try {
               // Instead of passing the consolidation prompt as file content,
@@ -143,24 +143,28 @@ ${consolidationPrompt}`;
                   interactive: false,
                 },
               );
-              
+
               if (consolidationResult?.content && consolidationResult.content.trim() !== '') {
                 return consolidationResult.content;
               }
-              
-              logger.warn(`[CONSOLIDATION] OpenRouter attempt ${retryCount + 1} returned empty content`);
+
+              logger.warn(
+                `[CONSOLIDATION] OpenRouter attempt ${retryCount + 1} returned empty content`,
+              );
             } catch (error) {
               logger.warn(`[CONSOLIDATION] OpenRouter attempt ${retryCount + 1} failed:`, error);
             }
-            
+
             retryCount++;
             if (retryCount < maxRetries) {
               const waitTime = Math.min(1000 * 2 ** retryCount, 5000);
-              logger.info(`[CONSOLIDATION] Waiting ${waitTime}ms before retry ${retryCount + 1}/${maxRetries}`);
+              logger.info(
+                `[CONSOLIDATION] Waiting ${waitTime}ms before retry ${retryCount + 1}/${maxRetries}`,
+              );
               await new Promise((resolve) => setTimeout(resolve, waitTime));
             }
           }
-          
+
           logger.error('[CONSOLIDATION] All OpenRouter attempts failed, using fallback');
           return createFallbackConsolidation(review);
         }

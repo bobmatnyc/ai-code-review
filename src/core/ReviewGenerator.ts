@@ -25,10 +25,10 @@ import {
 // Import the unified client system
 import { createUnifiedClient, initializeUnifiedClients } from '../clients/unified';
 import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
+import { getConfig } from '../utils/config';
 // Other imports
 import logger from '../utils/logger';
 import type { ProjectDocs } from '../utils/projectDocs';
-import { getConfig } from '../utils/config';
 import type { ApiClientConfig } from './ApiClientSelector';
 
 /**
@@ -61,22 +61,15 @@ export async function generateReviewWithUnifiedClient(
     // Generate the review
     if (fileInfos.length === 1) {
       const file = fileInfos[0];
-      return await client.generateReview(
-        file.content,
-        file.path,
-        reviewType,
-        projectDocs,
-        options,
-      );
-    } else {
-      return await client.generateConsolidatedReview(
-        fileInfos,
-        projectName,
-        reviewType,
-        projectDocs,
-        options,
-      );
+      return await client.generateReview(file.content, file.path, reviewType, projectDocs, options);
     }
+    return await client.generateConsolidatedReview(
+      fileInfos,
+      projectName,
+      reviewType,
+      projectDocs,
+      options,
+    );
   } catch (error) {
     logger.debug(`Unified client failed: ${error}`);
     throw error;
@@ -123,7 +116,9 @@ export async function generateReview(
         options,
       );
     } catch (error) {
-      logger.error(`Error initializing or calling OpenRouter client: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error initializing or calling OpenRouter client: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   } else if (apiClientConfig.clientType === 'Google') {
@@ -141,7 +136,9 @@ export async function generateReview(
         options,
       );
     } catch (error) {
-      logger.error(`Error initializing or calling Google client: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error initializing or calling Google client: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   } else if (apiClientConfig.clientType === 'Anthropic') {
@@ -160,7 +157,9 @@ export async function generateReview(
         options,
       );
     } catch (error) {
-      logger.error(`Error initializing or calling Anthropic client: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error initializing or calling Anthropic client: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   } else if (apiClientConfig.clientType === 'OpenAI') {
@@ -171,9 +170,17 @@ export async function generateReview(
       // Initialize the OpenAI client before using it
       await initializeAnyOpenAIModel();
 
-      result = generateOpenAIConsolidatedReview(fileInfos, project, reviewType, projectDocs, options);
+      result = generateOpenAIConsolidatedReview(
+        fileInfos,
+        project,
+        reviewType,
+        projectDocs,
+        options,
+      );
     } catch (error) {
-      logger.error(`Error initializing or calling OpenAI client: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Error initializing or calling OpenAI client: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   } else {
@@ -191,8 +198,12 @@ export async function generateReview(
   logger.debug(`  Model: ${apiClientConfig.modelName}`);
   logger.debug(`  Result exists: ${!!reviewResult}`);
   logger.debug(`  Content exists: ${!!(reviewResult && reviewResult.content)}`);
-  logger.debug(`  Content length: ${reviewResult && reviewResult.content ? reviewResult.content.length : 'N/A'}`);
-  logger.debug(`  Content preview: ${reviewResult && reviewResult.content ? reviewResult.content.substring(0, 100).replace(/\n/g, ' ') + '...' : 'N/A'}`);
+  logger.debug(
+    `  Content length: ${reviewResult && reviewResult.content ? reviewResult.content.length : 'N/A'}`,
+  );
+  logger.debug(
+    `  Content preview: ${reviewResult && reviewResult.content ? reviewResult.content.substring(0, 100).replace(/\n/g, ' ') + '...' : 'N/A'}`,
+  );
 
   // Get package version from process.env or hardcoded value
   const packageVersion = process.env.npm_package_version || '2.1.1';
@@ -259,7 +270,9 @@ export async function generateReview(
     logger.error(`  Project: ${project}`);
 
     // This is a critical error that should be investigated
-    throw new Error(`generateReview produced empty content for ${apiClientConfig.clientType}:${apiClientConfig.modelName}`);
+    throw new Error(
+      `generateReview produced empty content for ${apiClientConfig.clientType}:${apiClientConfig.modelName}`,
+    );
   }
 
   return reviewResult;

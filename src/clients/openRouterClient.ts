@@ -38,7 +38,10 @@ let modelInitialized = false;
 /**
  * Determine appropriate max_tokens based on review type and context
  */
-function getMaxTokensForReviewType(reviewType?: string, isConsolidation?: boolean): number | undefined {
+function getMaxTokensForReviewType(
+  reviewType?: string,
+  isConsolidation?: boolean,
+): number | undefined {
   // For consolidation passes, we need unlimited tokens to avoid truncation
   if (isConsolidation) {
     return undefined; // No limit for consolidating multiple reviews
@@ -49,15 +52,15 @@ function getMaxTokensForReviewType(reviewType?: string, isConsolidation?: boolea
     case 'consolidated':
       return undefined; // No limit for consolidated reviews to avoid truncation
     case 'architectural':
-      return 8000;  // Architectural reviews can be detailed
+      return 8000; // Architectural reviews can be detailed
     case 'security':
-      return 8000;  // Security reviews can be detailed
+      return 8000; // Security reviews can be detailed
     case 'performance':
-      return 8000;  // Performance reviews can be detailed
+      return 8000; // Performance reviews can be detailed
     case 'quick-fixes':
-      return 8000;  // Quick fixes can be substantial for large codebases
+      return 8000; // Quick fixes can be substantial for large codebases
     default:
-      return 8000;  // Default to higher limit for unknown types
+      return 8000; // Default to higher limit for unknown types
   }
 }
 
@@ -189,13 +192,15 @@ export async function generateOpenRouterReview(
 
     // Format the prompt
     const prompt = formatSingleFileReviewPrompt(promptTemplate, fileContent, filePath, projectDocs);
-    
+
     // For consolidation mode, use the writer model if specified, otherwise use the review model
     let modelName: string;
     if (options?.isConsolidation) {
       // During consolidation, the model is already set in the environment by consolidateReview.ts
       const consolidationModel = process.env.AI_CODE_REVIEW_MODEL || '';
-      const [, model] = consolidationModel.includes(':') ? consolidationModel.split(':') : ['openrouter', consolidationModel];
+      const [, model] = consolidationModel.includes(':')
+        ? consolidationModel.split(':')
+        : ['openrouter', consolidationModel];
       modelName = model;
       logger.debug(`[OpenRouter] Using consolidation model for single file: ${modelName}`);
     } else {
@@ -260,7 +265,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           ],
           temperature: 0.2,
           ...(getMaxTokensForReviewType(reviewType, options?.isConsolidation) && {
-            max_tokens: getMaxTokensForReviewType(reviewType, options?.isConsolidation)
+            max_tokens: getMaxTokensForReviewType(reviewType, options?.isConsolidation),
           }),
         }),
       });
@@ -310,8 +315,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         contentPreview: responseContent.substring(0, 100) || 'N/A',
         finishReason: finishReason || 'unknown',
         isTruncated: isTruncated,
-        maxTokensUsed: getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
-        fullResponse: JSON.stringify(data).substring(0, 500) + '...'
+        maxTokensUsed:
+          getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
+        fullResponse: JSON.stringify(data).substring(0, 500) + '...',
       });
 
       if (data.choices && data.choices.length > 0) {
@@ -319,13 +325,15 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
         // Critical check for empty content
         if (!content || content.trim().length === 0) {
-          logger.error(`[OpenRouter] CRITICAL: API returned successful response but content is empty!`);
+          logger.error(
+            `[OpenRouter] CRITICAL: API returned successful response but content is empty!`,
+          );
           logger.error(`[OpenRouter] Response details:`, {
             modelName,
             promptLength: prompt.length,
             responseStatus: response.status,
             responseHeaders: Object.fromEntries(response.headers.entries()),
-            fullApiResponse: JSON.stringify(data, null, 2)
+            fullApiResponse: JSON.stringify(data, null, 2),
           });
           throw new Error(`OpenRouter API returned empty content for model ${modelName}`);
         }
@@ -337,9 +345,10 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
             modelName,
             finishReason,
             contentLength: content.length,
-            maxTokensRequested: getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
+            maxTokensRequested:
+              getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
             reviewType,
-            isConsolidation: options?.isConsolidation || false
+            isConsolidation: options?.isConsolidation || false,
           });
 
           // For now, we'll continue with the truncated response but log it
@@ -397,34 +406,34 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           }
           return null;
         },
-        
+
         // Strategy 2: Find balanced JSON object
         () => {
           const startIdx = content.indexOf('{');
           if (startIdx === -1) return null;
-          
+
           let depth = 0;
           let inString = false;
           let escapeNext = false;
-          
+
           for (let i = startIdx; i < content.length; i++) {
             const char = content[i];
-            
+
             if (escapeNext) {
               escapeNext = false;
               continue;
             }
-            
+
             if (char === '\\') {
               escapeNext = true;
               continue;
             }
-            
+
             if (char === '"' && !escapeNext) {
               inString = !inString;
               continue;
             }
-            
+
             if (!inString) {
               if (char === '{') depth++;
               else if (char === '}') {
@@ -435,16 +444,16 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
               }
             }
           }
-          
+
           // If we couldn't find balanced braces, try to fix unterminated strings
           if (inString) {
             // Add a closing quote and try to close the object
             return content.substring(startIdx) + '"}';
           }
-          
+
           return null;
         },
-        
+
         // Strategy 3: Use the content as-is
         () => content,
       ];
@@ -456,7 +465,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           if (extracted) {
             // Try to parse the extracted content
             structuredData = JSON.parse(extracted);
-            
+
             // Validate that it has the expected structure
             if (structuredData && typeof structuredData === 'object') {
               jsonContent = extracted;
@@ -466,7 +475,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           }
         } catch (err) {
           // Continue to next strategy
-          logger.debug(`JSON extraction strategy failed: ${err instanceof Error ? err.message : String(err)}`);
+          logger.debug(
+            `JSON extraction strategy failed: ${err instanceof Error ? err.message : String(err)}`,
+          );
         }
       }
 
@@ -547,13 +558,15 @@ export async function generateOpenRouterConsolidatedReview(
       })),
       projectDocs,
     );
-    
+
     // For consolidation mode, use the writer model if specified, otherwise use the review model
     let modelName: string;
     if (options?.isConsolidation) {
       // During consolidation, the model is already set in the environment by consolidateReview.ts
       const consolidationModel = process.env.AI_CODE_REVIEW_MODEL || '';
-      const [, model] = consolidationModel.includes(':') ? consolidationModel.split(':') : ['openrouter', consolidationModel];
+      const [, model] = consolidationModel.includes(':')
+        ? consolidationModel.split(':')
+        : ['openrouter', consolidationModel];
       modelName = model;
       logger.debug(`[OpenRouter] Using consolidation model: ${modelName}`);
     } else {
@@ -565,7 +578,9 @@ export async function generateOpenRouterConsolidatedReview(
 
     // Validate that we have a non-empty model name
     if (!modelName || modelName.trim() === '') {
-      throw new Error(`Invalid or empty model name: '${modelName}'. Check your model configuration.`);
+      throw new Error(
+        `Invalid or empty model name: '${modelName}'. Check your model configuration.`,
+      );
     }
 
     try {
@@ -623,7 +638,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           ],
           temperature: 0.2,
           ...(getMaxTokensForReviewType(reviewType, options?.isConsolidation) && {
-            max_tokens: getMaxTokensForReviewType(reviewType, options?.isConsolidation)
+            max_tokens: getMaxTokensForReviewType(reviewType, options?.isConsolidation),
           }),
         }),
       });
@@ -673,8 +688,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         contentPreview: responseContent.substring(0, 100) || 'N/A',
         finishReason: finishReason || 'unknown',
         isTruncated: isTruncated,
-        maxTokensUsed: getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
-        fullResponse: JSON.stringify(data).substring(0, 500) + '...'
+        maxTokensUsed:
+          getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
+        fullResponse: JSON.stringify(data).substring(0, 500) + '...',
       });
 
       if (data.choices && data.choices.length > 0) {
@@ -682,13 +698,15 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
         // Critical check for empty content
         if (!content || content.trim().length === 0) {
-          logger.error(`[OpenRouter] CRITICAL: API returned successful response but content is empty!`);
+          logger.error(
+            `[OpenRouter] CRITICAL: API returned successful response but content is empty!`,
+          );
           logger.error(`[OpenRouter] Response details:`, {
             modelName,
             promptLength: prompt.length,
             responseStatus: response.status,
             responseHeaders: Object.fromEntries(response.headers.entries()),
-            fullApiResponse: JSON.stringify(data, null, 2)
+            fullApiResponse: JSON.stringify(data, null, 2),
           });
           throw new Error(`OpenRouter API returned empty content for model ${modelName}`);
         }
@@ -700,9 +718,10 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
             modelName,
             finishReason,
             contentLength: content.length,
-            maxTokensRequested: getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
+            maxTokensRequested:
+              getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
             reviewType,
-            isConsolidation: options?.isConsolidation || false
+            isConsolidation: options?.isConsolidation || false,
           });
 
           // For now, we'll continue with the truncated response but log it
@@ -755,34 +774,34 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           }
           return null;
         },
-        
+
         // Strategy 2: Find balanced JSON object
         () => {
           const startIdx = content.indexOf('{');
           if (startIdx === -1) return null;
-          
+
           let depth = 0;
           let inString = false;
           let escapeNext = false;
-          
+
           for (let i = startIdx; i < content.length; i++) {
             const char = content[i];
-            
+
             if (escapeNext) {
               escapeNext = false;
               continue;
             }
-            
+
             if (char === '\\') {
               escapeNext = true;
               continue;
             }
-            
+
             if (char === '"' && !escapeNext) {
               inString = !inString;
               continue;
             }
-            
+
             if (!inString) {
               if (char === '{') depth++;
               else if (char === '}') {
@@ -793,16 +812,16 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
               }
             }
           }
-          
+
           // If we couldn't find balanced braces, try to fix unterminated strings
           if (inString) {
             // Add a closing quote and try to close the object
             return content.substring(startIdx) + '"}';
           }
-          
+
           return null;
         },
-        
+
         // Strategy 3: Use the content as-is
         () => content,
       ];
@@ -814,7 +833,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           if (extracted) {
             // Try to parse the extracted content
             structuredData = JSON.parse(extracted);
-            
+
             // Validate that it has the expected structure
             if (structuredData && typeof structuredData === 'object') {
               jsonContent = extracted;
@@ -824,7 +843,9 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           }
         } catch (err) {
           // Continue to next strategy
-          logger.debug(`JSON extraction strategy failed: ${err instanceof Error ? err.message : String(err)}`);
+          logger.debug(
+            `JSON extraction strategy failed: ${err instanceof Error ? err.message : String(err)}`,
+          );
         }
       }
 

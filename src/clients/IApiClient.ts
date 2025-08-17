@@ -1,18 +1,12 @@
 /**
  * @fileoverview Unified API Client Interface
- * 
+ *
  * This interface defines a unified contract that all API clients must implement.
  * It replaces the complex inheritance hierarchy and wrapper classes with a
  * simple, consistent interface that all providers can implement directly.
  */
 
-import type {
-  CostInfo,
-  FileInfo,
-  ReviewOptions,
-  ReviewResult,
-  ReviewType,
-} from '../types/review';
+import type { CostInfo, FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
 import type { StructuredReview } from '../types/structuredReview';
 import type { ProjectDocs } from '../utils/projectDocs';
 
@@ -30,7 +24,7 @@ export interface ModelSupportInfo {
 
 /**
  * Unified interface that all API clients must implement
- * 
+ *
  * This interface provides a consistent contract for all AI providers,
  * eliminating the need for wrapper classes and complex inheritance.
  */
@@ -234,7 +228,11 @@ export class ApiClientError extends Error {
 
 export class ModelNotSupportedError extends ApiClientError {
   constructor(modelName: string, provider: string) {
-    super(`Model "${modelName}" is not supported by provider "${provider}"`, provider, 'MODEL_NOT_SUPPORTED');
+    super(
+      `Model "${modelName}" is not supported by provider "${provider}"`,
+      provider,
+      'MODEL_NOT_SUPPORTED',
+    );
     this.name = 'ModelNotSupportedError';
   }
 }
@@ -248,7 +246,12 @@ export class InitializationError extends ApiClientError {
 
 export class RateLimitError extends ApiClientError {
   constructor(provider: string, retryAfter?: number) {
-    super(`Rate limit exceeded for ${provider}${retryAfter ? `, retry after ${retryAfter}s` : ''}`, provider, 'RATE_LIMIT_EXCEEDED', 429);
+    super(
+      `Rate limit exceeded for ${provider}${retryAfter ? `, retry after ${retryAfter}s` : ''}`,
+      provider,
+      'RATE_LIMIT_EXCEEDED',
+      429,
+    );
     this.name = 'RateLimitError';
   }
 }
@@ -279,17 +282,23 @@ export function parseModelName(modelName: string): { provider: string; model: st
   if (parts.length === 2) {
     return { provider: parts[0], model: parts[1] };
   }
-  
+
   // Try to detect provider from model name patterns
   const lowerModel = modelName.toLowerCase();
-  if (lowerModel.startsWith('gpt-') || lowerModel.startsWith('o1-') || lowerModel.startsWith('o3-')) {
+  if (
+    lowerModel.startsWith('gpt-') ||
+    lowerModel.startsWith('o1-') ||
+    lowerModel.startsWith('o3-')
+  ) {
     return { provider: 'openai', model: modelName };
-  } else if (lowerModel.startsWith('claude-')) {
+  }
+  if (lowerModel.startsWith('claude-')) {
     return { provider: 'anthropic', model: modelName };
-  } else if (lowerModel.startsWith('gemini-') || lowerModel.includes('gemini')) {
+  }
+  if (lowerModel.startsWith('gemini-') || lowerModel.includes('gemini')) {
     return { provider: 'gemini', model: modelName };
   }
-  
+
   // Default to openai if no provider detected
   return { provider: 'openai', model: modelName };
 }

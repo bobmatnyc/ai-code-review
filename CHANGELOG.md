@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.5] - 2025-08-17
+
+### Improved
+- **Documentation Consistency**: Comprehensive documentation review and updates
+  - Updated all version references to v4.4.5 across README.md, INSTALL.md, and CLAUDE.md
+  - Added complete v4.4.5 feature documentation with Unified Client System details
+  - Updated model references to current recommended versions (gemini-2.5-pro, claude-4-sonnet)
+  - Enhanced CLAUDE.md with comprehensive project context and development guidelines
+- **Review Types Documentation**: Updated to reflect all current review types
+  - Added missing review types: best-practices, ai-integration, cloud-native, developer-experience
+  - Removed outdated improved-quick-fixes reference (now mapped to quick-fixes)
+  - Updated CLI options documentation to match current implementation
+- **Command Documentation**: Fixed CLI command examples and references
+  - Corrected model-test command examples and documentation
+  - Updated CLI options to reflect all 15 current review types
+  - Validated all documented commands work correctly with current implementation
+- **Project Organization**: Enhanced documentation structure and clarity
+  - Added README to ai-code-review-docs/ explaining generated output directory
+  - Maintained excellent 2-click navigation structure in docs/
+  - Ensured all documentation reflects current v4.4.5 codebase
+
+### Fixed
+- **Documentation Accuracy**: All documented features now match current implementation
+- **Version Consistency**: Eliminated version mismatches across documentation files
+- **CLI Examples**: Fixed outdated command examples and option references
+
 ## [4.4.4] - 2025-08-16
 
 ### Added

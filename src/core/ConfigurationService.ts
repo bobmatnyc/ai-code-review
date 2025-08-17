@@ -1,11 +1,11 @@
 /**
  * @fileoverview Unified Configuration Service
- * 
+ *
  * This service consolidates all configuration management into a single, cohesive module.
- * It replaces the fragmented configuration files (config.ts, configFileManager.ts, 
+ * It replaces the fragmented configuration files (config.ts, configFileManager.ts,
  * configManager.ts, unifiedConfig.ts, codingTestConfigLoader.ts, envLoader.ts) with
  * a single source of truth for configuration.
- * 
+ *
  * Key features:
  * - Single source of truth for all configuration
  * - Clear precedence order: CLI > Environment > Config File > Defaults
@@ -17,10 +17,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { z } from 'zod';
 // Use dynamic import for js-yaml to avoid type issues
 // import * as yaml from 'js-yaml';
 import * as dotenv from 'dotenv';
+import { z } from 'zod';
 import type { CliOptions } from '../cli/argumentParser';
 import logger from '../utils/logger';
 
@@ -72,7 +72,9 @@ const ConfigSchema = z.object({
   evaluationTemplate: z.string().optional(),
   templateUrl: z.string().optional(),
   rubricFile: z.string().optional(),
-  assessmentType: z.enum(['coding-challenge', 'take-home', 'live-coding', 'code-review']).default('coding-challenge'),
+  assessmentType: z
+    .enum(['coding-challenge', 'take-home', 'live-coding', 'code-review'])
+    .default('coding-challenge'),
   difficultyLevel: z.enum(['junior', 'mid', 'senior', 'lead', 'architect']).default('mid'),
 
   // Evaluation weights
@@ -187,7 +189,7 @@ interface ConfigFile {
 
 /**
  * Unified Configuration Service
- * 
+ *
  * This class provides a single source of truth for all configuration management.
  * It handles loading from CLI arguments, environment variables, and config files
  * with a clear precedence order.
@@ -262,7 +264,7 @@ export class ConfigurationService {
    */
   private loadEnvironmentVariables(): void {
     const envLocalPath = path.join(process.cwd(), '.env.local');
-    
+
     if (fs.existsSync(envLocalPath)) {
       try {
         dotenv.config({ path: envLocalPath, override: true });
@@ -312,7 +314,6 @@ export class ConfigurationService {
           if (configPath) {
             throw error; // If explicitly specified, throw the error
           }
-          continue; // Otherwise, try the next file
         }
       }
     }
@@ -323,7 +324,10 @@ export class ConfigurationService {
   /**
    * Merge configuration from all sources with proper precedence
    */
-  private mergeConfigurationSources(cliOptions?: CliOptions, configFile?: ConfigFile | null): Partial<Config> {
+  private mergeConfigurationSources(
+    cliOptions?: CliOptions,
+    configFile?: ConfigFile | null,
+  ): Partial<Config> {
     return {
       // API Keys (environment only, not exposed via CLI for security)
       googleApiKey: this.getApiKey('google'),
@@ -332,100 +336,114 @@ export class ConfigurationService {
       openAIApiKey: this.getApiKey('openai'),
 
       // Model configuration
-      model: cliOptions?.model ||
-             process.env.AI_CODE_REVIEW_MODEL ||
-             configFile?.model?.default ||
-             configFile?.api?.model ||
-             'gemini:gemini-2.5-pro',
+      model:
+        cliOptions?.model ||
+        process.env.AI_CODE_REVIEW_MODEL ||
+        configFile?.model?.default ||
+        configFile?.api?.model ||
+        'gemini:gemini-2.5-pro',
 
-      writerModel: cliOptions?.writerModel ||
-                   process.env.AI_CODE_REVIEW_WRITER_MODEL ||
-                   configFile?.model?.writer ||
-                   configFile?.api?.writer_model,
+      writerModel:
+        cliOptions?.writerModel ||
+        process.env.AI_CODE_REVIEW_WRITER_MODEL ||
+        configFile?.model?.writer ||
+        configFile?.api?.writer_model,
 
       // Output configuration
-      outputDir: cliOptions?.outputDir ||
-                 process.env.AI_CODE_REVIEW_OUTPUT_DIR ||
-                 configFile?.output?.directory ||
-                 configFile?.output?.dir ||
-                 'ai-code-review-docs',
+      outputDir:
+        cliOptions?.outputDir ||
+        process.env.AI_CODE_REVIEW_OUTPUT_DIR ||
+        configFile?.output?.directory ||
+        configFile?.output?.dir ||
+        'ai-code-review-docs',
 
-      outputFormat: (cliOptions?.output as 'markdown' | 'json') ||
-                    (process.env.AI_CODE_REVIEW_OUTPUT_FORMAT as 'markdown' | 'json') ||
-                    configFile?.output?.format ||
-                    'markdown',
+      outputFormat:
+        (cliOptions?.output as 'markdown' | 'json') ||
+        (process.env.AI_CODE_REVIEW_OUTPUT_FORMAT as 'markdown' | 'json') ||
+        configFile?.output?.format ||
+        'markdown',
 
       // Behavior configuration
-      debug: cliOptions?.debug ??
-             (process.env.AI_CODE_REVIEW_DEBUG === 'true') ??
-             configFile?.behavior?.debug ??
-             configFile?.system?.debug ??
-             false,
+      debug:
+        cliOptions?.debug ??
+        process.env.AI_CODE_REVIEW_DEBUG === 'true' ??
+        configFile?.behavior?.debug ??
+        configFile?.system?.debug ??
+        false,
 
-      logLevel: (cliOptions?.logLevel as any) ||
-                (process.env.AI_CODE_REVIEW_LOG_LEVEL as any) ||
-                configFile?.behavior?.log_level ||
-                configFile?.system?.log_level ||
-                'info',
+      logLevel:
+        (cliOptions?.logLevel as any) ||
+        (process.env.AI_CODE_REVIEW_LOG_LEVEL as any) ||
+        configFile?.behavior?.log_level ||
+        configFile?.system?.log_level ||
+        'info',
 
-      interactive: cliOptions?.interactive ??
-                   (process.env.AI_CODE_REVIEW_INTERACTIVE === 'true') ??
-                   configFile?.behavior?.interactive ??
-                   configFile?.review?.interactive ??
-                   false,
+      interactive:
+        cliOptions?.interactive ??
+        process.env.AI_CODE_REVIEW_INTERACTIVE === 'true' ??
+        configFile?.behavior?.interactive ??
+        configFile?.review?.interactive ??
+        false,
 
       // Review features
-      includeTests: cliOptions?.includeTests ??
-                    (process.env.AI_CODE_REVIEW_INCLUDE_TESTS === 'true') ??
-                    configFile?.features?.include_tests ??
-                    configFile?.review?.include_tests ??
-                    false,
+      includeTests:
+        cliOptions?.includeTests ??
+        process.env.AI_CODE_REVIEW_INCLUDE_TESTS === 'true' ??
+        configFile?.features?.include_tests ??
+        configFile?.review?.include_tests ??
+        false,
 
-      includeProjectDocs: cliOptions?.includeProjectDocs ??
-                          (process.env.AI_CODE_REVIEW_INCLUDE_PROJECT_DOCS === 'true') ??
-                          configFile?.features?.include_project_docs ??
-                          configFile?.review?.include_project_docs ??
-                          true,
+      includeProjectDocs:
+        cliOptions?.includeProjectDocs ??
+        process.env.AI_CODE_REVIEW_INCLUDE_PROJECT_DOCS === 'true' ??
+        configFile?.features?.include_project_docs ??
+        configFile?.review?.include_project_docs ??
+        true,
 
-      includeDependencyAnalysis: cliOptions?.includeDependencyAnalysis ??
-                                 (process.env.AI_CODE_REVIEW_INCLUDE_DEPENDENCY_ANALYSIS === 'true') ??
-                                 configFile?.features?.include_dependency_analysis ??
-                                 configFile?.review?.include_dependency_analysis ??
-                                 true,
+      includeDependencyAnalysis:
+        cliOptions?.includeDependencyAnalysis ??
+        process.env.AI_CODE_REVIEW_INCLUDE_DEPENDENCY_ANALYSIS === 'true' ??
+        configFile?.features?.include_dependency_analysis ??
+        configFile?.review?.include_dependency_analysis ??
+        true,
 
-      enableSemanticChunking: cliOptions?.enableSemanticChunking ??
-                              (process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'true') ??
-                              configFile?.features?.enable_semantic_chunking ??
-                              true,
+      enableSemanticChunking:
+        cliOptions?.enableSemanticChunking ??
+        process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'true' ??
+        configFile?.features?.enable_semantic_chunking ??
+        true,
 
       // Multi-pass configuration
-      multiPass: cliOptions?.multiPass ??
-                 (process.env.AI_CODE_REVIEW_MULTI_PASS === 'true') ??
-                 configFile?.features?.multi_pass ??
-                 false,
+      multiPass:
+        cliOptions?.multiPass ??
+        process.env.AI_CODE_REVIEW_MULTI_PASS === 'true' ??
+        configFile?.features?.multi_pass ??
+        false,
 
-      forceSinglePass: cliOptions?.forceSinglePass ??
-                       (process.env.AI_CODE_REVIEW_FORCE_SINGLE_PASS === 'true') ??
-                       configFile?.features?.force_single_pass ??
-                       false,
+      forceSinglePass:
+        cliOptions?.forceSinglePass ??
+        process.env.AI_CODE_REVIEW_FORCE_SINGLE_PASS === 'true' ??
+        configFile?.features?.force_single_pass ??
+        false,
 
-      contextMaintenanceFactor: cliOptions?.contextMaintenanceFactor ??
-                                Number(process.env.AI_CODE_REVIEW_CONTEXT_MAINTENANCE_FACTOR) ??
-                                0.15,
+      contextMaintenanceFactor:
+        cliOptions?.contextMaintenanceFactor ??
+        Number(process.env.AI_CODE_REVIEW_CONTEXT_MAINTENANCE_FACTOR) ??
+        0.15,
 
       // Advanced features
-      testApi: cliOptions?.testApi ??
-               (process.env.AI_CODE_REVIEW_TEST_API === 'true') ??
-               configFile?.api?.test_api ??
-               false,
+      testApi:
+        cliOptions?.testApi ??
+        process.env.AI_CODE_REVIEW_TEST_API === 'true' ??
+        configFile?.api?.test_api ??
+        false,
 
-      estimate: cliOptions?.estimate ??
-                (process.env.AI_CODE_REVIEW_ESTIMATE === 'true') ??
-                false,
+      estimate: cliOptions?.estimate ?? process.env.AI_CODE_REVIEW_ESTIMATE === 'true' ?? false,
 
-      noConfirm: cliOptions?.noConfirm ??
-                 (process.env.AI_CODE_REVIEW_NO_CONFIRM === 'true') ??
-                 !(configFile?.review?.confirm ?? true),
+      noConfirm:
+        cliOptions?.noConfirm ??
+        process.env.AI_CODE_REVIEW_NO_CONFIRM === 'true' ??
+        !(configFile?.review?.confirm ?? true),
 
       // Paths
       contextPaths: undefined, // contextPaths is not available in CliOptions
@@ -493,21 +511,22 @@ export class ConfigurationService {
   /**
    * Get API key from environment variables with fallback support
    */
-  private getApiKey(provider: 'google' | 'openrouter' | 'anthropic' | 'openai'): string | undefined {
+  private getApiKey(
+    provider: 'google' | 'openrouter' | 'anthropic' | 'openai',
+  ): string | undefined {
     switch (provider) {
       case 'google':
-        return process.env.AI_CODE_REVIEW_GOOGLE_API_KEY ||
-               process.env.GOOGLE_GENERATIVE_AI_KEY ||
-               process.env.GOOGLE_AI_STUDIO_KEY;
+        return (
+          process.env.AI_CODE_REVIEW_GOOGLE_API_KEY ||
+          process.env.GOOGLE_GENERATIVE_AI_KEY ||
+          process.env.GOOGLE_AI_STUDIO_KEY
+        );
       case 'openrouter':
-        return process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY ||
-               process.env.OPENROUTER_API_KEY;
+        return process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
       case 'anthropic':
-        return process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY ||
-               process.env.ANTHROPIC_API_KEY;
+        return process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
       case 'openai':
-        return process.env.AI_CODE_REVIEW_OPENAI_API_KEY ||
-               process.env.OPENAI_API_KEY;
+        return process.env.AI_CODE_REVIEW_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
       default:
         return undefined;
     }

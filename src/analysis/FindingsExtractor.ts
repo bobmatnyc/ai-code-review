@@ -1,6 +1,6 @@
 /**
  * @fileoverview Findings Extractor for Code Reviews
- * 
+ *
  * This service extracts, categorizes, and analyzes findings from code review
  * results. It provides utilities for grading, recommendation generation,
  * and finding prioritization.
@@ -46,7 +46,7 @@ export class FindingsExtractor {
 
       for (const issue of issueTexts) {
         const lowerIssue = issue.toLowerCase();
-        
+
         // Categorize by priority keywords
         if (this.isHighPriority(lowerIssue)) {
           highPriorityFindings.add(issue);
@@ -58,7 +58,9 @@ export class FindingsExtractor {
       }
     }
 
-    logger.debug(`Extracted findings: ${highPriorityFindings.size} high, ${mediumPriorityFindings.size} medium, ${lowPriorityFindings.size} low`);
+    logger.debug(
+      `Extracted findings: ${highPriorityFindings.size} high, ${mediumPriorityFindings.size} medium, ${lowPriorityFindings.size} low`,
+    );
 
     return {
       high: highPriorityFindings,
@@ -74,22 +76,23 @@ export class FindingsExtractor {
    */
   extractIssueTexts(content: string): string[] {
     const issues: string[] = [];
-    
+
     // Extract bullet points and numbered items
     const bulletRegex = /^[\s]*[-*•]\s+(.+)$/gm;
     const numberedRegex = /^[\s]*\d+\.\s+(.+)$/gm;
     const dashRegex = /^[\s]*-\s+(.+)$/gm;
-    
+
     let match;
-    
+
     // Extract bullet points
     while ((match = bulletRegex.exec(content)) !== null) {
       const issue = match[1].trim();
-      if (issue.length > 10) { // Filter out very short items
+      if (issue.length > 10) {
+        // Filter out very short items
         issues.push(issue);
       }
     }
-    
+
     // Extract numbered items
     while ((match = numberedRegex.exec(content)) !== null) {
       const issue = match[1].trim();
@@ -117,13 +120,30 @@ export class FindingsExtractor {
    */
   private isHighPriority(issue: string): boolean {
     const highPriorityKeywords = [
-      'security', 'vulnerability', 'critical', 'error', 'bug', 'crash',
-      'memory leak', 'sql injection', 'xss', 'csrf', 'injection',
-      'authentication', 'authorization', 'privilege escalation',
-      'data breach', 'sensitive data', 'password', 'token',
-      'deadlock', 'race condition', 'null pointer', 'buffer overflow'
+      'security',
+      'vulnerability',
+      'critical',
+      'error',
+      'bug',
+      'crash',
+      'memory leak',
+      'sql injection',
+      'xss',
+      'csrf',
+      'injection',
+      'authentication',
+      'authorization',
+      'privilege escalation',
+      'data breach',
+      'sensitive data',
+      'password',
+      'token',
+      'deadlock',
+      'race condition',
+      'null pointer',
+      'buffer overflow',
     ];
-    return highPriorityKeywords.some(keyword => issue.includes(keyword));
+    return highPriorityKeywords.some((keyword) => issue.includes(keyword));
   }
 
   /**
@@ -133,13 +153,29 @@ export class FindingsExtractor {
    */
   private isMediumPriority(issue: string): boolean {
     const mediumPriorityKeywords = [
-      'warning', 'deprecated', 'inefficient', 'refactor', 'improve',
-      'optimization', 'maintainability', 'readability', 'complexity',
-      'duplication', 'coupling', 'cohesion', 'design pattern',
-      'architecture', 'structure', 'organization', 'naming',
-      'documentation', 'comment', 'test coverage', 'error handling'
+      'warning',
+      'deprecated',
+      'inefficient',
+      'refactor',
+      'improve',
+      'optimization',
+      'maintainability',
+      'readability',
+      'complexity',
+      'duplication',
+      'coupling',
+      'cohesion',
+      'design pattern',
+      'architecture',
+      'structure',
+      'organization',
+      'naming',
+      'documentation',
+      'comment',
+      'test coverage',
+      'error handling',
     ];
-    return mediumPriorityKeywords.some(keyword => issue.includes(keyword));
+    return mediumPriorityKeywords.some((keyword) => issue.includes(keyword));
   }
 
   /**
@@ -150,7 +186,7 @@ export class FindingsExtractor {
    */
   calculateGrade(findings: CategorizedFindings, category: string): GradeInfo {
     const totalIssues = findings.high.size + findings.medium.size + findings.low.size;
-    
+
     let grade: string;
     let justification: string;
 
@@ -223,42 +259,44 @@ export class FindingsExtractor {
 
     if (findings.high.size > 0) {
       recommendations.push(
-        `Address ${findings.high.size} high-priority security and critical issues immediately`
+        `Address ${findings.high.size} high-priority security and critical issues immediately`,
       );
-      
+
       if (findings.high.size > 3) {
-        recommendations.push('Consider conducting a security audit given the number of critical issues');
+        recommendations.push(
+          'Consider conducting a security audit given the number of critical issues',
+        );
       }
     }
 
     if (findings.medium.size > 8) {
       recommendations.push(
-        `Review and address ${findings.medium.size} medium-priority maintainability issues`
+        `Review and address ${findings.medium.size} medium-priority maintainability issues`,
       );
       recommendations.push('Consider refactoring to improve code structure and maintainability');
     } else if (findings.medium.size > 3) {
       recommendations.push(
-        `Address ${findings.medium.size} medium-priority issues to improve code quality`
+        `Address ${findings.medium.size} medium-priority issues to improve code quality`,
       );
     }
 
     if (findings.low.size > 15) {
       recommendations.push(
-        `Consider addressing ${findings.low.size} low-priority style and minor issues`
+        `Consider addressing ${findings.low.size} low-priority style and minor issues`,
       );
       recommendations.push('Implement automated linting and formatting tools');
     } else if (findings.low.size > 8) {
-      recommendations.push(
-        `Review ${findings.low.size} low-priority issues when time permits`
-      );
+      recommendations.push(`Review ${findings.low.size} low-priority issues when time permits`);
     }
 
     // Add positive recommendations for good code
     if (findings.high.size === 0 && findings.medium.size < 3) {
       recommendations.push('Code quality is good. Continue following current best practices.');
-      
+
       if (findings.low.size === 0) {
-        recommendations.push('Excellent code quality. Consider sharing best practices with the team.');
+        recommendations.push(
+          'Excellent code quality. Consider sharing best practices with the team.',
+        );
       }
     }
 
@@ -285,10 +323,17 @@ export class FindingsExtractor {
    */
   private hasSecurityIssues(findings: CategorizedFindings): boolean {
     const allFindings = [...findings.high, ...findings.medium, ...findings.low];
-    const securityKeywords = ['security', 'vulnerability', 'injection', 'xss', 'csrf', 'authentication'];
-    
-    return allFindings.some(finding => 
-      securityKeywords.some(keyword => finding.toLowerCase().includes(keyword))
+    const securityKeywords = [
+      'security',
+      'vulnerability',
+      'injection',
+      'xss',
+      'csrf',
+      'authentication',
+    ];
+
+    return allFindings.some((finding) =>
+      securityKeywords.some((keyword) => finding.toLowerCase().includes(keyword)),
     );
   }
 
@@ -299,10 +344,17 @@ export class FindingsExtractor {
    */
   private hasPerformanceIssues(findings: CategorizedFindings): boolean {
     const allFindings = [...findings.high, ...findings.medium, ...findings.low];
-    const performanceKeywords = ['performance', 'slow', 'inefficient', 'optimization', 'memory', 'cpu'];
-    
-    return allFindings.some(finding => 
-      performanceKeywords.some(keyword => finding.toLowerCase().includes(keyword))
+    const performanceKeywords = [
+      'performance',
+      'slow',
+      'inefficient',
+      'optimization',
+      'memory',
+      'cpu',
+    ];
+
+    return allFindings.some((finding) =>
+      performanceKeywords.some((keyword) => finding.toLowerCase().includes(keyword)),
     );
   }
 
@@ -313,10 +365,17 @@ export class FindingsExtractor {
    */
   private hasTestingIssues(findings: CategorizedFindings): boolean {
     const allFindings = [...findings.high, ...findings.medium, ...findings.low];
-    const testingKeywords = ['test', 'coverage', 'mock', 'assertion', 'unit test', 'integration test'];
-    
-    return allFindings.some(finding => 
-      testingKeywords.some(keyword => finding.toLowerCase().includes(keyword))
+    const testingKeywords = [
+      'test',
+      'coverage',
+      'mock',
+      'assertion',
+      'unit test',
+      'integration test',
+    ];
+
+    return allFindings.some((finding) =>
+      testingKeywords.some((keyword) => finding.toLowerCase().includes(keyword)),
     );
   }
 
@@ -326,12 +385,16 @@ export class FindingsExtractor {
    * @param maxPerCategory Maximum items to show per category
    * @returns Formatted findings string
    */
-  formatFindings(findings: CategorizedFindings, maxPerCategory: number = 5): string {
+  formatFindings(findings: CategorizedFindings, maxPerCategory = 5): string {
     const sections: string[] = [];
 
     if (findings.high.size > 0) {
       sections.push(`**High Priority (${findings.high.size}):**`);
-      sections.push(...Array.from(findings.high).slice(0, maxPerCategory).map(f => `- ${f}`));
+      sections.push(
+        ...Array.from(findings.high)
+          .slice(0, maxPerCategory)
+          .map((f) => `- ${f}`),
+      );
       if (findings.high.size > maxPerCategory) {
         sections.push(`- ... and ${findings.high.size - maxPerCategory} more`);
       }
@@ -340,7 +403,11 @@ export class FindingsExtractor {
 
     if (findings.medium.size > 0) {
       sections.push(`**Medium Priority (${findings.medium.size}):**`);
-      sections.push(...Array.from(findings.medium).slice(0, maxPerCategory).map(f => `- ${f}`));
+      sections.push(
+        ...Array.from(findings.medium)
+          .slice(0, maxPerCategory)
+          .map((f) => `- ${f}`),
+      );
       if (findings.medium.size > maxPerCategory) {
         sections.push(`- ... and ${findings.medium.size - maxPerCategory} more`);
       }
@@ -349,7 +416,11 @@ export class FindingsExtractor {
 
     if (findings.low.size > 0) {
       sections.push(`**Low Priority (${findings.low.size}):**`);
-      sections.push(...Array.from(findings.low).slice(0, Math.min(maxPerCategory, 3)).map(f => `- ${f}`));
+      sections.push(
+        ...Array.from(findings.low)
+          .slice(0, Math.min(maxPerCategory, 3))
+          .map((f) => `- ${f}`),
+      );
       if (findings.low.size > 3) {
         sections.push(`- ... and ${findings.low.size - 3} more`);
       }

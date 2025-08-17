@@ -137,16 +137,18 @@ export class OpenRouterClient extends AbstractClient {
 
       // Make sure this is the correct client
       if (!isCorrect) {
-        logger.error(`[OpenRouter] Invalid model for OpenRouter client: ${currentModel} (original: ${rawModel})`);
+        logger.error(
+          `[OpenRouter] Invalid model for OpenRouter client: ${currentModel} (original: ${rawModel})`,
+        );
         throw new Error(
           `OpenRouter client was called with an invalid model: ${currentModel}. This is likely a bug in the client selection logic.`,
         );
       }
-      
+
       // Initialize if this is the correct client
       await this.initialize();
     }
-    
+
     // At this point we should be initialized with a valid model
     if (!this.modelName) {
       logger.error(`[OpenRouter] Client is initialized but has no model name`);
@@ -154,7 +156,6 @@ export class OpenRouterClient extends AbstractClient {
     }
 
     try {
-
       // Get the language from file extension
       // const language = getLanguageFromExtension(filePath); // Currently unused
 

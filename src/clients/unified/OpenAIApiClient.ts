@@ -1,16 +1,11 @@
 /**
  * @fileoverview Unified OpenAI API Client
- * 
+ *
  * This client implements the IApiClient interface for OpenAI's GPT models,
  * providing a clean, consistent interface without wrapper classes.
  */
 
-import type {
-  FileInfo,
-  ReviewOptions,
-  ReviewResult,
-  ReviewType,
-} from '../../types/review';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../../types/review';
 import logger from '../../utils/logger';
 import type { ProjectDocs } from '../../utils/projectDocs';
 import { BaseApiClient } from '../BaseApiClient';
@@ -33,10 +28,10 @@ export class OpenAIApiClient extends BaseApiClient {
   isModelSupported(modelName: string): ModelSupportInfo {
     const cleanedModel = modelName.replace(/['"``]/g, '').trim();
     const parts = cleanedModel.split(':');
-    
+
     let provider = '';
     let model = '';
-    
+
     if (parts.length === 2) {
       provider = parts[0].toLowerCase();
       model = parts[1];
@@ -49,7 +44,7 @@ export class OpenAIApiClient extends BaseApiClient {
     }
 
     const isSupported = provider === 'openai' || this.isOpenAIModel(model);
-    
+
     return {
       isSupported,
       provider: isSupported ? 'openai' : provider,
@@ -124,8 +119,14 @@ export class OpenAIApiClient extends BaseApiClient {
     }
 
     try {
-      const prompt = this.buildSingleFilePrompt(fileContent, filePath, reviewType, projectDocs, options);
-      
+      const prompt = this.buildSingleFilePrompt(
+        fileContent,
+        filePath,
+        reviewType,
+        projectDocs,
+        options,
+      );
+
       const response = await this.openai.chat.completions.create({
         model: this.config.modelName,
         messages: [
@@ -137,7 +138,7 @@ export class OpenAIApiClient extends BaseApiClient {
       });
 
       const content = response.choices?.[0]?.message?.content || '';
-      
+
       // Calculate cost information
       const costInfo = this.calculateCostFromUsage(response.usage);
       this.lastCostInfo = costInfo;
@@ -151,7 +152,6 @@ export class OpenAIApiClient extends BaseApiClient {
         costInfo,
         files: [{ path: filePath, relativePath: filePath, content: fileContent }],
       };
-
     } catch (error) {
       this.handleApiError(error, 'generating single file review', filePath);
     }
@@ -172,8 +172,14 @@ export class OpenAIApiClient extends BaseApiClient {
     }
 
     try {
-      const prompt = this.buildConsolidatedPrompt(fileInfos, projectName, reviewType, projectDocs, options);
-      
+      const prompt = this.buildConsolidatedPrompt(
+        fileInfos,
+        projectName,
+        reviewType,
+        projectDocs,
+        options,
+      );
+
       const response = await this.openai.chat.completions.create({
         model: this.config.modelName,
         messages: [
@@ -185,7 +191,7 @@ export class OpenAIApiClient extends BaseApiClient {
       });
 
       const content = response.choices?.[0]?.message?.content || '';
-      
+
       // Calculate cost information
       const costInfo = this.calculateCostFromUsage(response.usage);
       this.lastCostInfo = costInfo;
@@ -200,7 +206,6 @@ export class OpenAIApiClient extends BaseApiClient {
         files: fileInfos,
         projectName,
       };
-
     } catch (error) {
       this.handleApiError(error, 'generating consolidated review', projectName);
     }
@@ -261,26 +266,27 @@ export class OpenAIApiClient extends BaseApiClient {
       /^ada/i,
     ];
 
-    return openaiPatterns.some(pattern => pattern.test(modelName));
+    return openaiPatterns.some((pattern) => pattern.test(modelName));
   }
 
   /**
    * Get system prompt for the review type
    */
   private getSystemPrompt(reviewType: ReviewType): string {
-    const basePrompt = 'You are an expert code reviewer. Analyze the provided code and provide detailed, actionable feedback.';
-    
+    const basePrompt =
+      'You are an expert code reviewer. Analyze the provided code and provide detailed, actionable feedback.';
+
     const typeSpecificPrompts: Record<ReviewType, string> = {
       'quick-fixes': `${basePrompt} Focus on identifying bugs, syntax errors, and quick improvements.`,
-      'architectural': `${basePrompt} Focus on code architecture, design patterns, and structural improvements.`,
-      'security': `${basePrompt} Focus on security vulnerabilities, potential exploits, and security best practices.`,
-      'performance': `${basePrompt} Focus on performance optimizations, efficiency improvements, and resource usage.`,
+      architectural: `${basePrompt} Focus on code architecture, design patterns, and structural improvements.`,
+      security: `${basePrompt} Focus on security vulnerabilities, potential exploits, and security best practices.`,
+      performance: `${basePrompt} Focus on performance optimizations, efficiency improvements, and resource usage.`,
       'unused-code': `${basePrompt} Focus on identifying unused code, dead code, and unnecessary dependencies.`,
       'focused-unused-code': `${basePrompt} Focus specifically on unused imports, variables, and functions.`,
       'code-tracing-unused-code': `${basePrompt} Trace code execution paths to identify truly unused code.`,
-      'consolidated': `${basePrompt} Provide a comprehensive review covering all aspects of code quality.`,
+      consolidated: `${basePrompt} Provide a comprehensive review covering all aspects of code quality.`,
       'best-practices': `${basePrompt} Focus on coding best practices, conventions, and maintainability.`,
-      'evaluation': `${basePrompt} Provide a detailed evaluation with grades and scoring.`,
+      evaluation: `${basePrompt} Provide a detailed evaluation with grades and scoring.`,
       'extract-patterns': `${basePrompt} Identify and extract common patterns, anti-patterns, and design decisions.`,
       'coding-test': `${basePrompt} Evaluate as a coding test submission with detailed scoring.`,
       'ai-integration': `${basePrompt} Focus on AI/LLM integration patterns, prompt engineering, and AI safety.`,
@@ -302,7 +308,7 @@ export class OpenAIApiClient extends BaseApiClient {
     options?: ReviewOptions,
   ): string {
     let prompt = `Please review the following ${filePath} file:\n\n`;
-    
+
     if (projectDocs?.readme) {
       prompt += `Project Context:\n${projectDocs.readme}\n\n`;
     }
@@ -324,13 +330,13 @@ export class OpenAIApiClient extends BaseApiClient {
     options?: ReviewOptions,
   ): string {
     let prompt = `Please review the following ${projectName} project:\n\n`;
-    
+
     if (projectDocs?.readme) {
       prompt += `Project Context:\n${projectDocs.readme}\n\n`;
     }
 
     prompt += 'Files to review:\n\n';
-    
+
     for (const file of fileInfos) {
       prompt += `File: ${file.relativePath || file.path}\n\`\`\`\n${file.content}\n\`\`\`\n\n`;
     }

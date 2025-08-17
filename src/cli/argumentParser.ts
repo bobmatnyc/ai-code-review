@@ -241,7 +241,8 @@ export function parseArguments(): any {
               default: 'mid',
             })
             .option('writer-model', {
-              describe: 'Model to use for consolidating multi-pass reviews (defaults to main model)',
+              describe:
+                'Model to use for consolidating multi-pass reviews (defaults to main model)',
               type: 'string',
             })
             .option('batch-token-limit', {

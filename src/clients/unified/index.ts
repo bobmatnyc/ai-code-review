@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unified API Clients Registration
- * 
+ *
  * This module registers all unified API clients with the factory
  * and provides a simple way to initialize the unified client system.
  */
@@ -23,11 +23,11 @@ export function registerUnifiedClients(): void {
   // UnifiedClientFactory.registerProvider('anthropic', (config: ApiClientConfig) => {
   //   return new AnthropicApiClient(config);
   // });
-  
+
   // UnifiedClientFactory.registerProvider('gemini', (config: ApiClientConfig) => {
   //   return new GeminiApiClient(config);
   // });
-  
+
   // UnifiedClientFactory.registerProvider('openrouter', (config: ApiClientConfig) => {
   //   return new OpenRouterApiClient(config);
   // });
@@ -47,10 +47,10 @@ export function initializeUnifiedClients(): void {
 // Export the unified clients
 export { OpenAIApiClient };
 
+export { BaseApiClient } from '../BaseApiClient';
+export type { ApiClientConfig, IApiClient, ModelSupportInfo } from '../IApiClient';
 // Export the factory and interfaces
 export { UnifiedClientFactory } from '../UnifiedClientFactory';
-export type { IApiClient, ApiClientConfig, ModelSupportInfo } from '../IApiClient';
-export { BaseApiClient } from '../BaseApiClient';
 
 /**
  * Convenience function to create a client for a specific model
@@ -62,7 +62,7 @@ export async function createUnifiedClient(modelName: string) {
   if (UnifiedClientFactory.getAvailableProviders().length === 0) {
     registerUnifiedClients();
   }
-  
+
   return UnifiedClientFactory.createClient(modelName);
 }
 
@@ -76,7 +76,7 @@ export async function getBestUnifiedClient(modelName: string) {
   if (UnifiedClientFactory.getAvailableProviders().length === 0) {
     registerUnifiedClients();
   }
-  
+
   return UnifiedClientFactory.findBestClient(modelName);
 }
 
@@ -89,7 +89,7 @@ export async function testUnifiedClients() {
   if (UnifiedClientFactory.getAvailableProviders().length === 0) {
     registerUnifiedClients();
   }
-  
+
   return UnifiedClientFactory.testAllClients();
 }
 

@@ -159,7 +159,7 @@ export class OpenAIClient extends AbstractClient {
     projectDocs?: ProjectDocs | null,
     options?: ReviewOptions,
   ): Promise<ReviewResult> {
-    // During consolidation, the model may have been overridden. 
+    // During consolidation, the model may have been overridden.
     // If we're already initialized with a valid model, trust that initialization was correct.
     // Only check the environment if we're not initialized.
     if (!this.isInitialized) {
@@ -171,17 +171,19 @@ export class OpenAIClient extends AbstractClient {
 
       // Make sure this is the correct client
       if (!isCorrect) {
-        logger.error(`[OpenAI] Invalid model for OpenAI client: ${currentModel} (original: ${rawModel})`);
+        logger.error(
+          `[OpenAI] Invalid model for OpenAI client: ${currentModel} (original: ${rawModel})`,
+        );
         logger.error(`[OpenAI] This client should not have been created for this model`);
         throw new Error(
           `OpenAI client was called with an invalid model: ${currentModel}. This is likely a bug in the client selection logic.`,
         );
       }
-      
+
       // Initialize if this is the correct client
       await this.initialize();
     }
-    
+
     // At this point we should be initialized with a valid model
     if (!this.modelName) {
       logger.error(`[OpenAI] Client is initialized but has no model name`);
@@ -189,7 +191,6 @@ export class OpenAIClient extends AbstractClient {
     }
 
     try {
-
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);
 
@@ -327,16 +328,18 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
 
       // Make sure this is the correct client
       if (!isCorrect) {
-        logger.error(`[OpenAI] Invalid model for OpenAI client in consolidatedReview: ${currentModel}`);
+        logger.error(
+          `[OpenAI] Invalid model for OpenAI client in consolidatedReview: ${currentModel}`,
+        );
         throw new Error(
           `OpenAI client was called with an invalid model: ${currentModel}. This is likely a bug in the client selection logic.`,
         );
       }
-      
+
       // Initialize if this is the correct client
       await this.initialize();
     }
-    
+
     // At this point we should be initialized with a valid model
     if (!this.modelName) {
       logger.error(`[OpenAI] Client is initialized but has no model name in consolidatedReview`);
@@ -344,7 +347,6 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
     }
 
     try {
-
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate(reviewType, options);
 
@@ -486,16 +488,18 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
 
       // Make sure this is the correct client
       if (!isCorrect) {
-        logger.error(`[OpenAI] Invalid model for OpenAI client in architecturalReview: ${currentModel}`);
+        logger.error(
+          `[OpenAI] Invalid model for OpenAI client in architecturalReview: ${currentModel}`,
+        );
         throw new Error(
           `OpenAI client was called with an invalid model: ${currentModel}. This is likely a bug in the client selection logic.`,
         );
       }
-      
+
       // Initialize if this is the correct client
       await this.initialize();
     }
-    
+
     // At this point we should be initialized with a valid model
     if (!this.modelName) {
       logger.error(`[OpenAI] Client is initialized but has no model name in architecturalReview`);
@@ -503,7 +507,6 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
     }
 
     try {
-
       // Load the appropriate prompt template
       const promptTemplate = await loadPromptTemplate('architectural', options);
 

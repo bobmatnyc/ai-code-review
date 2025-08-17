@@ -1,35 +1,26 @@
 /**
  * @fileoverview Base API Client Implementation
- * 
+ *
  * This class provides common functionality for all API clients,
  * implementing the IApiClient interface with shared logic that
  * can be reused across different providers.
  */
 
+import type { CostInfo, FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
 import type {
-  CostInfo,
-  FileInfo,
-  ReviewOptions,
-  ReviewResult,
-  ReviewType,
-} from '../types/review';
-import type { StructuredReview, ReviewIssue, GradeLevel, IssuePriority } from '../types/structuredReview';
+  GradeLevel,
+  IssuePriority,
+  ReviewIssue,
+  StructuredReview,
+} from '../types/structuredReview';
 import logger from '../utils/logger';
 import type { ProjectDocs } from '../utils/projectDocs';
-import type {
-  ApiClientConfig,
-  IApiClient,
-  ModelSupportInfo,
-} from './IApiClient';
-import {
-  ApiClientError,
-  InitializationError,
-  parseModelName,
-} from './IApiClient';
+import type { ApiClientConfig, IApiClient, ModelSupportInfo } from './IApiClient';
+import { ApiClientError, InitializationError, parseModelName } from './IApiClient';
 
 /**
  * Base implementation of the IApiClient interface
- * 
+ *
  * This class provides common functionality that can be shared across
  * all API client implementations, reducing code duplication and
  * ensuring consistent behavior.
@@ -68,7 +59,6 @@ export abstract class BaseApiClient implements IApiClient {
       this.initialized = true;
       logger.debug(`${this.getProviderName()} client initialized successfully`);
       return true;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Failed to initialize ${this.getProviderName()} client: ${errorMessage}`);
@@ -162,7 +152,6 @@ export abstract class BaseApiClient implements IApiClient {
 
       // Perform a simple test request
       return await this.performConnectionTest();
-
     } catch (error) {
       logger.debug(`Connection test failed for ${this.getProviderName()}: ${error}`);
       return false;
@@ -201,11 +190,11 @@ export abstract class BaseApiClient implements IApiClient {
   ): Promise<CostInfo> {
     // Calculate total content length
     const totalContent = fileInfos.reduce((sum, file) => sum + file.content.length, 0);
-    
+
     // Basic estimation - subclasses should override for more accurate estimates
     const estimatedInputTokens = Math.ceil(totalContent / 4); // Rough estimate: 4 chars per token
     const estimatedOutputTokens = Math.ceil(estimatedInputTokens * 0.1); // Assume 10% output ratio
-    
+
     const cost = this.calculateCost(estimatedInputTokens, estimatedOutputTokens);
     return {
       inputTokens: estimatedInputTokens,
@@ -253,7 +242,7 @@ export abstract class BaseApiClient implements IApiClient {
     // Default pricing - subclasses should override
     const inputCostPer1K = 0.001; // $0.001 per 1K input tokens
     const outputCostPer1K = 0.002; // $0.002 per 1K output tokens
-    
+
     return (inputTokens / 1000) * inputCostPer1K + (outputTokens / 1000) * outputCostPer1K;
   }
 
@@ -282,23 +271,29 @@ export abstract class BaseApiClient implements IApiClient {
    */
   protected extractIssues(content: string): ReviewIssue[] {
     const issues: ReviewIssue[] = [];
-    
+
     // Extract high priority issues
-    const highPriorityMatch = content.match(/## (?:Critical|High Priority) Issues?\s*\n([\s\S]*?)(?=\n## |$)/i);
+    const highPriorityMatch = content.match(
+      /## (?:Critical|High Priority) Issues?\s*\n([\s\S]*?)(?=\n## |$)/i,
+    );
     if (highPriorityMatch) {
       const highIssues = this.parseIssueList(highPriorityMatch[1], 'high');
       issues.push(...highIssues);
     }
 
     // Extract medium priority issues
-    const mediumPriorityMatch = content.match(/## (?:Important|Medium Priority) Issues?\s*\n([\s\S]*?)(?=\n## |$)/i);
+    const mediumPriorityMatch = content.match(
+      /## (?:Important|Medium Priority) Issues?\s*\n([\s\S]*?)(?=\n## |$)/i,
+    );
     if (mediumPriorityMatch) {
       const mediumIssues = this.parseIssueList(mediumPriorityMatch[1], 'medium');
       issues.push(...mediumIssues);
     }
 
     // Extract low priority issues
-    const lowPriorityMatch = content.match(/## (?:Minor|Low Priority) Issues?\s*\n([\s\S]*?)(?=\n## |$)/i);
+    const lowPriorityMatch = content.match(
+      /## (?:Minor|Low Priority) Issues?\s*\n([\s\S]*?)(?=\n## |$)/i,
+    );
     if (lowPriorityMatch) {
       const lowIssues = this.parseIssueList(lowPriorityMatch[1], 'low');
       issues.push(...lowIssues);
@@ -342,7 +337,7 @@ export abstract class BaseApiClient implements IApiClient {
 
     const recommendations: string[] = [];
     const lines = recommendationsMatch[1].split('\n');
-    
+
     for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || /^\d+\./.test(trimmed)) {
@@ -352,7 +347,7 @@ export abstract class BaseApiClient implements IApiClient {
         }
       }
     }
-    
+
     return recommendations;
   }
 
@@ -376,14 +371,16 @@ export abstract class BaseApiClient implements IApiClient {
    */
   protected handleApiError(error: unknown, operation: string, context?: string): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const fullMessage = context ? `${operation} for ${context}: ${errorMessage}` : `${operation}: ${errorMessage}`;
-    
+    const fullMessage = context
+      ? `${operation} for ${context}: ${errorMessage}`
+      : `${operation}: ${errorMessage}`;
+
     logger.error(fullMessage);
-    
+
     if (error instanceof ApiClientError) {
       throw error;
     }
-    
+
     throw new ApiClientError(fullMessage, this.getProviderName());
   }
 
