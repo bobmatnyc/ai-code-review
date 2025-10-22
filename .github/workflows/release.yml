@@ -45,8 +45,16 @@ jobs:
 
       - name: Update package.json version
         run: |
-          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
-          echo "Updated package.json to version ${{ steps.version.outputs.version }}"
+          # Check if version is already correct
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          TARGET_VERSION="${{ steps.version.outputs.version }}"
+
+          if [ "$CURRENT_VERSION" = "$TARGET_VERSION" ]; then
+            echo "Package.json already has correct version $TARGET_VERSION"
+          else
+            npm version $TARGET_VERSION --no-git-tag-version
+            echo "Updated package.json from $CURRENT_VERSION to $TARGET_VERSION"
+          fi
 
       - name: Run full build and test suite
         run: pnpm run build
