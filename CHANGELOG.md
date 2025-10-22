@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.10] - 2025-10-22
+
+### Changes
+- fix: improve npm authentication in GitHub Actions workflow (c7a8b05)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.4.10
+```
+
+
 ## [4.4.9] - 2025-10-22
 
 ### Changes
