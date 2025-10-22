@@ -1,0 +1,126 @@
+name: Release and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog generation
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          echo "Updated package.json to version ${{ steps.version.outputs.version }}"
+
+      - name: Run full build and test suite
+        run: pnpm run build
+
+      - name: Verify build output
+        run: |
+          echo "Verifying build output..."
+          ls -la dist/
+          node dist/index.js --version
+          echo "Build verification complete"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## What's Changed" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            echo "Changes since $LAST_TAG:" >> RELEASE_NOTES.md
+            git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD >> RELEASE_NOTES.md
+          else
+            echo "Initial release" >> RELEASE_NOTES.md
+          fi
+          
+          echo "" >> RELEASE_NOTES.md
+          echo "## Installation" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "\`\`\`bash" >> RELEASE_NOTES.md
+          echo "npm install -g @bobmatnyc/ai-code-review@${{ steps.version.outputs.version }}" >> RELEASE_NOTES.md
+          echo "\`\`\`" >> RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          release_name: Release ${{ steps.version.outputs.tag }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+
+      - name: Upload CLI binary as release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/index.js
+          asset_name: ai-code-review-${{ steps.version.outputs.version }}.js
+          asset_content_type: application/javascript
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "Publishing to npm..."
+          pnpm publish --access public --no-git-checks
+          echo "Successfully published version ${{ steps.version.outputs.version }} to npm"
+
+      - name: Verify npm publication
+        run: |
+          echo "Waiting for npm propagation..."
+          sleep 30
+          
+          echo "Verifying npm publication..."
+          npm view @bobmatnyc/ai-code-review@${{ steps.version.outputs.version }} version
+          echo "npm publication verified"
+
+      - name: Update release with npm link
+        run: |
+          echo "## npm Package" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "📦 [View on npm](https://www.npmjs.com/package/@bobmatnyc/ai-code-review/v/${{ steps.version.outputs.version }})" >> RELEASE_NOTES.md

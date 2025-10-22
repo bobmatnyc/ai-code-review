@@ -47,7 +47,14 @@
     "build:info": "node scripts/manage-build-number.js",
     "build:reset": "node scripts/manage-build-number.js --reset",
     "setup:pre-commit": "./scripts/setup-pre-commit.sh",
-    "setup:pnpm": "./scripts/migrate-to-pnpm.sh"
+    "setup:pnpm": "./scripts/migrate-to-pnpm.sh",
+    "release": "node scripts/release.js",
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major",
+    "release:dry-run": "node scripts/release.js --dry-run patch",
+    "pre-release": "node scripts/pre-release-check.js",
+    "publish:npm": "pnpm publish --access public"
   },
   "keywords": [
     "code-review",

@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **🚀 Automated Release System**: Complete CI/CD pipeline for releases
+  - GitHub Actions workflow for automated npm publishing on version tags
+  - Comprehensive pre-release validation script with security audits
+  - Automated changelog generation and GitHub release creation
+  - Version management script with semver support (patch/minor/major)
+- **🖥️ Enhanced CLI Experience**: Improved user interface and autocompletion
+  - Shell completion scripts for bash, zsh, and fish
+  - Enhanced help text with examples and model recommendations
+  - Improved argument descriptions with usage examples
+  - New `validate-config` command for configuration verification
+
+### Changed
+- **📦 Build System Improvements**: Enhanced build and versioning system
+  - Better build number tracking and version synchronization
+  - Improved package.json script organization
+  - Enhanced build verification and post-build validation
+
+### Technical
+- **Release Automation**: `pnpm run release:patch|minor|major` for automated releases
+- **Pre-release Validation**: `pnpm run pre-release` for comprehensive checks
+- **Shell Completion**: `./scripts/generate-completions.sh` for autocompletion setup
+
 ## [4.4.6] - 2025-08-17
 
 ### Added

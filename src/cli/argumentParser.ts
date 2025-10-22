@@ -68,7 +68,12 @@ export function parseArguments(): any {
   const argv = yargs(filteredArgs)
     .command(
       ['$0 [target]', 'code-review [target]'],
-      'Run a code review on the specified target',
+      'Run a code review on the specified target\n\n' +
+        'Examples:\n' +
+        '  ai-code-review . --type comprehensive    # Full analysis of current directory\n' +
+        '  ai-code-review src --type quick-fixes    # Quick fixes for src folder\n' +
+        '  ai-code-review file.ts --type security   # Security review of single file\n' +
+        '  ai-code-review . --estimate              # Estimate cost before review',
       (yargs) => {
         return (
           yargs
@@ -79,7 +84,13 @@ export function parseArguments(): any {
             })
             .option('type', {
               alias: 't',
-              describe: 'Type of review to perform',
+              describe:
+                'Type of review to perform\n' +
+                '  • quick-fixes: Fast improvements and bug fixes\n' +
+                '  • architectural: Design patterns and structure\n' +
+                '  • security: Vulnerability detection\n' +
+                '  • performance: Optimization opportunities\n' +
+                '  • comprehensive: Complete analysis (recommended)',
               choices: validReviewTypes, // Show only the valid types in help
               // No default here - will be set after config file is applied
               coerce: (value: string) => {
@@ -102,7 +113,14 @@ export function parseArguments(): any {
             })
             .option('model', {
               alias: 'm',
-              describe: 'Model to use for the review (format: provider:model)',
+              describe:
+                'Model to use for the review (format: provider:model)\n' +
+                '  Popular choices:\n' +
+                '  • openrouter:anthropic/claude-4-opus (best quality)\n' +
+                '  • openrouter:anthropic/claude-4-sonnet (balanced)\n' +
+                '  • openrouter:openai/gpt-4o (multimodal)\n' +
+                '  • openrouter:google/gemini-2.0-pro (large context)\n' +
+                '  Use --listmodels to see all available options',
               type: 'string',
               default: defaultModel,
             })
@@ -479,6 +497,18 @@ export function parseArguments(): any {
           describe: 'Overwrite existing configuration file',
           type: 'boolean',
           default: false,
+        });
+    })
+    .command('validate-config', 'Validate configuration and API keys', (yargs) => {
+      return yargs
+        .option('config', {
+          describe: 'Path to configuration file to validate',
+          type: 'string',
+        })
+        .option('test-connections', {
+          describe: 'Test API connections for all configured providers',
+          type: 'boolean',
+          default: true,
         });
     })
     .option('show-version', {

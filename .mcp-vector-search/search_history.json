@@ -1,0 +1,55 @@
+[
+  {
+    "query": "error handling",
+    "timestamp": "2025-08-18T01:25:52.678875",
+    "results_count": 3,
+    "filters": {},
+    "execution_time": null
+  },
+  {
+    "query": "async function",
+    "timestamp": "2025-08-18T01:25:37.072258",
+    "results_count": 3,
+    "filters": {},
+    "execution_time": null
+  },
+  {
+    "query": "interface",
+    "timestamp": "2025-08-18T01:25:27.703149",
+    "results_count": 3,
+    "filters": {
+      "language": "typescript"
+    },
+    "execution_time": null
+  },
+  {
+    "query": "interface",
+    "timestamp": "2025-08-18T01:25:18.173625",
+    "results_count": 0,
+    "filters": {
+      "language": "typescript"
+    },
+    "execution_time": null
+  },
+  {
+    "query": "code review",
+    "timestamp": "2025-08-18T01:25:07.705364",
+    "results_count": 3,
+    "filters": {},
+    "execution_time": null
+  },
+  {
+    "query": "code review",
+    "timestamp": "2025-08-18T01:24:57.697750",
+    "results_count": 0,
+    "filters": {},
+    "execution_time": null
+  },
+  {
+    "query": "API client",
+    "timestamp": "2025-08-18T01:24:46.947227",
+    "results_count": 5,
+    "filters": {},
+    "execution_time": null
+  }
+]

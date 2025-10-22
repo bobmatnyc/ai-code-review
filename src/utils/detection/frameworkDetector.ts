@@ -194,7 +194,12 @@ const FRAMEWORK_SIGNATURES: Record<string, FrameworkSignature[]> = {
   dart: [
     {
       name: 'flutter',
-      files: ['pubspec.yaml', 'lib/main.dart', 'android/app/build.gradle', 'ios/Runner.xcodeproj/project.pbxproj'],
+      files: [
+        'pubspec.yaml',
+        'lib/main.dart',
+        'android/app/build.gradle',
+        'ios/Runner.xcodeproj/project.pbxproj',
+      ],
       directories: ['lib', 'android', 'ios'],
       dependencies: ['flutter'],
       weight: 0.9,
@@ -731,11 +736,13 @@ async function getDependencies(
             inDependencies = true;
             inDevDependencies = false;
             continue;
-          } else if (trimmedLine === 'dev_dependencies:') {
+          }
+          if (trimmedLine === 'dev_dependencies:') {
             inDependencies = false;
             inDevDependencies = true;
             continue;
-          } else if (trimmedLine.endsWith(':') && !trimmedLine.startsWith(' ')) {
+          }
+          if (trimmedLine.endsWith(':') && !trimmedLine.startsWith(' ')) {
             // New top-level section
             inDependencies = false;
             inDevDependencies = false;
@@ -743,7 +750,11 @@ async function getDependencies(
           }
 
           // Parse dependency lines
-          if ((inDependencies || inDevDependencies) && trimmedLine && !trimmedLine.startsWith('#')) {
+          if (
+            (inDependencies || inDevDependencies) &&
+            trimmedLine &&
+            !trimmedLine.startsWith('#')
+          ) {
             // Handle different dependency formats:
             // package_name: ^1.0.0
             // package_name:
