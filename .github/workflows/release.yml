@@ -113,7 +113,13 @@ jobs:
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          echo "Setting up npm authentication..."
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+          echo "access=public" >> ~/.npmrc
+
           echo "Publishing to npm..."
           pnpm publish --access public --no-git-checks
           echo "Successfully published version ${{ steps.version.outputs.version }} to npm"
