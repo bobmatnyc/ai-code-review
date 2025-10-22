@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.8] - 2025-10-22
+
+### Changes
+- Initial release
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.4.8
+```
+
+
 ## [4.4.7] - 2025-10-22
 
 ### Changes
