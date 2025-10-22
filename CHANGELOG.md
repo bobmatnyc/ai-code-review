@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.9] - 2025-10-22
+
+### Changes
+- fix: handle case where package.json version is already correct in release workflow (45803c5)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.4.9
+```
+
+
 ## [4.4.8] - 2025-10-22
 
 ### Changes
