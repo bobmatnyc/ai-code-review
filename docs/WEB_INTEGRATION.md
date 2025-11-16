@@ -1,6 +1,8 @@
 # 🌐 Web Application Integration Guide
 
-This guide shows how to integrate AI Code Review as a library into web applications, specifically for the Next.js web dashboard.
+> **⚠️ Note**: As of v4.5.0, the `/lib` library export has been removed. This tool is primarily designed as a CLI application. For web integration, use the CLI via child processes or build a custom wrapper around the core modules.
+
+This guide shows alternative approaches for integrating AI Code Review into web applications.
 
 ## 📦 Installation
 
@@ -9,27 +11,84 @@ This guide shows how to integrate AI Code Review as a library into web applicati
 npm install @bobmatnyc/ai-code-review
 ```
 
-## 🏗️ Architecture
+## 🏗️ Architecture Options
 
-The CLI tool provides a clean library interface that web applications can use:
+### Option 1: CLI Wrapper (Recommended)
 
 ```
 Web Application (Next.js)
     ↓
-AI Code Review Library (/lib export)
+Child Process → AI Code Review CLI
+    ↓
+Review Output (JSON/Markdown)
+```
+
+### Option 2: Direct Module Integration (Advanced)
+
+```
+Web Application (Next.js)
+    ↓
+Import Core Modules Directly
     ↓
 Core Review Engine
     ↓
 AI Providers (OpenRouter, Anthropic, etc.)
 ```
 
-## 🔧 Basic Integration
+## 🔧 Integration Approach 1: CLI Wrapper (Recommended)
 
 ### 1. Next.js API Route Example
 
 ```typescript
 // pages/api/review.ts or app/api/review/route.ts
-import { performCodeReview } from '@bobmatnyc/ai-code-review/lib';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
+export async function POST(request: Request) {
+  try {
+    const { target, model, reviewType, apiKey, provider } = await request.json();
+
+    // Set environment variables for the CLI
+    const env = {
+      ...process.env,
+      [`AI_CODE_REVIEW_${provider.toUpperCase()}_API_KEY`]: apiKey,
+      AI_CODE_REVIEW_MODEL: model,
+    };
+
+    // Execute CLI command
+    const { stdout, stderr } = await execAsync(
+      `npx ai-code-review ${target} --review-type ${reviewType} --output-format json`,
+      { env, maxBuffer: 1024 * 1024 * 10 } // 10MB buffer
+    );
+
+    if (stderr) {
+      console.error('CLI stderr:', stderr);
+    }
+
+    // Parse JSON output from CLI
+    const result = JSON.parse(stdout);
+    return Response.json(result);
+  } catch (error) {
+    return Response.json(
+      { error: error.message },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## 🔧 Integration Approach 2: Direct Module Import (Advanced)
+
+For advanced use cases, you can import core modules directly:
+
+### 1. Direct Core Module Usage
+
+```typescript
+// pages/api/review.ts or app/api/review/route.ts
+// Import core modules directly (not recommended for most use cases)
+import { orchestrateReview } from '@bobmatnyc/ai-code-review/dist/core/reviewOrchestrator';
 
 export async function POST(request: Request) {
   try {
@@ -66,50 +125,53 @@ export async function POST(request: Request) {
 }
 ```
 
-### 2. Model Testing API
+### 2. Model Testing via CLI
 
 ```typescript
 // pages/api/test-model.ts
-import { testModelConnection } from '@bobmatnyc/ai-code-review/lib';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export async function POST(request: Request) {
   try {
     const { model, apiKey, provider } = await request.json();
-    
-    // Temporarily set API key for testing
-    const originalEnv = process.env[`AI_CODE_REVIEW_${provider.toUpperCase()}_API_KEY`];
-    process.env[`AI_CODE_REVIEW_${provider.toUpperCase()}_API_KEY`] = apiKey;
-    
-    try {
-      const result = await testModelConnection(model);
-      return Response.json(result);
-    } finally {
-      // Restore original environment
-      if (originalEnv) {
-        process.env[`AI_CODE_REVIEW_${provider.toUpperCase()}_API_KEY`] = originalEnv;
-      } else {
-        delete process.env[`AI_CODE_REVIEW_${provider.toUpperCase()}_API_KEY`];
-      }
-    }
+
+    const env = {
+      ...process.env,
+      [`AI_CODE_REVIEW_${provider.toUpperCase()}_API_KEY`]: apiKey,
+    };
+
+    // Use CLI to test API connection
+    const { stdout } = await execAsync(
+      `npx ai-code-review test --model ${model}`,
+      { env }
+    );
+
+    return Response.json({ success: true, output: stdout });
   } catch (error) {
     return Response.json(
-      { error: error.message },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }
 }
 ```
 
-### 3. Available Models API
+### 3. Available Models via CLI
 
 ```typescript
 // pages/api/models.ts
-import { getAvailableModels } from '@bobmatnyc/ai-code-review/lib';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export async function GET() {
   try {
-    const models = getAvailableModels();
-    return Response.json(models);
+    const { stdout } = await execAsync('npx ai-code-review list-models');
+    return Response.json({ models: stdout.split('\n').filter(Boolean) });
   } catch (error) {
     return Response.json(
       { error: error.message },
@@ -121,15 +183,18 @@ export async function GET() {
 
 ## 🎯 Advanced Integration
 
-### 1. GitHub Repository Analysis
+### 1. GitHub Repository Analysis via CLI
 
 ```typescript
 // lib/github-integration.ts
 import { Octokit } from '@octokit/rest';
-import { performCodeReview } from '@bobmatnyc/ai-code-review/lib';
-import { writeFileSync, mkdirSync } from 'fs';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { writeFileSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+
+const execAsync = promisify(exec);
 
 export async function analyzeGitHubRepository(
   owner: string,
@@ -143,72 +208,83 @@ export async function analyzeGitHubRepository(
   }
 ) {
   const octokit = new Octokit({ auth: githubToken });
-  
-  // 1. Get repository contents
-  const { data: contents } = await octokit.rest.repos.getContent({
-    owner,
-    repo,
-    path: ''
-  });
-  
-  // 2. Create temporary directory
+
+  // 1. Clone repository to temp directory
   const tempDir = join(tmpdir(), `review-${owner}-${repo}-${Date.now()}`);
   mkdirSync(tempDir, { recursive: true });
-  
-  // 3. Download files (simplified - in reality you'd handle directories recursively)
-  for (const item of contents) {
-    if (item.type === 'file' && item.download_url) {
-      const response = await fetch(item.download_url);
-      const content = await response.text();
-      writeFileSync(join(tempDir, item.name), content);
-    }
+
+  try {
+    // 2. Clone the repository
+    await execAsync(`git clone https://github.com/${owner}/${repo}.git ${tempDir}`);
+
+    // 3. Set up environment for CLI
+    const env = {
+      ...process.env,
+      [`AI_CODE_REVIEW_${reviewConfig.provider.toUpperCase()}_API_KEY`]: reviewConfig.apiKey,
+    };
+
+    // 4. Run CLI review
+    const { stdout } = await execAsync(
+      `npx ai-code-review ${tempDir} --model ${reviewConfig.model} --review-type ${reviewConfig.reviewType} --output-format json`,
+      { env, maxBuffer: 1024 * 1024 * 10 }
+    );
+
+    const result = JSON.parse(stdout);
+    return result;
+  } finally {
+    // 5. Cleanup
+    rmSync(tempDir, { recursive: true, force: true });
   }
-  
-  // 4. Perform review
-  const result = await performCodeReview({
-    target: tempDir,
-    config: {
-      model: reviewConfig.model,
-      reviewType: reviewConfig.reviewType,
-      apiKeys: {
-        [reviewConfig.provider]: reviewConfig.apiKey
-      },
-      outputFormat: 'json'
-    }
-  });
-  
-  // 5. Cleanup (in production, use proper temp file management)
-  // rmSync(tempDir, { recursive: true, force: true });
-  
-  return result;
 }
 ```
 
-### 2. Real-time Progress Updates
+### 2. Streaming CLI Output for Progress
 
 ```typescript
 // lib/review-with-progress.ts
-import { performCodeReview } from '@bobmatnyc/ai-code-review/lib';
+import { spawn } from 'child_process';
 
 export async function performReviewWithProgress(
   target: string,
   config: any,
-  onProgress: (progress: any) => void
-) {
-  return await performCodeReview({
-    target,
-    config,
-    options: {
-      onProgress: (progress) => {
-        // Send progress updates via WebSocket, Server-Sent Events, or polling
-        onProgress({
-          stage: progress.stage,
-          progress: progress.progress,
-          message: progress.message,
-          timestamp: new Date().toISOString()
-        });
+  onProgress: (line: string) => void
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const env = {
+      ...process.env,
+      [`AI_CODE_REVIEW_${config.provider.toUpperCase()}_API_KEY`]: config.apiKey,
+    };
+
+    // Spawn CLI process
+    const child = spawn(
+      'npx',
+      ['ai-code-review', target, '--model', config.model, '--review-type', config.reviewType, '--output-format', 'json'],
+      { env }
+    );
+
+    let output = '';
+
+    child.stdout.on('data', (data) => {
+      const lines = data.toString().split('\n');
+      lines.forEach(line => {
+        if (line.trim()) {
+          onProgress(line);
+          output += line + '\n';
+        }
+      });
+    });
+
+    child.stderr.on('data', (data) => {
+      onProgress(`[LOG] ${data.toString()}`);
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(output);
+      } else {
+        reject(new Error(`Review process exited with code ${code}`));
       }
-    }
+    });
   });
 }
 
@@ -216,17 +292,18 @@ export async function performReviewWithProgress(
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const target = searchParams.get('target');
-  
+  const model = searchParams.get('model');
+
   const stream = new ReadableStream({
     start(controller) {
       performReviewWithProgress(
         target,
-        { /* config */ },
-        (progress) => {
-          controller.enqueue(`data: ${JSON.stringify(progress)}\n\n`);
+        { model, provider: 'openrouter', apiKey: process.env.API_KEY },
+        (line) => {
+          controller.enqueue(`data: ${JSON.stringify({ type: 'progress', line })}\n\n`);
         }
-      ).then((result) => {
-        controller.enqueue(`data: ${JSON.stringify({ type: 'complete', result })}\n\n`);
+      ).then((output) => {
+        controller.enqueue(`data: ${JSON.stringify({ type: 'complete', result: JSON.parse(output) })}\n\n`);
         controller.close();
       }).catch((error) => {
         controller.enqueue(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
@@ -234,7 +311,7 @@ export async function GET(request: Request) {
       });
     }
   });
-  
+
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
@@ -251,26 +328,25 @@ export async function GET(request: Request) {
 
 ```typescript
 // lib/secure-config.ts
-import { validateLibraryConfig } from '@bobmatnyc/ai-code-review/lib';
 
-export function createSecureConfig(userSettings: any) {
+export function createSecureEnv(userSettings: any) {
   // Never store API keys in database - use them directly from user input
-  const config = {
-    model: userSettings.defaultModel,
-    reviewType: userSettings.defaultReviewType,
-    apiKeys: {
-      // Get from secure environment or user session
-      openrouter: process.env.USER_OPENROUTER_KEY || userSettings.tempApiKey,
-      // ... other providers
-    }
+  const env = {
+    ...process.env,
   };
-  
-  const validation = validateLibraryConfig(config);
-  if (!validation.valid) {
-    throw new Error(`Invalid configuration: ${validation.errors.join(', ')}`);
+
+  // Add API keys to environment for CLI execution
+  if (userSettings.openrouterKey) {
+    env.AI_CODE_REVIEW_OPENROUTER_API_KEY = userSettings.openrouterKey;
   }
-  
-  return config;
+  if (userSettings.anthropicKey) {
+    env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = userSettings.anthropicKey;
+  }
+  if (userSettings.googleKey) {
+    env.AI_CODE_REVIEW_GOOGLE_API_KEY = userSettings.googleKey;
+  }
+
+  return env;
 }
 ```
 
@@ -278,19 +354,22 @@ export function createSecureConfig(userSettings: any) {
 
 ```typescript
 // lib/rate-limiting.ts
-import { performCodeReview } from '@bobmatnyc/ai-code-review/lib';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
+const execAsync = promisify(exec);
 const userRequestCounts = new Map<string, { count: number; resetTime: number }>();
 
 export async function performRateLimitedReview(
   userId: string,
   target: string,
-  config: any,
+  cliArgs: string,
+  env: any,
   limits: { maxPerHour: number }
 ) {
   const now = Date.now();
   const hourMs = 60 * 60 * 1000;
-  
+
   const userLimits = userRequestCounts.get(userId);
   if (!userLimits || now > userLimits.resetTime) {
     userRequestCounts.set(userId, { count: 1, resetTime: now + hourMs });
@@ -299,8 +378,9 @@ export async function performRateLimitedReview(
   } else {
     userLimits.count++;
   }
-  
-  return await performCodeReview({ target, config });
+
+  const { stdout } = await execAsync(`npx ai-code-review ${target} ${cliArgs}`, { env });
+  return JSON.parse(stdout);
 }
 ```
 
@@ -308,12 +388,16 @@ export async function performRateLimitedReview(
 
 ```typescript
 // lib/usage-tracking.ts
-import { performCodeReview } from '@bobmatnyc/ai-code-review/lib';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export async function performTrackedReview(
   userId: string,
   target: string,
-  config: any,
+  cliArgs: string,
+  env: any,
   onUsage: (usage: {
     userId: string;
     tokensUsed: number;
@@ -323,20 +407,21 @@ export async function performTrackedReview(
   }) => void
 ) {
   const startTime = Date.now();
-  
-  const result = await performCodeReview({ target, config });
-  
+
+  const { stdout } = await execAsync(`npx ai-code-review ${target} ${cliArgs}`, { env });
+  const result = JSON.parse(stdout);
+
   const duration = Date.now() - startTime;
-  
+
   // Track usage for billing/analytics
   onUsage({
     userId,
     tokensUsed: result.tokenUsage?.total || 0,
-    reviewType: config.reviewType,
-    model: config.model,
+    reviewType: result.reviewType || 'unknown',
+    model: result.model || 'unknown',
     duration
   });
-  
+
   return result;
 }
 ```
@@ -370,21 +455,33 @@ const config = {
 
 ```typescript
 // lib/error-handling.ts
-import { performCodeReview } from '@bobmatnyc/ai-code-review/lib';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
-export async function safePerformReview(target: string, config: any) {
+const execAsync = promisify(exec);
+
+export async function safePerformReview(target: string, cliArgs: string, env: any) {
   try {
-    return await performCodeReview({ target, config });
+    const { stdout, stderr } = await execAsync(
+      `npx ai-code-review ${target} ${cliArgs}`,
+      { env, maxBuffer: 1024 * 1024 * 10 }
+    );
+
+    if (stderr) {
+      console.warn('CLI warnings:', stderr);
+    }
+
+    return JSON.parse(stdout);
   } catch (error) {
     // Log error for debugging
     console.error('Review failed:', error);
-    
+
     // Return user-friendly error
     if (error.message.includes('API key')) {
       throw new Error('Invalid API key. Please check your configuration.');
     } else if (error.message.includes('rate limit')) {
       throw new Error('Rate limit exceeded. Please try again later.');
-    } else if (error.message.includes('timeout')) {
+    } else if (error.message.includes('timeout') || error.message.includes('maxBuffer')) {
       throw new Error('Review timed out. Try reviewing a smaller codebase.');
     } else {
       throw new Error('Review failed. Please try again.');
@@ -395,13 +492,35 @@ export async function safePerformReview(target: string, config: any) {
 
 ## 🎯 Best Practices
 
-1. **Always validate configuration** before performing reviews
+1. **Use CLI wrapper approach** for simplest integration
 2. **Implement rate limiting** to prevent abuse
 3. **Never store API keys** in your database
-4. **Use progress callbacks** for better UX
+4. **Stream CLI output** for real-time progress updates
 5. **Handle errors gracefully** with user-friendly messages
-6. **Limit file/token counts** for performance
+6. **Set maxBuffer** appropriately for large codebases
 7. **Track usage** for billing and analytics
 8. **Implement proper logging** for debugging
+9. **Clean up temporary files** after reviews
+10. **Use child process timeouts** to prevent hung processes
 
-This integration approach keeps the CLI tool focused on its core functionality while providing a clean, powerful library interface for web applications! 🚀
+## 📝 Migration Notes
+
+If you previously used the `/lib` export (v4.4.x and earlier), you'll need to migrate to the CLI wrapper approach:
+
+**Before (v4.4.x)**:
+```typescript
+import { performCodeReview } from '@bobmatnyc/ai-code-review/lib';
+const result = await performCodeReview({ target, config });
+```
+
+**After (v4.5.0+)**:
+```typescript
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+const { stdout } = await execAsync(`npx ai-code-review ${target} --output-format json`, { env });
+const result = JSON.parse(stdout);
+```
+
+This CLI-first approach provides better isolation, easier debugging, and aligns with the tool's primary design as a command-line application! 🚀
