@@ -2,6 +2,74 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.5.0] - 2025-11-16
+
+### Features
+- **MCP Workflow Integration**: Complete Model Context Protocol (MCP) support for seamless integration with Claude Desktop and other MCP clients
+  - `ai-code-review init` - Interactive project configuration wizard with API key setup and validation
+  - `ai-code-review install` - Smart toolchain auto-detection and MCP server registration
+  - Unified MCP `review` tool for both individual files and GitHub pull requests
+  - Structured JSON output conforming to MCP protocol specifications
+  - Auto-detection of 8+ project types: Node.js, Python, Go, Rust, Ruby, Java, PHP, .NET
+- **Library Interface for Programmatic Usage**: New programmatic API for web and application integration
+  - Package exports available via `@bobmatnyc/ai-code-review/lib`
+  - Clean separation between CLI and library interfaces
+  - Example integration code provided in `examples/web-integration.ts`
+  - Enables embedding AI code review capabilities in custom applications
+
+### Improvements
+- **Code Quality Enhancements**: Comprehensive codebase cleanup and type safety improvements
+  - Fixed 69 lint errors (37 type annotations, 26 unused variables, 6 regex patterns)
+  - Enhanced TypeScript type safety throughout the codebase
+  - All 536 tests passing with improved test coverage
+- **New Utilities**: Enhanced developer experience with intelligent automation
+  - Smart toolchain auto-detection (npm, yarn, pnpm, bun for Node.js projects)
+  - Project configuration management with validation
+  - API key validation and secure storage
+  - Improved error messages and user guidance
+- **Configuration System**: Enhanced project-level configuration
+  - Project-level config stored in `.ai-code-review/config.json`
+  - Enhanced `.gitignore` patterns for better file exclusion
+  - Secure API key storage with proper permissions
+
+### Documentation
+- **Comprehensive Documentation Overhaul**: 96% documentation quality score achieved
+  - Created `DOCUMENTATION_INDEX.md` indexing 85+ documentation files
+  - Complete MCP workflow integration guide with step-by-step instructions
+  - Organized documentation structure:
+    - MCP-specific docs in `docs/mcp/`
+    - Reference documentation in `docs/reference/`
+    - Development guides and API documentation
+  - Fixed duplicate content and version inconsistencies in README
+  - Established `PROJECT_ORGANIZATION.md` standard for consistent project structure
+  - Clear 2-click navigation to all documentation
+
+### Dependencies
+- **New**: Added `@modelcontextprotocol/sdk` (^1.0.4) for MCP protocol support
+
+### Migration Notes
+- **No Breaking Changes**: This release is fully backward compatible with v4.4.x
+- **New Features Setup**:
+  - Run `ai-code-review init` to set up API keys and project configuration
+  - Run `ai-code-review install` to enable MCP features in your development environment
+  - MCP integration is optional - existing CLI workflows continue to work unchanged
+- **Project Organization**: Documentation has been reorganized for better discoverability
+  - Main documentation remains in root directory
+  - Specialized docs moved to appropriate subdirectories
+  - Check `DOCUMENTATION_INDEX.md` for complete documentation map
+
+### Statistics
+- 27 new files created
+- 43 files modified
+- ~4,500 lines of code added
+- 67 total files changed
+- Documentation coverage: 85+ files indexed
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.5.0
+```
+
 ## [4.4.10] - 2025-10-22
 
 ### Changes
