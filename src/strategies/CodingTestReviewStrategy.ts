@@ -130,7 +130,7 @@ export class CodingTestReviewStrategy extends BaseReviewStrategy {
     this.initializeAIDetectionWithConfig(effectiveConfig);
 
     // Collect CI data if applicable
-    let ciData;
+    let ciData: unknown;
     if (this.shouldCollectCIData(files, options)) {
       logger.info('Collecting CI data for coding test evaluation...');
       ciData = await collectCIData(process.cwd());

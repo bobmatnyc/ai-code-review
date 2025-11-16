@@ -210,25 +210,23 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
           // Log the result immediately after the API call
           logger.debug(`API call completed for pass ${passNumber}, attempt ${chunkRetryCount + 1}`);
           logger.debug(`  Result exists: ${!!chunkResult}`);
-          logger.debug(`  Content exists: ${!!(chunkResult && chunkResult.content)}`);
+          logger.debug(`  Content exists: ${!!(chunkResult?.content)}`);
           logger.debug(
-            `  Content length: ${chunkResult && chunkResult.content ? chunkResult.content.length : 'N/A'}`,
+            `  Content length: ${chunkResult?.content ? chunkResult.content.length : 'N/A'}`,
           );
-          logger.debug(
-            `  Model used: ${chunkResult && chunkResult.modelUsed ? chunkResult.modelUsed : 'N/A'}`,
-          );
+          logger.debug(`  Model used: ${chunkResult?.modelUsed ? chunkResult.modelUsed : 'N/A'}`);
 
           // Validate that we got valid content
           if (!chunkResult || !chunkResult.content || chunkResult.content.trim() === '') {
             // Enhanced error logging for debugging
             logger.error(`Empty or invalid chunk result for pass ${passNumber}:`);
             logger.error(`  chunkResult exists: ${!!chunkResult}`);
-            logger.error(`  chunkResult.content exists: ${!!(chunkResult && chunkResult.content)}`);
+            logger.error(`  chunkResult.content exists: ${!!(chunkResult?.content)}`);
             logger.error(
-              `  chunkResult.content length: ${chunkResult && chunkResult.content ? chunkResult.content.length : 'N/A'}`,
+              `  chunkResult.content length: ${chunkResult?.content ? chunkResult.content.length : 'N/A'}`,
             );
             logger.error(
-              `  chunkResult.modelUsed: ${chunkResult && chunkResult.modelUsed ? chunkResult.modelUsed : 'N/A'}`,
+              `  chunkResult.modelUsed: ${chunkResult?.modelUsed ? chunkResult.modelUsed : 'N/A'}`,
             );
             logger.error(`  chunkFiles count: ${chunkFiles.length}`);
             logger.error(`  chunkFiles paths: ${chunkFiles.map((f) => f.path).join(', ')}`);
@@ -576,10 +574,10 @@ This review used a multi-pass approach with context maintenance between passes t
   private async generateConsolidatedReport(
     multiPassResult: ReviewResult,
     apiClientConfig: ApiClientConfig,
-    files: FileInfo[],
+    _files: FileInfo[],
     projectName: string,
-    projectDocs: ProjectDocs | null,
-    options: ReviewOptions,
+    _projectDocs: ProjectDocs | null,
+    _options: ReviewOptions,
   ): Promise<ReviewResult | undefined> {
     try {
       // Validate API client configuration for consolidation

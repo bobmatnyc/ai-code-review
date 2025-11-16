@@ -690,7 +690,7 @@ async function getDependencies(
 
         // Simple regex to extract gem names
         const gemRegex = /gem\s+['"]([^'"]+)['"](?:,\s*['"]([^'"]+)['"])?/g;
-        let match;
+        let match: RegExpExecArray | null;
         while ((match = gemRegex.exec(gemfile)) !== null) {
           dependencies[match[1]] = match[2] || '*';
         }

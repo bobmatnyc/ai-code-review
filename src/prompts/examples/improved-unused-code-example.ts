@@ -165,7 +165,7 @@ async function improvedUnusedCodeExample() {
   // );
 
   // Try to get the improved prompt template, fallback to standard if not found
-  let rawPrompt;
+  let rawPrompt: string;
   try {
     rawPrompt = await promptManager.getPromptTemplate('unused-code', {
       language: 'typescript',

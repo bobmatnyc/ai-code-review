@@ -19,7 +19,7 @@ export function extractMermaidDiagrams(content: string): string[] {
 
   // Match Mermaid code blocks in various formats
   const mermaidBlockRegex = /```mermaid\n([\s\S]*?)```/g;
-  let match;
+  let match: RegExpExecArray | null;
 
   while ((match = mermaidBlockRegex.exec(content)) !== null) {
     diagrams.push(match[1].trim());

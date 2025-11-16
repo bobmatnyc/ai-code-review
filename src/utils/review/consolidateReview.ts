@@ -114,7 +114,7 @@ ${consolidationPrompt}`;
         if (client.generateReview) {
           logger.debug('[CONSOLIDATION] Using OpenRouter generateReview method');
 
-          let consolidationResult;
+          let consolidationResult: ReviewResult | undefined;
           let retryCount = 0;
           const maxRetries = 3;
 
@@ -358,7 +358,7 @@ ${consolidationPrompt}`;
           '[CONSOLIDATION] Using generateReview method with custom consolidation prompt',
         );
 
-        let consolidationResult;
+        let consolidationResult: ReviewResult | undefined;
         let retryCount = 0;
         const maxRetries = 3;
 
@@ -564,7 +564,7 @@ function createFallbackConsolidation(review: ReviewResult): string {
   const passRegex = /## Pass (\d+): Review of (\d+) Files([\s\S]*?)(?=## Pass \d+:|$)/g;
   const passes: { passNumber: number; fileCount: number; content: string }[] = [];
 
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = passRegex.exec(review.content)) !== null) {
     const [, passNumberStr, fileCountStr, passContent] = match;
     passes.push({
@@ -581,7 +581,7 @@ function createFallbackConsolidation(review: ReviewResult): string {
     logger.warn('Could not extract passes using standard format, trying alternative patterns');
     // Try simpler pass detection
     const altPassRegex = /Pass (\d+)[:\s]+([\s\S]*?)(?=Pass \d+|$)/gi;
-    let altMatch;
+    let altMatch: RegExpExecArray | null;
     while ((altMatch = altPassRegex.exec(review.content)) !== null) {
       const [, passNumberStr, passContent] = altMatch;
       passes.push({
@@ -610,14 +610,14 @@ function createFallbackConsolidation(review: ReviewResult): string {
 
     // Format 1: - **Issue title:** <title>
     const issueTitleRegex1 = /- \*\*Issue title:\*\* (.*?)(?=\n|$)/g;
-    let match1;
+    let match1: RegExpExecArray | null;
     while ((match1 = issueTitleRegex1.exec(content)) !== null) {
       titles.push(match1[1].trim());
     }
 
     // Format 2: #### <title> (o3 format)
     const issueTitleRegex2 = /####\s+([^\n]+)/g;
-    let match2;
+    let match2: RegExpExecArray | null;
     while ((match2 = issueTitleRegex2.exec(content)) !== null) {
       titles.push(match2[1].trim());
     }
@@ -626,7 +626,7 @@ function createFallbackConsolidation(review: ReviewResult): string {
     const issueTitleRegex3 = /^[\s-]*\*?\s*(.+?)$/gm;
     if (titles.length === 0) {
       // Only use this if no other format found
-      let match3;
+      let match3: RegExpExecArray | null;
       while ((match3 = issueTitleRegex3.exec(content)) !== null) {
         const line = match3[1].trim();
         // Filter out meta lines
@@ -650,19 +650,19 @@ function createFallbackConsolidation(review: ReviewResult): string {
     const passContent = pass.content;
 
     // Extract findings by priority
-    let highMatch;
+    let highMatch: RegExpExecArray | null;
     highPriorityRegex.lastIndex = 0; // Reset regex
     while ((highMatch = highPriorityRegex.exec(passContent)) !== null) {
       extractIssueTitles(highMatch[1]).forEach((title) => highPriorityFindings.add(title));
     }
 
-    let mediumMatch;
+    let mediumMatch: RegExpExecArray | null;
     mediumPriorityRegex.lastIndex = 0; // Reset regex
     while ((mediumMatch = mediumPriorityRegex.exec(passContent)) !== null) {
       extractIssueTitles(mediumMatch[1]).forEach((title) => mediumPriorityFindings.add(title));
     }
 
-    let lowMatch;
+    let lowMatch: RegExpExecArray | null;
     lowPriorityRegex.lastIndex = 0; // Reset regex
     while ((lowMatch = lowPriorityRegex.exec(passContent)) !== null) {
       extractIssueTitles(lowMatch[1]).forEach((title) => lowPriorityFindings.add(title));

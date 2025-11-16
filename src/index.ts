@@ -226,6 +226,7 @@ import { runApiConnectionTests } from './__tests__/apiConnection.test';
 import { type CliOptions, mapArgsToReviewOptions, parseArguments } from './cli/argumentParser';
 import { listModelConfigs } from './clients/utils/modelLister';
 import { handleGenerateConfigCommand } from './commands/generateConfig';
+import { mcpServerCommand } from './commands/mcpServer';
 import { reviewCode } from './commands/reviewCode';
 import { handleSyncGitHubProjectsCommand } from './commands/syncGithubProjects';
 import { testBuildCommand } from './commands/testBuild';
@@ -235,7 +236,7 @@ import { PromptManager } from './prompts/PromptManager';
 // Import other dependencies after environment setup
 import { getConfig, hasAnyApiKey, validateConfigForSelectedModel } from './utils/config';
 import { initI18n, t } from './utils/i18n';
-import { VERSION, VERSION_WITH_BUILD } from './version';
+import { VERSION_WITH_BUILD } from './version';
 
 // Main function to run the application
 async function main() {
@@ -248,7 +249,7 @@ async function main() {
     await initI18n('en');
 
     // Parse command-line arguments
-    let argv;
+    let argv: ReturnType<typeof parseArguments>;
     try {
       argv = parseArguments();
     } catch (parseError) {
@@ -478,9 +479,16 @@ async function main() {
     // Register the test-build command
     program.addCommand(testBuildCommand);
 
+    // Register the MCP server command
+    program.addCommand(mcpServerCommand);
+
     // Process model testing commands if specified
     // modelTestArgs already declared above
-    if (modelTestArgs[0] === 'model-test' || modelTestArgs[0] === 'test-build') {
+    if (
+      modelTestArgs[0] === 'model-test' ||
+      modelTestArgs[0] === 'test-build' ||
+      modelTestArgs[0] === 'mcp'
+    ) {
       program.parse(process.argv);
       return;
     }
@@ -488,6 +496,20 @@ async function main() {
     // Handle GitHub Projects sync command
     if (modelTestArgs[0] === 'sync-github-projects') {
       await handleSyncGitHubProjectsCommand();
+      return;
+    }
+
+    // Handle init command
+    if (modelTestArgs[0] === 'init') {
+      const { handleInitCommand } = await import('./commands/init');
+      await handleInitCommand();
+      return;
+    }
+
+    // Handle install command
+    if (modelTestArgs[0] === 'install') {
+      const { handleInstallCommand } = await import('./commands/install');
+      await handleInstallCommand();
       return;
     }
 

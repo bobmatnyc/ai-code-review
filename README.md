@@ -4,25 +4,7 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 
 ## What's New in v4.4.6
 
-### Flutter/Dart Support and Comprehensive Review Type in v4.4.6
-- **🎯 Flutter/Dart Language Support**: Complete Flutter and Dart project support with specialized templates
-  - Automatic Flutter project detection via pubspec.yaml, lib/ directory, and .dart files
-  - Flutter-specific comprehensive review templates covering widget optimization, state management, and mobile performance
-  - Dart language-specific templates for modern Dart 3.x features, null safety, and async programming patterns
-  - Enhanced framework detection with improved confidence scoring for Flutter projects
-- **📋 Comprehensive Review Type**: New review type combining all analysis perspectives in a single assessment
-  - Integrates quick-fixes, security analysis, performance review, and architectural assessment
-  - Available for all supported languages and frameworks with specialized templates
-  - Provides complete codebase health assessment with prioritized recommendations
-  - Structured output with executive summary, implementation roadmap, and summary metrics
-- **🔧 Framework Detection Improvements**: Enhanced automatic detection for better developer experience
-  - Added Dart language detection to primary language analysis
-  - Improved pubspec.yaml parsing for Flutter dependency analysis
-  - Better semantic analysis integration with TreeSitter for Dart code
-
-## What's New in v4.4.6
-
-### Flutter/Dart Support and Comprehensive Review Type in v4.4.6
+### Flutter/Dart Support and Comprehensive Review Type
 - **🎯 Flutter/Dart Language Support**: Complete Flutter and Dart project support with specialized templates
   - Automatic Flutter project detection via pubspec.yaml, lib/ directory, and .dart files
   - Flutter-specific comprehensive review templates covering widget optimization, state management, and mobile performance
@@ -561,6 +543,142 @@ npx ai-code-review [target] [options]
 # If no target is specified, it defaults to the current directory (".")
 ```
 
+### 🤖 MCP Integration (NEW!)
+
+AI Code Review now supports the **Model Context Protocol (MCP)**, making it accessible through MCP-compatible AI assistants like Claude Desktop!
+
+## 📚 Library Usage (NEW!)
+
+AI Code Review can now be used as a **library** in other Node.js applications! This is perfect for integrating code analysis into web applications, CI/CD pipelines, or other tools.
+
+### Installation as Library
+
+```bash
+npm install @bobmatnyc/ai-code-review
+```
+
+### Basic Usage
+
+```typescript
+import { performCodeReview, testModelConnection } from '@bobmatnyc/ai-code-review/lib';
+
+// Perform a code review
+const result = await performCodeReview({
+  target: './src',
+  config: {
+    model: 'openrouter:anthropic/claude-3.5-sonnet',
+    reviewType: 'security',
+    apiKeys: {
+      openrouter: 'your-api-key-here'
+    },
+    outputFormat: 'json'
+  },
+  options: {
+    maxFiles: 50,
+    onProgress: (progress) => {
+      console.log(`${progress.stage}: ${progress.progress}%`);
+    }
+  }
+});
+
+console.log('Review completed:', result);
+```
+
+### Advanced Usage
+
+```typescript
+import {
+  orchestrateReview,
+  createAIClient,
+  getAvailableModels,
+  validateLibraryConfig
+} from '@bobmatnyc/ai-code-review/lib';
+
+// Test model connection
+const testResult = await testModelConnection('openrouter:anthropic/claude-3.5-sonnet');
+if (!testResult.success) {
+  console.error('Model test failed:', testResult.error);
+}
+
+// Get available models
+const models = getAvailableModels();
+console.log('Available models:', models);
+
+// Validate configuration
+const config = { /* your config */ };
+const validation = validateLibraryConfig(config);
+if (!validation.valid) {
+  console.error('Config errors:', validation.errors);
+}
+```
+
+### Web Application Integration
+
+Perfect for Next.js API routes, Express servers, or any Node.js web application:
+
+```typescript
+// pages/api/review.ts (Next.js)
+import { performCodeReview } from '@bobmatnyc/ai-code-review/lib';
+
+export default async function handler(req, res) {
+  try {
+    const result = await performCodeReview({
+      target: req.body.target,
+      config: {
+        model: req.body.model,
+        apiKeys: {
+          openrouter: process.env.OPENROUTER_API_KEY
+        }
+      }
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+```
+
+```bash
+# Start the MCP server
+ai-code-review mcp
+
+# Start with debug logging
+ai-code-review mcp --debug
+```
+
+**Configure Claude Desktop:**
+
+Add to your Claude Desktop configuration file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "ai-code-review": {
+      "command": "ai-code-review",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+**Available MCP Tools:**
+- `code-review` - Comprehensive code analysis and review
+- `pr-review` - Pull Request diff analysis and review
+- `git-analysis` - Git repository history and pattern analysis
+- `file-analysis` - Individual file analysis and metrics
+
+**Example Usage in Claude:**
+- "Review this directory for security issues"
+- "Analyze the git commit history for patterns"
+- "Perform a comprehensive code review of src/"
+- "Check the complexity of this TypeScript file"
+
+📖 **[Complete MCP Integration Guide](docs/MCP_INTEGRATION.md)**
+📖 **[Web Integration Guide](docs/WEB_INTEGRATION.md)**
+
 ### Examples
 
 ```bash
@@ -980,10 +1098,17 @@ ai-code-review sync-github-projects --token <token> --org <org> --output-dir ./p
 ### Available Subcommands
 
 1. **`ai-code-review code-review [target]`** - Run a code review on the specified target (default)
-2. **`ai-code-review test-model`** - Test the configured model with a simple prompt
-3. **`ai-code-review test-build`** - Test the build by running a simple command
-4. **`ai-code-review sync-github-projects`** - Sync GitHub projects to local directory
-5. **`ai-code-review generate-config`** - Generate a sample configuration file
+2. **`ai-code-review mcp`** - Start the MCP (Model Context Protocol) server 🆕
+3. **`ai-code-review test-model`** - Test the configured model with a simple prompt
+4. **`ai-code-review test-build`** - Test the build by running a simple command
+5. **`ai-code-review sync-github-projects`** - Sync GitHub projects to local directory
+6. **`ai-code-review generate-config`** - Generate a sample configuration file
+
+#### mcp Options
+- **`--debug`** - Enable debug logging (default: false)
+- **`--name <name>`** - Server name (default: "ai-code-review")
+- **`--max-requests <number>`** - Maximum concurrent requests (default: 5)
+- **`--timeout <number>`** - Request timeout in milliseconds (default: 300000)
 
 #### sync-github-projects Options
 - **`--token <token>`** - GitHub token [required]

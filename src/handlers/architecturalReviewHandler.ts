@@ -24,7 +24,7 @@ import {
 } from '../clients/openRouterClient';
 import { addFileTreeToReview } from '../core/OutputManager';
 import { formatReviewOutput } from '../formatters/outputFormatter';
-import type { FileInfo, ReviewOptions, ReviewType } from '../types/review';
+import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../types/review';
 // Import the getApiKeyType function from a shared utilities file
 import { getApiKeyType } from '../utils/api/apiUtils';
 import { logError } from '../utils/errorLogger';
@@ -93,7 +93,7 @@ export async function handleArchitecturalReview(
 
   try {
     // Generate architectural review
-    let review;
+    let review: ReviewResult;
 
     // Check which API key is available based on the model specified in environment variables
     const apiKeyType = getApiKeyType();

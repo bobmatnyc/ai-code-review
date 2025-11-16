@@ -94,7 +94,7 @@ export class ClientFactory {
     logger.debug(`[ClientFactory] Original model: ${modelName}, cleaned: ${cleanedModelName}`);
 
     // Parse the cleaned model name to get the provider/adapter
-    const [adapter, restOfModel] = cleanedModelName.includes(':')
+    const [adapter, _restOfModel] = cleanedModelName.includes(':')
       ? cleanedModelName.split(':')
       : [cleanedModelName, ''];
 

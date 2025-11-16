@@ -82,7 +82,7 @@ export class FindingsExtractor {
     const numberedRegex = /^[\s]*\d+\.\s+(.+)$/gm;
     const dashRegex = /^[\s]*-\s+(.+)$/gm;
 
-    let match;
+    let match: RegExpExecArray | null;
 
     // Extract bullet points
     while ((match = bulletRegex.exec(content)) !== null) {

@@ -530,7 +530,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
       try {
         logger.info(`Generating architectural review with OpenAI ${this.modelName}...`);
 
-        let response;
+        let response: Response;
         let content: string;
 
         // Check if we should use tool calling

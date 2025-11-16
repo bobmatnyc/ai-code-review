@@ -38,7 +38,7 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
 
       for (const pattern of patterns) {
         const match = text.match(pattern);
-        if (match && match[1]) {
+        if (match?.[1]) {
           const content = match[1].trim();
           // Check if it looks like JSON
           if (content.startsWith('{') && content.endsWith('}')) {
@@ -152,7 +152,7 @@ function attemptJsonRecovery(content: string): StructuredReview | null {
         }
 
         // Insert closing quote before the structural character
-        jsonStr = jsonStr.substring(0, closeIndex) + '"' + jsonStr.substring(closeIndex);
+        jsonStr = `${jsonStr.substring(0, closeIndex)}"${jsonStr.substring(closeIndex)}`;
       }
 
       return jsonStr;

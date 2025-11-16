@@ -23,7 +23,8 @@
       "suspicious": {
         "noExplicitAny": "warn",
         "noImplicitAnyLet": "error",
-        "noAssignInExpressions": "warn"
+        "noAssignInExpressions": "warn",
+        "noControlCharactersInRegex": "off"
       },
       "style": {
         "noInferrableTypes": "error",

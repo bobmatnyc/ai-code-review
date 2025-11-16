@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import { getModelsByProvider, MODEL_MAP, type Provider } from '../clients/utils/modelMaps';
 import {
+  type TestResult,
   testAnthropicModel,
   testGeminiModel,
   testOpenAIModel,
@@ -73,7 +74,7 @@ async function testSpecificModel(modelStr: string): Promise<void> {
     `Testing model: ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(fullModelKey)})`,
   );
 
-  let result;
+  let result: TestResult;
   switch (provider as Provider) {
     case 'gemini':
       result = await testGeminiModel(modelMapping.apiIdentifier);
@@ -121,7 +122,7 @@ async function testAllModels(): Promise<void> {
         `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `,
       );
 
-      let result;
+      let result: TestResult;
       switch (provider) {
         case 'gemini':
           result = await testGeminiModel(modelMapping.apiIdentifier);
@@ -191,7 +192,7 @@ async function testProviderModels(providerStr: string) {
     const modelMapping = MODEL_MAP[modelKey];
     process.stdout.write(`  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `);
 
-    let result;
+    let result: TestResult;
     switch (provider) {
       case 'gemini':
         result = await testGeminiModel(modelMapping.apiIdentifier);
@@ -260,7 +261,7 @@ async function testDefaultModels() {
       `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(defaultModelKey)})... `,
     );
 
-    let result;
+    let result: TestResult;
     switch (provider) {
       case 'gemini':
         result = await testGeminiModel(modelMapping.apiIdentifier);

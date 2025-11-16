@@ -103,7 +103,7 @@ async function improvedQuickFixesExample() {
   // );
 
   // Try to get the improved prompt template, fallback to standard if not found
-  let rawPrompt;
+  let rawPrompt: string;
   try {
     rawPrompt = await promptManager.getPromptTemplate('quick-fixes', {
       language: 'typescript',

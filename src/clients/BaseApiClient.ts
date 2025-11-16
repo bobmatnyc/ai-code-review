@@ -16,7 +16,7 @@ import type {
 import logger from '../utils/logger';
 import type { ProjectDocs } from '../utils/projectDocs';
 import type { ApiClientConfig, IApiClient, ModelSupportInfo } from './IApiClient';
-import { ApiClientError, InitializationError, parseModelName } from './IApiClient';
+import { ApiClientError, InitializationError } from './IApiClient';
 
 /**
  * Base implementation of the IApiClient interface
@@ -185,8 +185,8 @@ export abstract class BaseApiClient implements IApiClient {
    */
   async estimateCost(
     fileInfos: FileInfo[],
-    reviewType: ReviewType,
-    options?: ReviewOptions,
+    _reviewType: ReviewType,
+    _options?: ReviewOptions,
   ): Promise<CostInfo> {
     // Calculate total content length
     const totalContent = fileInfos.reduce((sum, file) => sum + file.content.length, 0);

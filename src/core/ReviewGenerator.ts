@@ -197,12 +197,10 @@ export async function generateReview(
   logger.debug(`  Client type: ${apiClientConfig.clientType}`);
   logger.debug(`  Model: ${apiClientConfig.modelName}`);
   logger.debug(`  Result exists: ${!!reviewResult}`);
-  logger.debug(`  Content exists: ${!!(reviewResult && reviewResult.content)}`);
+  logger.debug(`  Content exists: ${!!(reviewResult?.content)}`);
+  logger.debug(`  Content length: ${reviewResult?.content ? reviewResult.content.length : 'N/A'}`);
   logger.debug(
-    `  Content length: ${reviewResult && reviewResult.content ? reviewResult.content.length : 'N/A'}`,
-  );
-  logger.debug(
-    `  Content preview: ${reviewResult && reviewResult.content ? reviewResult.content.substring(0, 100).replace(/\n/g, ' ') + '...' : 'N/A'}`,
+    `  Content preview: ${reviewResult?.content ? `${reviewResult.content.substring(0, 100).replace(/\n/g, ' ')}...` : 'N/A'}`,
   );
 
   // Get package version from process.env or hardcoded value

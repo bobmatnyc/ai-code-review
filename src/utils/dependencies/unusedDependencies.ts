@@ -54,7 +54,7 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
     }
 
     // Run depcheck with JSON output
-    let result;
+    let result: ReturnType<typeof spawnSync>;
     if (useLocalDepcheck) {
       logger.info(`Running depcheck from: ${depcheckPath}`);
       result = spawnSync('node', [depcheckPath, '--json'], {
@@ -81,17 +81,21 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
     }
 
     // Parse the JSON output
+    // Convert stdout to string if it's a Buffer
+    const stdout =
+      typeof result.stdout === 'string' ? result.stdout : result.stdout?.toString() || '';
+
     try {
       // Debug the output to see what we're getting
-      logger.debug(`Raw depcheck output type: ${typeof result.stdout}`);
-      logger.debug(`Raw depcheck output sample: ${result.stdout.substring(0, 100)}...`);
+      logger.debug(`Raw depcheck output type: ${typeof stdout}`);
+      logger.debug(`Raw depcheck output sample: ${stdout.substring(0, 100)}...`);
 
       // Handle special case with depcheck's output which might be array notation
-      if (result.stdout.trim().startsWith('[')) {
+      if (stdout.trim().startsWith('[')) {
         // This might be just an array of unused dependencies in string format
         try {
           // Try parsing as an array of strings
-          const parsedArray = JSON.parse(result.stdout);
+          const parsedArray = JSON.parse(stdout);
           if (Array.isArray(parsedArray) && parsedArray.every((item) => typeof item === 'string')) {
             logger.info(
               `Found ${parsedArray.length} unused dependencies directly from array output`,
@@ -104,7 +108,7 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
       }
 
       // Regular case - try to parse full JSON object output
-      const outputData = JSON.parse(result.stdout);
+      const outputData = JSON.parse(stdout);
 
       if (!outputData || typeof outputData !== 'object') {
         logger.warn('Depcheck returned invalid JSON structure');
@@ -146,12 +150,12 @@ export async function findUnusedDependencies(projectPath: string): Promise<strin
       return unusedDeps;
     } catch (parseError) {
       logger.error(`Error parsing depcheck output: ${parseError}`);
-      logger.debug(`Raw depcheck output: ${result.stdout.substring(0, 200)}...`);
+      logger.debug(`Raw depcheck output: ${stdout.substring(0, 200)}...`);
 
       // Try a simple fallback parsing method for common depcheck output formats
       try {
         // Some versions of depcheck output a simple list of names
-        const lines = result.stdout.split('\n').filter(Boolean);
+        const lines = stdout.split('\n').filter(Boolean);
         if (lines.length > 0 && lines[0].trim().match(/^[a-zA-Z0-9@/-]+$/)) {
           logger.info(`Extracted ${lines.length} dependencies from plain text output`);
           return lines;

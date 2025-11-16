@@ -308,7 +308,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       logger.debug(`[OpenRouter] API Response structure:`, {
         hasChoices: !!data.choices,
         choicesLength: data.choices?.length || 0,
-        firstChoiceExists: !!(data.choices && data.choices[0]),
+        firstChoiceExists: !!data.choices?.[0],
         firstChoiceMessage: data.choices?.[0]?.message ? 'exists' : 'missing',
         contentExists: !!responseContent,
         contentLength: responseContent.length,
@@ -317,7 +317,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         isTruncated: isTruncated,
         maxTokensUsed:
           getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
-        fullResponse: JSON.stringify(data).substring(0, 500) + '...',
+        fullResponse: `${JSON.stringify(data).substring(0, 500)}...`,
       });
 
       if (data.choices && data.choices.length > 0) {
@@ -397,7 +397,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           ];
           for (const pattern of patterns) {
             const match = content.match(pattern);
-            if (match && match[1]) {
+            if (match?.[1]) {
               const extracted = match[1].trim();
               if (extracted.startsWith('{') && extracted.endsWith('}')) {
                 return extracted;
@@ -448,7 +448,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           // If we couldn't find balanced braces, try to fix unterminated strings
           if (inString) {
             // Add a closing quote and try to close the object
-            return content.substring(startIdx) + '"}';
+            return `${content.substring(startIdx)}"}`;
           }
 
           return null;
@@ -458,7 +458,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         () => content,
       ];
 
-      let jsonContent = null;
+      let _jsonContent = null;
       for (const strategy of jsonExtractionStrategies) {
         try {
           const extracted = strategy();
@@ -468,7 +468,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
             // Validate that it has the expected structure
             if (structuredData && typeof structuredData === 'object') {
-              jsonContent = extracted;
+              _jsonContent = extracted;
               logger.debug('Successfully extracted and parsed JSON');
               break;
             }
@@ -681,7 +681,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       logger.debug(`[OpenRouter] API Response structure:`, {
         hasChoices: !!data.choices,
         choicesLength: data.choices?.length || 0,
-        firstChoiceExists: !!(data.choices && data.choices[0]),
+        firstChoiceExists: !!data.choices?.[0],
         firstChoiceMessage: data.choices?.[0]?.message ? 'exists' : 'missing',
         contentExists: !!responseContent,
         contentLength: responseContent.length,
@@ -690,7 +690,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         isTruncated: isTruncated,
         maxTokensUsed:
           getMaxTokensForReviewType(reviewType, options?.isConsolidation) || 'unlimited',
-        fullResponse: JSON.stringify(data).substring(0, 500) + '...',
+        fullResponse: `${JSON.stringify(data).substring(0, 500)}...`,
       });
 
       if (data.choices && data.choices.length > 0) {
@@ -765,7 +765,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           ];
           for (const pattern of patterns) {
             const match = content.match(pattern);
-            if (match && match[1]) {
+            if (match?.[1]) {
               const extracted = match[1].trim();
               if (extracted.startsWith('{') && extracted.endsWith('}')) {
                 return extracted;
@@ -816,7 +816,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
           // If we couldn't find balanced braces, try to fix unterminated strings
           if (inString) {
             // Add a closing quote and try to close the object
-            return content.substring(startIdx) + '"}';
+            return `${content.substring(startIdx)}"}`;
           }
 
           return null;
@@ -826,7 +826,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         () => content,
       ];
 
-      let jsonContent = null;
+      let _jsonContent = null;
       for (const strategy of jsonExtractionStrategies) {
         try {
           const extracted = strategy();
@@ -836,7 +836,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
             // Validate that it has the expected structure
             if (structuredData && typeof structuredData === 'object') {
-              jsonContent = extracted;
+              _jsonContent = extracted;
               logger.debug('Successfully extracted and parsed JSON');
               break;
             }

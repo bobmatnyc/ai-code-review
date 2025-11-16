@@ -410,7 +410,7 @@ async function getProjectFileSample(projectPath: string): Promise<ProjectFileSam
         // Extract imports using regex
         const importRegex = /import\s+(?:(?:{[^}]*})|(?:[^{}]*?))\s+from\s+['"]([^'"]+)['"]/g;
         const imports: string[] = [];
-        let match;
+        let match: RegExpExecArray | null;
 
         while ((match = importRegex.exec(content)) !== null) {
           imports.push(match[1]);
@@ -420,7 +420,7 @@ async function getProjectFileSample(projectPath: string): Promise<ProjectFileSam
         const exportRegex =
           /export\s+(?:(?:default\s+)?(?:class|function|const|let|var|interface|type|enum)\s+(\w+))/g;
         const exports: string[] = [];
-        let exportMatch;
+        let exportMatch: RegExpExecArray | null;
 
         while ((exportMatch = exportRegex.exec(content)) !== null) {
           if (exportMatch[1]) {

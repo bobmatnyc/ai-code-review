@@ -32,7 +32,7 @@ export class ConsolidationService {
       passResults: ReviewResult[];
     },
   ): Promise<string> {
-    const { projectName, modelName, totalPasses, passResults } = options;
+    const { projectName, modelName } = options;
 
     try {
       logger.info(`Generating consolidated report for ${projectName} using ${modelName}...`);
@@ -68,7 +68,7 @@ export class ConsolidationService {
    */
   private async attemptAiConsolidation(
     multiPassResult: ReviewResult,
-    apiClientConfig: ApiClientConfig,
+    _apiClientConfig: ApiClientConfig,
     options: {
       projectName: string;
       modelName: string;
@@ -105,7 +105,7 @@ export class ConsolidationService {
    * @returns Enhanced fallback consolidation content
    */
   private createEnhancedFallbackConsolidation(
-    multiPassResult: ReviewResult,
+    _multiPassResult: ReviewResult,
     modelName: string,
     options: {
       projectName: string;
@@ -202,7 +202,7 @@ export class ConsolidationService {
     for (const pass of passResults) {
       if (!pass.content) continue;
 
-      const content = pass.content.toLowerCase();
+      const _content = pass.content.toLowerCase();
       const issueTexts = this.extractIssueTexts(pass.content);
 
       for (const issue of issueTexts) {
@@ -238,7 +238,7 @@ export class ConsolidationService {
     const bulletRegex = /^[\s]*[-*•]\s+(.+)$/gm;
     const numberedRegex = /^[\s]*\d+\.\s+(.+)$/gm;
 
-    let match;
+    let match: RegExpExecArray | null;
     while ((match = bulletRegex.exec(content)) !== null) {
       issues.push(match[1].trim());
     }

@@ -47,7 +47,7 @@ export class ImprovedQuickFixesReviewStrategy extends ConsolidatedReviewStrategy
     logger.info(`Executing improved quick fixes review strategy for ${files.length} files...`);
 
     // Collect CI data if reviewing TypeScript files
-    let ciData;
+    let ciData: unknown;
     if (
       options.language === 'typescript' ||
       files.some((f) => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))

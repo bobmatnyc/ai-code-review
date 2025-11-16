@@ -9,7 +9,7 @@ import type { FileInfo, ReviewOptions, ReviewResult, ReviewType } from '../../ty
 import logger from '../../utils/logger';
 import type { ProjectDocs } from '../../utils/projectDocs';
 import { BaseApiClient } from '../BaseApiClient';
-import type { ApiClientConfig, ModelSupportInfo } from '../IApiClient';
+import type { ModelSupportInfo } from '../IApiClient';
 import { ApiClientError } from '../IApiClient';
 
 /**
@@ -17,10 +17,6 @@ import { ApiClientError } from '../IApiClient';
  */
 export class OpenAIApiClient extends BaseApiClient {
   private openai: any; // OpenAI SDK instance
-
-  constructor(config: ApiClientConfig) {
-    super(config);
-  }
 
   /**
    * Check if this client supports the given model
@@ -68,7 +64,7 @@ export class OpenAIApiClient extends BaseApiClient {
         if (!OpenAI) {
           throw new Error('OpenAI class not found in openai module');
         }
-      } catch (importError) {
+      } catch (_importError) {
         throw new Error('OpenAI SDK not installed. Please run: npm install openai');
       }
 
@@ -306,7 +302,7 @@ export class OpenAIApiClient extends BaseApiClient {
     filePath: string,
     reviewType: ReviewType,
     projectDocs?: ProjectDocs | null,
-    options?: ReviewOptions,
+    _options?: ReviewOptions,
   ): string {
     let prompt = `Please review the following ${filePath} file:\n\n`;
 
@@ -328,7 +324,7 @@ export class OpenAIApiClient extends BaseApiClient {
     projectName: string,
     reviewType: ReviewType,
     projectDocs?: ProjectDocs | null,
-    options?: ReviewOptions,
+    _options?: ReviewOptions,
   ): string {
     let prompt = `Please review the following ${projectName} project:\n\n`;
 

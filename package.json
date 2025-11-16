@@ -3,7 +3,20 @@
   "version": "4.4.10",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./lib": {
+      "import": "./dist/lib/index.js",
+      "require": "./dist/lib/index.js",
+      "types": "./dist/lib/index.d.ts"
+    }
+  },
   "scripts": {
     "prebuild": "rm -rf dist && node scripts/increment-build-number.js",
     "build": "pnpm run test && pnpm run build:types && node scripts/build.js && node scripts/fix-openai-test.js && node scripts/sync-model-maps.js",
@@ -97,6 +110,7 @@
     "@anthropic-ai/tokenizer": "^0.0.4",
     "@google/generative-ai": "^0.24.0",
     "@langchain/core": "^0.3.44",
+    "@modelcontextprotocol/sdk": "^1.20.1",
     "@types/node-fetch": "^2.6.12",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",

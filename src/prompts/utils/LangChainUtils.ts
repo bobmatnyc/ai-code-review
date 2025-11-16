@@ -59,7 +59,7 @@ export class LangChainUtils {
    * @returns Structured output parser
    */
   static createReviewOutputParser(reviewType: ReviewType) {
-    let schema;
+    let schema: z.ZodObject<any>;
 
     switch (reviewType) {
       case 'quick-fixes':

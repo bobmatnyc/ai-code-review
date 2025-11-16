@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import { getModelsByProvider, MODEL_MAP, type Provider } from '../clients/utils/modelMaps';
 import {
+  type TestResult,
   testAnthropicModel,
   testGeminiModel,
   testOpenAIModel,
@@ -60,7 +61,7 @@ async function testAllModels(options: any): Promise<void> {
         );
       }
 
-      let result;
+      let result: TestResult;
       switch (provider) {
         case 'gemini':
           result = await testGeminiModel(modelMapping.apiIdentifier);
@@ -168,7 +169,7 @@ async function testProviderModels(provider: Provider, options: any): Promise<voi
       );
     }
 
-    let result;
+    let result: TestResult;
     switch (provider) {
       case 'gemini':
         result = await testGeminiModel(modelMapping.apiIdentifier);

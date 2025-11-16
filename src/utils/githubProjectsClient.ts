@@ -114,7 +114,7 @@ async function executeGraphQLQuery(query: string, variables: any, token: string)
  */
 export async function getProjectInfo(config: GitHubProjectsConfig): Promise<any> {
   try {
-    let query;
+    let query: string;
     const variables: any = {};
 
     if (config.projectId) {
@@ -408,7 +408,7 @@ export function parseProjectMd(content: string): { [key: string]: string } {
 
   // Split by level 2 headers (##)
   const sectionRegex = /^## (.+?)$([\s\S]*?)(?=^## |\s*$)/gm;
-  let match;
+  let match: RegExpExecArray | null;
 
   while ((match = sectionRegex.exec(content)) !== null) {
     const sectionTitle = match[1].trim();

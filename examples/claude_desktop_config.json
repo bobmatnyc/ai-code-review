@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ai-code-review": {
+      "command": "ai-code-review",
+      "args": ["mcp"],
+      "env": {
+        "AI_CODE_REVIEW_MODEL": "gemini:gemini-2.5-pro"
+      }
+    }
+  }
+}

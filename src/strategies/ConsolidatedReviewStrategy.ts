@@ -36,7 +36,7 @@ export class ConsolidatedReviewStrategy extends BaseReviewStrategy {
     logger.info(`Executing consolidated ${this.reviewType} review strategy...`);
 
     // Collect CI data if we're reviewing TypeScript files
-    let ciData;
+    let ciData: unknown;
     if (
       options.language === 'typescript' ||
       files.some((f) => f.path.endsWith('.ts') || f.path.endsWith('.tsx'))

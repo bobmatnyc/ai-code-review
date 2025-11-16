@@ -5,11 +5,12 @@
     "emitDeclarationOnly": true
   },
   "exclude": [
-    "node_modules", 
-    "dist", 
-    "**/*.test.ts", 
-    "test-projects/**/*", 
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "test-projects/**/*",
     "**/examples/**/*",
+    "src/lib/index.ts",
     "src/prompts/schemas/code-tracing-unused-code-schema.ts",
     "src/prompts/schemas/focused-unused-code-schema.ts",
     "src/prompts/schemas/improved-unused-code-schema.ts",

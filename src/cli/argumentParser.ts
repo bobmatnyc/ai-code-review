@@ -499,6 +499,29 @@ export function parseArguments(): any {
           default: false,
         });
     })
+    .command('mcp', 'Start the AI Code Review MCP (Model Context Protocol) server', (yargs) => {
+      return yargs
+        .option('debug', {
+          describe: 'Enable debug logging',
+          type: 'boolean',
+          default: false,
+        })
+        .option('name', {
+          describe: 'Server name',
+          type: 'string',
+          default: 'ai-code-review',
+        })
+        .option('max-requests', {
+          describe: 'Maximum concurrent requests',
+          type: 'string',
+          default: '5',
+        })
+        .option('timeout', {
+          describe: 'Request timeout in milliseconds',
+          type: 'string',
+          default: '300000',
+        });
+    })
     .command('validate-config', 'Validate configuration and API keys', (yargs) => {
       return yargs
         .option('config', {
@@ -510,6 +533,20 @@ export function parseArguments(): any {
           type: 'boolean',
           default: true,
         });
+    })
+    .command('init', 'Initialize project configuration and set up API keys', (yargs) => {
+      return yargs.option('debug', {
+        describe: 'Enable debug logging',
+        type: 'boolean',
+        default: false,
+      });
+    })
+    .command('install', 'Install AI Code Review as a project-level MCP service', (yargs) => {
+      return yargs.option('debug', {
+        describe: 'Enable debug logging',
+        type: 'boolean',
+        default: false,
+      });
     })
     .option('show-version', {
       describe: 'Show version information',

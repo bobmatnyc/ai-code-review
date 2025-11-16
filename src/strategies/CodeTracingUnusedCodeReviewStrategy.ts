@@ -89,7 +89,7 @@ export class CodeTracingUnusedCodeReviewStrategy
     // const prompt = `${docsContext}# Code to Analyze\n\n${codeContext}`;
 
     // Get the model response with schema validation
-    let response;
+    let response: unknown;
 
     // This is just a temporary placeholder as we don't have access to the actual API client here
     // In a real implementation, this would be replaced with the appropriate API call
