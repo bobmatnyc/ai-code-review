@@ -144,14 +144,15 @@
     "@types/yargs": "^17.0.33",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
-    "@vitest/ui": "^3.2.1",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
     "esbuild": "^0.25.3",
     "eslint": "^8.56.0",
     "js-yaml": "^4.1.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.1"
+    "vitest": "^4.0.16"
   },
   "overrides": {
     "esbuild": "^0.25.3"
