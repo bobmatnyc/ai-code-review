@@ -343,6 +343,151 @@ export function prepareTools(tools: any[]): any[] {
 }
 
 /**
+ * Configuration for architectural review
+ */
+interface ArchitecturalReviewConfig {
+  modelName: string;
+  apiKey: string;
+  supportsToolCalling: boolean;
+  serpApiConfigured: boolean;
+}
+
+/**
+ * Validate that the correct Anthropic model is configured
+ * @returns Model information
+ * @throws Error if model is invalid
+ */
+function validateAnthropicModel(): { adapter: string; modelName: string } {
+  const { isCorrect, adapter, modelName } = isAnthropicModel();
+
+  if (!isCorrect) {
+    throw new Error(
+      `Anthropic client was called with an invalid model: ${adapter ? `${adapter}:${modelName}` : 'none specified'}. ` +
+        `This is likely a bug in the client selection logic.`,
+    );
+  }
+
+  return { adapter, modelName };
+}
+
+/**
+ * Build configuration for architectural review
+ * @param modelName Model name
+ * @returns Review configuration
+ * @throws Error if API key is missing
+ */
+function buildReviewConfig(modelName: string): ArchitecturalReviewConfig {
+  const apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error('Anthropic API key is missing');
+  }
+
+  const model = getModelMapping(`anthropic:${modelName}`);
+  const supportsToolCalling = model?.supportsToolCalling || false;
+  const serpApiConfigured = !!process.env.SERPAPI_KEY;
+
+  logReviewConfiguration(modelName, supportsToolCalling, serpApiConfigured);
+
+  return { modelName, apiKey, supportsToolCalling, serpApiConfigured };
+}
+
+/**
+ * Log review configuration for debugging
+ * @param modelName Model name
+ * @param supportsToolCalling Whether tool calling is supported
+ * @param serpApiConfigured Whether SERP API is configured
+ */
+function logReviewConfiguration(
+  modelName: string,
+  supportsToolCalling: boolean,
+  serpApiConfigured: boolean,
+): void {
+  logger.debug(
+    `Using model: ${modelName}, supportsToolCalling: ${supportsToolCalling}, serpApiConfigured: ${serpApiConfigured}`,
+  );
+  logger.debug(`SERPAPI_KEY configured: ${serpApiConfigured ? 'YES' : 'NO'}`);
+  logger.debug(`Model supports tool calling: ${supportsToolCalling ? 'YES' : 'NO'}`);
+}
+
+/**
+ * Prepare user prompt with file information and package dependencies
+ * @param files Array of file information
+ * @param projectName Project name
+ * @param projectDocs Project documentation
+ * @param options Review options
+ * @returns User prompt string
+ */
+async function prepareArchitecturalPrompt(
+  files: FileInfo[],
+  projectName: string,
+  projectDocs: ProjectDocs | null | undefined,
+  options: ReviewOptions | undefined,
+): Promise<string> {
+  const packageResults = await extractPackageInfo(process.cwd());
+  const promptTemplate = await loadPromptTemplate('architectural', options);
+
+  const fileInfos = files.map((file) => ({
+    relativePath: file.relativePath,
+    content:
+      file.content.substring(0, 1000) + (file.content.length > 1000 ? '\n... (truncated)' : ''),
+    sizeInBytes: file.content.length,
+  }));
+
+  const packageInfoText = formatPackageDependencies(packageResults);
+  return (
+    formatConsolidatedReviewPrompt(promptTemplate, projectName, fileInfos, projectDocs) +
+    packageInfoText
+  );
+}
+
+/**
+ * Execute architectural review with tool calling
+ * @param config Review configuration
+ * @param userPrompt User prompt
+ * @param options Review options
+ * @returns Review content and structured data
+ */
+async function executeToolCallingReview(
+  config: ArchitecturalReviewConfig,
+  userPrompt: string,
+  options: ReviewOptions | undefined,
+): Promise<{ content: string; structuredData: any }> {
+  const tools = prepareTools(ALL_TOOLS);
+  const apiModelName = await getApiModelName(config.modelName);
+  const systemPrompt = getArchitecturalSystemPrompt(options?.diagram || false);
+
+  const content = await performToolCallingReview(
+    config.apiKey,
+    apiModelName,
+    systemPrompt,
+    userPrompt,
+    tools,
+  );
+
+  const structuredData = parseJsonResponse(content);
+  return { content, structuredData };
+}
+
+/**
+ * Calculate cost information from review content
+ * @param content Review content
+ * @param modelName Model name
+ * @returns Cost information or undefined
+ */
+function calculateReviewCost(content: string, modelName: string): CostInfo | undefined {
+  try {
+    return getCostInfoFromText(content, `anthropic:${modelName}`);
+  } catch (error) {
+    logger.warn(
+      `Failed to calculate cost information: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    return undefined;
+  }
+}
+
+/**
  * Generate an architectural review with tool calling
  * @param files Array of file information
  * @param projectName Project name
@@ -356,121 +501,19 @@ export async function generateArchitecturalAnthropicReview(
   projectDocs?: ProjectDocs | null,
   options?: ReviewOptions,
 ): Promise<ReviewResult> {
-  const { isCorrect, adapter, modelName } = isAnthropicModel();
-
-  // With the improved client selection logic, this function should only be called
-  // with Anthropic models. If not, something went wrong with the client selection.
-  if (!isCorrect) {
-    throw new Error(
-      `Anthropic client was called with an invalid model: ${adapter ? `${adapter}:${modelName}` : 'none specified'}. ` +
-        `This is likely a bug in the client selection logic.`,
-    );
-  }
+  const { modelName } = validateAnthropicModel();
 
   try {
     await initializeAnthropicClient();
+    const config = buildReviewConfig(modelName);
 
-    // Get API key from environment variables
-    const apiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY;
+    // Check if tool calling is enabled
+    const toolCallingEnabled =
+      config.supportsToolCalling && config.serpApiConfigured && options?.type === 'architectural';
 
-    let content: string;
-    let cost: CostInfo | undefined;
-    let structuredData: any = null;
-
-    // Check if the model supports tool calling
-    const model = getModelMapping(`anthropic:${modelName}`);
-    const supportsToolCalling = model?.supportsToolCalling || false;
-    const serpApiConfigured = !!process.env.SERPAPI_KEY;
-
-    logger.debug(
-      `Using model: ${modelName}, supportsToolCalling: ${supportsToolCalling}, serpApiConfigured: ${serpApiConfigured}`,
-    );
-    // Add more debug logs to troubleshoot tool calling issues
-    logger.debug(`SERPAPI_KEY configured: ${serpApiConfigured ? 'YES' : 'NO'}`);
-    logger.debug(`Model supports tool calling: ${supportsToolCalling ? 'YES' : 'NO'}`);
-    logger.debug(
-      `Review type is architectural: ${options?.type === 'architectural' ? 'YES' : 'NO'}`,
-    );
-    logger.debug(
-      `Tool calling enabled for this review: ${supportsToolCalling && serpApiConfigured && options?.type === 'architectural' ? 'YES' : 'NO'}`,
-    );
-
-    // Tool calling implementation
-    if (supportsToolCalling && serpApiConfigured && options?.type === 'architectural') {
-      logger.info(
-        `Generating architectural review with tool calling using Anthropic ${modelName}...`,
-      );
-
-      // Always extract package information for architectural reviews to analyze dependencies
-      // Even if includeDependencyAnalysis is not explicitly set
-      const packageResults = await extractPackageInfo(process.cwd());
-
-      // Load the prompt template for architectural review
-      const promptTemplate = await loadPromptTemplate('architectural', options);
-
-      // Prepare file summaries for the consolidated review
-      const fileInfos = files.map((file) => ({
-        relativePath: file.relativePath,
-        content:
-          file.content.substring(0, 1000) + (file.content.length > 1000 ? '\n... (truncated)' : ''),
-        sizeInBytes: file.content.length,
-      }));
-
-      // Format package information for the prompt
-      const packageInfoText = formatPackageDependencies(packageResults);
-
-      // Combine the prompt with package information
-      const userPrompt =
-        formatConsolidatedReviewPrompt(promptTemplate, projectName, fileInfos, projectDocs) +
-        packageInfoText;
-
-      try {
-        // Prepare the tools
-        const tools = prepareTools(ALL_TOOLS);
-
-        // Make the initial API request with tools
-        const apiModelName = await getApiModelName(modelName);
-        // Ensure API key is present
-        if (!apiKey) {
-          throw new Error('Anthropic API key is missing');
-        }
-
-        const systemPrompt = getArchitecturalSystemPrompt(options?.diagram || false);
-        content = await performToolCallingReview(
-          apiKey,
-          apiModelName,
-          systemPrompt,
-          userPrompt,
-          tools,
-        );
-
-        // Calculate cost information
-        try {
-          cost = getCostInfoFromText(content, `anthropic:${modelName}`);
-        } catch (error) {
-          logger.warn(
-            `Failed to calculate cost information: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          );
-        }
-
-        // Try to parse the response as JSON
-        structuredData = parseJsonResponse(content);
-      } catch (error) {
-        throw new Error(
-          `Failed to generate architectural review with Anthropic ${modelName}: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      }
-    } else {
-      // If tool calling is not supported, fall back to regular consolidated review
+    if (!toolCallingEnabled) {
       logger.info(`Generating regular architectural review using Anthropic ${modelName}...`);
-
-      // Import the function dynamically to avoid circular dependencies
       const { generateAnthropicConsolidatedReview } = await import('./anthropicReviewGenerators');
-
       return generateAnthropicConsolidatedReview(
         files,
         projectName,
@@ -480,7 +523,17 @@ export async function generateArchitecturalAnthropicReview(
       );
     }
 
-    // Return the review result
+    // Execute tool calling review
+    logger.info(`Generating architectural review with tool calling using Anthropic ${modelName}...`);
+    const userPrompt = await prepareArchitecturalPrompt(files, projectName, projectDocs, options);
+
+    const { content, structuredData } = await executeToolCallingReview(
+      config,
+      userPrompt,
+      options,
+    );
+    const cost = calculateReviewCost(content, modelName);
+
     return {
       content,
       cost,

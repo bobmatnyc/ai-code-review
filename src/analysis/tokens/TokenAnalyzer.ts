@@ -407,42 +407,25 @@ export class TokenAnalyzer {
   }
 
   /**
-   * Optimized bin-packing algorithm to minimize the number of chunks
-   * Uses an advanced first-fit decreasing with multi-level optimization
-   * @param fileAnalyses Array of file token analyses
-   * @param maxChunkSize Maximum size for each chunk in tokens
-   * @param contextWindowSize Original context window for logging
-   * @returns Array of optimized file chunks
+   * Categorize files by size for optimal bin-packing
+   * @param sortedFiles Files sorted by token count
+   * @param maxChunkSize Maximum chunk size
+   * @returns Categorized file groups
    */
-  private static optimizedBinPacking(
-    fileAnalyses: FileTokenAnalysis[],
+  private static categorizeFilesBySize(
+    sortedFiles: FileTokenAnalysis[],
     maxChunkSize: number,
-    _contextWindowSize: number,
-  ): FileChunk[] {
-    // Sort files by token count (largest first) for first-fit decreasing
-    const sortedFiles = [...fileAnalyses].sort((a, b) => b.tokenCount - a.tokenCount);
-
-    // Calculate target chunk size for optimal distribution
-    const totalTokens = sortedFiles.reduce((sum, f) => sum + f.tokenCount, 0);
-    const minChunksNeeded = Math.ceil(totalTokens / maxChunkSize);
-    const targetChunkSize = Math.floor(totalTokens / minChunksNeeded);
-
-    logger.debug(`Bin-packing optimization:`);
-    logger.debug(`  - Total tokens: ${totalTokens.toLocaleString()}`);
-    logger.debug(`  - Max chunk size: ${maxChunkSize.toLocaleString()}`);
-    logger.debug(`  - Min chunks needed: ${minChunksNeeded}`);
-    logger.debug(`  - Target chunk size: ${targetChunkSize.toLocaleString()}`);
-
-    // Initialize chunks array
-    const chunks: FileChunk[] = [];
-
-    // Track oversized files separately
+  ): {
+    oversizedFiles: FileTokenAnalysis[];
+    largeFiles: FileTokenAnalysis[];
+    mediumFiles: FileTokenAnalysis[];
+    smallFiles: FileTokenAnalysis[];
+  } {
     const oversizedFiles: FileTokenAnalysis[] = [];
     const largeFiles: FileTokenAnalysis[] = [];
     const mediumFiles: FileTokenAnalysis[] = [];
     const smallFiles: FileTokenAnalysis[] = [];
 
-    // Categorize files by size for better packing
     for (const file of sortedFiles) {
       if (file.tokenCount > maxChunkSize) {
         oversizedFiles.push(file);
@@ -464,10 +447,19 @@ export class TokenAnalyzer {
     logger.debug(`  - Medium (20-50% of max): ${mediumFiles.length}`);
     logger.debug(`  - Small (<20% of max): ${smallFiles.length}`);
 
-    // Process oversized files first (split them if possible)
+    return { oversizedFiles, largeFiles, mediumFiles, smallFiles };
+  }
+
+  /**
+   * Process oversized files into dedicated chunks
+   * @param oversizedFiles Files that exceed max chunk size
+   * @param chunks Array of chunks to add to
+   */
+  private static processOversizedFiles(
+    oversizedFiles: FileTokenAnalysis[],
+    chunks: FileChunk[],
+  ): void {
     for (const file of oversizedFiles) {
-      // For now, put oversized files in their own chunks
-      // TODO: In future, we could split file content
       chunks.push({
         files: [file.path],
         estimatedTokenCount: file.tokenCount,
@@ -477,17 +469,28 @@ export class TokenAnalyzer {
         `Created dedicated chunk ${chunks.length} for oversized file "${file.path}" (${file.tokenCount.toLocaleString()} tokens)`,
       );
     }
+  }
 
-    // Process large files - try to pair them optimally
+  /**
+   * Process large files with optimal pairing
+   * @param largeFiles Large files to pack
+   * @param chunks Array of chunks to add to
+   * @param maxChunkSize Maximum chunk size
+   * @param targetChunkSize Target chunk size for efficiency
+   */
+  private static processLargeFiles(
+    largeFiles: FileTokenAnalysis[],
+    chunks: FileChunk[],
+    maxChunkSize: number,
+    targetChunkSize: number,
+  ): void {
     for (const file of largeFiles) {
       let placed = false;
 
-      // Try to find a chunk with complementary space
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         const remainingSpace = maxChunkSize - chunk.estimatedTokenCount;
 
-        // Check if this file fits well (within 80% efficiency)
         if (
           remainingSpace >= file.tokenCount &&
           chunk.estimatedTokenCount + file.tokenCount >= targetChunkSize * 0.8
@@ -503,7 +506,6 @@ export class TokenAnalyzer {
       }
 
       if (!placed) {
-        // Create a new chunk for this large file
         chunks.push({
           files: [file.path],
           estimatedTokenCount: file.tokenCount,
@@ -514,12 +516,22 @@ export class TokenAnalyzer {
         );
       }
     }
+  }
 
-    // Process medium files - use first-fit with efficiency threshold
+  /**
+   * Process medium files with first-fit algorithm
+   * @param mediumFiles Medium files to pack
+   * @param chunks Array of chunks to add to
+   * @param maxChunkSize Maximum chunk size
+   */
+  private static processMediumFiles(
+    mediumFiles: FileTokenAnalysis[],
+    chunks: FileChunk[],
+    maxChunkSize: number,
+  ): void {
     for (const file of mediumFiles) {
       let placed = false;
 
-      // Find first chunk where this file fits efficiently
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         const remainingSpace = maxChunkSize - chunk.estimatedTokenCount;
@@ -536,7 +548,6 @@ export class TokenAnalyzer {
       }
 
       if (!placed) {
-        // Create a new chunk
         chunks.push({
           files: [file.path],
           estimatedTokenCount: file.tokenCount,
@@ -547,15 +558,23 @@ export class TokenAnalyzer {
         );
       }
     }
+  }
 
-    // Process small files - pack them to fill gaps
-    // Sort small files for better packing (largest first)
+  /**
+   * Process small files to fill gaps in chunks
+   * @param smallFiles Small files to pack
+   * @param chunks Array of chunks to add to
+   * @param maxChunkSize Maximum chunk size
+   */
+  private static processSmallFiles(
+    smallFiles: FileTokenAnalysis[],
+    chunks: FileChunk[],
+    maxChunkSize: number,
+  ): void {
     smallFiles.sort((a, b) => b.tokenCount - a.tokenCount);
 
     for (const file of smallFiles) {
       let placed = false;
-
-      // Find the fullest chunk that can still fit this file
       let bestChunkIndex = -1;
       let bestChunkFullness = 0;
 
@@ -581,7 +600,6 @@ export class TokenAnalyzer {
       }
 
       if (!placed) {
-        // Create a new chunk only if absolutely necessary
         chunks.push({
           files: [file.path],
           estimatedTokenCount: file.tokenCount,
@@ -592,23 +610,65 @@ export class TokenAnalyzer {
         );
       }
     }
+  }
 
-    // Perform aggressive balancing to minimize chunk count
-    const balancedChunks = TokenAnalyzer.aggressiveBalance(chunks, fileAnalyses, maxChunkSize);
-
-    // Log chunk statistics
+  /**
+   * Log chunk statistics for monitoring
+   * @param chunks Final chunks after balancing
+   * @param maxChunkSize Maximum chunk size
+   */
+  private static logChunkStatistics(chunks: FileChunk[], maxChunkSize: number): void {
     const avgTokensPerChunk = Math.round(
-      balancedChunks.reduce((sum, c) => sum + c.estimatedTokenCount, 0) / balancedChunks.length,
+      chunks.reduce((sum, c) => sum + c.estimatedTokenCount, 0) / chunks.length,
     );
-    const maxTokensInChunk = Math.max(...balancedChunks.map((c) => c.estimatedTokenCount));
-    const minTokensInChunk = Math.min(...balancedChunks.map((c) => c.estimatedTokenCount));
+    const maxTokensInChunk = Math.max(...chunks.map((c) => c.estimatedTokenCount));
+    const minTokensInChunk = Math.min(...chunks.map((c) => c.estimatedTokenCount));
 
     logger.info(`Chunk statistics:`);
-    logger.info(`  - Total chunks: ${balancedChunks.length}`);
+    logger.info(`  - Total chunks: ${chunks.length}`);
     logger.info(`  - Average tokens per chunk: ${avgTokensPerChunk.toLocaleString()}`);
     logger.info(`  - Max tokens in a chunk: ${maxTokensInChunk.toLocaleString()}`);
     logger.info(`  - Min tokens in a chunk: ${minTokensInChunk.toLocaleString()}`);
     logger.info(`  - Chunk efficiency: ${((avgTokensPerChunk / maxChunkSize) * 100).toFixed(1)}%`);
+  }
+
+  /**
+   * Optimized bin-packing algorithm to minimize the number of chunks
+   * Uses an advanced first-fit decreasing with multi-level optimization
+   * @param fileAnalyses Array of file token analyses
+   * @param maxChunkSize Maximum size for each chunk in tokens
+   * @param contextWindowSize Original context window for logging
+   * @returns Array of optimized file chunks
+   */
+  private static optimizedBinPacking(
+    fileAnalyses: FileTokenAnalysis[],
+    maxChunkSize: number,
+    _contextWindowSize: number,
+  ): FileChunk[] {
+    const sortedFiles = [...fileAnalyses].sort((a, b) => b.tokenCount - a.tokenCount);
+
+    const totalTokens = sortedFiles.reduce((sum, f) => sum + f.tokenCount, 0);
+    const minChunksNeeded = Math.ceil(totalTokens / maxChunkSize);
+    const targetChunkSize = Math.floor(totalTokens / minChunksNeeded);
+
+    logger.debug(`Bin-packing optimization:`);
+    logger.debug(`  - Total tokens: ${totalTokens.toLocaleString()}`);
+    logger.debug(`  - Max chunk size: ${maxChunkSize.toLocaleString()}`);
+    logger.debug(`  - Min chunks needed: ${minChunksNeeded}`);
+    logger.debug(`  - Target chunk size: ${targetChunkSize.toLocaleString()}`);
+
+    const chunks: FileChunk[] = [];
+
+    const { oversizedFiles, largeFiles, mediumFiles, smallFiles } =
+      TokenAnalyzer.categorizeFilesBySize(sortedFiles, maxChunkSize);
+
+    TokenAnalyzer.processOversizedFiles(oversizedFiles, chunks);
+    TokenAnalyzer.processLargeFiles(largeFiles, chunks, maxChunkSize, targetChunkSize);
+    TokenAnalyzer.processMediumFiles(mediumFiles, chunks, maxChunkSize);
+    TokenAnalyzer.processSmallFiles(smallFiles, chunks, maxChunkSize);
+
+    const balancedChunks = TokenAnalyzer.aggressiveBalance(chunks, fileAnalyses, maxChunkSize);
+    TokenAnalyzer.logChunkStatistics(balancedChunks, maxChunkSize);
 
     return balancedChunks;
   }
