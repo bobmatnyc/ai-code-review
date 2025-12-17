@@ -25,9 +25,9 @@ export const MODEL_MAP: Record<string, ModelMapping> = Object.entries(ENHANCED_M
     };
 
     // Add deprecation notice to display name if deprecated
-    if (enhanced.deprecation?.deprecated) {
+    if (enhanced.deprecated) {
       legacy.displayName = `${legacy.displayName} (DEPRECATED)`;
-      legacy.description = `DEPRECATED: ${enhanced.deprecation.migrationGuide || 'Please migrate to an alternative model'}`;
+      legacy.description = `DEPRECATED: Please migrate to an alternative model`;
     }
 
     acc[key] = legacy;

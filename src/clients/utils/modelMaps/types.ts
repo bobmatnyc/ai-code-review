@@ -21,17 +21,6 @@ export enum ModelCategory {
 }
 
 /**
- * Model deprecation information for managing model lifecycle.
- */
-export interface DeprecationInfo {
-  deprecated: boolean;
-  deprecationDate?: string;
-  removalDate?: string;
-  migrationGuide?: string;
-  alternativeModel?: string;
-}
-
-/**
  * Tiered pricing structure for models with variable pricing.
  */
 export interface TieredPricing {
@@ -73,7 +62,7 @@ export interface EnhancedModelMapping extends ModelMapping {
   inputPricePerMillion?: number;
   outputPricePerMillion?: number;
   tieredPricing?: TieredPricing[];
-  deprecation?: DeprecationInfo;
+  deprecated?: boolean;
   categories?: ModelCategory[];
   capabilities?: string[];
   providerFeatures?: ProviderFeatures;

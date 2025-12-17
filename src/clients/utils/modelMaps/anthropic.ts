@@ -84,13 +84,7 @@ export const ANTHROPIC_MODELS: Record<string, EnhancedModelMapping> = {
     capabilities: ['advanced-reasoning', 'code-generation'],
     inputPricePerMillion: 15.0,
     outputPricePerMillion: 75.0,
-    deprecation: {
-      deprecated: true,
-      deprecationDate: '2024-01-21',
-      removalDate: '2025-07-21',
-      migrationGuide: 'Migrate to Claude 4 Opus for improved performance and features',
-      alternativeModel: 'anthropic:claude-4-opus',
-    },
+    deprecated: true,
     providerFeatures: {
       supportsStreaming: true,
       supportsBatch: false,
@@ -154,13 +148,7 @@ export const ANTHROPIC_MODELS: Record<string, EnhancedModelMapping> = {
     capabilities: ['fast-inference', 'basic-reasoning'],
     inputPricePerMillion: 0.25,
     outputPricePerMillion: 1.25,
-    deprecation: {
-      deprecated: true,
-      deprecationDate: '2024-01-21',
-      removalDate: '2025-07-21',
-      migrationGuide: 'Migrate to Claude 3.5 Haiku for better performance at similar cost',
-      alternativeModel: 'anthropic:claude-3.5-haiku',
-    },
+    deprecated: true,
     providerFeatures: {
       supportsStreaming: true,
       supportsBatch: false,

@@ -39,9 +39,9 @@ export function getModelMapping(modelKey: string): ModelMapping | undefined {
   };
 
   // Add deprecation notice if needed
-  if (enhanced.deprecation?.deprecated) {
+  if (enhanced.deprecated) {
     legacy.displayName = `${legacy.displayName} (DEPRECATED)`;
-    legacy.description = `DEPRECATED: ${enhanced.deprecation.migrationGuide || 'Please migrate to an alternative model'}`;
+    legacy.description = `DEPRECATED: Please migrate to an alternative model`;
   }
 
   return legacy;
@@ -131,12 +131,11 @@ export function validateModelKey(modelKey: string): {
     };
   }
 
-  if (enhanced.deprecation?.deprecated) {
+  if (enhanced.deprecated) {
     return {
       isValid: false,
       error: `Model '${modelKey}' is deprecated`,
-      warning: enhanced.deprecation.migrationGuide,
-      suggestion: enhanced.deprecation.alternativeModel,
+      warning: 'Please migrate to an alternative model',
     };
   }
 
@@ -144,7 +143,7 @@ export function validateModelKey(modelKey: string): {
     return {
       isValid: true,
       warning: `Model '${modelKey}' is being retired. Consider migrating soon.`,
-      suggestion: enhanced.deprecation?.alternativeModel,
+      
     };
   }
 
@@ -255,7 +254,7 @@ export function calculateCost(
 export function getModelsByCategory(category: ModelCategory, excludeDeprecated = true): string[] {
   return Object.entries(ENHANCED_MODEL_MAP)
     .filter(([_, mapping]) => {
-      if (excludeDeprecated && mapping.deprecation?.deprecated) return false;
+      if (excludeDeprecated && mapping.deprecated) return false;
       return mapping.categories?.includes(category);
     })
     .map(([key, _]) => key);
@@ -286,7 +285,7 @@ function findCostOptimizedCodingModels(): Array<[string, EnhancedModelMapping]> 
     ([_, m]) =>
       m.categories?.includes(ModelCategory.COST_OPTIMIZED) &&
       m.categories?.includes(ModelCategory.CODING) &&
-      !m.deprecation?.deprecated,
+      !m.deprecated,
   );
 
   return models.sort(compareModelsByCost);

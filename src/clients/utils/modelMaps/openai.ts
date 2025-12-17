@@ -61,14 +61,7 @@ export const OPENAI_MODELS: Record<string, EnhancedModelMapping> = {
     capabilities: ['advanced-reasoning', 'code-generation'],
     inputPricePerMillion: 10.0,
     outputPricePerMillion: 30.0,
-    deprecation: {
-      deprecated: true,
-      deprecationDate: '2024-04-09',
-      removalDate: '2025-07-14',
-      migrationGuide:
-        'This experimental model is being removed. Please migrate to GPT-4.1 for similar capabilities.',
-      alternativeModel: 'openai:gpt-4.1',
-    },
+    deprecated: true,
     providerFeatures: {
       supportsStreaming: true,
       supportsBatch: true,

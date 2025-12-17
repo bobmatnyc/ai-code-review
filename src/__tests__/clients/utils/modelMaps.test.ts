@@ -171,8 +171,7 @@ describe('Model Maps - Enhanced Features', () => {
 
     it('should include deprecation info for deprecated models', () => {
       const mapping = getEnhancedModelMapping('anthropic:claude-3-opus');
-      expect(mapping?.deprecation?.deprecated).toBe(true);
-      expect(mapping?.deprecation?.alternativeModel).toBe('anthropic:claude-4-opus');
+      expect(mapping?.deprecated).toBe(true);
     });
   });
 
@@ -190,12 +189,11 @@ describe('Model Maps - Enhanced Features', () => {
       expect(result.error).toContain('not found');
     });
 
-    it('should reject deprecated models with migration guidance', () => {
+    it('should reject deprecated models', () => {
       const result = validateModelKey('anthropic:claude-3-opus');
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('deprecated');
-      expect(result.warning).toContain('Migrate to Claude 4 Opus');
-      expect(result.suggestion).toBe('anthropic:claude-4-opus');
+      expect(result.warning).toContain('Please migrate to an alternative model');
     });
 
     it('should warn about retiring models', () => {
