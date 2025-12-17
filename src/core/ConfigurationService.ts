@@ -267,7 +267,8 @@ export class ConfigurationService {
 
     if (fs.existsSync(envLocalPath)) {
       try {
-        dotenv.config({ path: envLocalPath, override: true });
+        // Don't override existing environment variables (saved API keys take precedence)
+        dotenv.config({ path: envLocalPath });
         logger.debug(`Loaded environment variables from ${envLocalPath}`);
       } catch (error) {
         logger.warn(`Failed to load environment variables from ${envLocalPath}:`, error);

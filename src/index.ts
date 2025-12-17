@@ -419,6 +419,14 @@ async function main() {
       }
     }
 
+    // Also override the model if saved in project config
+    if (projectConfig?.api?.model) {
+      config.selectedModel = projectConfig.api.model;
+      process.env.AI_CODE_REVIEW_MODEL = projectConfig.api.model;
+      console.log(`📁 Using saved model: ${projectConfig.api.model}`);
+      logger.debug('Applied saved model from project config with precedence over env vars');
+    }
+
     const shouldSkipValidation =
       args.skipKeyCheck || projectConfig?.preferences?.skip_validation || false;
 

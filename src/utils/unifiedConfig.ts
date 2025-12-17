@@ -107,7 +107,8 @@ function loadEnvironmentFile(): void {
 
   for (const envPath of envPaths) {
     if (fs.existsSync(envPath)) {
-      dotenv.config({ path: envPath, override: true });
+      // Don't override existing environment variables (saved API keys take precedence)
+      dotenv.config({ path: envPath });
       logger.debug(`Loaded environment variables from ${envPath}`);
       break;
     }
