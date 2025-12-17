@@ -14,167 +14,237 @@ import { formatCostInfo, formatMetadataSection, parseCostInfo } from './Metadata
 import { extractModelInfo, extractModelInfoFromString } from './ModelInfoExtractor';
 
 /**
+ * Resolve display path for the review, handling consolidated and edge cases
+ * @param filePath Original file path
+ * @param reviewType Type of review
+ * @returns Display-friendly path
+ */
+function resolveDisplayPath(filePath: string | undefined, reviewType: string): string {
+  let displayPath = filePath || '';
+
+  if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
+    // For consolidated reviews, show the full target directory path
+    displayPath = `${process.cwd()} (Current Directory)`;
+  }
+
+  return displayPath;
+}
+
+/**
+ * Handle truncated JSON content for architectural reviews
+ * @param content Content string
+ * @param review Original review result
+ * @param reviewType Type of review
+ * @param filePath File path
+ * @param timestamp Timestamp
+ * @param costInfo Cost info string
+ * @param modelInfo Model info string
+ * @returns Formatted markdown or null if not truncated
+ */
+function handleTruncatedJson(
+  content: string,
+  review: ReviewResult,
+  reviewType: string,
+  filePath: string,
+  timestamp: string,
+  costInfo: string,
+  modelInfo: string,
+): string | null {
+  const trimmedContent = content.trim();
+
+  // Check if this looks like truncated/incomplete JSON
+  if (!trimmedContent.startsWith('{') || trimmedContent.includes('}')) {
+    return null;
+  }
+
+  logger.warn('Content appears to be truncated JSON - missing closing brace');
+
+  // For architectural reviews, try to salvage what we can
+  if (reviewType === 'architectural') {
+    try {
+      const closedJson = `${trimmedContent}}}}}`; // Add multiple closing braces
+      const partialData = JSON.parse(closedJson.substring(0, closedJson.lastIndexOf('}') + 1));
+
+      if (partialData && typeof partialData === 'object') {
+        logger.info('Salvaged partial JSON data for architectural review');
+        const { formatArchitecturalReview } = require('../architecturalReviewFormatter');
+        return formatArchitecturalReview(
+          { ...review, content: JSON.stringify(partialData) },
+          'markdown',
+          [],
+        );
+      }
+    } catch (_e) {
+      // Couldn't salvage, continue with warning
+    }
+  }
+
+  // Return warning message
+  const warningMessage =
+    '⚠️ **Warning**: The AI response appears to be incomplete or truncated. ' +
+    'This may be due to token limits or API issues. Please try again or use a different model.\n\n' +
+    '**Partial response received:**\n\n';
+
+  return formatSimpleMarkdown(
+    `${warningMessage}\`\`\`json\n${content}\n\`\`\``,
+    filePath,
+    reviewType,
+    timestamp,
+    costInfo,
+    modelInfo,
+  );
+}
+
+/**
+ * Extract JSON from content, checking code blocks and raw JSON
+ * @param content Content string to parse
+ * @returns Parsed JSON object or null
+ */
+function extractJsonFromContent(content: string): any {
+  const trimmedContent = content.trim();
+
+  // Try to extract JSON from code blocks with improved regex
+  const jsonBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
+  const jsonBlocks = [...trimmedContent.matchAll(jsonBlockRegex)];
+
+  if (jsonBlocks.length > 0) {
+    // Try each code block until we find valid JSON
+    for (const match of jsonBlocks) {
+      try {
+        const jsonContent = match[1].trim();
+        if (jsonContent) {
+          const parsed = JSON.parse(jsonContent);
+          logger.debug('Successfully parsed JSON from code block');
+          return parsed;
+        }
+      } catch (e) {
+        logger.debug(
+          `Failed to parse JSON from code block: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+  }
+
+  // If no valid JSON found in code blocks, try the entire content
+  if (trimmedContent.startsWith('{') && trimmedContent.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(trimmedContent);
+      logger.debug('Successfully parsed JSON from full content');
+      return parsed;
+    } catch (e) {
+      logger.debug(
+        `Failed to parse content as JSON: ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Format structured data as markdown, handling different schema types
+ * @param structuredData Structured data object
+ * @param filePath File path
+ * @param reviewType Review type
+ * @param timestamp Timestamp
+ * @param costInfo Cost info string
+ * @param modelInfo Model info string
+ * @returns Formatted markdown string
+ */
+function formatStructuredData(
+  structuredData: any,
+  filePath: string,
+  reviewType: string,
+  timestamp: string,
+  costInfo: string,
+  modelInfo: string,
+): string {
+  let structuredReview: any;
+
+  if (typeof structuredData === 'string') {
+    try {
+      structuredReview = JSON.parse(structuredData);
+      logger.debug('Successfully parsed structured data string as JSON');
+    } catch (parseError) {
+      logger.warn(
+        `Failed to parse structured data as JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+      );
+      return formatSimpleMarkdown('', filePath, reviewType, timestamp, costInfo, modelInfo);
+    }
+  } else {
+    structuredReview = structuredData;
+  }
+
+  // Check if the data has a 'review' property (schema-based structure)
+  if (structuredReview?.review) {
+    return formatSchemaBasedReviewAsMarkdown(
+      structuredReview,
+      filePath,
+      reviewType,
+      timestamp,
+      costInfo,
+      modelInfo,
+    );
+  }
+
+  // Validate the parsed data has expected structure
+  if (typeof structuredReview === 'object' && structuredReview !== null) {
+    return formatStructuredReviewAsMarkdown(
+      structuredReview,
+      filePath,
+      reviewType,
+      timestamp,
+      costInfo,
+      modelInfo,
+    );
+  }
+
+  logger.warn('Structured data is not an object:', typeof structuredReview);
+  return formatSimpleMarkdown('', filePath, reviewType, timestamp, costInfo, modelInfo);
+}
+
+/**
  * Format the review as Markdown
  * @param review Review result to format
  * @returns Markdown string
  */
 export function formatAsMarkdown(review: ReviewResult): string {
   const { filePath, reviewType, content, timestamp, structuredData } = review;
-  // Use costInfo if available, fallback to cost
   const cost = review.costInfo || review.cost;
-
-  // Extract model information
   const { modelInfo } = extractModelInfo(review.modelUsed);
-
-  // Format cost information if available
   const costInfo = formatCostInfo(cost);
-
-  // Check if the content is JSON that should be formatted as structured data
-  let actualStructuredData = structuredData;
 
   // For architectural reviews with diagrams, always prefer Markdown format
   const forceMarkdown = reviewType === 'architectural' && review.metadata?.diagramRequested;
 
+  // Attempt to extract structured data from content
+  let actualStructuredData = structuredData;
+
   if (!actualStructuredData && content && typeof content === 'string' && !forceMarkdown) {
-    // Improved JSON detection - check for both raw JSON and code blocks
-    const trimmedContent = content.trim();
+    // Check for truncated JSON first
+    const truncatedResult = handleTruncatedJson(
+      content,
+      review,
+      reviewType,
+      filePath || '',
+      timestamp,
+      costInfo,
+      modelInfo,
+    );
 
-    // First, check if this looks like truncated/incomplete JSON
-    if (trimmedContent.startsWith('{') && !trimmedContent.includes('}')) {
-      logger.warn('Content appears to be truncated JSON - missing closing brace');
-
-      // For architectural reviews, try to salvage what we can
-      if (reviewType === 'architectural') {
-        try {
-          // Try to close the JSON and parse what we have
-          const closedJson = `${trimmedContent}}}}}`; // Add multiple closing braces
-          const partialData = JSON.parse(closedJson.substring(0, closedJson.lastIndexOf('}') + 1));
-
-          // If we got some data, convert it
-          if (partialData && typeof partialData === 'object') {
-            logger.info('Salvaged partial JSON data for architectural review');
-            // Import the converter function
-            const { formatArchitecturalReview } = require('../architecturalReviewFormatter');
-            const salvaged = formatArchitecturalReview(
-              { ...review, content: JSON.stringify(partialData) },
-              'markdown',
-              [],
-            );
-            return salvaged;
-          }
-        } catch (_e) {
-          // Couldn't salvage, continue with warning
-        }
-      }
-
-      // Don't try to parse incomplete JSON, just return it as plain text with a warning
-      const warningMessage =
-        '⚠️ **Warning**: The AI response appears to be incomplete or truncated. ' +
-        'This may be due to token limits or API issues. Please try again or use a different model.\n\n' +
-        '**Partial response received:**\n\n';
-      return formatSimpleMarkdown(
-        `${warningMessage}\`\`\`json\n${content}\n\`\`\``,
-        filePath || '',
-        reviewType,
-        timestamp,
-        costInfo,
-        modelInfo,
-      );
+    if (truncatedResult) {
+      return truncatedResult;
     }
 
-    // Try to extract JSON from code blocks with improved regex
-    // This regex matches code blocks with or without the json language specifier
-    const jsonBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/g;
-    const jsonBlocks = [...trimmedContent.matchAll(jsonBlockRegex)];
-
-    if (jsonBlocks.length > 0) {
-      // Try each code block until we find valid JSON
-      for (const match of jsonBlocks) {
-        try {
-          const jsonContent = match[1].trim();
-          if (jsonContent) {
-            actualStructuredData = JSON.parse(jsonContent);
-            logger.debug('Successfully parsed JSON from code block');
-            break;
-          }
-        } catch (e) {
-          logger.debug(
-            `Failed to parse JSON from code block: ${e instanceof Error ? e.message : String(e)}`,
-          );
-          // Continue to next block
-        }
-      }
-    }
-
-    // If no valid JSON found in code blocks, try the entire content if it looks like JSON
-    if (!actualStructuredData && trimmedContent.startsWith('{') && trimmedContent.endsWith('}')) {
-      try {
-        actualStructuredData = JSON.parse(trimmedContent);
-        logger.debug('Successfully parsed JSON from full content');
-      } catch (e) {
-        logger.debug(
-          `Failed to parse content as JSON: ${e instanceof Error ? e.message : String(e)}`,
-        );
-        // Not valid JSON, continue with regular formatting
-      }
-    }
+    // Try to extract JSON from content
+    actualStructuredData = extractJsonFromContent(content);
   }
 
-  // If we have structured data, format it as Markdown
-  // But skip JSON parsing for architectural reviews with diagrams - keep original Markdown
+  // Format structured data if available
   if (actualStructuredData && !forceMarkdown) {
     try {
-      let structuredReview: any;
-
-      if (typeof actualStructuredData === 'string') {
-        try {
-          structuredReview = JSON.parse(actualStructuredData);
-          logger.debug('Successfully parsed structured data string as JSON');
-        } catch (parseError) {
-          logger.warn(
-            `Failed to parse structured data as JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-          );
-          // If it's not valid JSON, treat it as plain text
-          return formatSimpleMarkdown(
-            content,
-            filePath || '',
-            reviewType,
-            timestamp,
-            costInfo,
-            modelInfo,
-          );
-        }
-      } else {
-        structuredReview = actualStructuredData;
-      }
-
-      // Check if the data has a 'review' property (our JSON structure)
-      if (structuredReview?.review) {
-        return formatSchemaBasedReviewAsMarkdown(
-          structuredReview,
-          filePath || '',
-          reviewType,
-          timestamp,
-          costInfo,
-          modelInfo,
-        );
-      }
-
-      // Validate the parsed data has expected structure
-      if (typeof structuredReview === 'object' && structuredReview !== null) {
-        return formatStructuredReviewAsMarkdown(
-          structuredReview,
-          filePath || '',
-          reviewType,
-          timestamp,
-          costInfo,
-          modelInfo,
-        );
-      }
-      logger.warn('Structured data is not an object:', typeof structuredReview);
-      // If the data doesn't have the right structure, fall back to plain text
-      return formatSimpleMarkdown(
-        content,
+      return formatStructuredData(
+        actualStructuredData,
         filePath || '',
         reviewType,
         timestamp,
@@ -185,34 +255,13 @@ export function formatAsMarkdown(review: ReviewResult): string {
       logger.error(
         `Error processing structured review data: ${error instanceof Error ? error.message : String(error)}`,
       );
-      // Fall back to unstructured format
-      return formatSimpleMarkdown(
-        content,
-        filePath || '',
-        reviewType,
-        timestamp,
-        costInfo,
-        modelInfo,
-      );
+      // Fall through to unstructured format
     }
   }
 
-  // Sanitize the content to prevent XSS attacks
+  // Fallback to simple markdown format
   const sanitizedContent = sanitizeContent(content);
-
-  // Use the actual file path for the review title and the reviewed field
-  // If filePath is the same as reviewType, is 'consolidated', or is undefined/empty, show the current directory path
-  let displayPath = filePath || '';
-
-  if (!displayPath || displayPath === reviewType || displayPath === 'consolidated') {
-    // For consolidated reviews, show the full target directory path
-    displayPath = `${process.cwd()} (Current Directory)`;
-  }
-
-  // Extract model vendor and name from modelInfo (currently unused but may be needed for future features)
-  // const { modelVendor, modelName } = extractModelInfoFromString(modelInfo);
-
-  // Create metadata section
+  const displayPath = resolveDisplayPath(filePath, reviewType);
   const metadataSection = formatMetadataSection(
     reviewType,
     timestamp,
