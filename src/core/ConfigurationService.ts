@@ -329,13 +329,42 @@ export class ConfigurationService {
     configFile?: ConfigFile | null,
   ): Partial<Config> {
     return {
-      // API Keys (environment only, not exposed via CLI for security)
+      ...this.getApiKeyConfig(),
+      ...this.getModelConfig(cliOptions, configFile),
+      ...this.getOutputConfig(cliOptions, configFile),
+      ...this.getBehaviorConfig(cliOptions, configFile),
+      ...this.getReviewFeaturesConfig(cliOptions, configFile),
+      ...this.getMultiPassConfig(cliOptions, configFile),
+      ...this.getAdvancedFeaturesConfig(cliOptions, configFile),
+      ...this.getPathsConfig(cliOptions),
+      ...this.getCodingTestConfig(cliOptions),
+      ...this.getEvaluationWeightsConfig(cliOptions),
+      ...this.getEvaluationOptionsConfig(cliOptions),
+      ...this.getScoringSystemConfig(cliOptions),
+      ...this.getFeedbackConfig(cliOptions),
+      ...this.getAiDetectionConfig(cliOptions),
+      ...this.getConstraintsConfig(cliOptions),
+      ...this.getMiscConfig(cliOptions),
+    };
+  }
+
+  /**
+   * Get API key configuration from environment variables
+   */
+  private getApiKeyConfig(): Partial<Config> {
+    return {
       googleApiKey: this.getApiKey('google'),
       openRouterApiKey: this.getApiKey('openrouter'),
       anthropicApiKey: this.getApiKey('anthropic'),
       openAIApiKey: this.getApiKey('openai'),
+    };
+  }
 
-      // Model configuration
+  /**
+   * Get model configuration with precedence: CLI > Environment > Config File > Defaults
+   */
+  private getModelConfig(cliOptions?: CliOptions, configFile?: ConfigFile | null): Partial<Config> {
+    return {
       model:
         cliOptions?.model ||
         process.env.AI_CODE_REVIEW_MODEL ||
@@ -348,8 +377,17 @@ export class ConfigurationService {
         process.env.AI_CODE_REVIEW_WRITER_MODEL ||
         configFile?.model?.writer ||
         configFile?.api?.writer_model,
+    };
+  }
 
-      // Output configuration
+  /**
+   * Get output configuration with precedence: CLI > Environment > Config File > Defaults
+   */
+  private getOutputConfig(
+    cliOptions?: CliOptions,
+    configFile?: ConfigFile | null,
+  ): Partial<Config> {
+    return {
       outputDir:
         cliOptions?.outputDir ||
         process.env.AI_CODE_REVIEW_OUTPUT_DIR ||
@@ -362,8 +400,17 @@ export class ConfigurationService {
         (process.env.AI_CODE_REVIEW_OUTPUT_FORMAT as 'markdown' | 'json') ||
         configFile?.output?.format ||
         'markdown',
+    };
+  }
 
-      // Behavior configuration
+  /**
+   * Get behavior configuration with precedence: CLI > Environment > Config File > Defaults
+   */
+  private getBehaviorConfig(
+    cliOptions?: CliOptions,
+    configFile?: ConfigFile | null,
+  ): Partial<Config> {
+    return {
       debug:
         cliOptions?.debug ??
         process.env.AI_CODE_REVIEW_DEBUG === 'true' ??
@@ -384,8 +431,17 @@ export class ConfigurationService {
         configFile?.behavior?.interactive ??
         configFile?.review?.interactive ??
         false,
+    };
+  }
 
-      // Review features
+  /**
+   * Get review features configuration with precedence: CLI > Environment > Config File > Defaults
+   */
+  private getReviewFeaturesConfig(
+    cliOptions?: CliOptions,
+    configFile?: ConfigFile | null,
+  ): Partial<Config> {
+    return {
       includeTests:
         cliOptions?.includeTests ??
         process.env.AI_CODE_REVIEW_INCLUDE_TESTS === 'true' ??
@@ -412,8 +468,17 @@ export class ConfigurationService {
         process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'true' ??
         configFile?.features?.enable_semantic_chunking ??
         true,
+    };
+  }
 
-      // Multi-pass configuration
+  /**
+   * Get multi-pass configuration with precedence: CLI > Environment > Config File > Defaults
+   */
+  private getMultiPassConfig(
+    cliOptions?: CliOptions,
+    configFile?: ConfigFile | null,
+  ): Partial<Config> {
+    return {
       multiPass:
         cliOptions?.multiPass ??
         process.env.AI_CODE_REVIEW_MULTI_PASS === 'true' ??
@@ -430,8 +495,17 @@ export class ConfigurationService {
         cliOptions?.contextMaintenanceFactor ??
         Number(process.env.AI_CODE_REVIEW_CONTEXT_MAINTENANCE_FACTOR) ??
         0.15,
+    };
+  }
 
-      // Advanced features
+  /**
+   * Get advanced features configuration with precedence: CLI > Environment > Config File > Defaults
+   */
+  private getAdvancedFeaturesConfig(
+    cliOptions?: CliOptions,
+    configFile?: ConfigFile | null,
+  ): Partial<Config> {
+    return {
       testApi:
         cliOptions?.testApi ??
         process.env.AI_CODE_REVIEW_TEST_API === 'true' ??
@@ -444,12 +518,24 @@ export class ConfigurationService {
         cliOptions?.noConfirm ??
         process.env.AI_CODE_REVIEW_NO_CONFIRM === 'true' ??
         !(configFile?.review?.confirm ?? true),
+    };
+  }
 
-      // Paths
-      contextPaths: undefined, // contextPaths is not available in CliOptions
+  /**
+   * Get paths configuration from CLI options
+   */
+  private getPathsConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
+      contextPaths: undefined,
       configPath: cliOptions?.config,
+    };
+  }
 
-      // Coding test specific (from CLI options)
+  /**
+   * Get coding test configuration from CLI options
+   */
+  private getCodingTestConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
       assignmentFile: cliOptions?.assignmentFile,
       assignmentUrl: cliOptions?.assignmentUrl,
       assignmentText: cliOptions?.assignmentText,
@@ -458,40 +544,76 @@ export class ConfigurationService {
       rubricFile: cliOptions?.rubricFile,
       assessmentType: cliOptions?.assessmentType || 'coding-challenge',
       difficultyLevel: cliOptions?.difficultyLevel || 'mid',
+    };
+  }
 
-      // Evaluation weights
+  /**
+   * Get evaluation weights configuration from CLI options
+   */
+  private getEvaluationWeightsConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
       weightCorrectness: cliOptions?.weightCorrectness ?? 30,
       weightCodeQuality: cliOptions?.weightCodeQuality ?? 25,
       weightArchitecture: cliOptions?.weightArchitecture ?? 20,
       weightPerformance: cliOptions?.weightPerformance ?? 15,
       weightTesting: cliOptions?.weightTesting ?? 10,
+    };
+  }
 
-      // Evaluation options
+  /**
+   * Get evaluation options configuration from CLI options
+   */
+  private getEvaluationOptionsConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
       evaluateDocumentation: cliOptions?.evaluateDocumentation ?? false,
       evaluateGitHistory: cliOptions?.evaluateGitHistory ?? false,
       evaluateEdgeCases: cliOptions?.evaluateEdgeCases ?? false,
       evaluateErrorHandling: cliOptions?.evaluateErrorHandling ?? false,
+    };
+  }
 
-      // Scoring system
+  /**
+   * Get scoring system configuration from CLI options
+   */
+  private getScoringSystemConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
       scoringSystem: cliOptions?.scoringSystem || 'numeric',
       maxScore: cliOptions?.maxScore ?? 100,
       passingThreshold: cliOptions?.passingThreshold ?? 70,
       scoreBreakdown: cliOptions?.scoreBreakdown ?? true,
+    };
+  }
 
-      // Feedback configuration
+  /**
+   * Get feedback configuration from CLI options
+   */
+  private getFeedbackConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
       feedbackLevel: cliOptions?.feedbackLevel || 'detailed',
       includeExamples: cliOptions?.includeExamples ?? true,
       includeSuggestions: cliOptions?.includeSuggestions ?? true,
       includeResources: cliOptions?.includeResources ?? false,
+    };
+  }
 
-      // AI detection
+  /**
+   * Get AI detection configuration from CLI options
+   */
+  private getAiDetectionConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
       enableAiDetection: cliOptions?.enableAiDetection ?? false,
       aiDetectionThreshold: cliOptions?.aiDetectionThreshold ?? 0.7,
       aiDetectionAnalyzers: cliOptions?.aiDetectionAnalyzers || 'git,documentation',
       aiDetectionIncludeInReport: cliOptions?.aiDetectionIncludeInReport ?? true,
       aiDetectionFailOnDetection: cliOptions?.aiDetectionFailOnDetection ?? false,
+    };
+  }
 
-      // Constraints
+  /**
+   * Get constraints configuration from CLI options
+   */
+  private getConstraintsConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
       allowedLibraries: cliOptions?.allowedLibraries,
       forbiddenPatterns: cliOptions?.forbiddenPatterns,
       nodeVersion: cliOptions?.nodeVersion,
@@ -499,11 +621,15 @@ export class ConfigurationService {
       memoryLimit: cliOptions?.memoryLimit,
       executionTimeout: cliOptions?.executionTimeout,
       timeLimit: cliOptions?.timeLimit,
+    };
+  }
 
-      // Diagram generation
+  /**
+   * Get miscellaneous configuration from CLI options
+   */
+  private getMiscConfig(cliOptions?: CliOptions): Partial<Config> {
+    return {
       diagram: cliOptions?.diagram ?? false,
-
-      // Batch processing
       batchTokenLimit: cliOptions?.batchTokenLimit,
     };
   }
