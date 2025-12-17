@@ -137,8 +137,8 @@ export async function loadEnvVariables(envFilePath?: string): Promise<{
     // Store current values to see what changes
     const beforeModel = process.env.AI_CODE_REVIEW_MODEL;
 
-    // Use override: true to force override existing values
-    const result = dotenv.config({ path: envLocalPath, override: true });
+    // Don't override existing values - saved config takes precedence
+    const result = dotenv.config({ path: envLocalPath });
 
     // Log what changed
     if (beforeModel !== process.env.AI_CODE_REVIEW_MODEL) {
