@@ -381,6 +381,35 @@ export function getApiKeyForProvider(provider: string): string | undefined {
 }
 
 /**
+ * Update the cached configuration with new values
+ * Used to apply saved project config values
+ */
+export function updateCachedConfig(updates: Partial<AppConfig>): void {
+  if (!config) {
+    config = loadConfig();
+  }
+
+  // Apply updates
+  if (updates.selectedModel !== undefined) {
+    config.selectedModel = updates.selectedModel;
+  }
+  if (updates.openRouterApiKey !== undefined) {
+    config.openRouterApiKey = updates.openRouterApiKey;
+  }
+  if (updates.googleApiKey !== undefined) {
+    config.googleApiKey = updates.googleApiKey;
+  }
+  if (updates.anthropicApiKey !== undefined) {
+    config.anthropicApiKey = updates.anthropicApiKey;
+  }
+  if (updates.openAIApiKey !== undefined) {
+    config.openAIApiKey = updates.openAIApiKey;
+  }
+
+  logger.debug('Updated cached configuration');
+}
+
+/**
  * Reset the configuration (mainly for testing)
  */
 export function resetConfig(): void {

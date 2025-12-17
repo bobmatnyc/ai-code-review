@@ -291,9 +291,9 @@ export async function orchestrateReview(target: string, options: ReviewOptions):
 
     // If estimate flag is set, calculate and display token usage and cost estimates
     if (options.estimate) {
-      // Get the model name from options or environment variables
-      const modelName =
-        options.model || process.env.AI_CODE_REVIEW_MODEL || 'gemini:gemini-1.5-pro';
+      // Get the model name from config (which includes project config overrides)
+      const config = getConfig();
+      const modelName = config.selectedModel;
 
       try {
         // Read file contents for token analysis

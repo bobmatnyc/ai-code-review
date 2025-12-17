@@ -235,7 +235,12 @@ import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
 import { validateApiKey } from './utils/apiKeyHealthCheck';
 // Import other dependencies after environment setup
-import { getConfig, hasAnyApiKey, validateConfigForSelectedModel } from './utils/config';
+import {
+  getConfig,
+  hasAnyApiKey,
+  updateCachedConfig,
+  validateConfigForSelectedModel,
+} from './utils/config';
 import { initI18n, t } from './utils/i18n';
 import { promptKeyRecovery, RecoveryAction } from './utils/interactiveKeyRecovery';
 import { loadProjectConfig } from './utils/projectConfigManager';
@@ -388,27 +393,32 @@ async function main() {
 
     // Merge saved API keys from project config into main config
     // Project config keys ALWAYS take precedence (user explicitly saved them)
+    const configUpdates: Partial<typeof config> = {};
     if (projectConfig?.api?.keys) {
       // Log which keys are being loaded
       const loadedKeys: string[] = [];
 
       if (projectConfig.api.keys.google) {
         config.googleApiKey = projectConfig.api.keys.google;
+        configUpdates.googleApiKey = projectConfig.api.keys.google;
         process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = projectConfig.api.keys.google;
         loadedKeys.push('google');
       }
       if (projectConfig.api.keys.anthropic) {
         config.anthropicApiKey = projectConfig.api.keys.anthropic;
+        configUpdates.anthropicApiKey = projectConfig.api.keys.anthropic;
         process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = projectConfig.api.keys.anthropic;
         loadedKeys.push('anthropic');
       }
       if (projectConfig.api.keys.openrouter) {
         config.openRouterApiKey = projectConfig.api.keys.openrouter;
+        configUpdates.openRouterApiKey = projectConfig.api.keys.openrouter;
         process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY = projectConfig.api.keys.openrouter;
         loadedKeys.push('openrouter');
       }
       if (projectConfig.api.keys.openai) {
         config.openAIApiKey = projectConfig.api.keys.openai;
+        configUpdates.openAIApiKey = projectConfig.api.keys.openai;
         process.env.AI_CODE_REVIEW_OPENAI_API_KEY = projectConfig.api.keys.openai;
         loadedKeys.push('openai');
       }
@@ -422,9 +432,16 @@ async function main() {
     // Also override the model if saved in project config
     if (projectConfig?.api?.model) {
       config.selectedModel = projectConfig.api.model;
+      configUpdates.selectedModel = projectConfig.api.model;
       process.env.AI_CODE_REVIEW_MODEL = projectConfig.api.model;
       console.log(`📁 Using saved model: ${projectConfig.api.model}`);
       logger.debug('Applied saved model from project config with precedence over env vars');
+    }
+
+    // Update the cached config so all modules see the changes
+    if (Object.keys(configUpdates).length > 0) {
+      updateCachedConfig(configUpdates);
+      logger.debug('Updated cached configuration with project config values');
     }
 
     const shouldSkipValidation =
