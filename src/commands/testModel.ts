@@ -2,7 +2,7 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { getModelsByProvider, getModelMapping, type Provider } from '../clients/utils/modelMaps';
+import { getModelMapping, getModelsByProvider, type Provider } from '../clients/utils/modelMaps';
 import {
   type TestResult,
   testAnthropicModel,

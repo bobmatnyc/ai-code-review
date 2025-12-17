@@ -3,9 +3,9 @@
  */
 
 export {
-  fetchOpenRouterPricing,
-  getModelPricing,
   clearPricingCache,
+  fetchOpenRouterPricing,
   getCacheStats,
+  getModelPricing,
   type ModelPricing,
 } from './openRouterPricing';

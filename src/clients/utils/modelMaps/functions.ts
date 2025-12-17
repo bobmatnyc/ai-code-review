@@ -2,6 +2,7 @@
  * @fileoverview Core functions for model map operations
  */
 
+import logger from '../../../utils/logger';
 import { ENHANCED_MODEL_MAP } from './modelData';
 import {
   type EnhancedModelMapping,
@@ -10,7 +11,6 @@ import {
   type Provider,
   type ProviderFeatures,
 } from './types';
-import logger from '../../../utils/logger';
 
 /**
  * Default context windows for providers when model not in registry.
@@ -209,7 +209,6 @@ export function validateModelKey(modelKey: string): {
     return {
       isValid: true,
       warning: `Model '${modelKey}' is being retired. Consider migrating soon.`,
-
     };
   }
 

@@ -420,7 +420,9 @@ async function main() {
       }
 
       if (loadedKeys.length > 0) {
-        console.log(`📁 Loading saved API keys for: ${loadedKeys.join(', ')} (overriding environment)`);
+        console.log(
+          `📁 Loading saved API keys for: ${loadedKeys.join(', ')} (overriding environment)`,
+        );
         logger.debug('Applied saved API keys from project config with precedence over env vars');
       }
     }

@@ -230,7 +230,9 @@ export async function getApiModelName(modelName: string): Promise<string> {
     // Ensure model name has provider prefix for lookup
     const fullModelName = ensureAnthropicPrefix(modelName);
     logger.debug(`Full model name for lookup: ${fullModelName}`);
-    logger.debug(`Available model keys in ENHANCED_MODEL_MAP: ${Object.keys(ENHANCED_MODEL_MAP).join(', ')}`);
+    logger.debug(
+      `Available model keys in ENHANCED_MODEL_MAP: ${Object.keys(ENHANCED_MODEL_MAP).join(', ')}`,
+    );
 
     // Try direct model map lookup
     const modelConfig = getModelMapping(fullModelName);

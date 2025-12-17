@@ -13,7 +13,12 @@ import {
   getOpenRouterApiKey,
 } from '../../utils/envLoader';
 import logger from '../../utils/logger';
-import { getModelsByProvider, getModelMapping, type ModelMapping, type Provider } from './modelMaps';
+import {
+  getModelMapping,
+  getModelsByProvider,
+  type ModelMapping,
+  type Provider,
+} from './modelMaps';
 
 /**
  * Model information interface
