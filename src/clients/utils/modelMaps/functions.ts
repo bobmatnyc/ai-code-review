@@ -152,6 +152,71 @@ export function validateModelKey(modelKey: string): {
 }
 
 /**
+ * Calculate cost for a tiered pricing tier.
+ */
+function calculateTierCost(
+  remainingTokens: number,
+  tier: { tokenThreshold: number; pricePerMillion: number },
+): { cost: number; remainingTokens: number } {
+  if (remainingTokens <= tier.tokenThreshold) {
+    return { cost: 0, remainingTokens };
+  }
+
+  const tokensInTier = remainingTokens - tier.tokenThreshold;
+  const cost = (tokensInTier / 1_000_000) * tier.pricePerMillion;
+  return { cost, remainingTokens: tier.tokenThreshold };
+}
+
+/**
+ * Calculate cost using tiered pricing model.
+ */
+function calculateTieredCost(
+  tieredPricing: Array<{ tokenThreshold: number; inputPricePerMillion: number; outputPricePerMillion: number }>,
+  inputTokens: number,
+  outputTokens: number,
+): number {
+  let inputCost = 0;
+  let outputCost = 0;
+  let remainingInput = inputTokens;
+  let remainingOutput = outputTokens;
+
+  // Sort tiers by threshold descending to apply highest tiers first
+  const sortedTiers = [...tieredPricing].sort((a, b) => b.tokenThreshold - a.tokenThreshold);
+
+  for (const tier of sortedTiers) {
+    const inputResult = calculateTierCost(remainingInput, {
+      tokenThreshold: tier.tokenThreshold,
+      pricePerMillion: tier.inputPricePerMillion,
+    });
+    inputCost += inputResult.cost;
+    remainingInput = inputResult.remainingTokens;
+
+    const outputResult = calculateTierCost(remainingOutput, {
+      tokenThreshold: tier.tokenThreshold,
+      pricePerMillion: tier.outputPricePerMillion,
+    });
+    outputCost += outputResult.cost;
+    remainingOutput = outputResult.remainingTokens;
+  }
+
+  return inputCost + outputCost;
+}
+
+/**
+ * Calculate cost using simple pricing model.
+ */
+function calculateSimpleCost(
+  inputPricePerMillion: number,
+  outputPricePerMillion: number,
+  inputTokens: number,
+  outputTokens: number,
+): number {
+  const inputCost = (inputTokens / 1_000_000) * inputPricePerMillion;
+  const outputCost = (outputTokens / 1_000_000) * outputPricePerMillion;
+  return inputCost + outputCost;
+}
+
+/**
  * Calculate cost for a model usage.
  */
 export function calculateCost(
@@ -164,38 +229,17 @@ export function calculateCost(
 
   // Handle tiered pricing
   if (enhanced.tieredPricing && enhanced.tieredPricing.length > 0) {
-    let inputCost = 0;
-    let outputCost = 0;
-    let remainingInput = inputTokens;
-    let remainingOutput = outputTokens;
-
-    // Sort tiers by threshold descending to apply highest tiers first
-    const sortedTiers = [...enhanced.tieredPricing].sort(
-      (a, b) => b.tokenThreshold - a.tokenThreshold,
-    );
-
-    for (const tier of sortedTiers) {
-      if (remainingInput > tier.tokenThreshold) {
-        const tokensInTier = remainingInput - tier.tokenThreshold;
-        inputCost += (tokensInTier / 1_000_000) * tier.inputPricePerMillion;
-        remainingInput = tier.tokenThreshold;
-      }
-
-      if (remainingOutput > tier.tokenThreshold) {
-        const tokensInTier = remainingOutput - tier.tokenThreshold;
-        outputCost += (tokensInTier / 1_000_000) * tier.outputPricePerMillion;
-        remainingOutput = tier.tokenThreshold;
-      }
-    }
-
-    return inputCost + outputCost;
+    return calculateTieredCost(enhanced.tieredPricing, inputTokens, outputTokens);
   }
 
   // Simple pricing
   if (enhanced.inputPricePerMillion !== undefined && enhanced.outputPricePerMillion !== undefined) {
-    const inputCost = (inputTokens / 1_000_000) * enhanced.inputPricePerMillion;
-    const outputCost = (outputTokens / 1_000_000) * enhanced.outputPricePerMillion;
-    return inputCost + outputCost;
+    return calculateSimpleCost(
+      enhanced.inputPricePerMillion,
+      enhanced.outputPricePerMillion,
+      inputTokens,
+      outputTokens,
+    );
   }
 
   return undefined;
@@ -214,36 +258,59 @@ export function getModelsByCategory(category: ModelCategory, excludeDeprecated =
 }
 
 /**
+ * Calculate total cost estimate for a model mapping.
+ */
+function calculateModelCostEstimate(mapping: EnhancedModelMapping): number {
+  return (mapping.inputPricePerMillion || 0) + (mapping.outputPricePerMillion || 0);
+}
+
+/**
+ * Compare two model entries by cost.
+ */
+function compareModelsByCost(
+  a: [string, EnhancedModelMapping],
+  b: [string, EnhancedModelMapping],
+): number {
+  return calculateModelCostEstimate(a[1]) - calculateModelCostEstimate(b[1]);
+}
+
+/**
+ * Find cost-optimized coding models sorted by price.
+ */
+function findCostOptimizedCodingModels(): Array<[string, EnhancedModelMapping]> {
+  const models = Object.entries(ENHANCED_MODEL_MAP).filter(
+    ([_, m]) =>
+      m.categories?.includes(ModelCategory.COST_OPTIMIZED) &&
+      m.categories?.includes(ModelCategory.CODING) &&
+      !m.deprecation?.deprecated,
+  );
+
+  return models.sort(compareModelsByCost);
+}
+
+/**
+ * Find the explicitly recommended model for code review.
+ */
+function findRecommendedModel(): string | undefined {
+  const recommended = Object.entries(ENHANCED_MODEL_MAP).find(([_, m]) =>
+    m.notes?.includes('Recommended model for code review'),
+  );
+  return recommended ? recommended[0] : undefined;
+}
+
+/**
  * Get recommended model for code review tasks.
  */
 export function getRecommendedModelForCodeReview(preferCostOptimized = false): string {
   if (preferCostOptimized) {
-    // Find cost-optimized models with coding capability
-    const costOptimized = Object.entries(ENHANCED_MODEL_MAP)
-      .filter(
-        ([_, m]) =>
-          m.categories?.includes(ModelCategory.COST_OPTIMIZED) &&
-          m.categories?.includes(ModelCategory.CODING) &&
-          !m.deprecation?.deprecated,
-      )
-      .sort((a, b) => {
-        // Sort by cost (estimate using simple pricing)
-        const aCost = (a[1].inputPricePerMillion || 0) + (a[1].outputPricePerMillion || 0);
-        const bCost = (b[1].inputPricePerMillion || 0) + (b[1].outputPricePerMillion || 0);
-        return aCost - bCost;
-      });
-
+    const costOptimized = findCostOptimizedCodingModels();
     if (costOptimized.length > 0) {
       return costOptimized[0][0];
     }
   }
 
   // Default to Claude 4 Sonnet as it's marked as recommended
-  const recommended = Object.entries(ENHANCED_MODEL_MAP).find(([_, m]) =>
-    m.notes?.includes('Recommended model for code review'),
-  );
-
-  return recommended ? recommended[0] : 'anthropic:claude-4-sonnet';
+  return findRecommendedModel() || 'anthropic:claude-4-sonnet';
 }
 
 /**
