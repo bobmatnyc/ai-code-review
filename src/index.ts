@@ -387,34 +387,35 @@ async function main() {
     const projectConfig = loadProjectConfig();
 
     // Merge saved API keys from project config into main config
+    // Project config keys ALWAYS take precedence (user explicitly saved them)
     if (projectConfig?.api?.keys) {
       // Log which keys are being loaded
       const loadedKeys: string[] = [];
 
-      if (projectConfig.api.keys.google && !config.googleApiKey) {
+      if (projectConfig.api.keys.google) {
         config.googleApiKey = projectConfig.api.keys.google;
         process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = projectConfig.api.keys.google;
         loadedKeys.push('google');
       }
-      if (projectConfig.api.keys.anthropic && !config.anthropicApiKey) {
+      if (projectConfig.api.keys.anthropic) {
         config.anthropicApiKey = projectConfig.api.keys.anthropic;
         process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = projectConfig.api.keys.anthropic;
         loadedKeys.push('anthropic');
       }
-      if (projectConfig.api.keys.openrouter && !config.openRouterApiKey) {
+      if (projectConfig.api.keys.openrouter) {
         config.openRouterApiKey = projectConfig.api.keys.openrouter;
         process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY = projectConfig.api.keys.openrouter;
         loadedKeys.push('openrouter');
       }
-      if (projectConfig.api.keys.openai && !config.openAIApiKey) {
+      if (projectConfig.api.keys.openai) {
         config.openAIApiKey = projectConfig.api.keys.openai;
         process.env.AI_CODE_REVIEW_OPENAI_API_KEY = projectConfig.api.keys.openai;
         loadedKeys.push('openai');
       }
 
       if (loadedKeys.length > 0) {
-        console.log(`📁 Loading saved API keys for: ${loadedKeys.join(', ')}`);
-        logger.debug('Applied saved API keys from project config');
+        console.log(`📁 Loading saved API keys for: ${loadedKeys.join(', ')} (overriding environment)`);
+        logger.debug('Applied saved API keys from project config with precedence over env vars');
       }
     }
 
