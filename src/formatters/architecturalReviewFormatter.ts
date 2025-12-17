@@ -321,6 +321,107 @@ function formatTechStack(tech: any): string {
 }
 
 /**
+ * Format architecture summary section
+ * @param jsonData The JSON architectural review data
+ * @returns Formatted summary section or empty string
+ */
+function formatSummarySection(jsonData: any): string {
+  if (!jsonData.summary) {
+    return '';
+  }
+  return `## Architecture Summary\n\n${jsonData.summary}\n\n`;
+}
+
+/**
+ * Format architecture diagram section
+ * @param jsonData The JSON architectural review data
+ * @returns Formatted diagram section or empty string
+ */
+function formatDiagramSection(jsonData: any): string {
+  const items = jsonData.components || jsonData.layers;
+  if (!items) {
+    return '';
+  }
+  return generateMermaidDiagram(items, jsonData.dependencies);
+}
+
+/**
+ * Format components/layers section
+ * @param jsonData The JSON architectural review data
+ * @returns Formatted components section or empty string
+ */
+function formatComponentsSection(jsonData: any): string {
+  const items = jsonData.components || jsonData.layers;
+  if (!items) {
+    return '';
+  }
+  return formatComponents(items);
+}
+
+/**
+ * Format data flow section
+ * @param jsonData The JSON architectural review data
+ * @returns Formatted data flow section or empty string
+ */
+function formatDataFlowSection(jsonData: any): string {
+  const flow = jsonData.dataFlow || jsonData.flow;
+  if (!flow) {
+    return '';
+  }
+  return formatDataFlow(flow);
+}
+
+/**
+ * Format architectural patterns section
+ * @param jsonData The JSON architectural review data
+ * @returns Formatted patterns section or empty string
+ */
+function formatPatternsSection(jsonData: any): string {
+  if (!jsonData.patterns) {
+    return '';
+  }
+  return formatPatterns(jsonData.patterns);
+}
+
+/**
+ * Format issues/concerns section
+ * @param jsonData The JSON architectural review data
+ * @returns Formatted issues section or empty string
+ */
+function formatIssuesSection(jsonData: any): string {
+  const issues = jsonData.issues || jsonData.concerns;
+  if (!issues) {
+    return '';
+  }
+  return formatIssues(issues);
+}
+
+/**
+ * Format recommendations section
+ * @param jsonData The JSON architectural review data
+ * @returns Formatted recommendations section or empty string
+ */
+function formatRecommendationsSection(jsonData: any): string {
+  if (!jsonData.recommendations) {
+    return '';
+  }
+  return formatRecommendations(jsonData.recommendations);
+}
+
+/**
+ * Format technology stack section
+ * @param jsonData The JSON architectural review data
+ * @returns Formatted tech stack section or empty string
+ */
+function formatTechStackSection(jsonData: any): string {
+  const tech = jsonData.techStack || jsonData.technologies;
+  if (!tech) {
+    return '';
+  }
+  return formatTechStack(tech);
+}
+
+/**
  * Convert JSON architectural review data to Markdown format with diagrams
  *
  * WHY: OpenRouter models often return JSON even when Markdown is requested.
@@ -332,55 +433,20 @@ function formatTechStack(tech: any): string {
  */
 function convertJsonArchitectureToMarkdown(jsonData: any): string {
   try {
-    let markdown = '';
+    // Define section formatters in order
+    const sectionFormatters = [
+      formatSummarySection,
+      formatDiagramSection,
+      formatComponentsSection,
+      formatDataFlowSection,
+      formatPatternsSection,
+      formatIssuesSection,
+      formatRecommendationsSection,
+      formatTechStackSection,
+    ];
 
-    // Add summary section
-    if (jsonData.summary) {
-      markdown += '## Architecture Summary\n\n';
-      markdown += `${jsonData.summary}\n\n`;
-    }
-
-    // Generate Mermaid diagram from components/layers
-    if (jsonData.components || jsonData.layers) {
-      const items = jsonData.components || jsonData.layers;
-      markdown += generateMermaidDiagram(items, jsonData.dependencies);
-    }
-
-    // Add components/layers details
-    if (jsonData.components || jsonData.layers) {
-      const items = jsonData.components || jsonData.layers;
-      markdown += formatComponents(items);
-    }
-
-    // Add data flow diagram if available
-    if (jsonData.dataFlow || jsonData.flow) {
-      const flow = jsonData.dataFlow || jsonData.flow;
-      markdown += formatDataFlow(flow);
-    }
-
-    // Add architectural patterns
-    if (jsonData.patterns) {
-      markdown += formatPatterns(jsonData.patterns);
-    }
-
-    // Add issues/concerns
-    if (jsonData.issues || jsonData.concerns) {
-      const issues = jsonData.issues || jsonData.concerns;
-      markdown += formatIssues(issues);
-    }
-
-    // Add recommendations
-    if (jsonData.recommendations) {
-      markdown += formatRecommendations(jsonData.recommendations);
-    }
-
-    // Add tech stack if available
-    if (jsonData.techStack || jsonData.technologies) {
-      const tech = jsonData.techStack || jsonData.technologies;
-      markdown += formatTechStack(tech);
-    }
-
-    return markdown;
+    // Apply all formatters and concatenate results
+    return sectionFormatters.map((formatter) => formatter(jsonData)).join('');
   } catch (error) {
     logger.warn(`Error converting JSON to Markdown: ${error}`);
     // Return original JSON as formatted code block
