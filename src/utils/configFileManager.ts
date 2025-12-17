@@ -192,7 +192,10 @@ function applyReviewConfig(
   if (config.include_project_docs !== undefined && options.includeProjectDocs === undefined) {
     options.includeProjectDocs = config.include_project_docs;
   }
-  if (config.include_dependency_analysis !== undefined && options.includeDependencyAnalysis === undefined) {
+  if (
+    config.include_dependency_analysis !== undefined &&
+    options.includeDependencyAnalysis === undefined
+  ) {
     options.includeDependencyAnalysis = config.include_dependency_analysis;
   }
   if (config.consolidated !== undefined && options.consolidated === undefined) {

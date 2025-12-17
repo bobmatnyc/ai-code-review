@@ -235,7 +235,14 @@ async function performToolCallingReview(
   tools: any[],
 ): Promise<string> {
   // Make the initial API request with tools
-  const data = await makeAnthropicRequest(apiKey, apiModelName, systemPrompt, userPrompt, 0.2, tools);
+  const data = await makeAnthropicRequest(
+    apiKey,
+    apiModelName,
+    systemPrompt,
+    userPrompt,
+    0.2,
+    tools,
+  );
 
   logger.debug(`Initial response: ${JSON.stringify(data)}`);
 
@@ -429,7 +436,13 @@ export async function generateArchitecturalAnthropicReview(
         }
 
         const systemPrompt = getArchitecturalSystemPrompt(options?.diagram || false);
-        content = await performToolCallingReview(apiKey, apiModelName, systemPrompt, userPrompt, tools);
+        content = await performToolCallingReview(
+          apiKey,
+          apiModelName,
+          systemPrompt,
+          userPrompt,
+          tools,
+        );
 
         // Calculate cost information
         try {

@@ -90,10 +90,7 @@ function handleModelListing(options: ReviewOptions): boolean {
  * @param options Review options (will be modified with detected language/framework)
  * @returns Framework detection result or null
  */
-async function detectProjectFramework(
-  projectPath: string,
-  options: ReviewOptions,
-): Promise<any> {
+async function detectProjectFramework(projectPath: string, options: ReviewOptions): Promise<any> {
   if (options.language) {
     return null; // Language already specified
   }
@@ -119,7 +116,7 @@ async function detectProjectFramework(
         logger.info(`Framework version: ${result.frameworkVersion}`);
       }
 
-      if (result.additionalFrameworks?.length > 0) {
+      if (result.additionalFrameworks?.length && result.additionalFrameworks.length > 0) {
         logger.info(`Additional frameworks detected: ${result.additionalFrameworks.join(', ')}`);
       }
 
@@ -143,7 +140,7 @@ async function detectProjectFramework(
  * @param cssFrameworks Array of CSS framework info
  */
 function logCssFrameworks(cssFrameworks?: Array<{ name: string; version?: string }>): void {
-  if (cssFrameworks?.length > 0) {
+  if (cssFrameworks?.length && cssFrameworks.length > 0) {
     const cssFrameworksStr = cssFrameworks
       .map((cf) => (cf.version ? `${cf.name} (${cf.version})` : cf.name))
       .join(', ');
@@ -283,7 +280,7 @@ export async function orchestrateReview(target: string, options: ReviewOptions):
     logger.info(`Project path: ${projectPath}`);
 
     // Detect language and framework
-    const frameworkDetectionResult = await detectProjectFramework(projectPath, options);
+    const _frameworkDetectionResult = await detectProjectFramework(projectPath, options);
 
     // Discover files to review
     const filesToReview = await discoverFilesForReview(effectiveTarget, projectPath, options);
@@ -349,11 +346,7 @@ export async function orchestrateReview(target: string, options: ReviewOptions):
     }
 
     // Perform token analysis to check if content exceeds context window
-    const tokenAnalysis = await performTokenAnalysisIfNeeded(
-      fileInfos,
-      options,
-      apiClientConfig,
-    );
+    const tokenAnalysis = await performTokenAnalysisIfNeeded(fileInfos, options, apiClientConfig);
 
     // Execute the review
     const reviewResult = await executeReview(
