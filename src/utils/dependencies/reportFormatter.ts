@@ -30,6 +30,264 @@ export interface EnhancedDependencyAnalysis {
 }
 
 /**
+ * Format dependency overview section
+ * @param summary Dependency summary statistics
+ * @returns Formatted markdown string
+ */
+function formatDependencyOverview(summary: {
+  total: number;
+  direct: number;
+  dev: number;
+  transitive: number;
+}): string {
+  let section = '\n### 📦 Dependency Overview\n\n';
+  section += `**Total Dependencies**: ${summary.total}\n`;
+  section += `- 🔧 Production dependencies: ${summary.direct}\n`;
+  section += `- 🛠️ Development dependencies: ${summary.dev}\n`;
+
+  if (summary.transitive > 0) {
+    section += `- 🔄 Transitive dependencies: ${summary.transitive}\n`;
+  }
+  section += '\n';
+
+  return section;
+}
+
+/**
+ * Format security severity breakdown
+ * @param securityIssues Security issues with severity counts
+ * @returns Formatted markdown string
+ */
+function formatSeverityBreakdown(securityIssues: SecurityIssues): string {
+  let breakdown = '**Severity Breakdown**:\n';
+
+  if (securityIssues.critical > 0) {
+    breakdown += `- 🔴 Critical: ${securityIssues.critical}\n`;
+  }
+  if (securityIssues.high > 0) {
+    breakdown += `- 🟠 High: ${securityIssues.high}\n`;
+  }
+  if (securityIssues.moderate > 0) {
+    breakdown += `- 🟡 Moderate: ${securityIssues.moderate}\n`;
+  }
+  if (securityIssues.low > 0) {
+    breakdown += `- 🟢 Low: ${securityIssues.low}\n`;
+  }
+  if (securityIssues.info > 0) {
+    breakdown += `- ⚪ Info: ${securityIssues.info}\n`;
+  }
+  breakdown += '\n';
+
+  return breakdown;
+}
+
+/**
+ * Format security analysis section
+ * @param securityIssues Security issues data
+ * @param securityReport Detailed security report
+ * @returns Formatted markdown string
+ */
+function formatSecurityAnalysis(securityIssues: SecurityIssues, securityReport: string): string {
+  let section = '### 🔒 Security Analysis\n\n';
+
+  const totalIssues = securityIssues.total || 0;
+
+  if (totalIssues === 0) {
+    return section + '✅ **No security vulnerabilities detected**\n\n';
+  }
+
+  const criticalCount = securityIssues.critical || 0;
+  const highCount = securityIssues.high || 0;
+  const hasCriticalOrHigh = criticalCount > 0 || highCount > 0;
+  const issueWord = totalIssues === 1 ? 'issue' : 'issues';
+  const severity = hasCriticalOrHigh ? '' : 'minor ';
+
+  section += `⚠️ **${totalIssues} ${severity}security ${issueWord} detected**\n\n`;
+  section += formatSeverityBreakdown(securityIssues);
+
+  if (securityReport) {
+    section += securityReport;
+  }
+
+  section += 'Run `npm audit fix` to address fixable vulnerabilities automatically.\n\n';
+
+  return section;
+}
+
+/**
+ * Categorize dependencies into dev and production
+ * @param displayDeps Dependencies to categorize
+ * @param projectName Project path
+ * @returns Object with dev and prod dependency arrays
+ */
+function categorizeDependencies(
+  displayDeps: string[],
+  projectName: string,
+): { devDeps: string[]; prodDeps: string[] } {
+  const devDeps: string[] = [];
+  const prodDeps: string[] = [];
+
+  try {
+    const packageJsonPath = path.join(projectName, 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    const devDependencies = packageJson.devDependencies || {};
+
+    displayDeps.forEach((dep) => {
+      if (devDependencies[dep]) {
+        devDeps.push(dep);
+      } else {
+        prodDeps.push(dep);
+      }
+    });
+  } catch (_error) {
+    // If categorization fails, treat all as production
+    prodDeps.push(...displayDeps);
+  }
+
+  return { devDeps, prodDeps };
+}
+
+/**
+ * Format unused dependencies section
+ * @param unusedDeps Array of unused dependencies
+ * @param projectName Project path
+ * @returns Formatted markdown string
+ */
+function formatUnusedDependencies(unusedDeps: string[], projectName: string): string {
+  let section = '\n### 🧹 Unused Dependencies\n\n';
+
+  if (unusedDeps.length === 0) {
+    return section + '✅ **No unused dependencies detected**\n\n';
+  }
+
+  if (unusedDeps[0].startsWith('Error')) {
+    return section + `⚠️ ${unusedDeps[0]}\n\n`;
+  }
+
+  const limit = 15;
+  const hasMore = unusedDeps.length > limit;
+  const displayDeps = hasMore ? unusedDeps.slice(0, limit) : unusedDeps;
+  const depWord = unusedDeps.length === 1 ? 'dependency' : 'dependencies';
+
+  section += `⚠️ **Found ${unusedDeps.length} unused ${depWord}**\n\n`;
+
+  const { devDeps, prodDeps } = categorizeDependencies(displayDeps, projectName);
+
+  if (prodDeps.length > 0) {
+    section += '**Unused production dependencies**:\n';
+    prodDeps.forEach((dep) => (section += `- \`${dep}\`\n`));
+    section += '\n';
+  }
+
+  if (devDeps.length > 0) {
+    section += '**Unused development dependencies**:\n';
+    devDeps.forEach((dep) => (section += `- \`${dep}\`\n`));
+    section += '\n';
+  }
+
+  if (hasMore) {
+    section += `\n...and ${unusedDeps.length - limit} more unused dependencies\n`;
+  }
+
+  section +=
+    '\n**Impact**: Unused dependencies increase your security surface area, slow down builds, and add unnecessary bloat to your project.\n\n';
+  section +=
+    '**Recommendation**: Run `npx depcheck` to confirm these findings, then remove unneeded dependencies.\n\n';
+
+  return section;
+}
+
+/**
+ * Format dependency visualization section
+ * @param graphPath Path to dependency graph file
+ * @returns Formatted markdown string
+ */
+function formatDependencyVisualization(graphPath: string): string {
+  if (!graphPath) {
+    return '';
+  }
+
+  let section = '\n### 📊 Dependency Visualization\n\n';
+  const ext = path.extname(graphPath);
+
+  if (ext === '.svg') {
+    section += `An SVG visualization of your dependency graph has been generated at:\n\`${graphPath}\`\n\n`;
+    section +=
+      'This visualization shows package relationships and can help identify dependency bottlenecks or circular dependencies.\n\n';
+  } else if (ext === '.json') {
+    section += `A JSON representation of your dependency graph has been generated at:\n\`${graphPath}\`\n\n`;
+    section +=
+      'This data can be used with visualization tools to explore your dependency structure.\n\n';
+  } else {
+    section += `A dependency analysis file has been generated at:\n\`${graphPath}\`\n\n`;
+  }
+
+  return section;
+}
+
+/**
+ * Categorize recommendations by type
+ * @param recommendations Array of recommendation strings
+ * @returns Object with categorized recommendations
+ */
+function categorizeRecommendations(recommendations: string[]): {
+  security: string[];
+  performance: string[];
+  maintenance: string[];
+} {
+  const security: string[] = [];
+  const performance: string[] = [];
+  const maintenance: string[] = [];
+
+  recommendations.forEach((rec) => {
+    const lower = rec.toLowerCase();
+    if (lower.includes('security') || lower.includes('vulnerab') || lower.includes('audit fix')) {
+      security.push(rec);
+    } else if (lower.includes('performance') || lower.includes('speed') || lower.includes('faster')) {
+      performance.push(rec);
+    } else {
+      maintenance.push(rec);
+    }
+  });
+
+  return { security, performance, maintenance };
+}
+
+/**
+ * Format recommendations section
+ * @param recommendations Array of recommendation strings
+ * @returns Formatted markdown string
+ */
+function formatRecommendations(recommendations: string[]): string {
+  if (recommendations.length === 0) {
+    return '';
+  }
+
+  let section = '\n### 💡 Recommendations\n\n';
+  const { security, performance, maintenance } = categorizeRecommendations(recommendations);
+
+  if (security.length > 0) {
+    section += '**Security Improvements**:\n';
+    security.forEach((rec) => (section += `- 🔒 ${rec}\n`));
+    section += '\n';
+  }
+
+  if (performance.length > 0) {
+    section += '**Performance Improvements**:\n';
+    performance.forEach((rec) => (section += `- ⚡ ${rec}\n`));
+    section += '\n';
+  }
+
+  if (maintenance.length > 0) {
+    section += '**Maintenance Improvements**:\n';
+    maintenance.forEach((rec) => (section += `- 🔧 ${rec}\n`));
+    section += '\n';
+  }
+
+  return section;
+}
+
+/**
  * Format the overall dependency analysis report
  * @param analysis The enhanced dependency analysis result
  * @returns Formatted markdown report
@@ -41,178 +299,12 @@ export function formatOverallReport(analysis: EnhancedDependencyAnalysis): strin
   report +=
     analysis.techStackReport || '**Tech Stack**: Could not detect project technology stack.\n\n';
 
-  // Add dependency summary with emojis and better formatting
-  report += '\n### 📦 Dependency Overview\n\n';
-  report += `**Total Dependencies**: ${analysis.dependencySummary.total}\n`;
-  report += `- 🔧 Production dependencies: ${analysis.dependencySummary.direct}\n`;
-  report += `- 🛠️ Development dependencies: ${analysis.dependencySummary.dev}\n`;
-
-  if (analysis.dependencySummary.transitive > 0) {
-    report += `- 🔄 Transitive dependencies: ${analysis.dependencySummary.transitive}\n`;
-  }
-  report += '\n';
-
-  // Add security information with enhanced formatting
-  report += '### 🔒 Security Analysis\n\n';
-
-  const totalIssues = analysis.securityIssues.total || 0;
-
-  if (totalIssues > 0) {
-    const criticalCount = analysis.securityIssues.critical || 0;
-    const highCount = analysis.securityIssues.high || 0;
-
-    if (criticalCount > 0 || highCount > 0) {
-      report += `⚠️ **${totalIssues} security ${totalIssues === 1 ? 'issue' : 'issues'} detected**\n\n`;
-    } else {
-      report += `⚠️ **${totalIssues} minor security ${totalIssues === 1 ? 'issue' : 'issues'} detected**\n\n`;
-    }
-
-    // Add severity breakdown
-    report += '**Severity Breakdown**:\n';
-    if (criticalCount > 0) report += `- 🔴 Critical: ${criticalCount}\n`;
-    if (highCount > 0) report += `- 🟠 High: ${highCount}\n`;
-    if (analysis.securityIssues.moderate > 0)
-      report += `- 🟡 Moderate: ${analysis.securityIssues.moderate}\n`;
-    if (analysis.securityIssues.low > 0) report += `- 🟢 Low: ${analysis.securityIssues.low}\n`;
-    if (analysis.securityIssues.info > 0) report += `- ⚪ Info: ${analysis.securityIssues.info}\n`;
-    report += '\n';
-
-    if (analysis.securityReport) {
-      report += analysis.securityReport;
-    }
-
-    report += 'Run `npm audit fix` to address fixable vulnerabilities automatically.\n\n';
-  } else {
-    report += '✅ **No security vulnerabilities detected**\n\n';
-  }
-
-  // Add unused dependencies with better formatting
-  if (analysis.unusedDependencies.length > 0) {
-    report += '\n### 🧹 Unused Dependencies\n\n';
-
-    if (analysis.unusedDependencies[0].startsWith('Error')) {
-      report += `⚠️ ${analysis.unusedDependencies[0]}\n\n`;
-    } else {
-      const limit = 15; // Limit display to avoid overwhelming output
-      const hasMore = analysis.unusedDependencies.length > limit;
-      const displayDeps = hasMore
-        ? analysis.unusedDependencies.slice(0, limit)
-        : analysis.unusedDependencies;
-
-      report += `⚠️ **Found ${analysis.unusedDependencies.length} unused ${analysis.unusedDependencies.length === 1 ? 'dependency' : 'dependencies'}**\n\n`;
-
-      // Group by dev vs prod if we can determine that
-      const devDeps: string[] = [];
-      const prodDeps: string[] = [];
-
-      try {
-        // Try to read package.json to categorize dependencies
-        const packageJsonPath = path.join(analysis.projectName, 'package.json');
-        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-        const devDependencies = packageJson.devDependencies || {};
-
-        displayDeps.forEach((dep) => {
-          if (devDependencies[dep]) {
-            devDeps.push(dep);
-          } else {
-            prodDeps.push(dep);
-          }
-        });
-
-        if (prodDeps.length > 0) {
-          report += '**Unused production dependencies**:\n';
-          prodDeps.forEach((dep) => (report += `- \`${dep}\`\n`));
-          report += '\n';
-        }
-
-        if (devDeps.length > 0) {
-          report += '**Unused development dependencies**:\n';
-          devDeps.forEach((dep) => (report += `- \`${dep}\`\n`));
-          report += '\n';
-        }
-      } catch (_error) {
-        // If we can't determine dev vs prod, just list them all
-        displayDeps.forEach((dep) => (report += `- \`${dep}\`\n`));
-      }
-
-      if (hasMore) {
-        report += `\n...and ${analysis.unusedDependencies.length - limit} more unused dependencies\n`;
-      }
-
-      report +=
-        '\n**Impact**: Unused dependencies increase your security surface area, slow down builds, and add unnecessary bloat to your project.\n\n';
-      report +=
-        '**Recommendation**: Run `npx depcheck` to confirm these findings, then remove unneeded dependencies.\n\n';
-    }
-  } else {
-    report += '\n### 🧹 Unused Dependencies\n\n';
-    report += '✅ **No unused dependencies detected**\n\n';
-  }
-
-  // Add visualization reference with better context
-  if (analysis.dependencyGraph) {
-    report += '\n### 📊 Dependency Visualization\n\n';
-
-    // Get the file extension to describe what type of visualization is available
-    const ext = path.extname(analysis.dependencyGraph);
-    if (ext === '.svg') {
-      report += `An SVG visualization of your dependency graph has been generated at:\n\`${analysis.dependencyGraph}\`\n\n`;
-      report +=
-        'This visualization shows package relationships and can help identify dependency bottlenecks or circular dependencies.\n\n';
-    } else if (ext === '.json') {
-      report += `A JSON representation of your dependency graph has been generated at:\n\`${analysis.dependencyGraph}\`\n\n`;
-      report +=
-        'This data can be used with visualization tools to explore your dependency structure.\n\n';
-    } else {
-      report += `A dependency analysis file has been generated at:\n\`${analysis.dependencyGraph}\`\n\n`;
-    }
-  }
-
-  // Add recommendations with better formatting and categorization
-  if (analysis.recommendations.length > 0) {
-    report += '\n### 💡 Recommendations\n\n';
-
-    // Try to categorize recommendations
-    const securityRecs: string[] = [];
-    const performanceRecs: string[] = [];
-    const maintenanceRecs: string[] = [];
-
-    analysis.recommendations.forEach((rec) => {
-      if (
-        rec.toLowerCase().includes('security') ||
-        rec.toLowerCase().includes('vulnerab') ||
-        rec.toLowerCase().includes('audit fix')
-      ) {
-        securityRecs.push(rec);
-      } else if (
-        rec.toLowerCase().includes('performance') ||
-        rec.toLowerCase().includes('speed') ||
-        rec.toLowerCase().includes('faster')
-      ) {
-        performanceRecs.push(rec);
-      } else {
-        maintenanceRecs.push(rec);
-      }
-    });
-
-    if (securityRecs.length > 0) {
-      report += '**Security Improvements**:\n';
-      securityRecs.forEach((rec) => (report += `- 🔒 ${rec}\n`));
-      report += '\n';
-    }
-
-    if (performanceRecs.length > 0) {
-      report += '**Performance Improvements**:\n';
-      performanceRecs.forEach((rec) => (report += `- ⚡ ${rec}\n`));
-      report += '\n';
-    }
-
-    if (maintenanceRecs.length > 0) {
-      report += '**Maintenance Improvements**:\n';
-      maintenanceRecs.forEach((rec) => (report += `- 🔧 ${rec}\n`));
-      report += '\n';
-    }
-  }
+  // Add each section using helper functions
+  report += formatDependencyOverview(analysis.dependencySummary);
+  report += formatSecurityAnalysis(analysis.securityIssues, analysis.securityReport);
+  report += formatUnusedDependencies(analysis.unusedDependencies, analysis.projectName);
+  report += formatDependencyVisualization(analysis.dependencyGraph);
+  report += formatRecommendations(analysis.recommendations);
 
   return report;
 }
