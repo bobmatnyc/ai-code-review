@@ -2,7 +2,7 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { getModelsByProvider, MODEL_MAP, type Provider } from '../clients/utils/modelMaps';
+import { getModelsByProvider, getModelMapping, type Provider } from '../clients/utils/modelMaps';
 import {
   type TestResult,
   testAnthropicModel,
@@ -63,7 +63,7 @@ async function testSpecificModel(modelStr: string): Promise<void> {
   }
 
   const fullModelKey = `${provider}:${modelName}`;
-  const modelMapping = MODEL_MAP[fullModelKey];
+  const modelMapping = getModelMapping(fullModelKey);
 
   if (!modelMapping) {
     logger.error(`Model ${fullModelKey} not found in model registry`);
@@ -117,7 +117,9 @@ async function testAllModels(): Promise<void> {
     logger.info(chalk.bold(`\nTesting ${modelKeys.length} ${provider} models:`));
 
     for (const modelKey of modelKeys) {
-      const modelMapping = MODEL_MAP[modelKey];
+      const modelMapping = getModelMapping(modelKey);
+      if (!modelMapping) continue;
+
       process.stdout.write(
         `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `,
       );
@@ -189,7 +191,9 @@ async function testProviderModels(providerStr: string) {
   const results = [];
 
   for (const modelKey of modelKeys) {
-    const modelMapping = MODEL_MAP[modelKey];
+    const modelMapping = getModelMapping(modelKey);
+    if (!modelMapping) continue;
+
     process.stdout.write(`  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(modelKey)})... `);
 
     let result: TestResult;
@@ -255,7 +259,8 @@ async function testDefaultModels() {
     if (modelKeys.length === 0) continue;
 
     const defaultModelKey = modelKeys[0]; // Just use the first one
-    const modelMapping = MODEL_MAP[defaultModelKey];
+    const modelMapping = getModelMapping(defaultModelKey);
+    if (!modelMapping) continue;
 
     process.stdout.write(
       `  ${chalk.cyan(modelMapping.displayName)} (${chalk.gray(defaultModelKey)})... `,

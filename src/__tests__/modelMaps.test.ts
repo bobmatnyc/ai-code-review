@@ -6,8 +6,7 @@
  */
 
 import {
-  MODEL_MAP,
-  MODELS,
+  ENHANCED_MODEL_MAP,
   getApiNameFromKey,
   getModelMapping,
   getModelsByProvider,
@@ -18,13 +17,13 @@ import {
 } from '../clients/utils/modelMaps';
 
 describe('modelMaps', () => {
-  describe('MODEL_MAP structure', () => {
+  describe('ENHANCED_MODEL_MAP structure', () => {
     it('should have the correct structure', () => {
-      expect(MODEL_MAP).toBeDefined();
-      expect(typeof MODEL_MAP).toBe('object');
+      expect(ENHANCED_MODEL_MAP).toBeDefined();
+      expect(typeof ENHANCED_MODEL_MAP).toBe('object');
 
       // Check that all models have required fields
-      Object.entries(MODEL_MAP).forEach(([_key, model]) => {
+      Object.entries(ENHANCED_MODEL_MAP).forEach(([_key, model]) => {
         expect(model.apiIdentifier).toBeDefined();
         expect(typeof model.apiIdentifier).toBe('string');
         expect(model.displayName).toBeDefined();
@@ -33,7 +32,7 @@ describe('modelMaps', () => {
         expect(['gemini', 'anthropic', 'openai', 'openrouter']).toContain(model.provider);
         expect(model.apiKeyEnvVar).toBeDefined();
         expect(typeof model.apiKeyEnvVar).toBe('string');
-        
+
         // Optional fields
         if (model.contextWindow !== undefined) {
           expect(typeof model.contextWindow).toBe('number');
@@ -52,7 +51,7 @@ describe('modelMaps', () => {
     });
 
     it('should have a reasonable number of models', () => {
-      const totalModels = Object.keys(MODEL_MAP).length;
+      const totalModels = Object.keys(ENHANCED_MODEL_MAP).length;
       // Ensure we have at least some models from each provider
       expect(totalModels).toBeGreaterThanOrEqual(10);
       expect(totalModels).toBeLessThan(100); // Sanity check
@@ -65,17 +64,17 @@ describe('modelMaps', () => {
     providers.forEach(provider => {
       describe(`${provider} models`, () => {
         it(`should have ${provider} models with correct structure`, () => {
-          const providerModels = Object.entries(MODEL_MAP)
+          const providerModels = Object.entries(ENHANCED_MODEL_MAP)
             .filter(([_key, model]) => model.provider === provider);
-          
+
           // Each provider should have at least one model
           expect(providerModels.length).toBeGreaterThan(0);
-          
+
           // Check that all model keys follow the correct format
           providerModels.forEach(([key, model]) => {
             expect(key).toMatch(new RegExp(`^${provider}:`));
             expect(model.provider).toBe(provider);
-            
+
             // Check provider-specific API key environment variables
             const expectedEnvVars: Record<Provider, string> = {
               gemini: 'AI_CODE_REVIEW_GOOGLE_API_KEY',
@@ -99,8 +98,8 @@ describe('modelMaps', () => {
       };
 
       Object.entries(keyModels).forEach(([provider, models]) => {
-        const providerModels = Object.keys(MODEL_MAP).filter(key => key.startsWith(`${provider}:`));
-        
+        const providerModels = Object.keys(ENHANCED_MODEL_MAP).filter(key => key.startsWith(`${provider}:`));
+
         // Check that at least one of the key models exists
         const hasKeyModel = models.some(model => providerModels.includes(model));
         expect(hasKeyModel).toBe(true);
@@ -108,38 +107,38 @@ describe('modelMaps', () => {
     });
   });
 
-  describe('MODELS array', () => {
-    it('should have models for each provider', () => {
+  describe('getModels() function', () => {
+    it('should return models for each provider', () => {
       const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
-      
+
       providers.forEach(provider => {
-        expect(MODELS[provider]).toBeDefined();
-        expect(Array.isArray(MODELS[provider])).toBe(true);
-        
-        // Each provider should have at least one model in MODELS
-        expect(MODELS[provider].length).toBeGreaterThan(0);
-        
-        // All models in MODELS should exist in MODEL_MAP
-        MODELS[provider].forEach(modelKey => {
-          expect(MODEL_MAP[modelKey]).toBeDefined();
-          expect(MODEL_MAP[modelKey].provider).toBe(provider);
+        const models = getModels(provider);
+        expect(Array.isArray(models)).toBe(true);
+
+        // Each provider should have at least one model
+        expect(models.length).toBeGreaterThan(0);
+
+        // All models should exist in ENHANCED_MODEL_MAP
+        models.forEach(modelKey => {
+          expect(ENHANCED_MODEL_MAP[modelKey]).toBeDefined();
+          expect(ENHANCED_MODEL_MAP[modelKey].provider).toBe(provider);
         });
       });
     });
 
-    it('should exclude deprecated models from MODELS by default', () => {
-      // Check if any models in MODEL_MAP have DEPRECATED in their display name
-      const deprecatedModels = Object.entries(MODEL_MAP)
-        .filter(([_key, model]) => model.displayName.includes('DEPRECATED'))
+    it('should exclude deprecated models by default', () => {
+      // Check if any models in ENHANCED_MODEL_MAP have DEPRECATED status
+      const deprecatedModels = Object.entries(ENHANCED_MODEL_MAP)
+        .filter(([_key, model]) => model.status === 'deprecated')
         .map(([key]) => key);
-      
-      // MODELS should not include deprecated models
-      Object.values(MODELS).flat().forEach(modelKey => {
-        const model = MODEL_MAP[modelKey];
-        if (deprecatedModels.includes(modelKey)) {
-          // If a deprecated model is in MODELS, it's okay as long as it's clearly marked
-          expect(model.displayName).toContain('DEPRECATED');
-        }
+
+      // getModels() should not include deprecated models
+      const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
+      providers.forEach(provider => {
+        const models = getModels(provider);
+        models.forEach(modelKey => {
+          expect(deprecatedModels).not.toContain(modelKey);
+        });
       });
     });
   });
@@ -147,8 +146,8 @@ describe('modelMaps', () => {
   describe('Utility functions', () => {
     describe('getApiNameFromKey', () => {
       it('should return the correct API identifier for known model keys', () => {
-        // Test with actual models from MODEL_MAP
-        Object.entries(MODEL_MAP).slice(0, 5).forEach(([key, model]) => {
+        // Test with actual models from ENHANCED_MODEL_MAP
+        Object.entries(ENHANCED_MODEL_MAP).slice(0, 5).forEach(([key, model]) => {
           expect(getApiNameFromKey(key)).toBe(model.apiIdentifier);
         });
       });
@@ -161,10 +160,12 @@ describe('modelMaps', () => {
 
     describe('getModelMapping', () => {
       it('should return the correct model mapping for known model keys', () => {
-        Object.keys(MODEL_MAP).slice(0, 5).forEach(key => {
+        Object.keys(ENHANCED_MODEL_MAP).slice(0, 5).forEach(key => {
           const mapping = getModelMapping(key);
           expect(mapping).toBeDefined();
-          expect(mapping).toEqual(MODEL_MAP[key]);
+          const enhanced = ENHANCED_MODEL_MAP[key];
+          expect(mapping?.apiIdentifier).toBe(enhanced.apiIdentifier);
+          expect(mapping?.provider).toBe(enhanced.provider);
         });
       });
 
@@ -179,13 +180,13 @@ describe('modelMaps', () => {
     describe('getModelsByProvider', () => {
       it('should return all models for each provider', () => {
         const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
-        
+
         providers.forEach(provider => {
           const models = getModelsByProvider(provider);
-          const expectedModels = Object.keys(MODEL_MAP).filter(
-            key => MODEL_MAP[key].provider === provider
+          const expectedModels = Object.keys(ENHANCED_MODEL_MAP).filter(
+            key => ENHANCED_MODEL_MAP[key].provider === provider
           );
-          
+
           expect(models.length).toBe(expectedModels.length);
           expect(models.sort()).toEqual(expectedModels.sort());
         });
@@ -198,16 +199,19 @@ describe('modelMaps', () => {
     });
 
     describe('getModels', () => {
-      it('should return models for each provider', () => {
+      it('should return models for each provider excluding deprecated', () => {
         const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
-        
+
         providers.forEach(provider => {
           const models = getModels(provider);
           expect(models).toBeDefined();
           expect(Array.isArray(models)).toBe(true);
-          
-          // Should match MODELS export
-          expect(models).toEqual(MODELS[provider]);
+
+          // Should only include non-deprecated models
+          models.forEach(modelKey => {
+            const model = ENHANCED_MODEL_MAP[modelKey];
+            expect(model.status).not.toBe('deprecated');
+          });
         });
       });
 
@@ -255,19 +259,19 @@ describe('modelMaps', () => {
 
   describe('Data integrity', () => {
     it('should have unique model keys', () => {
-      const keys = Object.keys(MODEL_MAP);
+      const keys = Object.keys(ENHANCED_MODEL_MAP);
       const uniqueKeys = [...new Set(keys)];
       expect(keys.length).toBe(uniqueKeys.length);
     });
 
     it('should have consistent provider prefixes in keys', () => {
-      Object.entries(MODEL_MAP).forEach(([key, model]) => {
+      Object.entries(ENHANCED_MODEL_MAP).forEach(([key, model]) => {
         expect(key.startsWith(`${model.provider}:`)).toBe(true);
       });
     });
 
     it('should have positive context windows where defined', () => {
-      Object.values(MODEL_MAP).forEach(model => {
+      Object.values(ENHANCED_MODEL_MAP).forEach(model => {
         if (model.contextWindow !== undefined) {
           expect(model.contextWindow).toBeGreaterThan(0);
         }
@@ -276,7 +280,7 @@ describe('modelMaps', () => {
 
     it('should have valid environment variable names', () => {
       const validEnvVarPattern = /^[A-Z][A-Z0-9_]*$/;
-      Object.values(MODEL_MAP).forEach(model => {
+      Object.values(ENHANCED_MODEL_MAP).forEach(model => {
         expect(model.apiKeyEnvVar).toMatch(validEnvVarPattern);
       });
     });

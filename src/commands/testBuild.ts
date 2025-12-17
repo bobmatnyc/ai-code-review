@@ -2,7 +2,7 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { getModelsByProvider, MODEL_MAP, type Provider } from '../clients/utils/modelMaps';
+import { getModelsByProvider, getModelMapping, type Provider } from '../clients/utils/modelMaps';
 import {
   type TestResult,
   testAnthropicModel,
@@ -53,7 +53,8 @@ async function testAllModels(options: any): Promise<void> {
     }
 
     for (const modelKey of modelKeys) {
-      const modelMapping = MODEL_MAP[modelKey];
+      const modelMapping = getModelMapping(modelKey);
+      if (!modelMapping) continue;
 
       if (!options.json) {
         process.stdout.write(
@@ -161,7 +162,8 @@ async function testProviderModels(provider: Provider, options: any): Promise<voi
   }
 
   for (const modelKey of modelKeys) {
-    const modelMapping = MODEL_MAP[modelKey];
+    const modelMapping = getModelMapping(modelKey);
+    if (!modelMapping) continue;
 
     if (!options.json) {
       process.stdout.write(

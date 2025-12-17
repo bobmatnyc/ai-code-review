@@ -13,7 +13,7 @@ import {
   getOpenRouterApiKey,
 } from '../../utils/envLoader';
 import logger from '../../utils/logger';
-import { getModelsByProvider, MODEL_MAP, type ModelMapping, type Provider } from './modelMaps';
+import { getModelsByProvider, getModelMapping, type ModelMapping, type Provider } from './modelMaps';
 
 /**
  * Model information interface
@@ -89,7 +89,18 @@ function getModelsForProvider(providerKey: string): ModelInfo[] {
   const apiKeyStatus = apiKey.apiKey ? 'available' : 'missing';
 
   return getModelsByProvider(providerKey as Provider).map((modelKey) => {
-    const modelData = MODEL_MAP[modelKey];
+    const modelData = getModelMapping(modelKey);
+    if (!modelData) {
+      return {
+        name: modelKey,
+        displayName: modelKey,
+        provider: config.displayName,
+        description: config.defaultDescription,
+        contextWindow: config.defaultContextWindow,
+        apiKeyRequired: config.apiKeyEnvVar,
+        apiKeyStatus,
+      };
+    }
     return {
       name: modelKey,
       displayName: modelData.displayName,
@@ -200,13 +211,20 @@ export function listModelConfigs(): void {
   // Group models by provider
   const modelsByProvider: Record<string, Array<ModelMapping & { name: string }>> = {};
 
-  Object.entries(MODEL_MAP).forEach(([key, model]) => {
-    if (!modelsByProvider[model.provider]) {
-      modelsByProvider[model.provider] = [];
-    }
-    modelsByProvider[model.provider].push({
-      ...model,
-      name: key, // Add the key as the name
+  const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
+  providers.forEach((provider) => {
+    const modelKeys = getModelsByProvider(provider);
+    modelKeys.forEach((key) => {
+      const model = getModelMapping(key);
+      if (!model) return;
+
+      if (!modelsByProvider[model.provider]) {
+        modelsByProvider[model.provider] = [];
+      }
+      modelsByProvider[model.provider].push({
+        ...model,
+        name: key, // Add the key as the name
+      });
     });
   });
 

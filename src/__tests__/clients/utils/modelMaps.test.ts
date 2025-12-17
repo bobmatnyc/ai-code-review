@@ -10,12 +10,11 @@
  */
 
 import {
-  MODEL_MAP,
-  MODELS,
   ENHANCED_MODEL_MAP,
   getApiNameFromKey,
   getModelMapping,
   getModelsByProvider,
+  getModels,
   parseModelString,
   supportsToolCalling,
   getEnhancedModelMapping,
@@ -29,22 +28,20 @@ import {
   type Provider
 } from '../../../clients/utils/modelMaps';
 
-describe('Model Maps - Backwards Compatibility', () => {
-  describe('MODEL_MAP', () => {
-    it('should contain all models from ENHANCED_MODEL_MAP', () => {
-      const modelMapKeys = Object.keys(MODEL_MAP);
+describe('Model Maps - Enhanced Functionality', () => {
+  describe('ENHANCED_MODEL_MAP', () => {
+    it('should contain all expected models', () => {
       const enhancedMapKeys = Object.keys(ENHANCED_MODEL_MAP);
-      
-      expect(modelMapKeys.sort()).toEqual(enhancedMapKeys.sort());
+      expect(enhancedMapKeys.length).toBeGreaterThan(0);
     });
 
-    it('should maintain legacy ModelMapping structure', () => {
-      Object.entries(MODEL_MAP).forEach(([_key, mapping]) => {
+    it('should maintain EnhancedModelMapping structure', () => {
+      Object.entries(ENHANCED_MODEL_MAP).forEach(([_key, mapping]) => {
         expect(mapping).toHaveProperty('apiIdentifier');
         expect(mapping).toHaveProperty('displayName');
         expect(mapping).toHaveProperty('provider');
         expect(mapping).toHaveProperty('apiKeyEnvVar');
-        
+
         // Optional properties
         expect(mapping).toMatchObject({
           apiIdentifier: expect.any(String),
@@ -57,25 +54,29 @@ describe('Model Maps - Backwards Compatibility', () => {
 
     it('should not include removed deprecated models', () => {
       // Verify that removed deprecated models are truly gone
-      const removedModel = MODEL_MAP['anthropic:claude-3-opus'];
+      const removedModel = ENHANCED_MODEL_MAP['anthropic:claude-3-opus'];
       expect(removedModel).toBeUndefined();
     });
   });
 
-  describe('MODELS', () => {
+  describe('getModels()', () => {
     it('should exclude deprecated models by default', () => {
+      const anthropicModels = getModels('anthropic');
+
       // Claude 3 Opus is deprecated
-      expect(MODELS.anthropic).not.toContain('anthropic:claude-3-opus');
-      
+      expect(anthropicModels).not.toContain('anthropic:claude-3-opus');
+
       // Claude 4 Opus is not deprecated
-      expect(MODELS.anthropic).toContain('anthropic:claude-4-opus');
+      expect(anthropicModels).toContain('anthropic:claude-4-opus');
     });
 
-    it('should include all providers', () => {
-      expect(MODELS).toHaveProperty('gemini');
-      expect(MODELS).toHaveProperty('anthropic');
-      expect(MODELS).toHaveProperty('openai');
-      expect(MODELS).toHaveProperty('openrouter');
+    it('should return models for all providers', () => {
+      const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
+      providers.forEach(provider => {
+        const models = getModels(provider);
+        expect(Array.isArray(models)).toBe(true);
+        expect(models.length).toBeGreaterThan(0);
+      });
     });
   });
 

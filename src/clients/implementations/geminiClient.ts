@@ -130,8 +130,8 @@ export class GeminiClient extends AbstractClient {
 
     try {
       // Get the proper API identifier from the model map
-      const { MODEL_MAP } = await import('../utils/modelMaps');
-      const modelMapping = MODEL_MAP[selectedModel];
+      const { getModelMapping } = await import('../utils/modelMaps');
+      const modelMapping = getModelMapping(selectedModel);
 
       // Use the API identifier from the mapping
       const apiModelName = modelMapping?.apiIdentifier || this.modelName;

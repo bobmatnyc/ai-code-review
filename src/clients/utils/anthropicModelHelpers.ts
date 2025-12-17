@@ -222,7 +222,7 @@ export async function getApiModelName(modelName: string): Promise<string> {
   }
 
   // Import model maps for dynamic lookup
-  const { getModelMapping, MODEL_MAP } = await import('./modelMaps');
+  const { getModelMapping, ENHANCED_MODEL_MAP } = await import('./modelMaps');
 
   try {
     logger.debug(`getApiModelName called with model name: ${modelName}`);
@@ -230,7 +230,7 @@ export async function getApiModelName(modelName: string): Promise<string> {
     // Ensure model name has provider prefix for lookup
     const fullModelName = ensureAnthropicPrefix(modelName);
     logger.debug(`Full model name for lookup: ${fullModelName}`);
-    logger.debug(`Available model keys in MODEL_MAP: ${Object.keys(MODEL_MAP).join(', ')}`);
+    logger.debug(`Available model keys in ENHANCED_MODEL_MAP: ${Object.keys(ENHANCED_MODEL_MAP).join(', ')}`);
 
     // Try direct model map lookup
     const modelConfig = getModelMapping(fullModelName);
@@ -255,7 +255,7 @@ export async function getApiModelName(modelName: string): Promise<string> {
     logger.warn(
       `Model "${modelName}" (fullModelName: ${fullModelName}) not found in configuration. This may cause API errors.`,
     );
-    logger.warn('Make sure the model name is defined in MODEL_MAP within modelMaps.ts');
+    logger.warn('Make sure the model name is defined in ENHANCED_MODEL_MAP within modelMaps.ts');
     return modelName;
   } catch (error) {
     logger.error(`Error getting API model name: ${error}`);

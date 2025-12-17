@@ -5,7 +5,6 @@
  * - Verified model specifications as of June 2025
  * - Pricing information for accurate cost estimation
  * - Deprecation tracking with migration guidance
- * - Backwards compatibility with existing codebase
  * - Provider-specific feature detection
  * - Model categorization and capability mapping
  *
@@ -15,8 +14,6 @@
 
 // Export all functions
 export * from './functions';
-// Export legacy compatibility
-export { MODEL_MAP, MODELS } from './legacy';
 // Export enhanced model map
 export { ENHANCED_MODEL_MAP } from './modelData';
 // Export all types
