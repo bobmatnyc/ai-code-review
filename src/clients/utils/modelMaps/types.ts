@@ -61,6 +61,7 @@ export interface ModelMapping {
 export interface EnhancedModelMapping extends ModelMapping {
   inputPricePerMillion?: number;
   outputPricePerMillion?: number;
+  outputLimit?: number;
   tieredPricing?: TieredPricing[];
   deprecated?: boolean;
   categories?: ModelCategory[];
@@ -70,3 +71,13 @@ export interface EnhancedModelMapping extends ModelMapping {
   variants?: Record<string, string>;
   notes?: string;
 }
+
+/**
+ * Default context windows for providers when model not in registry.
+ */
+export const DEFAULT_CONTEXT_WINDOWS: Record<string, number> = {
+  gemini: 1_048_576,
+  anthropic: 200_000,
+  openai: 128_000,
+  openrouter: 128_000,
+};

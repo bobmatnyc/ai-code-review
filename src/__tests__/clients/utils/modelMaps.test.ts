@@ -86,8 +86,8 @@ describe('Model Maps - Backwards Compatibility', () => {
         expect(getApiNameFromKey('anthropic:claude-4-opus')).toBe('claude-4-opus-20241022');
       });
 
-      it('should return the key itself for invalid keys', () => {
-        expect(getApiNameFromKey('invalid:model')).toBe('invalid:model');
+      it('should return model name for unknown keys (fallback)', () => {
+        expect(getApiNameFromKey('invalid:model')).toBe('model');
       });
     });
 
@@ -99,8 +99,11 @@ describe('Model Maps - Backwards Compatibility', () => {
         expect(mapping?.provider).toBe('openai');
       });
 
-      it('should return undefined for invalid keys', () => {
-        expect(getModelMapping('invalid:model')).toBeUndefined();
+      it('should return fallback mapping for unknown keys', () => {
+        const mapping = getModelMapping('invalid:model');
+        expect(mapping).toBeDefined();
+        expect(mapping?.apiIdentifier).toBe('model');
+        expect(mapping?.provider).toBe('invalid');
       });
     });
 
@@ -169,10 +172,13 @@ describe('Model Maps - Enhanced Features', () => {
       expect(mapping?.providerFeatures?.supportsPromptCaching).toBe(true);
     });
 
-    it('should return undefined for removed models', () => {
-      // Test that removed deprecated models are truly gone
+    it('should return fallback for removed models', () => {
+      // Removed deprecated models now use fallback defaults
       const mapping = getEnhancedModelMapping('anthropic:claude-3-opus');
-      expect(mapping).toBeUndefined();
+      expect(mapping).toBeDefined();
+      expect(mapping?.apiIdentifier).toBe('claude-3-opus');
+      expect(mapping?.provider).toBe('anthropic');
+      expect(mapping?.description).toContain('Unknown model');
     });
   });
 
@@ -184,17 +190,17 @@ describe('Model Maps - Enhanced Features', () => {
       expect(result.warning).toBeUndefined();
     });
 
-    it('should reject invalid models', () => {
+    it('should accept unknown models with warning', () => {
       const result = validateModelKey('invalid:model');
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('not found');
+      expect(result.isValid).toBe(true);
+      expect(result.warning).toContain('not in registry');
     });
 
-    it('should reject deprecated models', () => {
-      // Since we removed deprecated models, test with a non-existent model
+    it('should accept unknown models with fallback warning', () => {
+      // Unknown models now use fallback defaults
       const result = validateModelKey('anthropic:claude-2-opus');
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('not found');
+      expect(result.isValid).toBe(true);
+      expect(result.warning).toContain('not in registry');
     });
 
     it('should warn about retiring models', () => {
@@ -408,6 +414,129 @@ describe('Model Maps - Data Integrity', () => {
         expect(alternative).toBeDefined();
         expect(alternative.deprecation?.deprecated).not.toBe(true);
       }
+    });
+  });
+});
+
+describe('Model Maps - Fallback for Unknown Models', () => {
+  describe('getEnhancedModelMapping with fallback', () => {
+    it('should return fallback config for unknown gemini model', () => {
+      const mapping = getEnhancedModelMapping('gemini:some-new-model-2025');
+      expect(mapping).toBeDefined();
+      expect(mapping?.apiIdentifier).toBe('some-new-model-2025');
+      expect(mapping?.contextWindow).toBe(1_048_576); // Gemini default
+      expect(mapping?.outputLimit).toBe(8192);
+      expect(mapping?.provider).toBe('gemini');
+      expect(mapping?.displayName).toBe('some-new-model-2025');
+      expect(mapping?.description).toContain('Unknown model');
+      expect(mapping?.supportsToolCalling).toBe(false); // Conservative default
+      expect(mapping?.apiKeyEnvVar).toBe('AI_CODE_REVIEW_GOOGLE_API_KEY');
+    });
+
+    it('should return fallback config for unknown anthropic model', () => {
+      const mapping = getEnhancedModelMapping('anthropic:claude-99');
+      expect(mapping).toBeDefined();
+      expect(mapping?.apiIdentifier).toBe('claude-99');
+      expect(mapping?.contextWindow).toBe(200_000); // Anthropic default
+      expect(mapping?.outputLimit).toBe(8192);
+      expect(mapping?.provider).toBe('anthropic');
+      expect(mapping?.apiKeyEnvVar).toBe('AI_CODE_REVIEW_ANTHROPIC_API_KEY');
+    });
+
+    it('should return fallback config for unknown openai model', () => {
+      const mapping = getEnhancedModelMapping('openai:gpt-99');
+      expect(mapping).toBeDefined();
+      expect(mapping?.apiIdentifier).toBe('gpt-99');
+      expect(mapping?.contextWindow).toBe(128_000); // OpenAI default
+      expect(mapping?.outputLimit).toBe(16384);
+      expect(mapping?.provider).toBe('openai');
+      expect(mapping?.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENAI_API_KEY');
+    });
+
+    it('should return fallback config for unknown openrouter model', () => {
+      const mapping = getEnhancedModelMapping('openrouter:new-model/v1');
+      expect(mapping).toBeDefined();
+      expect(mapping?.apiIdentifier).toBe('new-model/v1');
+      expect(mapping?.contextWindow).toBe(128_000); // OpenRouter default
+      expect(mapping?.provider).toBe('openrouter');
+      expect(mapping?.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENROUTER_API_KEY');
+    });
+
+    it('should preserve existing known models behavior', () => {
+      const knownModel = getEnhancedModelMapping('gemini:gemini-2.5-pro');
+      expect(knownModel).toBeDefined();
+      expect(knownModel?.apiIdentifier).toBe('gemini-2.5-pro-preview-05-06');
+      expect(knownModel?.description).not.toContain('Unknown model');
+    });
+
+    it('should handle model without provider prefix (defaults to gemini)', () => {
+      const mapping = getEnhancedModelMapping('unknown-model-123');
+      expect(mapping).toBeDefined();
+      expect(mapping?.provider).toBe('gemini'); // Default provider
+      expect(mapping?.contextWindow).toBe(1_048_576);
+    });
+
+    it('should set conservative defaults for unknown models', () => {
+      const mapping = getEnhancedModelMapping('gemini:experimental-model');
+      expect(mapping?.supportsToolCalling).toBe(false);
+      expect(mapping?.providerFeatures?.supportsStreaming).toBe(true);
+      expect(mapping?.providerFeatures?.toolCallingSupport).toBe('none');
+      expect(mapping?.inputPricePerMillion).toBe(0); // Unknown pricing
+      expect(mapping?.outputPricePerMillion).toBe(0);
+      expect(mapping?.status).toBe('available');
+    });
+  });
+
+  describe('validateModelKey with fallback', () => {
+    it('should validate unknown models as valid with warning', () => {
+      const result = validateModelKey('gemini:some-new-model');
+      expect(result.isValid).toBe(true);
+      expect(result.warning).toContain('not in registry');
+      expect(result.warning).toContain('gemini defaults');
+      expect(result.error).toBeUndefined();
+    });
+
+    it('should validate known models without warning', () => {
+      const result = validateModelKey('anthropic:claude-4-sonnet');
+      expect(result.isValid).toBe(true);
+      expect(result.warning).toBeUndefined();
+    });
+
+    it('should provide provider-specific warnings', () => {
+      const anthropicResult = validateModelKey('anthropic:unknown-model');
+      expect(anthropicResult.warning).toContain('anthropic defaults');
+
+      const openaiResult = validateModelKey('openai:unknown-model');
+      expect(openaiResult.warning).toContain('openai defaults');
+    });
+  });
+
+  describe('getModelMapping with fallback', () => {
+    it('should return legacy format for unknown models', () => {
+      const mapping = getModelMapping('gemini:future-model');
+      expect(mapping).toBeDefined();
+      expect(mapping?.apiIdentifier).toBe('future-model');
+      expect(mapping?.provider).toBe('gemini');
+      expect(mapping?.displayName).toBe('future-model');
+    });
+  });
+
+  describe('calculateCost with fallback', () => {
+    it('should return undefined for unknown models (no pricing)', () => {
+      const cost = calculateCost('gemini:unknown-model', 100000, 50000);
+      expect(cost).toBeUndefined();
+    });
+  });
+
+  describe('getApiNameFromKey with fallback', () => {
+    it('should return model name for unknown models', () => {
+      const apiName = getApiNameFromKey('anthropic:future-claude-model');
+      expect(apiName).toBe('future-claude-model');
+    });
+
+    it('should return API identifier for known models', () => {
+      const apiName = getApiNameFromKey('anthropic:claude-4-opus');
+      expect(apiName).toBe('claude-4-opus-20241022');
     });
   });
 });

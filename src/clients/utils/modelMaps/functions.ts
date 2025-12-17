@@ -10,20 +10,47 @@ import {
   type Provider,
   type ProviderFeatures,
 } from './types';
+import logger from '../../../utils/logger';
+
+/**
+ * Default context windows for providers when model not in registry.
+ */
+const DEFAULT_CONTEXT_WINDOWS: Record<string, number> = {
+  gemini: 1_048_576,
+  anthropic: 200_000,
+  openai: 128_000,
+  openrouter: 128_000,
+};
+
+/**
+ * Default output limits for providers.
+ */
+const DEFAULT_OUTPUT_LIMITS: Record<string, number> = {
+  gemini: 8192,
+  anthropic: 8192,
+  openai: 16384,
+  openrouter: 8192,
+};
 
 /**
  * Get the API name from a model key.
+ * Falls back to model name from key for unknown models.
  */
 export function getApiNameFromKey(modelKey: string): string {
   const mapping = ENHANCED_MODEL_MAP[modelKey];
-  return mapping ? mapping.apiIdentifier : modelKey;
+  if (mapping) return mapping.apiIdentifier;
+
+  // For unknown models, return the model name part
+  const { modelName } = parseModelString(modelKey);
+  return modelName;
 }
 
 /**
  * Get the model mapping for a given key.
+ * Falls back to provider defaults for unknown models.
  */
 export function getModelMapping(modelKey: string): ModelMapping | undefined {
-  const enhanced = ENHANCED_MODEL_MAP[modelKey];
+  const enhanced = getEnhancedModelMapping(modelKey);
   if (!enhanced) return undefined;
 
   // Convert to legacy format
@@ -108,9 +135,46 @@ export function supportsToolCalling(modelKey: string): boolean {
 
 /**
  * Get enhanced model mapping with all metadata.
+ * Falls back to provider defaults for unknown models.
  */
 export function getEnhancedModelMapping(modelKey: string): EnhancedModelMapping | undefined {
-  return ENHANCED_MODEL_MAP[modelKey];
+  // First try exact match
+  const exactMatch = ENHANCED_MODEL_MAP[modelKey];
+  if (exactMatch) return exactMatch;
+
+  // Parse provider and model name
+  const { provider, modelName } = parseModelString(modelKey);
+
+  // If still not found, create fallback configuration
+  if (!modelName) return undefined;
+
+  logger.warn(`Model "${modelKey}" not in registry, using ${provider} defaults`);
+
+  // Get provider-specific API key env var
+  const apiKeyEnvVarMap: Record<string, string> = {
+    gemini: 'AI_CODE_REVIEW_GOOGLE_API_KEY',
+    anthropic: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
+    openai: 'AI_CODE_REVIEW_OPENAI_API_KEY',
+    openrouter: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
+  };
+
+  return {
+    apiIdentifier: modelName,
+    contextWindow: DEFAULT_CONTEXT_WINDOWS[provider] || 100_000,
+    outputLimit: DEFAULT_OUTPUT_LIMITS[provider] || 8192,
+    inputPricePerMillion: 0,
+    outputPricePerMillion: 0,
+    displayName: modelName,
+    description: `Unknown model: ${modelKey}`,
+    provider: provider,
+    apiKeyEnvVar: apiKeyEnvVarMap[provider] || 'AI_CODE_REVIEW_GOOGLE_API_KEY',
+    supportsToolCalling: false, // Conservative default
+    status: 'available',
+    providerFeatures: {
+      supportsStreaming: true,
+      toolCallingSupport: 'none',
+    },
+  };
 }
 
 /**
@@ -125,9 +189,11 @@ export function validateModelKey(modelKey: string): {
   const enhanced = ENHANCED_MODEL_MAP[modelKey];
 
   if (!enhanced) {
+    // Model not in registry - will use fallback defaults
+    const { provider } = parseModelString(modelKey);
     return {
-      isValid: false,
-      error: `Model '${modelKey}' not found in configuration`,
+      isValid: true,
+      warning: `Model '${modelKey}' not in registry. Using ${provider} defaults.`,
     };
   }
 
@@ -143,7 +209,7 @@ export function validateModelKey(modelKey: string): {
     return {
       isValid: true,
       warning: `Model '${modelKey}' is being retired. Consider migrating soon.`,
-      
+
     };
   }
 

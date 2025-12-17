@@ -153,8 +153,8 @@ describe('modelMaps', () => {
         });
       });
 
-      it('should return the key itself for unknown model keys', () => {
-        expect(getApiNameFromKey('unknown:model')).toBe('unknown:model');
+      it('should return model name for unknown model keys (fallback)', () => {
+        expect(getApiNameFromKey('unknown:model')).toBe('model');
         expect(getApiNameFromKey('invalid-key')).toBe('invalid-key');
       });
     });
@@ -168,8 +168,11 @@ describe('modelMaps', () => {
         });
       });
 
-      it('should return undefined for unknown model keys', () => {
-        expect(getModelMapping('unknown:model')).toBeUndefined();
+      it('should return fallback mapping for unknown model keys', () => {
+        const mapping = getModelMapping('unknown:model');
+        expect(mapping).toBeDefined();
+        expect(mapping?.apiIdentifier).toBe('model');
+        expect(mapping?.provider).toBe('unknown');
       });
     });
 
