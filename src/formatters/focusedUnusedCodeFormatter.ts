@@ -9,6 +9,16 @@ import type {
   FocusedUnusedCodeReview,
   UnusedElement,
 } from '../prompts/schemas/focused-unused-code-schema';
+import {
+  formatByConfidence,
+  formatElementType,
+  formatLocation,
+  groupByFile,
+  sortByLineDescending,
+  MARKDOWN_CONFIDENCE_HEADERS,
+  TERMINAL_CONFIDENCE_HEADERS,
+  type ConfidenceLevel,
+} from './unusedCodeFormatterUtils';
 
 /**
  * Format a focused unused code review as markdown
