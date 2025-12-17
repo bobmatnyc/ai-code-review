@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# ai-code-review-dev - Run ai-code-review directly from TypeScript source
+#
+# Usage:
+#   ./ai-code-review-dev [options] [target]
+#
+# Examples:
+#   ./ai-code-review-dev .                          # Review current directory
+#   ./ai-code-review-dev ./src --type security      # Security review of src/
+#   ./ai-code-review-dev --help                     # Show help
+#   ./ai-code-review-dev --listmodels               # List available models
+#
+# This script runs the tool from source without building, useful for development.
+# For production use, run 'pnpm run build' and use 'ai-code-review' instead.
+#
+
+set -euo pipefail
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Change to project directory
+cd "$SCRIPT_DIR"
+
+# Check if node_modules exists
+if [[ ! -d "node_modules" ]]; then
+    echo "Error: node_modules not found. Run 'pnpm install' first." >&2
+    exit 1
+fi
+
+# Check if ts-node is available
+if ! command -v npx &> /dev/null; then
+    echo "Error: npx not found. Please install Node.js and npm." >&2
+    exit 1
+fi
+
+# Run from source with tsconfig-paths for path alias resolution
+exec npx ts-node --transpile-only -r tsconfig-paths/register src/index.ts "$@"
