@@ -93,6 +93,181 @@ interface ToolCallResult {
 }
 
 /**
+ * Format package dependencies into a readable text format
+ * @param packageResults Package analysis results
+ * @returns Formatted package information text
+ */
+function formatPackageDependencies(packageResults: any[]): string {
+  if (packageResults.length === 0) {
+    return '';
+  }
+
+  let packageInfoText =
+    '\n\n## Package Dependencies\n\nThe project includes the following package dependencies:\n\n';
+
+  // Format npm dependencies
+  const npmDeps = packageResults.find((result) => result.npm && result.npm.length > 0);
+  if (npmDeps?.npm) {
+    packageInfoText += '### NPM Dependencies (JavaScript/TypeScript)\n\n';
+    npmDeps.npm.forEach((dep: any) => {
+      packageInfoText += `- ${dep.name}${dep.version ? ` (${dep.version})` : ''}${dep.devDependency ? ' (dev)' : ''}\n`;
+    });
+    packageInfoText += '\n';
+  }
+
+  // Format composer dependencies
+  const composerDeps = packageResults.find(
+    (result) => result.composer && result.composer.length > 0,
+  );
+  if (composerDeps?.composer) {
+    packageInfoText += '### Composer Dependencies (PHP)\n\n';
+    composerDeps.composer.forEach((dep: any) => {
+      packageInfoText += `- ${dep.name}${dep.constraint ? ` (${dep.constraint})` : ''}${dep.devDependency ? ' (dev)' : ''}\n`;
+    });
+    packageInfoText += '\n';
+  }
+
+  // Format python dependencies
+  const pythonDeps = packageResults.find((result) => result.python && result.python.length > 0);
+  if (pythonDeps?.python) {
+    packageInfoText += '### Python Dependencies\n\n';
+    pythonDeps.python.forEach((dep: any) => {
+      packageInfoText += `- ${dep.name}${dep.constraint ? ` (${dep.constraint})` : ''}\n`;
+    });
+    packageInfoText += '\n';
+  }
+
+  // Format ruby dependencies
+  const rubyDeps = packageResults.find((result) => result.ruby && result.ruby.length > 0);
+  if (rubyDeps?.ruby) {
+    packageInfoText += '### Ruby Dependencies\n\n';
+    rubyDeps.ruby.forEach((dep: any) => {
+      packageInfoText += `- ${dep.name}${dep.constraint ? ` (${dep.constraint})` : ''}${dep.devDependency ? ' (dev)' : ''}\n`;
+    });
+    packageInfoText += '\n';
+  }
+
+  return packageInfoText;
+}
+
+/**
+ * Execute tool calls and collect results
+ * @param toolCalls Array of tool calls to execute
+ * @returns Array of tool call results
+ */
+async function executeToolCalls(
+  toolCalls: Array<{ name: string; arguments: any }>,
+): Promise<ToolCallResult[]> {
+  logger.info(`Executing ${toolCalls.length} tool calls for architectural review...`);
+
+  const toolResults: ToolCallResult[] = [];
+  for (const toolCall of toolCalls) {
+    logger.info(
+      `Executing tool call: ${toolCall.name} with arguments: ${JSON.stringify(toolCall.arguments)}`,
+    );
+    try {
+      const result = await executeToolCall(toolCall.name, toolCall.arguments);
+      logger.info(`Tool call result received for ${toolCall.name}`);
+      toolResults.push({
+        toolName: toolCall.name,
+        result,
+      });
+    } catch (error) {
+      logger.error(
+        `Error executing tool call ${toolCall.name}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      toolResults.push({
+        toolName: toolCall.name,
+        result: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+    }
+  }
+
+  return toolResults;
+}
+
+/**
+ * Build conversation messages with tool results
+ * @param userPrompt Original user prompt
+ * @param responseMessage Initial assistant response
+ * @param toolResults Tool execution results
+ * @returns Array of conversation messages
+ */
+function buildToolResultsMessages(
+  userPrompt: string,
+  responseMessage: string,
+  toolResults: ToolCallResult[],
+): Array<{ role: string; content: any }> {
+  const initialMessage = { role: 'user', content: userPrompt };
+  const assistantMessage = {
+    role: 'assistant',
+    content: responseMessage,
+  };
+
+  // Create a conversation with the tool results
+  const messages = createToolResultsRequest([initialMessage, assistantMessage], toolResults);
+
+  // Add a final user prompt
+  messages.push({
+    role: 'user',
+    content:
+      'Based on the security information provided by the tools, complete your architectural review with security recommendations.' +
+      ' Please ensure your response includes specific version recommendations for dependencies with security issues.',
+  });
+
+  return messages;
+}
+
+/**
+ * Perform architectural review with tool calling
+ * @param apiKey API key for Anthropic
+ * @param apiModelName Model name for API calls
+ * @param systemPrompt System prompt for the review
+ * @param userPrompt User prompt with code and context
+ * @param tools Available tools for the review
+ * @returns Review content as string
+ */
+async function performToolCallingReview(
+  apiKey: string,
+  apiModelName: string,
+  systemPrompt: string,
+  userPrompt: string,
+  tools: any[],
+): Promise<string> {
+  // Make the initial API request with tools
+  const data = await makeAnthropicRequest(apiKey, apiModelName, systemPrompt, userPrompt, 0.2, tools);
+
+  logger.debug(`Initial response: ${JSON.stringify(data)}`);
+
+  // Process tool calls from the response
+  const { toolCalls, responseMessage } = processToolCallsFromResponse(data);
+
+  // If there are tool calls, execute them
+  if (toolCalls.length > 0) {
+    const toolResults = await executeToolCalls(toolCalls);
+
+    // Build a conversation with the tool results
+    const messages = buildToolResultsMessages(userPrompt, responseMessage, toolResults);
+
+    // Make the final API request with tool results
+    const finalData = await makeAnthropicConversationRequest(apiKey, apiModelName, messages);
+
+    if (finalData.content && finalData.content.length > 0) {
+      logger.info('Successfully generated architectural review with tool calling');
+      return finalData.content[0].text;
+    }
+    throw new Error('Invalid response format from Anthropic');
+  }
+
+  // No tool calls, just use the initial response
+  if (data.content && data.content.length > 0) {
+    logger.info('Successfully generated architectural review');
+    return data.content[0].text;
+  }
+  throw new Error('Invalid response format from Anthropic');
+}
+
+/**
  * Create follow-up messages containing tool results
  * @param previousMessages Previous conversation messages
  * @param toolResults Results from tool executions
@@ -235,55 +410,7 @@ export async function generateArchitecturalAnthropicReview(
       }));
 
       // Format package information for the prompt
-      let packageInfoText = '';
-      if (packageResults.length > 0) {
-        packageInfoText =
-          '\n\n## Package Dependencies\n\nThe project includes the following package dependencies:\n\n';
-
-        // Format npm dependencies
-        const npmDeps = packageResults.find((result) => result.npm && result.npm.length > 0);
-        if (npmDeps?.npm) {
-          packageInfoText += '### NPM Dependencies (JavaScript/TypeScript)\n\n';
-          npmDeps.npm.forEach((dep) => {
-            packageInfoText += `- ${dep.name}${dep.version ? ` (${dep.version})` : ''}${dep.devDependency ? ' (dev)' : ''}\n`;
-          });
-          packageInfoText += '\n';
-        }
-
-        // Format composer dependencies
-        const composerDeps = packageResults.find(
-          (result) => result.composer && result.composer.length > 0,
-        );
-        if (composerDeps?.composer) {
-          packageInfoText += '### Composer Dependencies (PHP)\n\n';
-          composerDeps.composer.forEach((dep) => {
-            packageInfoText += `- ${dep.name}${dep.constraint ? ` (${dep.constraint})` : ''}${dep.devDependency ? ' (dev)' : ''}\n`;
-          });
-          packageInfoText += '\n';
-        }
-
-        // Format python dependencies
-        const pythonDeps = packageResults.find(
-          (result) => result.python && result.python.length > 0,
-        );
-        if (pythonDeps?.python) {
-          packageInfoText += '### Python Dependencies\n\n';
-          pythonDeps.python.forEach((dep) => {
-            packageInfoText += `- ${dep.name}${dep.constraint ? ` (${dep.constraint})` : ''}\n`;
-          });
-          packageInfoText += '\n';
-        }
-
-        // Format ruby dependencies
-        const rubyDeps = packageResults.find((result) => result.ruby && result.ruby.length > 0);
-        if (rubyDeps?.ruby) {
-          packageInfoText += '### Ruby Dependencies\n\n';
-          rubyDeps.ruby.forEach((dep) => {
-            packageInfoText += `- ${dep.name}${dep.constraint ? ` (${dep.constraint})` : ''}${dep.devDependency ? ' (dev)' : ''}\n`;
-          });
-          packageInfoText += '\n';
-        }
-      }
+      const packageInfoText = formatPackageDependencies(packageResults);
 
       // Combine the prompt with package information
       const userPrompt =
@@ -302,94 +429,7 @@ export async function generateArchitecturalAnthropicReview(
         }
 
         const systemPrompt = getArchitecturalSystemPrompt(options?.diagram || false);
-        const data = await makeAnthropicRequest(
-          apiKey,
-          apiModelName,
-          systemPrompt,
-          userPrompt,
-          0.2,
-          tools,
-        );
-
-        logger.debug(`Initial response: ${JSON.stringify(data)}`);
-
-        // Process tool calls from the response
-        const { toolCalls, responseMessage } = processToolCallsFromResponse(data);
-
-        // If there are tool calls, execute them
-        if (toolCalls.length > 0) {
-          logger.info(`Executing ${toolCalls.length} tool calls for architectural review...`);
-
-          // Execute each tool call
-          const toolResults = [];
-          for (const toolCall of toolCalls) {
-            logger.info(
-              `Executing tool call: ${toolCall.name} with arguments: ${JSON.stringify(toolCall.arguments)}`,
-            );
-            try {
-              const result = await executeToolCall(toolCall.name, toolCall.arguments);
-              logger.info(`Tool call result received for ${toolCall.name}`);
-              toolResults.push({
-                toolName: toolCall.name,
-                result,
-              });
-            } catch (error) {
-              logger.error(
-                `Error executing tool call ${toolCall.name}: ${error instanceof Error ? error.message : String(error)}`,
-              );
-              toolResults.push({
-                toolName: toolCall.name,
-                result: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              });
-            }
-          }
-
-          // Build a conversation with the tool results
-          const initialMessage = { role: 'user', content: userPrompt };
-          const assistantMessage = {
-            role: 'assistant',
-            content: responseMessage,
-          };
-
-          // Create a conversation with the tool results
-          const messages = createToolResultsRequest(
-            [initialMessage, assistantMessage],
-            toolResults,
-          );
-
-          // Add a final user prompt
-          messages.push({
-            role: 'user',
-            content:
-              'Based on the security information provided by the tools, complete your architectural review with security recommendations.' +
-              ' Please ensure your response includes specific version recommendations for dependencies with security issues.',
-          });
-
-          // Make the final API request with tool results
-          // Ensure API key is present
-          if (!apiKey) {
-            throw new Error('Anthropic API key is missing');
-          }
-
-          const finalData = await makeAnthropicConversationRequest(apiKey, apiModelName, messages);
-
-          if (finalData.content && finalData.content.length > 0) {
-            content = finalData.content[0].text;
-            logger.info(
-              `Successfully generated architectural review with tool calling using Anthropic ${modelName}`,
-            );
-          } else {
-            throw new Error(`Invalid response format from Anthropic ${modelName}`);
-          }
-        } else {
-          // No tool calls, just use the initial response
-          if (data.content && data.content.length > 0) {
-            content = data.content[0].text;
-            logger.info(`Successfully generated architectural review using Anthropic ${modelName}`);
-          } else {
-            throw new Error(`Invalid response format from Anthropic ${modelName}`);
-          }
-        }
+        content = await performToolCallingReview(apiKey, apiModelName, systemPrompt, userPrompt, tools);
 
         // Calculate cost information
         try {
