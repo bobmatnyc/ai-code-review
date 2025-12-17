@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ## [4.6.0] - 2025-12-17
 
+### Changes
+- feat: add API key validation and project configuration (v4.6.0) (930ca6f)
+- fix: add updateCachedConfig to persist saved config to singleton (8fb9f40)
+- fix: remove override:true from envLoader.ts (00000de)
+- fix: prevent env.local from overwriting saved API keys and model (b3523d0)
+- fix: saved API keys now take precedence over environment variables (748f0dd)
+- fix: use correct OpenRouter validation endpoint and set default model (e611403)
+- fix: apply saved API keys from project config to main config (3eb3e26)
+- feat: add API key validation on startup with interactive recovery (b399350)
+- feat: add ai-code-review-dev script for running from source (9c676a5)
+- refactor: Long Methods Batch 4 - Formatters & Model Helpers (#65) (#74) (ab1c830)
+- refactor: Long Methods Batch 3 - Configuration & Output (#65) (#73) (3a01468)
+- refactor: Long Methods Batch 2 - Core Functions (#65) (#72) (5e04d7c)
+- refactor: Long Methods - High Complexity Functions (#65) (#71) (b125eef)
+- refactor: reduce nesting depth in modelMaps/functions.ts (#70) (69364eb)
+- refactor: C-Grade function complexity reduction (#63) (#69) (59c78dc)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.0
+```
+
+
+## [4.6.0] - 2025-12-17
+
 ### Features
 - **API Key Validation on Startup**: Automatically validates API keys before running reviews
   - Live validation against provider APIs (Google, OpenRouter, Anthropic, OpenAI)
