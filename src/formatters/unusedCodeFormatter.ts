@@ -12,13 +12,13 @@ import type {
   UnusedCodeCategory,
 } from '../prompts/schemas/improved-unused-code-schema';
 import {
+  type ConfidenceLevel,
   filterByConfidence,
   formatByConfidence,
   groupByFile,
-  sortByLineDescending,
   MARKDOWN_CONFIDENCE_HEADERS,
+  sortByLineDescending,
   TERMINAL_CONFIDENCE_HEADERS,
-  type ConfidenceLevel,
 } from './unusedCodeFormatterUtils';
 
 /**
@@ -111,7 +111,8 @@ export function formatUnusedCodeReviewAsMarkdown(review: ImprovedUnusedCodeRevie
   const sections: CategorySectionConfig[] = [
     {
       title: 'Unused Files',
-      description: 'The following files are not imported or used anywhere and can be safely removed:',
+      description:
+        'The following files are not imported or used anywhere and can be safely removed:',
       issues: getAllIssuesByCategory(review, 'unusedFile'),
     },
     {
@@ -121,7 +122,8 @@ export function formatUnusedCodeReviewAsMarkdown(review: ImprovedUnusedCodeRevie
     },
     {
       title: 'Unused Classes',
-      description: 'The following classes are never instantiated or extended and can be safely removed:',
+      description:
+        'The following classes are never instantiated or extended and can be safely removed:',
       issues: getAllIssuesByCategory(review, 'unusedClass'),
     },
     {
@@ -347,9 +349,7 @@ export function formatUnusedCodeReviewForTerminal(review: ImprovedUnusedCodeRevi
       output += formatIssuesForTerminal(highConfidenceItems, 'green');
     }
 
-    const otherItems = classesAndModules.filter(
-      (issue) => issue.assessment.confidence !== 'high',
-    );
+    const otherItems = classesAndModules.filter((issue) => issue.assessment.confidence !== 'high');
 
     if (otherItems.length > 0) {
       output += chalk.bold.yellow('OTHER ITEMS (VERIFICATION RECOMMENDED):\n\n');

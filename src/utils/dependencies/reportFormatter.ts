@@ -243,7 +243,11 @@ function categorizeRecommendations(recommendations: string[]): {
     const lower = rec.toLowerCase();
     if (lower.includes('security') || lower.includes('vulnerab') || lower.includes('audit fix')) {
       security.push(rec);
-    } else if (lower.includes('performance') || lower.includes('speed') || lower.includes('faster')) {
+    } else if (
+      lower.includes('performance') ||
+      lower.includes('speed') ||
+      lower.includes('faster')
+    ) {
       performance.push(rec);
     } else {
       maintenance.push(rec);

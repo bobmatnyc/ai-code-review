@@ -285,7 +285,7 @@ function extractFilePath(issueBlock: string): string {
  */
 function cleanFilePath(filePath: string): string {
   // Remove markdown formatting
-  let cleaned = filePath.replace(/`/g, '').replace(/\*/g, '').trim();
+  const cleaned = filePath.replace(/`/g, '').replace(/\*/g, '').trim();
 
   // Extract actual file path from common patterns
   const filePathMatch = cleaned.match(/(?:src|\/)\S+\.(ts|js|tsx|jsx|json)/);
