@@ -388,23 +388,34 @@ async function main() {
 
     // Merge saved API keys from project config into main config
     if (projectConfig?.api?.keys) {
+      // Log which keys are being loaded
+      const loadedKeys: string[] = [];
+
       if (projectConfig.api.keys.google && !config.googleApiKey) {
         config.googleApiKey = projectConfig.api.keys.google;
         process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = projectConfig.api.keys.google;
+        loadedKeys.push('google');
       }
       if (projectConfig.api.keys.anthropic && !config.anthropicApiKey) {
         config.anthropicApiKey = projectConfig.api.keys.anthropic;
         process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = projectConfig.api.keys.anthropic;
+        loadedKeys.push('anthropic');
       }
       if (projectConfig.api.keys.openrouter && !config.openRouterApiKey) {
         config.openRouterApiKey = projectConfig.api.keys.openrouter;
         process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY = projectConfig.api.keys.openrouter;
+        loadedKeys.push('openrouter');
       }
       if (projectConfig.api.keys.openai && !config.openAIApiKey) {
         config.openAIApiKey = projectConfig.api.keys.openai;
         process.env.AI_CODE_REVIEW_OPENAI_API_KEY = projectConfig.api.keys.openai;
+        loadedKeys.push('openai');
       }
-      logger.debug('Applied saved API keys from project config');
+
+      if (loadedKeys.length > 0) {
+        console.log(`📁 Loading saved API keys for: ${loadedKeys.join(', ')}`);
+        logger.debug('Applied saved API keys from project config');
+      }
     }
 
     const shouldSkipValidation =

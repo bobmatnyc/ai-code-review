@@ -17,7 +17,7 @@ import logger from './logger';
 const DEFAULT_CONFIG: ProjectConfig = {
   api: {
     preferred_provider: 'openrouter',
-    model: '',
+    model: 'openrouter:openai/gpt-5.2',
     keys: {
       google: '',
       anthropic: '',

@@ -115,7 +115,10 @@ async function validateAnthropicApiKey(apiKey: string): Promise<KeyValidationRes
  */
 async function validateOpenRouterApiKey(apiKey: string): Promise<KeyValidationResult> {
   try {
-    const url = 'https://openrouter.ai/api/v1/auth/key';
+    // Use models endpoint which is more reliable than auth/key
+    // OpenRouter doesn't have a dedicated key validation endpoint,
+    // so we use the models list endpoint which requires authentication
+    const url = 'https://openrouter.ai/api/v1/models';
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -128,7 +131,7 @@ async function validateOpenRouterApiKey(apiKey: string): Promise<KeyValidationRe
       return { valid: true, provider: 'openrouter' };
     }
 
-    if (response.status === 401) {
+    if (response.status === 401 || response.status === 403) {
       return {
         valid: false,
         error: 'Invalid OpenRouter API key: Authentication failed',
