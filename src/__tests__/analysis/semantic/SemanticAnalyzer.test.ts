@@ -24,37 +24,68 @@ vi.mock('tree-sitter', () => {
     namedChildren: []
   };
 
-  const mockParser = {
-    setLanguage: vi.fn(),
-    parse: vi.fn().mockReturnValue({
+  // Create a proper constructor class that can be called with `new`
+  class MockParser {
+    setLanguage = vi.fn();
+    parse = vi.fn().mockReturnValue({
       rootNode: mockRootNode
-    })
-  };
+    });
+  }
 
   return {
-    default: vi.fn(() => mockParser)
+    default: MockParser
   };
 });
 
-vi.mock('tree-sitter-typescript', () => ({
-  default: {
-    typescript: 'typescript-grammar',
-    tsx: 'tsx-grammar'
-  },
-  typescript: 'typescript-grammar',
-  tsx: 'tsx-grammar'
-}));
+vi.mock('tree-sitter-typescript', () => {
+  const typescriptGrammar = {
+    name: 'typescript',
+    language: 'typescript',
+    version: 1,
+    nodeTypeInfo: []
+  };
+  const tsxGrammar = {
+    name: 'tsx',
+    language: 'tsx',
+    version: 1,
+    nodeTypeInfo: []
+  };
+
+  return {
+    default: {
+      typescript: typescriptGrammar,
+      tsx: tsxGrammar
+    },
+    typescript: typescriptGrammar,
+    tsx: tsxGrammar
+  };
+});
 
 vi.mock('tree-sitter-python', () => ({
-  default: 'python-grammar'
+  default: {
+    name: 'python',
+    language: 'python',
+    version: 1,
+    nodeTypeInfo: []
+  }
 }));
 
 vi.mock('tree-sitter-ruby', () => ({
-  default: 'ruby-grammar'
+  default: {
+    name: 'ruby',
+    language: 'ruby',
+    version: 1,
+    nodeTypeInfo: []
+  }
 }));
 
 vi.mock('tree-sitter-php', () => ({
-  default: 'php-grammar'
+  default: {
+    name: 'php',
+    language: 'php',
+    version: 1,
+    nodeTypeInfo: []
+  }
 }));
 
 // Mock logger

@@ -23,73 +23,101 @@ vi.mock('../../../utils/logger', () => ({
   }
 }));
 
-// Mock TreeSitter and related modules
+// Mock TreeSitter and language parsers
 vi.mock('tree-sitter', () => {
-  const mockParser = {
-    setLanguage: vi.fn(),
-    parse: vi.fn().mockReturnValue({
+  // Create a proper constructor function that can be called with `new`
+  class MockParser {
+    setLanguage = vi.fn().mockReturnValue(undefined);
+    parse = vi.fn().mockReturnValue({
       rootNode: {
         hasError: vi.fn().mockReturnValue(false),
         type: 'program',
         startPosition: { row: 0, column: 0 },
         endPosition: { row: 10, column: 0 },
         children: [],
-        text: ''
-      }
-    })
-  };
-  return { default: vi.fn(() => mockParser) };
-});
-
-// Mock TreeSitter and language parsers
-vi.mock('tree-sitter', () => {
-  return {
-    default: vi.fn(() => ({
-      setLanguage: vi.fn(),
-      parse: vi.fn().mockReturnValue({
-        rootNode: {
-          hasError: vi.fn().mockReturnValue(false),
-          type: 'program',
-          startPosition: { row: 0, column: 0 },
-          endPosition: { row: 10, column: 0 },
-          children: [],
-          text: '',
-          childCount: 0,
-          walk: vi.fn().mockReturnValue({
-            gotoFirstChild: vi.fn().mockReturnValue(false),
-            gotoNextSibling: vi.fn().mockReturnValue(false),
-            currentNode: vi.fn().mockReturnValue({
-              type: 'program',
-              text: '',
-              children: []
-            })
+        text: '',
+        childCount: 0,
+        walk: vi.fn().mockReturnValue({
+          gotoFirstChild: vi.fn().mockReturnValue(false),
+          gotoNextSibling: vi.fn().mockReturnValue(false),
+          currentNode: vi.fn().mockReturnValue({
+            type: 'program',
+            text: '',
+            children: []
           })
-        }
-      })
-    }))
+        })
+      }
+    });
+  }
+
+  return {
+    default: MockParser
   };
 });
 
-vi.mock('tree-sitter-typescript', () => ({
-  default: {
-    typescript: 'typescript-grammar',
-    tsx: 'tsx-grammar'
-  },
-  typescript: 'typescript-grammar',
-  tsx: 'tsx-grammar'
-}));
+vi.mock('tree-sitter-typescript', () => {
+  // Create mock grammar objects once
+  const typescriptGrammar = {
+    name: 'typescript',
+    language: 'typescript',
+    version: 1,
+    nodeTypeInfo: []
+  };
+  const tsxGrammar = {
+    name: 'tsx',
+    language: 'tsx',
+    version: 1,
+    nodeTypeInfo: []
+  };
 
-vi.mock('tree-sitter-python', () => ({
-  default: 'python-grammar'
-}));
+  return {
+    default: {
+      typescript: typescriptGrammar,
+      tsx: tsxGrammar
+    },
+    typescript: typescriptGrammar,
+    tsx: tsxGrammar
+  };
+});
 
-vi.mock('tree-sitter-ruby', () => ({
-  default: 'ruby-grammar'
-}));
+vi.mock('tree-sitter-python', () => {
+  const pythonGrammar = {
+    name: 'python',
+    language: 'python',
+    version: 1,
+    nodeTypeInfo: []
+  };
 
-vi.mock('tree-sitter-php', () => ({
-  default: 'php-grammar'
-}));
+  return {
+    default: pythonGrammar
+  };
+});
+
+vi.mock('tree-sitter-ruby', () => {
+  const rubyGrammar = {
+    name: 'ruby',
+    language: 'ruby',
+    version: 1,
+    nodeTypeInfo: []
+  };
+
+  return {
+    default: rubyGrammar
+  };
+});
+
+vi.mock('tree-sitter-php', () => {
+  const phpGrammar = {
+    name: 'php',
+    language: 'php',
+    version: 1,
+    nodeTypeInfo: []
+  };
+
+  return {
+    default: phpGrammar
+  };
+});
 
 describe('SemanticChunkingIntegration', () => {
   let integration: SemanticChunkingIntegration;
@@ -559,7 +587,7 @@ describe('SemanticChunkingIntegration', () => {
 
     it('should track supported languages correctly', () => {
       const stats = integration.getStats();
-      
+
       expect(stats.supportedLanguages).toContain('typescript');
       expect(stats.supportedLanguages).toContain('python');
       expect(stats.supportedLanguages.length).toBeGreaterThan(0);

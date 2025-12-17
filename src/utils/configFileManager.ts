@@ -152,6 +152,191 @@ export function loadConfigFile(configFilePath?: string): ConfigFile | null {
 }
 
 /**
+ * Apply output configuration
+ * @param config Output configuration
+ * @param options Review options to modify
+ */
+function applyOutputConfig(config: ConfigFile['output'], options: ReviewOptions): void {
+  if (!config) return;
+
+  if (config.format && !options.output) {
+    options.output = config.format as any;
+  }
+  if (config.dir && !(options as CliOptions).outputDir) {
+    (options as CliOptions).outputDir = config.dir;
+  }
+}
+
+/**
+ * Apply review configuration
+ * @param config Review configuration
+ * @param options Review options to modify
+ * @param cliSpecifiedOptions CLI-specified options that take precedence
+ */
+function applyReviewConfig(
+  config: ConfigFile['review'],
+  options: ReviewOptions,
+  cliSpecifiedOptions?: { type?: boolean },
+): void {
+  if (!config) return;
+
+  if (config.type && options.type === undefined && !cliSpecifiedOptions?.type) {
+    options.type = config.type as any;
+  }
+  if (config.interactive !== undefined && options.interactive === undefined) {
+    options.interactive = config.interactive;
+  }
+  if (config.include_tests !== undefined && options.includeTests === undefined) {
+    options.includeTests = config.include_tests;
+  }
+  if (config.include_project_docs !== undefined && options.includeProjectDocs === undefined) {
+    options.includeProjectDocs = config.include_project_docs;
+  }
+  if (
+    config.include_dependency_analysis !== undefined &&
+    options.includeDependencyAnalysis === undefined
+  ) {
+    options.includeDependencyAnalysis = config.include_dependency_analysis;
+  }
+  if (config.consolidated !== undefined && options.consolidated === undefined) {
+    options.consolidated = config.consolidated;
+  }
+  if (config.trace_code !== undefined && options.traceCode === undefined) {
+    options.traceCode = config.trace_code;
+  }
+  if (config.use_ts_prune !== undefined && options.useTsPrune === undefined) {
+    options.useTsPrune = config.use_ts_prune;
+  }
+  if (config.use_eslint !== undefined && options.useEslint === undefined) {
+    options.useEslint = config.use_eslint;
+  }
+  if (config.auto_fix !== undefined && options.autoFix === undefined) {
+    options.autoFix = config.auto_fix;
+  }
+  if (config.prompt_all !== undefined && options.promptAll === undefined) {
+    options.promptAll = config.prompt_all;
+  }
+  if (config.confirm !== undefined && options.noConfirm === undefined) {
+    // noConfirm is the inverse of confirm
+    options.noConfirm = !config.confirm;
+  }
+}
+
+/**
+ * Apply API keys configuration
+ * @param keys API keys from config
+ * @param cliOptions CLI options to modify
+ */
+function applyApiKeys(
+  keys:
+    | {
+        google?: string;
+        openrouter?: string;
+        anthropic?: string;
+        openai?: string;
+      }
+    | undefined,
+  cliOptions: CliOptions,
+): void {
+  if (!keys) return;
+
+  // If apiKey doesn't exist on cliOptions, create it
+  if (!cliOptions.apiKey) {
+    cliOptions.apiKey = {};
+  }
+
+  // Only set API keys if they are not already set and are non-null in the config
+  if (keys.google && !cliOptions.apiKey.google) {
+    cliOptions.apiKey.google = keys.google;
+  }
+  if (keys.openrouter && !cliOptions.apiKey.openrouter) {
+    cliOptions.apiKey.openrouter = keys.openrouter;
+  }
+  if (keys.anthropic && !cliOptions.apiKey.anthropic) {
+    cliOptions.apiKey.anthropic = keys.anthropic;
+  }
+  if (keys.openai && !cliOptions.apiKey.openai) {
+    cliOptions.apiKey.openai = keys.openai;
+  }
+}
+
+/**
+ * Apply API configuration
+ * @param config API configuration
+ * @param options Review options to modify
+ */
+function applyApiConfig(config: ConfigFile['api'], options: ReviewOptions): void {
+  if (!config) return;
+
+  const cliOptions = options as CliOptions;
+
+  if (config.model && !cliOptions.model) {
+    cliOptions.model = config.model;
+  }
+  if (config.writer_model && !cliOptions.writerModel) {
+    cliOptions.writerModel = config.writer_model;
+  }
+  if (config.test_api !== undefined && options.testApi === undefined) {
+    options.testApi = config.test_api;
+  }
+
+  // Handle API keys
+  if (config.keys) {
+    applyApiKeys(config.keys, cliOptions);
+  }
+}
+
+/**
+ * Apply prompts configuration
+ * @param config Prompts configuration
+ * @param options Review options to modify
+ */
+function applyPromptsConfig(config: ConfigFile['prompts'], options: ReviewOptions): void {
+  if (!config) return;
+
+  if (config.prompt_file && !options.promptFile) {
+    options.promptFile = config.prompt_file;
+  }
+  if (config.prompt_fragment && !options.promptFragments) {
+    // Create a promptFragments array if it doesn't exist
+    options.promptFragments = [
+      {
+        content: config.prompt_fragment,
+        position: config.prompt_fragment_position || 'middle',
+        priority: 5,
+      },
+    ];
+  }
+  if (config.prompt_strategy && !options.promptStrategy) {
+    options.promptStrategy = config.prompt_strategy;
+  }
+  if (config.use_cache !== undefined && options.useCache === undefined) {
+    options.useCache = config.use_cache;
+  }
+}
+
+/**
+ * Apply system configuration
+ * @param config System configuration
+ * @param options Review options to modify
+ * @param cliSpecifiedOptions CLI-specified options that take precedence
+ */
+function applySystemConfig(
+  config: ConfigFile['system'],
+  options: ReviewOptions,
+  cliSpecifiedOptions?: { debug?: boolean },
+): void {
+  if (!config) return;
+
+  if (config.debug !== undefined && options.debug === undefined && !cliSpecifiedOptions?.debug) {
+    options.debug = config.debug;
+  }
+  if (config.log_level && !(options as CliOptions).logLevel) {
+    (options as CliOptions).logLevel = config.log_level;
+  }
+}
+
+/**
  * Apply configuration to review options
  * @param config The configuration (YAML or JSON)
  * @param options The review options to modify
@@ -165,135 +350,12 @@ export function applyConfigToOptions(
   // Make a copy of the options to avoid modifying the original
   const newOptions = { ...options };
 
-  // Apply output configuration
-  if (config.output) {
-    if (config.output.format && !newOptions.output) {
-      newOptions.output = config.output.format as any;
-    }
-    if (config.output.dir && !(newOptions as CliOptions).outputDir) {
-      (newOptions as CliOptions).outputDir = config.output.dir;
-    }
-  }
-
-  // Apply review configuration
-  if (config.review) {
-    if (config.review.type && newOptions.type === undefined && !cliSpecifiedOptions?.type) {
-      newOptions.type = config.review.type as any;
-    }
-    if (config.review.interactive !== undefined && newOptions.interactive === undefined) {
-      newOptions.interactive = config.review.interactive;
-    }
-    if (config.review.include_tests !== undefined && newOptions.includeTests === undefined) {
-      newOptions.includeTests = config.review.include_tests;
-    }
-    if (
-      config.review.include_project_docs !== undefined &&
-      newOptions.includeProjectDocs === undefined
-    ) {
-      newOptions.includeProjectDocs = config.review.include_project_docs;
-    }
-    if (
-      config.review.include_dependency_analysis !== undefined &&
-      newOptions.includeDependencyAnalysis === undefined
-    ) {
-      newOptions.includeDependencyAnalysis = config.review.include_dependency_analysis;
-    }
-    if (config.review.consolidated !== undefined && newOptions.consolidated === undefined) {
-      newOptions.consolidated = config.review.consolidated;
-    }
-    if (config.review.trace_code !== undefined && newOptions.traceCode === undefined) {
-      newOptions.traceCode = config.review.trace_code;
-    }
-    if (config.review.use_ts_prune !== undefined && newOptions.useTsPrune === undefined) {
-      newOptions.useTsPrune = config.review.use_ts_prune;
-    }
-    if (config.review.use_eslint !== undefined && newOptions.useEslint === undefined) {
-      newOptions.useEslint = config.review.use_eslint;
-    }
-    if (config.review.auto_fix !== undefined && newOptions.autoFix === undefined) {
-      newOptions.autoFix = config.review.auto_fix;
-    }
-    if (config.review.prompt_all !== undefined && newOptions.promptAll === undefined) {
-      newOptions.promptAll = config.review.prompt_all;
-    }
-    if (config.review.confirm !== undefined && newOptions.noConfirm === undefined) {
-      // noConfirm is the inverse of confirm
-      newOptions.noConfirm = !config.review.confirm;
-    }
-  }
-
-  // Apply API configuration
-  if (config.api) {
-    if (config.api.model && !(newOptions as CliOptions).model) {
-      (newOptions as CliOptions).model = config.api.model;
-    }
-    if (config.api.writer_model && !(newOptions as CliOptions).writerModel) {
-      (newOptions as CliOptions).writerModel = config.api.writer_model;
-    }
-    if (config.api.test_api !== undefined && newOptions.testApi === undefined) {
-      newOptions.testApi = config.api.test_api;
-    }
-
-    // Handle API keys
-    if (config.api.keys) {
-      // If apiKey doesn't exist on newOptions, create it
-      const cliOptions = newOptions as CliOptions;
-      if (!cliOptions.apiKey) {
-        cliOptions.apiKey = {};
-      }
-
-      // Only set API keys if they are not already set and are non-null in the config
-      if (config.api.keys.google && !cliOptions.apiKey.google) {
-        cliOptions.apiKey.google = config.api.keys.google;
-      }
-      if (config.api.keys.openrouter && !cliOptions.apiKey.openrouter) {
-        cliOptions.apiKey.openrouter = config.api.keys.openrouter;
-      }
-      if (config.api.keys.anthropic && !cliOptions.apiKey.anthropic) {
-        cliOptions.apiKey.anthropic = config.api.keys.anthropic;
-      }
-      if (config.api.keys.openai && !cliOptions.apiKey.openai) {
-        cliOptions.apiKey.openai = config.api.keys.openai;
-      }
-    }
-  }
-
-  // Apply prompts configuration
-  if (config.prompts) {
-    if (config.prompts.prompt_file && !newOptions.promptFile) {
-      newOptions.promptFile = config.prompts.prompt_file;
-    }
-    if (config.prompts.prompt_fragment && !newOptions.promptFragments) {
-      // Create a promptFragments array if it doesn't exist
-      newOptions.promptFragments = [
-        {
-          content: config.prompts.prompt_fragment,
-          position: config.prompts.prompt_fragment_position || 'middle',
-          priority: 5,
-        },
-      ];
-    }
-    if (config.prompts.prompt_strategy && !newOptions.promptStrategy) {
-      newOptions.promptStrategy = config.prompts.prompt_strategy;
-    }
-    if (config.prompts.use_cache !== undefined && newOptions.useCache === undefined) {
-      newOptions.useCache = config.prompts.use_cache;
-    }
-  }
-
-  // Apply system configuration
-  if (config.system) {
-    if (
-      config.system.debug !== undefined &&
-      newOptions.debug === undefined &&
-      !cliSpecifiedOptions?.debug
-    ) {
-      newOptions.debug = config.system.debug;
-    }
-    if (config.system.log_level && !(newOptions as CliOptions).logLevel) {
-      (newOptions as CliOptions).logLevel = config.system.log_level;
-    }
-  }
+  // Apply each configuration section
+  applyOutputConfig(config.output, newOptions);
+  applyReviewConfig(config.review, newOptions, cliSpecifiedOptions);
+  applyApiConfig(config.api, newOptions);
+  applyPromptsConfig(config.prompts, newOptions);
+  applySystemConfig(config.system, newOptions, cliSpecifiedOptions);
 
   return newOptions;
 }

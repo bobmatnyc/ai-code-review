@@ -204,3 +204,9 @@ venv.bak/
 venv/
 virtualenv/
 wheels/
+
+# Added by Claude MPM /mpm-init
+.claude.json
+
+# MCP Ticketer
+.mcp-ticketer/

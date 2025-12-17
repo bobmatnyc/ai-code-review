@@ -18,5 +18,6 @@
   ],
   "watch_files": false,
   "cache_embeddings": true,
-  "max_cache_size": 1000
+  "max_cache_size": 1000,
+  "openrouter_api_key": "***REMOVED***"
 }
