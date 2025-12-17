@@ -155,6 +155,11 @@ export function parseArguments(): any {
               type: 'boolean',
               default: false,
             })
+            .option('skip-key-check', {
+              describe: 'Skip API key validation on startup',
+              type: 'boolean',
+              default: false,
+            })
             .option('estimate', {
               describe: 'Estimate token usage and cost without performing the review',
               type: 'boolean',

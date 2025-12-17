@@ -10,7 +10,7 @@ import * as path from 'node:path';
 import { orchestrateReview } from '../../core/reviewOrchestrator';
 import type { ReviewOptions, ReviewType } from '../../types/review';
 import logger from '../../utils/logger';
-import { getApiKey, loadProjectConfig } from '../../utils/projectConfigManager';
+import { getApiKey, loadProjectConfig, toLegacyConfig } from '../../utils/projectConfigManager';
 import type { McpRequestContext } from '../types';
 import { BaseTool } from './BaseTool';
 
@@ -119,6 +119,9 @@ export class ReviewTool extends BaseTool {
     // Resolve target path
     const targetPath = this.resolveTargetPath(target, targetType);
 
+    // Convert to legacy format if needed
+    const legacyConfig = projectConfig ? toLegacyConfig(projectConfig) : null;
+
     // Build review options
     const reviewOptions: ReviewOptions = {
       type: reviewType,
@@ -128,24 +131,24 @@ export class ReviewTool extends BaseTool {
       interactive: false,
       noConfirm: true,
       // Use model from project config if available
-      model: projectConfig?.defaultModel,
+      model: legacyConfig?.defaultModel,
       ...options,
     };
 
     // Load API keys from project config
-    if (projectConfig?.apiKeys) {
+    if (legacyConfig?.apiKeys) {
       const apiKeys: Record<string, string> = {};
-      if (projectConfig.apiKeys.openrouter) {
-        apiKeys.openrouter = projectConfig.apiKeys.openrouter;
+      if (legacyConfig.apiKeys.openrouter) {
+        apiKeys.openrouter = legacyConfig.apiKeys.openrouter;
       }
-      if (projectConfig.apiKeys.anthropic) {
-        apiKeys.anthropic = projectConfig.apiKeys.anthropic;
+      if (legacyConfig.apiKeys.anthropic) {
+        apiKeys.anthropic = legacyConfig.apiKeys.anthropic;
       }
-      if (projectConfig.apiKeys.google) {
-        apiKeys.google = projectConfig.apiKeys.google;
+      if (legacyConfig.apiKeys.google) {
+        apiKeys.google = legacyConfig.apiKeys.google;
       }
-      if (projectConfig.apiKeys.openai) {
-        apiKeys.openai = projectConfig.apiKeys.openai;
+      if (legacyConfig.apiKeys.openai) {
+        apiKeys.openai = legacyConfig.apiKeys.openai;
       }
 
       // Set API keys in environment for the review

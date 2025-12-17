@@ -566,10 +566,10 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
 
     try {
       // Create model instance
+      // Note: API versioning is handled internally by the SDK based on model name
       const model = this.genAI.getGenerativeModel({
         model: this.customModel.name,
         safetySettings: DEFAULT_SAFETY_SETTINGS,
-        apiVersion: this.customModel.useV1Beta ? 'v1beta' : undefined,
       });
 
       // Determine mode and build prompt

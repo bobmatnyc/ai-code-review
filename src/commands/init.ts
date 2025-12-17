@@ -10,10 +10,11 @@ import logger from '../utils/logger';
 import {
   configExists,
   ensureGitignore,
+  type LegacyProjectConfig,
   loadProjectConfig,
-  type ProjectConfig,
   saveProjectConfig,
   validateApiKeyFormat,
+  fromLegacyConfig,
 } from '../utils/projectConfigManager';
 import { detectToolchain, getToolchainDescription } from '../utils/toolchainDetector';
 
@@ -143,7 +144,7 @@ export async function handleInitCommand(): Promise<void> {
   console.log(`Config files: ${toolchainInfo.configFiles.join(', ')}\n`);
 
   // Initialize config object
-  const config: ProjectConfig = {
+  const config: LegacyProjectConfig = {
     reviewSettings: {
       strictness: 'balanced',
       focusAreas: ['security', 'performance', 'maintainability'],
@@ -268,7 +269,7 @@ export async function handleInitCommand(): Promise<void> {
 
   // Save configuration
   console.log('\n💾 Saving configuration...');
-  saveProjectConfig(config);
+  saveProjectConfig(fromLegacyConfig(config));
 
   // Update .gitignore
   console.log('📝 Updating .gitignore to exclude config file...');

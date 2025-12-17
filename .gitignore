@@ -20,7 +20,7 @@ src/version.ts
 .env.production.local
 
 # AI Code Review project configuration (contains API keys)
-.ai-code-review/config.json
+.ai-code-review/
 
 # Logs
 logs/

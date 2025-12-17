@@ -1,53 +1,33 @@
 /**
- * @fileoverview Project-level configuration manager for .ai-code-review/config.json
+ * @fileoverview Project-level configuration manager for .ai-code-review/config.yaml
  *
- * This module manages project-specific configuration stored in .ai-code-review/config.json
+ * This module manages project-specific configuration stored in .ai-code-review/config.yaml
  * including API keys, model preferences, and review settings.
  */
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as yaml from 'yaml';
+import type { ProjectConfig } from '../types/review';
 import logger from './logger';
-
-/**
- * Project configuration structure
- */
-export interface ProjectConfig {
-  /** API keys for different providers */
-  apiKeys?: {
-    openrouter?: string;
-    anthropic?: string;
-    google?: string;
-    openai?: string;
-  };
-  /** Default AI model to use */
-  defaultModel?: string;
-  /** Review settings */
-  reviewSettings?: {
-    strictness?: 'strict' | 'balanced' | 'lenient';
-    focusAreas?: string[];
-    autoFix?: boolean;
-  };
-  /** MCP settings */
-  mcp?: {
-    enabled?: boolean;
-    toolchainDetected?: string;
-  };
-  /** Timestamp of last configuration update */
-  lastUpdated?: string;
-}
 
 /**
  * Default project configuration
  */
 const DEFAULT_CONFIG: ProjectConfig = {
-  reviewSettings: {
-    strictness: 'balanced',
-    focusAreas: ['security', 'performance', 'maintainability'],
-    autoFix: false,
+  api: {
+    preferred_provider: 'openrouter',
+    model: '',
+    keys: {
+      google: '',
+      anthropic: '',
+      openrouter: '',
+      openai: '',
+    },
   },
-  mcp: {
-    enabled: true,
+  preferences: {
+    store_keys: false,
+    skip_validation: false,
   },
 };
 
@@ -59,7 +39,7 @@ const CONFIG_DIR = '.ai-code-review';
 /**
  * Configuration file name
  */
-const CONFIG_FILE = 'config.json';
+const CONFIG_FILE = 'config.yaml';
 
 /**
  * Get the path to the project config directory
@@ -102,7 +82,7 @@ export function loadProjectConfig(projectPath: string = process.cwd()): ProjectC
 
   try {
     const configContent = fs.readFileSync(configPath, 'utf-8');
-    const config = JSON.parse(configContent) as ProjectConfig;
+    const config = yaml.parse(configContent) as ProjectConfig;
     return config;
   } catch (error) {
     logger.error(`Failed to load project config from ${configPath}: ${error}`);
@@ -127,14 +107,14 @@ export function saveProjectConfig(
     fs.mkdirSync(configDir, { recursive: true });
   }
 
-  // Add timestamp
-  const configWithTimestamp: ProjectConfig = {
-    ...config,
-    lastUpdated: new Date().toISOString(),
-  };
+  // Convert to YAML with nice formatting
+  const yamlContent = yaml.stringify(config, {
+    indent: 2,
+    lineWidth: 0, // Don't wrap long lines
+  });
 
   // Write config file
-  fs.writeFileSync(configPath, JSON.stringify(configWithTimestamp, null, 2), 'utf-8');
+  fs.writeFileSync(configPath, yamlContent, 'utf-8');
 }
 
 /**
@@ -164,17 +144,17 @@ export function updateProjectConfig(
     ...existingConfig,
     ...updates,
     // Deep merge for nested objects
-    apiKeys: {
-      ...existingConfig.apiKeys,
-      ...updates.apiKeys,
+    api: {
+      ...existingConfig.api,
+      ...(updates.api || {}),
+      keys: {
+        ...existingConfig.api.keys,
+        ...(updates.api?.keys || {}),
+      },
     },
-    reviewSettings: {
-      ...existingConfig.reviewSettings,
-      ...updates.reviewSettings,
-    },
-    mcp: {
-      ...existingConfig.mcp,
-      ...updates.mcp,
+    preferences: {
+      ...existingConfig.preferences,
+      ...(updates.preferences || {}),
     },
   };
 
@@ -201,20 +181,80 @@ export function getApiKey(
 
   // Then try project config
   const config = loadProjectConfig(projectPath);
-  if (config?.apiKeys?.[provider]) {
-    return config.apiKeys[provider];
+  if (config?.api?.keys?.[provider]) {
+    return config.api.keys[provider];
   }
 
   return undefined;
 }
 
 /**
- * Ensure .gitignore excludes the config file
+ * Get API key for a specific provider from project config
+ * @param provider Provider name (google, anthropic, openrouter, openai)
+ * @param projectPath Path to the project root (defaults to current directory)
+ * @returns API key or null if not found
+ */
+export function getApiKeyFromProjectConfig(
+  provider: string,
+  projectPath: string = process.cwd(),
+): string | null {
+  const config = loadProjectConfig(projectPath);
+  if (!config?.api?.keys) {
+    return null;
+  }
+
+  const key = config.api.keys[provider as keyof typeof config.api.keys];
+  return key || null;
+}
+
+/**
+ * Set API key for a specific provider in project config
+ * @param provider Provider name (google, anthropic, openrouter, openai)
+ * @param apiKey API key to set
+ * @param projectPath Path to the project root (defaults to current directory)
+ * @returns true if saved successfully, false otherwise
+ */
+export function setApiKeyInProjectConfig(
+  provider: string,
+  apiKey: string,
+  projectPath: string = process.cwd(),
+): boolean {
+  try {
+    const updates: Partial<ProjectConfig> = {
+      api: {
+        keys: {
+          [provider]: apiKey,
+        },
+      },
+    };
+
+    updateProjectConfig(updates, projectPath);
+    return true;
+  } catch (error) {
+    logger.error(`Failed to set API key for ${provider}: ${error}`);
+    return false;
+  }
+}
+
+/**
+ * Ensure config directory exists
+ * @param projectPath Path to the project root (defaults to current directory)
+ */
+export function ensureConfigDir(projectPath: string = process.cwd()): void {
+  const configDir = getConfigDir(projectPath);
+  if (!fs.existsSync(configDir)) {
+    logger.debug(`Creating config directory: ${configDir}`);
+    fs.mkdirSync(configDir, { recursive: true });
+  }
+}
+
+/**
+ * Ensure .gitignore excludes the config directory
  * @param projectPath Path to the project root (defaults to current directory)
  */
 export function ensureGitignore(projectPath: string = process.cwd()): void {
   const gitignorePath = path.join(projectPath, '.gitignore');
-  const configPattern = `${CONFIG_DIR}/${CONFIG_FILE}`;
+  const configPattern = `${CONFIG_DIR}/`;
 
   // If .gitignore doesn't exist, create it
   if (!fs.existsSync(gitignorePath)) {
@@ -267,4 +307,69 @@ export function validateApiKeyFormat(
     default:
       return true; // Unknown provider, accept any non-empty key
   }
+}
+
+/**
+ * Legacy project configuration structure for backward compatibility
+ * @deprecated Use ProjectConfig from ../types/review.ts instead
+ */
+export interface LegacyProjectConfig {
+  /** API keys for different providers */
+  apiKeys?: {
+    openrouter?: string;
+    anthropic?: string;
+    google?: string;
+    openai?: string;
+  };
+  /** Default AI model to use */
+  defaultModel?: string;
+  /** Review settings */
+  reviewSettings?: {
+    strictness?: 'strict' | 'balanced' | 'lenient';
+    focusAreas?: string[];
+    autoFix?: boolean;
+  };
+  /** MCP settings */
+  mcp?: {
+    enabled?: boolean;
+    toolchainDetected?: string;
+  };
+  /** Timestamp of last configuration update */
+  lastUpdated?: string;
+}
+
+/**
+ * Convert new ProjectConfig format to legacy format for backward compatibility
+ * @param config New ProjectConfig
+ * @returns Legacy config format
+ */
+export function toLegacyConfig(config: ProjectConfig): LegacyProjectConfig {
+  return {
+    apiKeys: config.api?.keys || {},
+    defaultModel: config.api?.model || '',
+    reviewSettings: undefined,
+    mcp: undefined,
+  };
+}
+
+/**
+ * Convert legacy config format to new ProjectConfig format
+ * @param legacy Legacy config
+ * @returns New ProjectConfig
+ */
+export function fromLegacyConfig(legacy: LegacyProjectConfig): ProjectConfig {
+  return {
+    api: {
+      preferred_provider: legacy.apiKeys?.openrouter ? 'openrouter' :
+                         legacy.apiKeys?.anthropic ? 'anthropic' :
+                         legacy.apiKeys?.google ? 'google' :
+                         legacy.apiKeys?.openai ? 'openai' : 'openrouter',
+      model: legacy.defaultModel || '',
+      keys: legacy.apiKeys || {},
+    },
+    preferences: {
+      store_keys: false,
+      skip_validation: false,
+    },
+  };
 }

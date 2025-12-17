@@ -9,7 +9,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import logger from '../utils/logger';
-import { configExists, loadProjectConfig } from '../utils/projectConfigManager';
+import { configExists, loadProjectConfig, toLegacyConfig } from '../utils/projectConfigManager';
 import { detectToolchain, getToolchainDescription } from '../utils/toolchainDetector';
 
 /**
@@ -197,22 +197,25 @@ export async function handleInstallCommand(): Promise<void> {
 
     // Add API keys from project config if available
     const projectConfig = loadProjectConfig();
-    if (projectConfig?.apiKeys) {
-      if (!config.mcpServers[serverKey].env) {
-        config.mcpServers[serverKey].env = {};
-      }
+    if (projectConfig) {
+      const legacyConfig = toLegacyConfig(projectConfig);
+      if (legacyConfig.apiKeys) {
+        if (!config.mcpServers[serverKey].env) {
+          config.mcpServers[serverKey].env = {};
+        }
 
-      if (projectConfig.apiKeys.openrouter) {
-        config.mcpServers[serverKey].env!.OPENROUTER_API_KEY = projectConfig.apiKeys.openrouter;
-      }
-      if (projectConfig.apiKeys.anthropic) {
-        config.mcpServers[serverKey].env!.ANTHROPIC_API_KEY = projectConfig.apiKeys.anthropic;
-      }
-      if (projectConfig.apiKeys.google) {
-        config.mcpServers[serverKey].env!.GOOGLE_API_KEY = projectConfig.apiKeys.google;
-      }
-      if (projectConfig.apiKeys.openai) {
-        config.mcpServers[serverKey].env!.OPENAI_API_KEY = projectConfig.apiKeys.openai;
+        if (legacyConfig.apiKeys.openrouter) {
+          config.mcpServers[serverKey].env!.OPENROUTER_API_KEY = legacyConfig.apiKeys.openrouter;
+        }
+        if (legacyConfig.apiKeys.anthropic) {
+          config.mcpServers[serverKey].env!.ANTHROPIC_API_KEY = legacyConfig.apiKeys.anthropic;
+        }
+        if (legacyConfig.apiKeys.google) {
+          config.mcpServers[serverKey].env!.GOOGLE_API_KEY = legacyConfig.apiKeys.google;
+        }
+        if (legacyConfig.apiKeys.openai) {
+          config.mcpServers[serverKey].env!.OPENAI_API_KEY = legacyConfig.apiKeys.openai;
+        }
       }
     }
 

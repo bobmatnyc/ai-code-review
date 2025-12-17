@@ -57,6 +57,8 @@ export interface ReviewOptions {
   interactive?: boolean;
   /** Whether to test API connections before running the review */
   testApi?: boolean;
+  /** Whether to skip API key validation on startup */
+  skipKeyCheck?: boolean;
   /** Whether to estimate token usage and cost without performing the review */
   estimate?: boolean;
   /** Whether to use multi-pass review for large codebases */
@@ -297,4 +299,31 @@ export interface PassCost {
   totalTokens: number;
   /** Estimated cost for this pass */
   estimatedCost: number;
+}
+
+/**
+ * Project configuration stored in .ai-code-review/config.yaml
+ */
+export interface ProjectConfig {
+  /** API configuration */
+  api: {
+    /** Preferred provider: google, anthropic, openrouter, openai */
+    preferred_provider?: string;
+    /** Selected model in format provider:model-name */
+    model?: string;
+    /** API keys by provider */
+    keys?: {
+      google?: string;
+      anthropic?: string;
+      openrouter?: string;
+      openai?: string;
+    };
+  };
+  /** User preferences */
+  preferences?: {
+    /** Whether to store API keys in project config */
+    store_keys?: boolean;
+    /** Whether to skip API key validation on startup */
+    skip_validation?: boolean;
+  };
 }

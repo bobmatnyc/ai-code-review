@@ -236,6 +236,12 @@ import { PromptManager } from './prompts/PromptManager';
 // Import other dependencies after environment setup
 import { getConfig, hasAnyApiKey, validateConfigForSelectedModel } from './utils/config';
 import { initI18n, t } from './utils/i18n';
+import { validateApiKey } from './utils/apiKeyHealthCheck';
+import {
+  promptKeyRecovery,
+  RecoveryAction,
+} from './utils/interactiveKeyRecovery';
+import { loadProjectConfig } from './utils/projectConfigManager';
 import { VERSION_WITH_BUILD } from './version';
 
 // Main function to run the application
@@ -379,6 +385,120 @@ async function main() {
     // Log the selected model
     const [provider, model] = config.selectedModel.split(':');
     console.log(`Using ${provider} API with model: ${model}`);
+
+    // API Key Validation (unless skipped)
+    const projectConfig = loadProjectConfig();
+    const shouldSkipValidation =
+      args.skipKeyCheck || projectConfig?.preferences?.skip_validation || false;
+
+    if (!shouldSkipValidation) {
+      logger.debug('Performing API key validation...');
+
+      // Get the API key for the selected provider
+      const providerKey = provider.toLowerCase();
+      let apiKey: string | undefined;
+
+      switch (providerKey) {
+        case 'google':
+        case 'gemini':
+          apiKey = config.googleApiKey;
+          break;
+        case 'anthropic':
+        case 'claude':
+          apiKey = config.anthropicApiKey;
+          break;
+        case 'openrouter':
+          apiKey = config.openRouterApiKey;
+          break;
+        case 'openai':
+          apiKey = config.openAIApiKey;
+          break;
+        default:
+          logger.warn(`Unknown provider: ${provider}, skipping key validation`);
+      }
+
+      if (apiKey) {
+        const validationResult = await validateApiKey(providerKey, apiKey);
+
+        if (!validationResult.valid) {
+          // API key validation failed - prompt for recovery
+          const recovery = await promptKeyRecovery(providerKey, validationResult.error || 'Unknown error');
+
+          switch (recovery.action) {
+            case RecoveryAction.ENTER_NEW_KEY:
+              if (recovery.apiKey) {
+                // Update the config with the new key
+                switch (providerKey) {
+                  case 'google':
+                  case 'gemini':
+                    config.googleApiKey = recovery.apiKey;
+                    process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = recovery.apiKey;
+                    break;
+                  case 'anthropic':
+                  case 'claude':
+                    config.anthropicApiKey = recovery.apiKey;
+                    process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = recovery.apiKey;
+                    break;
+                  case 'openrouter':
+                    config.openRouterApiKey = recovery.apiKey;
+                    process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY = recovery.apiKey;
+                    break;
+                  case 'openai':
+                    config.openAIApiKey = recovery.apiKey;
+                    process.env.AI_CODE_REVIEW_OPENAI_API_KEY = recovery.apiKey;
+                    break;
+                }
+                logger.info(`✅ Using new API key for ${providerKey}`);
+              }
+              break;
+
+            case RecoveryAction.SWITCH_PROVIDER:
+              if (recovery.provider && recovery.apiKey) {
+                // Update config to use the new provider
+                const newProvider = recovery.provider;
+                config.selectedModel = `${newProvider}:${model}`;
+
+                // Set the API key in environment
+                switch (newProvider) {
+                  case 'google':
+                    config.googleApiKey = recovery.apiKey;
+                    process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = recovery.apiKey;
+                    break;
+                  case 'anthropic':
+                    config.anthropicApiKey = recovery.apiKey;
+                    process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = recovery.apiKey;
+                    break;
+                  case 'openrouter':
+                    config.openRouterApiKey = recovery.apiKey;
+                    process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY = recovery.apiKey;
+                    break;
+                  case 'openai':
+                    config.openAIApiKey = recovery.apiKey;
+                    process.env.AI_CODE_REVIEW_OPENAI_API_KEY = recovery.apiKey;
+                    break;
+                }
+                logger.info(`✅ Switched to ${newProvider} provider`);
+                console.log(`Using ${newProvider} API with model: ${model}`);
+              }
+              break;
+
+            case RecoveryAction.CONTINUE_ANYWAY:
+              logger.warn('⚠️  Continuing without valid API key - review may fail');
+              break;
+
+            case RecoveryAction.EXIT:
+              process.exit(0);
+              break;
+          }
+        } else {
+          logger.debug(`✅ API key validation successful for ${providerKey}`);
+        }
+      } else {
+        logger.debug(`No API key found for ${providerKey}, skipping validation`);
+      }
+    } else {
+      logger.debug('API key validation skipped');
+    }
 
     // Re-initialize i18n with the user's selected UI language if different
     if (args.uiLanguage && args.uiLanguage !== 'en') {
