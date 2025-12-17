@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.5.1] - 2025-12-17
+
+### Changes
+- chore: pre-release build number increment (3da81f9)
+- chore: increment build number (f85c04e)
+- refactor: Code remediation - Critical and High complexity function refactoring (#68) (5011927)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.5.1
+```
+
+
 ## [4.5.0] - 2025-11-16
 
 ### Features
