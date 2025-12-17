@@ -9,6 +9,16 @@ import type {
   FocusedUnusedCodeReview,
   UnusedElement,
 } from '../prompts/schemas/focused-unused-code-schema';
+import {
+  type ConfidenceLevel,
+  formatByConfidence,
+  formatElementType,
+  formatLocation,
+  groupByFile,
+  MARKDOWN_CONFIDENCE_HEADERS,
+  sortByLineDescending,
+  TERMINAL_CONFIDENCE_HEADERS,
+} from './unusedCodeFormatterUtils';
 
 /**
  * Format a focused unused code review as markdown
@@ -251,32 +261,6 @@ function formatElementsAsChecklist(elements: UnusedElement[]): string {
   }
 
   return markdown;
-}
-
-/**
- * Format element type for display
- * @param elementType Element type
- * @returns Formatted element type
- */
-function formatElementType(elementType: string): string {
-  const mapping: Record<string, string> = {
-    file: 'File',
-    function: 'Function',
-    class: 'Class',
-    interface: 'Interface',
-    type: 'Type',
-    variable: 'Variable',
-    import: 'Import',
-    'dead-branch': 'Dead Code Branch',
-    parameter: 'Parameter',
-    property: 'Property',
-    enum: 'Enum',
-    export: 'Export',
-    hook: 'React Hook',
-    component: 'React Component',
-  };
-
-  return mapping[elementType] || elementType;
 }
 
 /**

@@ -181,6 +181,243 @@ export function extractSection(
 }
 
 /**
+ * Split section content into issue blocks using multiple pattern strategies
+ * @param sectionContent Content to split
+ * @returns Array of issue blocks
+ */
+function splitIntoIssueBlocks(sectionContent: string): string[] {
+  // Define patterns to try in order of preference
+  const patterns = [
+    {
+      // Pattern 1: **Issue**: format
+      regex: /(?=\*\*Issue\*\*:)/,
+      filter: (block: string) => block.trim().startsWith('**Issue**:'),
+    },
+    {
+      // Pattern 2: 1. **Issue**: format (numbered list)
+      regex: /(?=\d+\.\s*\*\*Issue\*\*:)/,
+      filter: (block: string) => /^\d+\.\s*\*\*Issue\*\*/.test(block.trim()),
+    },
+    {
+      // Pattern 3: ### Issue: format (heading)
+      regex: /(?=[#]{1,3}\s+Issue:)/,
+      filter: (block: string) => /^[#]{1,3}\s+Issue:/.test(block.trim()),
+    },
+    {
+      // Pattern 4: **Finding**: format (security reviews)
+      regex: /(?=\*\*Finding\*\*:)/,
+      filter: (block: string) => block.trim().startsWith('**Finding**:'),
+    },
+    {
+      // Pattern 5: **Performance Issue**: format (performance reviews)
+      regex: /(?=\*\*Performance Issue\*\*:)/,
+      filter: (block: string) => block.trim().startsWith('**Performance Issue**:'),
+    },
+  ];
+
+  for (const pattern of patterns) {
+    const blocks = sectionContent.split(pattern.regex).filter(pattern.filter);
+    if (blocks.length > 0) {
+      return blocks;
+    }
+  }
+
+  return [];
+}
+
+/**
+ * Extract issue description from an issue block
+ * @param issueBlock Issue block content
+ * @returns Issue description or empty string if not found
+ */
+function extractIssueDescription(issueBlock: string): string {
+  const patterns = [
+    /\*\*Issue\*\*:([^*]+)/,
+    /\d+\.\s*\*\*Issue\*\*:([^*]+)/,
+    /[#]{1,3}\s+Issue:([^\n]+)/,
+    /\*\*Finding\*\*:([^*]+)/,
+    /\*\*Performance Issue\*\*:([^*]+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = issueBlock.match(pattern);
+    if (match) {
+      return match[1].trim();
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Extract and clean file path from an issue block
+ * @param issueBlock Issue block content
+ * @returns Cleaned file path or empty string if not found
+ */
+function extractFilePath(issueBlock: string): string {
+  // Try explicit file/location markers first
+  const markerPatterns = [
+    /\*\*File\*\*:([^*]+)/,
+    /\*\*Location\*\*:([^*]+)/,
+    /File:([^\n]+)/,
+    /Path:([^\n]+)/,
+  ];
+
+  for (const pattern of markerPatterns) {
+    const match = issueBlock.match(pattern);
+    if (match) {
+      return cleanFilePath(match[1].trim());
+    }
+  }
+
+  // Try to find any path-like string in the issue block
+  const pathPattern =
+    /(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-./_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/;
+  const pathMatch = issueBlock.match(pathPattern);
+
+  return pathMatch ? pathMatch[0].trim() : '';
+}
+
+/**
+ * Clean and normalize a file path string
+ * @param filePath Raw file path string
+ * @returns Cleaned file path
+ */
+function cleanFilePath(filePath: string): string {
+  // Remove markdown formatting
+  const cleaned = filePath.replace(/`/g, '').replace(/\*/g, '').trim();
+
+  // Extract actual file path from common patterns
+  const filePathMatch = cleaned.match(/(?:src|\/)\S+\.(ts|js|tsx|jsx|json)/);
+  if (filePathMatch) {
+    return filePathMatch[0];
+  }
+
+  // Try to find the most likely path
+  const possiblePaths = cleaned
+    .split(/[\s,()]/)
+    .filter((part) => part.includes('/') || part.includes('.ts') || part.includes('.js'));
+
+  return possiblePaths.length > 0 ? possiblePaths[0] : cleaned;
+}
+
+/**
+ * Extract code blocks from an issue block
+ * @param issueBlock Issue block content
+ * @returns Array of code block strings
+ */
+function extractCodeBlocks(issueBlock: string): string[] {
+  // Try triple backtick code blocks first
+  const codeBlockMatches = issueBlock.match(/```(?:[a-zA-Z0-9_-]*)?\s*([\s\S]*?)```/g);
+
+  if (codeBlockMatches && codeBlockMatches.length > 0) {
+    return codeBlockMatches.map((block: string) => {
+      const content = block.replace(/```(?:[a-zA-Z0-9_-]*)?\s*|```$/g, '');
+      return content.trim();
+    });
+  }
+
+  // Try indented code blocks (4 spaces or tab)
+  const indentedCodeBlockMatch = issueBlock.match(
+    /(?:^|\n)(?: {4}|\t)([^\n]+(?:\n(?: {4}|\t)[^\n]+)*)/g,
+  );
+  if (indentedCodeBlockMatch) {
+    return indentedCodeBlockMatch.map((block: string) => {
+      return block.replace(/(?:^|\n)(?: {4}|\t)/g, '\n').trim();
+    });
+  }
+
+  // Try 'Current code:' and 'Suggested code:' markers
+  const codeBlocks: string[] = [];
+  const currentCodeMatch = issueBlock.match(/Current code:([\s\S]*?)(?:Suggested code:|$)/i);
+  const suggestedCodeMatch = issueBlock.match(/Suggested code:([\s\S]*?)(?:Impact:|$)/i);
+
+  if (currentCodeMatch?.[1].trim()) {
+    codeBlocks.push(currentCodeMatch[1].trim());
+  }
+  if (suggestedCodeMatch?.[1].trim()) {
+    codeBlocks.push(suggestedCodeMatch[1].trim());
+  }
+
+  return codeBlocks;
+}
+
+/**
+ * Extract line numbers from location string
+ * @param location Location string
+ * @returns Line number range or undefined
+ */
+function extractLineNumbers(location: string): { start: number; end: number } | undefined {
+  const lineNumberMatch = location.match(/lines? (\d+)(?:-(\d+))?/i);
+  if (!lineNumberMatch) {
+    return undefined;
+  }
+
+  const startLine = parseInt(lineNumberMatch[1], 10);
+  const endLine = lineNumberMatch[2] ? parseInt(lineNumberMatch[2], 10) : startLine;
+
+  return { start: startLine, end: endLine };
+}
+
+/**
+ * Parse a single issue block into a FixSuggestion
+ * @param issueBlock Issue block content
+ * @param priority Priority level
+ * @param projectPath Base path of the project
+ * @returns FixSuggestion or null if parsing fails
+ */
+function parseIssueBlock(
+  issueBlock: string,
+  priority: FixPriority,
+  projectPath: string,
+): FixSuggestion | null {
+  // Extract issue description
+  const issueDescription = extractIssueDescription(issueBlock);
+  if (!issueDescription) {
+    return null;
+  }
+
+  // Extract file path
+  const filePath = extractFilePath(issueBlock);
+  if (!filePath) {
+    return null;
+  }
+
+  // Resolve the full file path
+  const fullFilePath = path.resolve(projectPath, filePath);
+
+  // Extract location
+  const locationMatch = issueBlock.match(/\*\*Location\*\*:([^*]+)/);
+  const location = locationMatch ? locationMatch[1].trim() : '';
+
+  // Extract code blocks
+  const codeBlocks = extractCodeBlocks(issueBlock);
+
+  // Create suggestion
+  const suggestion: FixSuggestion = {
+    priority,
+    file: fullFilePath,
+    description: issueDescription,
+  };
+
+  // Add code blocks if available
+  if (codeBlocks.length >= 2) {
+    suggestion.currentCode = codeBlocks[0];
+    suggestion.suggestedCode = codeBlocks[1];
+  } else if (codeBlocks.length === 1) {
+    suggestion.suggestedCode = codeBlocks[0];
+  }
+
+  // Add line numbers if available
+  const lineNumbers = extractLineNumbers(location);
+  if (lineNumbers) {
+    suggestion.lineNumbers = lineNumbers;
+  }
+
+  return suggestion;
+}
+
+/**
  * Parse suggestions from a section of the review
  * @param sectionContent Content of the section
  * @param priority Priority level of the suggestions
@@ -193,185 +430,14 @@ export async function parseSuggestions(
   projectPath: string,
 ): Promise<FixSuggestion[]> {
   const suggestions: FixSuggestion[] = [];
-
-  // Split the section into individual issues to reduce memory usage
-  // Try different patterns to match issue blocks
-  let issueBlocks: string[] = [];
-
-  // Pattern 1: **Issue**: format
-  const pattern1Blocks = sectionContent
-    .split(/(?=\*\*Issue\*\*:)/)
-    .filter((block) => block.trim().startsWith('**Issue**:'));
-  if (pattern1Blocks.length > 0) {
-    issueBlocks = pattern1Blocks;
-  } else {
-    // Pattern 2: 1. **Issue**: format (numbered list)
-    const pattern2Blocks = sectionContent
-      .split(/(?=\d+\.\s*\*\*Issue\*\*:)/)
-      .filter((block) => block.trim().match(/^\d+\.\s*\*\*Issue\*\*/));
-    if (pattern2Blocks.length > 0) {
-      issueBlocks = pattern2Blocks;
-    } else {
-      // Pattern 3: ### Issue: format (heading)
-      const pattern3Blocks = sectionContent
-        .split(/(?=[#]{1,3}\s+Issue:)/)
-        .filter((block) => block.trim().match(/^[#]{1,3}\s+Issue:/));
-      if (pattern3Blocks.length > 0) {
-        issueBlocks = pattern3Blocks;
-      } else {
-        // Pattern 4: **Finding**: format (security reviews)
-        const pattern4Blocks = sectionContent
-          .split(/(?=\*\*Finding\*\*:)/)
-          .filter((block) => block.trim().startsWith('**Finding**:'));
-        if (pattern4Blocks.length > 0) {
-          issueBlocks = pattern4Blocks;
-        } else {
-          // Pattern 5: **Performance Issue**: format (performance reviews)
-          const pattern5Blocks = sectionContent
-            .split(/(?=\*\*Performance Issue\*\*:)/)
-            .filter((block) => block.trim().startsWith('**Performance Issue**:'));
-          if (pattern5Blocks.length > 0) {
-            issueBlocks = pattern5Blocks;
-          }
-        }
-      }
-    }
-  }
+  const issueBlocks = splitIntoIssueBlocks(sectionContent);
 
   for (const issueBlock of issueBlocks) {
     try {
-      // Extract issue description using multiple patterns
-      let issueDescription = '';
-      let issueMatch = issueBlock.match(/\*\*Issue\*\*:([^*]+)/);
-      if (!issueMatch) {
-        // Try alternative patterns
-        issueMatch = issueBlock.match(/\d+\.\s*\*\*Issue\*\*:([^*]+)/);
+      const suggestion = parseIssueBlock(issueBlock, priority, projectPath);
+      if (suggestion) {
+        suggestions.push(suggestion);
       }
-      if (!issueMatch) {
-        issueMatch = issueBlock.match(/[#]{1,3}\s+Issue:([^\n]+)/);
-      }
-      if (!issueMatch) {
-        issueMatch = issueBlock.match(/\*\*Finding\*\*:([^*]+)/);
-      }
-      if (!issueMatch) {
-        issueMatch = issueBlock.match(/\*\*Performance Issue\*\*:([^*]+)/);
-      }
-      if (!issueMatch) continue;
-      issueDescription = issueMatch[1].trim();
-
-      // Extract file path using multiple patterns
-      let filePath = '';
-      let fileMatch = issueBlock.match(/\*\*File\*\*:([^*]+)/);
-      if (!fileMatch) {
-        fileMatch = issueBlock.match(/\*\*Location\*\*:([^*]+)/);
-      }
-      if (!fileMatch) {
-        fileMatch = issueBlock.match(/File:([^\n]+)/);
-      }
-      if (!fileMatch) {
-        fileMatch = issueBlock.match(/Path:([^\n]+)/);
-      }
-      if (!fileMatch) {
-        // Try to find any path-like string in the issue block
-        const pathMatch = issueBlock.match(
-          /(?:src|lib|test|app|components|utils|helpers|services|models|controllers|views|pages|api|config|public|assets|styles|css|js|ts|tsx|jsx)\/[\w\-./_]+\.(ts|js|tsx|jsx|json|css|scss|html|md)/,
-        );
-        if (pathMatch) {
-          filePath = pathMatch[0].trim();
-        } else {
-          continue; // Skip if we can't find a file path
-        }
-      } else {
-        filePath = fileMatch[1].trim();
-      }
-      // Remove any markdown formatting from the file path
-      let cleanFilePath = filePath.replace(/`/g, '').replace(/\*/g, '').trim();
-
-      // Extract the actual file path from common patterns
-      const filePathMatch = cleanFilePath.match(/(?:src|\/)\S+\.(ts|js|tsx|jsx|json)/);
-      if (filePathMatch) {
-        cleanFilePath = filePathMatch[0];
-      } else {
-        // If we can't extract a clear file path, try to find the most likely path
-        const possiblePaths = cleanFilePath
-          .split(/[\s,()]/)
-          .filter((part) => part.includes('/') || part.includes('.ts') || part.includes('.js'));
-
-        if (possiblePaths.length > 0) {
-          cleanFilePath = possiblePaths[0];
-        }
-      }
-
-      // Resolve the full file path
-      const fullFilePath = path.resolve(projectPath, cleanFilePath);
-
-      // Extract location
-      const locationMatch = issueBlock.match(/\*\*Location\*\*:([^*]+)/);
-      const location = locationMatch ? locationMatch[1].trim() : '';
-
-      // Extract code blocks with more flexible pattern matching
-      // Match code blocks with or without language specifier
-      const codeBlockMatches = issueBlock.match(/```(?:[a-zA-Z0-9_-]*)?\s*([\s\S]*?)```/g) || [];
-
-      // If no code blocks found with triple backticks, try alternative formats
-      let codeBlocks: string[] = [];
-
-      if (codeBlockMatches.length > 0) {
-        codeBlocks = codeBlockMatches.map((block: string) => {
-          // Extract the content inside the code block
-          const content = block.replace(/```(?:[a-zA-Z0-9_-]*)?\s*|```$/g, '');
-          return content.trim();
-        });
-      } else {
-        // Try to find code blocks with indentation (4 spaces or tab)
-        const indentedCodeBlockMatch = issueBlock.match(
-          /(?:^|\n)(?: {4}|\t)([^\n]+(?:\n(?: {4}|\t)[^\n]+)*)/g,
-        );
-        if (indentedCodeBlockMatch) {
-          codeBlocks = indentedCodeBlockMatch.map((block: string) => {
-            // Remove the indentation
-            return block.replace(/(?:^|\n)(?: {4}|\t)/g, '\n').trim();
-          });
-        }
-
-        // Try to find code blocks with 'Current code:' and 'Suggested code:' markers
-        const currentCodeMatch = issueBlock.match(/Current code:([\s\S]*?)(?:Suggested code:|$)/i);
-        const suggestedCodeMatch = issueBlock.match(/Suggested code:([\s\S]*?)(?:Impact:|$)/i);
-
-        if (currentCodeMatch?.[1].trim()) {
-          codeBlocks.push(currentCodeMatch[1].trim());
-        }
-
-        if (suggestedCodeMatch?.[1].trim()) {
-          codeBlocks.push(suggestedCodeMatch[1].trim());
-        }
-      }
-
-      // Create suggestion
-      const suggestion: FixSuggestion = {
-        priority,
-        file: fullFilePath,
-        description: issueDescription,
-      };
-
-      // If we have code blocks, assume the first is current code and second is suggested code
-      if (codeBlocks.length >= 2) {
-        suggestion.currentCode = codeBlocks[0];
-        suggestion.suggestedCode = codeBlocks[1];
-      } else if (codeBlocks.length === 1) {
-        // If only one code block, assume it's the suggested code
-        suggestion.suggestedCode = codeBlocks[0];
-      }
-
-      // Try to extract line numbers from location
-      const lineNumberMatch = location.match(/lines? (\d+)(?:-(\d+))?/i);
-      if (lineNumberMatch) {
-        const startLine = parseInt(lineNumberMatch[1], 10);
-        const endLine = lineNumberMatch[2] ? parseInt(lineNumberMatch[2], 10) : startLine;
-        suggestion.lineNumbers = { start: startLine, end: endLine };
-      }
-
-      suggestions.push(suggestion);
     } catch (error) {
       logger.error('Error parsing suggestion:', error);
       // Continue with the next issue block

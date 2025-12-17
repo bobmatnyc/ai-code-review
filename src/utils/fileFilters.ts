@@ -157,59 +157,62 @@ export function shouldExcludeFile(filePath: string, gitignorePatterns: string[])
 }
 
 /**
+ * Mapping of file extensions to language identifiers
+ * Using a Map for O(1) lookup instead of switch/case branching
+ */
+const EXTENSION_TO_LANGUAGE_MAP = new Map<string, string>([
+  // TypeScript
+  ['.ts', 'typescript'],
+  ['.tsx', 'typescript'],
+  // JavaScript
+  ['.js', 'javascript'],
+  ['.jsx', 'javascript'],
+  // Python
+  ['.py', 'python'],
+  ['.pyi', 'python'],
+  ['.pyx', 'python'],
+  // PHP
+  ['.php', 'php'],
+  // Ruby
+  ['.rb', 'ruby'],
+  ['.rake', 'ruby'],
+  ['.gemspec', 'ruby'],
+  ['.ru', 'ruby'],
+  ['.erb', 'ruby'],
+  // Go
+  ['.go', 'go'],
+  // Java
+  ['.java', 'java'],
+  // Rust
+  ['.rs', 'rust'],
+  // C
+  ['.c', 'c'],
+  ['.h', 'c'],
+  // C++
+  ['.cpp', 'cpp'],
+  ['.hpp', 'cpp'],
+  // C#
+  ['.cs', 'csharp'],
+  // Swift
+  ['.swift', 'swift'],
+  // Kotlin
+  ['.kt', 'kotlin'],
+  // Dart
+  ['.dart', 'dart'],
+  // JSON
+  ['.json', 'json'],
+  // Markdown
+  ['.md', 'markdown'],
+]);
+
+/**
  * Get the language for a file based on its extension
  * @param filePath File path
  * @returns Language identifier
  */
 export function getLanguageForFile(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
-
-  switch (ext) {
-    case '.ts':
-    case '.tsx':
-      return 'typescript';
-    case '.js':
-    case '.jsx':
-      return 'javascript';
-    case '.py':
-    case '.pyi':
-    case '.pyx':
-      return 'python';
-    case '.php':
-      return 'php';
-    case '.rb':
-    case '.rake':
-    case '.gemspec':
-    case '.ru':
-    case '.erb':
-      return 'ruby';
-    case '.go':
-      return 'go';
-    case '.java':
-      return 'java';
-    case '.rs':
-      return 'rust';
-    case '.c':
-    case '.h':
-      return 'c';
-    case '.cpp':
-    case '.hpp':
-      return 'cpp';
-    case '.cs':
-      return 'csharp';
-    case '.swift':
-      return 'swift';
-    case '.kt':
-      return 'kotlin';
-    case '.dart':
-      return 'dart';
-    case '.json':
-      return 'json';
-    case '.md':
-      return 'markdown';
-    default:
-      return 'unknown';
-  }
+  return EXTENSION_TO_LANGUAGE_MAP.get(ext) || 'unknown';
 }
 
 /**

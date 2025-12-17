@@ -11,6 +11,91 @@ import type {
   ImprovedUnusedCodeReview,
   UnusedCodeCategory,
 } from '../prompts/schemas/improved-unused-code-schema';
+import {
+  type ConfidenceLevel,
+  filterByConfidence,
+  formatByConfidence,
+  groupByFile,
+  MARKDOWN_CONFIDENCE_HEADERS,
+  sortByLineDescending,
+  TERMINAL_CONFIDENCE_HEADERS,
+} from './unusedCodeFormatterUtils';
+
+/**
+ * Configuration for formatting a category section
+ */
+interface CategorySectionConfig {
+  title: string;
+  description: string;
+  issues: ImprovedUnusedCodeIssue[];
+}
+
+/**
+ * Format a category section with confidence-based grouping
+ * @param config Section configuration
+ * @returns Formatted markdown section
+ */
+function formatCategorySection(config: CategorySectionConfig): string {
+  if (config.issues.length === 0) {
+    return '';
+  }
+
+  let markdown = `## ${config.title}\n\n`;
+  markdown += `_${config.description}_\n\n`;
+
+  markdown += formatByConfidence(
+    {
+      elements: config.issues,
+      getConfidence: (issue) => issue.assessment.confidence as ConfidenceLevel,
+      formatElements: (issues) => formatIssuesAsChecklist(issues),
+    },
+    MARKDOWN_CONFIDENCE_HEADERS,
+  );
+
+  return markdown;
+}
+
+/**
+ * Format recommended tools section
+ * @param review The review containing recommended tools
+ * @returns Formatted recommended tools section
+ */
+function formatRecommendedTools(review: ImprovedUnusedCodeReview): string {
+  if (!review.recommendedTools || review.recommendedTools.length === 0) {
+    return '';
+  }
+
+  let markdown = '## Recommended Tools\n\n';
+  markdown += '_Tools that can help automate the detection of unused code:_\n\n';
+
+  for (const tool of review.recommendedTools) {
+    markdown += `### ${tool.tool}\n\n`;
+    markdown += `${tool.description}\n\n`;
+
+    if (tool.configuration) {
+      markdown += '```\n';
+      markdown += tool.configuration;
+      markdown += '\n```\n\n';
+    }
+  }
+
+  return markdown;
+}
+
+/**
+ * Format general recommendations section
+ * @param recommendations List of recommendations
+ * @returns Formatted recommendations section
+ */
+function formatRecommendations(recommendations: string[]): string {
+  let markdown = '## General Recommendations\n\n';
+
+  for (const recommendation of recommendations) {
+    markdown += `- ${recommendation}\n`;
+  }
+
+  return markdown;
+}
 
 /**
  * Format an unused code review as markdown
@@ -18,198 +103,49 @@ import type {
  * @returns Formatted markdown
  */
 export function formatUnusedCodeReviewAsMarkdown(review: ImprovedUnusedCodeReview): string {
-  // Build the header
   let markdown = '# Unused Code Review: Files & Functions That Can Be Safely Removed\n\n';
-
-  // Add a summary section
   markdown += '## Summary\n\n';
   markdown += `${review.summary}\n\n`;
 
-  // Create collections of specific unused elements
-  const unusedFiles = getAllIssuesByCategory(review, 'unusedFile');
-  const unusedFunctions = getAllIssuesByCategory(review, 'unusedFunction');
-  const unusedClasses = getAllIssuesByCategory(review, 'unusedClass');
-  const unusedModules = getAllIssuesByCategory(review, 'unusedModule');
-  const otherUnusedElements = getAllIssuesByCategory(review, null, true);
+  // Define category sections
+  const sections: CategorySectionConfig[] = [
+    {
+      title: 'Unused Files',
+      description:
+        'The following files are not imported or used anywhere and can be safely removed:',
+      issues: getAllIssuesByCategory(review, 'unusedFile'),
+    },
+    {
+      title: 'Unused Functions',
+      description: 'The following functions are never called and can be safely removed:',
+      issues: getAllIssuesByCategory(review, 'unusedFunction'),
+    },
+    {
+      title: 'Unused Classes',
+      description:
+        'The following classes are never instantiated or extended and can be safely removed:',
+      issues: getAllIssuesByCategory(review, 'unusedClass'),
+    },
+    {
+      title: 'Unused Modules',
+      description: 'The following modules are never imported or used and can be safely removed:',
+      issues: getAllIssuesByCategory(review, 'unusedModule'),
+    },
+    {
+      title: 'Other Unused Code',
+      description: 'The following code elements can be safely removed:',
+      issues: getAllIssuesByCategory(review, null, true),
+    },
+  ];
 
-  // Special section for completely unused files
-  if (unusedFiles.length > 0) {
-    markdown += '## Unused Files\n\n';
-    markdown +=
-      '_The following files are not imported or used anywhere and can be safely removed:_\n\n';
-
-    const highConfidenceFiles = unusedFiles.filter(
-      (issue) => issue.assessment.confidence === 'high',
-    );
-    const mediumConfidenceFiles = unusedFiles.filter(
-      (issue) => issue.assessment.confidence === 'medium',
-    );
-    const lowConfidenceFiles = unusedFiles.filter((issue) => issue.assessment.confidence === 'low');
-
-    if (highConfidenceFiles.length > 0) {
-      markdown += '### High Confidence (Safe to Remove)\n\n';
-      markdown += formatIssuesAsChecklist(highConfidenceFiles);
-    }
-
-    if (mediumConfidenceFiles.length > 0) {
-      markdown += '### Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatIssuesAsChecklist(mediumConfidenceFiles);
-    }
-
-    if (lowConfidenceFiles.length > 0) {
-      markdown += '### Low Confidence (Thorough Verification Required)\n\n';
-      markdown += formatIssuesAsChecklist(lowConfidenceFiles);
-    }
+  // Format each section
+  for (const section of sections) {
+    markdown += formatCategorySection(section);
   }
 
-  // Special section for unused functions
-  if (unusedFunctions.length > 0) {
-    markdown += '## Unused Functions\n\n';
-    markdown += '_The following functions are never called and can be safely removed:_\n\n';
-
-    const highConfidenceFunctions = unusedFunctions.filter(
-      (issue) => issue.assessment.confidence === 'high',
-    );
-    const mediumConfidenceFunctions = unusedFunctions.filter(
-      (issue) => issue.assessment.confidence === 'medium',
-    );
-    const lowConfidenceFunctions = unusedFunctions.filter(
-      (issue) => issue.assessment.confidence === 'low',
-    );
-
-    if (highConfidenceFunctions.length > 0) {
-      markdown += '### High Confidence (Safe to Remove)\n\n';
-      markdown += formatIssuesAsChecklist(highConfidenceFunctions);
-    }
-
-    if (mediumConfidenceFunctions.length > 0) {
-      markdown += '### Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatIssuesAsChecklist(mediumConfidenceFunctions);
-    }
-
-    if (lowConfidenceFunctions.length > 0) {
-      markdown += '### Low Confidence (Thorough Verification Required)\n\n';
-      markdown += formatIssuesAsChecklist(lowConfidenceFunctions);
-    }
-  }
-
-  // Special section for unused classes
-  if (unusedClasses.length > 0) {
-    markdown += '## Unused Classes\n\n';
-    markdown +=
-      '_The following classes are never instantiated or extended and can be safely removed:_\n\n';
-
-    const highConfidenceClasses = unusedClasses.filter(
-      (issue) => issue.assessment.confidence === 'high',
-    );
-    const mediumConfidenceClasses = unusedClasses.filter(
-      (issue) => issue.assessment.confidence === 'medium',
-    );
-    const lowConfidenceClasses = unusedClasses.filter(
-      (issue) => issue.assessment.confidence === 'low',
-    );
-
-    if (highConfidenceClasses.length > 0) {
-      markdown += '### High Confidence (Safe to Remove)\n\n';
-      markdown += formatIssuesAsChecklist(highConfidenceClasses);
-    }
-
-    if (mediumConfidenceClasses.length > 0) {
-      markdown += '### Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatIssuesAsChecklist(mediumConfidenceClasses);
-    }
-
-    if (lowConfidenceClasses.length > 0) {
-      markdown += '### Low Confidence (Thorough Verification Required)\n\n';
-      markdown += formatIssuesAsChecklist(lowConfidenceClasses);
-    }
-  }
-
-  // Special section for unused modules
-  if (unusedModules.length > 0) {
-    markdown += '## Unused Modules\n\n';
-    markdown += '_The following modules are never imported or used and can be safely removed:_\n\n';
-
-    const highConfidenceModules = unusedModules.filter(
-      (issue) => issue.assessment.confidence === 'high',
-    );
-    const mediumConfidenceModules = unusedModules.filter(
-      (issue) => issue.assessment.confidence === 'medium',
-    );
-    const lowConfidenceModules = unusedModules.filter(
-      (issue) => issue.assessment.confidence === 'low',
-    );
-
-    if (highConfidenceModules.length > 0) {
-      markdown += '### High Confidence (Safe to Remove)\n\n';
-      markdown += formatIssuesAsChecklist(highConfidenceModules);
-    }
-
-    if (mediumConfidenceModules.length > 0) {
-      markdown += '### Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatIssuesAsChecklist(mediumConfidenceModules);
-    }
-
-    if (lowConfidenceModules.length > 0) {
-      markdown += '### Low Confidence (Thorough Verification Required)\n\n';
-      markdown += formatIssuesAsChecklist(lowConfidenceModules);
-    }
-  }
-
-  // Add a section for other unused code elements
-  if (otherUnusedElements.length > 0) {
-    markdown += '## Other Unused Code\n\n';
-    markdown += '_The following code elements can be safely removed:_\n\n';
-
-    const highConfidenceOther = otherUnusedElements.filter(
-      (issue) => issue.assessment.confidence === 'high',
-    );
-    const mediumConfidenceOther = otherUnusedElements.filter(
-      (issue) => issue.assessment.confidence === 'medium',
-    );
-    const lowConfidenceOther = otherUnusedElements.filter(
-      (issue) => issue.assessment.confidence === 'low',
-    );
-
-    if (highConfidenceOther.length > 0) {
-      markdown += '### High Confidence (Safe to Remove)\n\n';
-      markdown += formatIssuesAsChecklist(highConfidenceOther);
-    }
-
-    if (mediumConfidenceOther.length > 0) {
-      markdown += '### Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatIssuesAsChecklist(mediumConfidenceOther);
-    }
-
-    if (lowConfidenceOther.length > 0) {
-      markdown += '### Low Confidence (Thorough Verification Required)\n\n';
-      markdown += formatIssuesAsChecklist(lowConfidenceOther);
-    }
-  }
-
-  // Add a section for recommended tools
-  if (review.recommendedTools && review.recommendedTools.length > 0) {
-    markdown += '## Recommended Tools\n\n';
-    markdown += '_Tools that can help automate the detection of unused code:_\n\n';
-
-    for (const tool of review.recommendedTools) {
-      markdown += `### ${tool.tool}\n\n`;
-      markdown += `${tool.description}\n\n`;
-
-      if (tool.configuration) {
-        markdown += '```\n';
-        markdown += tool.configuration;
-        markdown += '\n```\n\n';
-      }
-    }
-  }
-
-  // Add general recommendations
-  markdown += '## General Recommendations\n\n';
-
-  for (const recommendation of review.recommendations) {
-    markdown += `- ${recommendation}\n`;
-  }
+  // Add recommended tools and recommendations
+  markdown += formatRecommendedTools(review);
+  markdown += formatRecommendations(review.recommendations);
 
   return markdown;
 }
@@ -253,6 +189,44 @@ function getAllIssuesByCategory(
 }
 
 /**
+ * Format a single issue as checklist item
+ * @param issue Issue to format
+ * @returns Formatted markdown for the issue
+ */
+function formatSingleIssue(issue: ImprovedUnusedCodeIssue): string {
+  let markdown = '';
+
+  const lines =
+    issue.location.lineStart && issue.location.lineEnd
+      ? `(lines ${issue.location.lineStart}-${issue.location.lineEnd})`
+      : '';
+
+  const isCompleteElement = issue.isCompleteElement ? '**[COMPLETE ELEMENT]** ' : '';
+
+  markdown += `- [ ] ${isCompleteElement}${issue.title} ${lines}\n`;
+  markdown += `  - **Description**: ${issue.description}\n`;
+
+  if (issue.location.codeSnippet) {
+    markdown += '  ```\n';
+    markdown += `  ${issue.location.codeSnippet}\n`;
+    markdown += '  ```\n';
+  }
+
+  markdown += `  - **Confidence**: ${issue.assessment.confidence.toUpperCase()} - ${issue.assessment.reasoning}\n`;
+  markdown += `  - **Suggested Action**: ${issue.suggestedAction.explanation}\n`;
+
+  if (issue.relatedChecks && issue.relatedChecks.length > 0) {
+    markdown += '  - **Related Checks**:\n';
+    for (const check of issue.relatedChecks) {
+      markdown += `    - ${check}\n`;
+    }
+  }
+
+  markdown += '\n';
+  return markdown;
+}
+
+/**
  * Format a list of issues as a checklist
  * @param issues Issues to format
  * @returns Formatted markdown checklist
@@ -260,56 +234,69 @@ function getAllIssuesByCategory(
 function formatIssuesAsChecklist(issues: ImprovedUnusedCodeIssue[]): string {
   let markdown = '';
 
-  // Group issues by file
-  const issuesByFile: Record<string, ImprovedUnusedCodeIssue[]> = {};
+  const issuesByFile = groupByFile(issues, (issue) => issue.location.file || 'Unknown file');
 
-  for (const issue of issues) {
-    const filePath = issue.location.file || 'Unknown file';
-
-    if (!issuesByFile[filePath]) {
-      issuesByFile[filePath] = [];
-    }
-
-    issuesByFile[filePath].push(issue);
-  }
-
-  // Format issues by file
   for (const [filePath, fileIssues] of Object.entries(issuesByFile)) {
     markdown += `### ${filePath}\n\n`;
-
     for (const issue of fileIssues) {
-      const lines =
-        issue.location.lineStart && issue.location.lineEnd
-          ? `(lines ${issue.location.lineStart}-${issue.location.lineEnd})`
-          : '';
-
-      const isCompleteElement = issue.isCompleteElement ? '**[COMPLETE ELEMENT]** ' : '';
-
-      markdown += `- [ ] ${isCompleteElement}${issue.title} ${lines}\n`;
-      markdown += `  - **Description**: ${issue.description}\n`;
-
-      if (issue.location.codeSnippet) {
-        markdown += '  ```\n';
-        markdown += `  ${issue.location.codeSnippet}\n`;
-        markdown += '  ```\n';
-      }
-
-      markdown += `  - **Confidence**: ${issue.assessment.confidence.toUpperCase()} - ${issue.assessment.reasoning}\n`;
-      markdown += `  - **Suggested Action**: ${issue.suggestedAction.explanation}\n`;
-
-      // Add related checks if available
-      if (issue.relatedChecks && issue.relatedChecks.length > 0) {
-        markdown += '  - **Related Checks**:\n';
-        for (const check of issue.relatedChecks) {
-          markdown += `    - ${check}\n`;
-        }
-      }
-
-      markdown += '\n';
+      markdown += formatSingleIssue(issue);
     }
   }
 
   return markdown;
+}
+
+/**
+ * Terminal color type
+ */
+type TerminalColor = 'green' | 'yellow' | 'red';
+
+/**
+ * Configuration for terminal confidence headers
+ */
+const TERMINAL_CONFIDENCE_COLORS: Record<ConfidenceLevel, TerminalColor> = {
+  high: 'green',
+  medium: 'yellow',
+  low: 'red',
+};
+
+/**
+ * Format terminal category section
+ * @param title Section title
+ * @param description Section description
+ * @param issues Issues to format
+ * @param titleColor Color for title
+ * @returns Formatted terminal output
+ */
+function formatTerminalCategorySection(
+  title: string,
+  description: string,
+  issues: ImprovedUnusedCodeIssue[],
+  titleColor: typeof chalk.bold.magenta,
+): string {
+  if (issues.length === 0) {
+    return '';
+  }
+
+  let output = titleColor(`${title.toUpperCase()}\n\n`);
+  output += chalk.italic(`${description}\n\n`);
+
+  output += formatByConfidence(
+    {
+      elements: issues,
+      getConfidence: (issue) => issue.assessment.confidence as ConfidenceLevel,
+      formatElements: (filtered, confidence) => {
+        const color = TERMINAL_CONFIDENCE_COLORS[confidence];
+        const header = TERMINAL_CONFIDENCE_HEADERS[confidence];
+        let result = chalk.bold[color](header);
+        result += formatIssuesForTerminal(filtered, color);
+        return result;
+      },
+    },
+    {} as Record<ConfidenceLevel, string>, // We handle headers in formatElements
+  );
+
+  return output;
 }
 
 /**
@@ -318,102 +305,51 @@ function formatIssuesAsChecklist(issues: ImprovedUnusedCodeIssue[]): string {
  * @returns Formatted string for terminal output
  */
 export function formatUnusedCodeReviewForTerminal(review: ImprovedUnusedCodeReview): string {
-  // Build the header
   let output = chalk.bold.blue(
     'UNUSED CODE REVIEW: FILES & FUNCTIONS THAT CAN BE SAFELY REMOVED\n\n',
   );
 
-  // Add a summary section
   output += chalk.bold.white('SUMMARY\n\n');
   output += `${review.summary}\n\n`;
 
-  // Create collections of specific unused elements
-  const unusedFiles = getAllIssuesByCategory(review, 'unusedFile');
-  const unusedFunctions = getAllIssuesByCategory(review, 'unusedFunction');
-  const unusedClasses = getAllIssuesByCategory(review, 'unusedClass');
-  const unusedModules = getAllIssuesByCategory(review, 'unusedModule');
+  // Format files section
+  output += formatTerminalCategorySection(
+    'Unused Files',
+    'The following files are not imported or used anywhere and can be safely removed:',
+    getAllIssuesByCategory(review, 'unusedFile'),
+    chalk.bold.magenta,
+  );
 
-  // Special section for completely unused files
-  if (unusedFiles.length > 0) {
-    output += chalk.bold.magenta('UNUSED FILES\n\n');
-    output += chalk.italic(
-      'The following files are not imported or used anywhere and can be safely removed:\n\n',
-    );
+  // Format functions section
+  output += formatTerminalCategorySection(
+    'Unused Functions',
+    'The following functions are never called and can be safely removed:',
+    getAllIssuesByCategory(review, 'unusedFunction'),
+    chalk.bold.cyan,
+  );
 
-    const highConfidenceFiles = unusedFiles.filter(
-      (issue) => issue.assessment.confidence === 'high',
-    );
-    if (highConfidenceFiles.length > 0) {
-      output += chalk.bold.green('HIGH CONFIDENCE (SAFE TO REMOVE)\n\n');
-      output += formatIssuesForTerminal(highConfidenceFiles, 'green');
-    }
+  // Format classes and modules section (combined)
+  const classesAndModules = [
+    ...getAllIssuesByCategory(review, 'unusedClass'),
+    ...getAllIssuesByCategory(review, 'unusedModule'),
+  ];
 
-    const mediumConfidenceFiles = unusedFiles.filter(
-      (issue) => issue.assessment.confidence === 'medium',
-    );
-    if (mediumConfidenceFiles.length > 0) {
-      output += chalk.bold.yellow('MEDIUM CONFIDENCE (VERIFY BEFORE REMOVING)\n\n');
-      output += formatIssuesForTerminal(mediumConfidenceFiles, 'yellow');
-    }
-
-    const lowConfidenceFiles = unusedFiles.filter((issue) => issue.assessment.confidence === 'low');
-    if (lowConfidenceFiles.length > 0) {
-      output += chalk.bold.red('LOW CONFIDENCE (THOROUGH VERIFICATION REQUIRED)\n\n');
-      output += formatIssuesForTerminal(lowConfidenceFiles, 'red');
-    }
-  }
-
-  // Special section for unused functions
-  if (unusedFunctions.length > 0) {
-    output += chalk.bold.cyan('UNUSED FUNCTIONS\n\n');
-    output += chalk.italic(
-      'The following functions are never called and can be safely removed:\n\n',
-    );
-
-    const highConfidenceFunctions = unusedFunctions.filter(
-      (issue) => issue.assessment.confidence === 'high',
-    );
-    if (highConfidenceFunctions.length > 0) {
-      output += chalk.bold.green('HIGH CONFIDENCE (SAFE TO REMOVE)\n\n');
-      output += formatIssuesForTerminal(highConfidenceFunctions, 'green');
-    }
-
-    const mediumConfidenceFunctions = unusedFunctions.filter(
-      (issue) => issue.assessment.confidence === 'medium',
-    );
-    if (mediumConfidenceFunctions.length > 0) {
-      output += chalk.bold.yellow('MEDIUM CONFIDENCE (VERIFY BEFORE REMOVING)\n\n');
-      output += formatIssuesForTerminal(mediumConfidenceFunctions, 'yellow');
-    }
-
-    const lowConfidenceFunctions = unusedFunctions.filter(
-      (issue) => issue.assessment.confidence === 'low',
-    );
-    if (lowConfidenceFunctions.length > 0) {
-      output += chalk.bold.red('LOW CONFIDENCE (THOROUGH VERIFICATION REQUIRED)\n\n');
-      output += formatIssuesForTerminal(lowConfidenceFunctions, 'red');
-    }
-  }
-
-  // Special section for unused classes and modules (collapsed for brevity)
-  if (unusedClasses.length > 0 || unusedModules.length > 0) {
+  if (classesAndModules.length > 0) {
     output += chalk.bold.blue('UNUSED CLASSES AND MODULES\n\n');
     output += chalk.italic('The following classes and modules are unused and can be removed:\n\n');
 
-    const highConfidenceItems = [
-      ...unusedClasses.filter((issue) => issue.assessment.confidence === 'high'),
-      ...unusedModules.filter((issue) => issue.assessment.confidence === 'high'),
-    ];
+    const highConfidenceItems = filterByConfidence(
+      classesAndModules,
+      'high',
+      (issue) => issue.assessment.confidence as ConfidenceLevel,
+    );
 
     if (highConfidenceItems.length > 0) {
       output += chalk.bold.green('HIGH CONFIDENCE ITEMS:\n\n');
       output += formatIssuesForTerminal(highConfidenceItems, 'green');
     }
 
-    const otherItems = [
-      ...unusedClasses.filter((issue) => issue.assessment.confidence !== 'high'),
-      ...unusedModules.filter((issue) => issue.assessment.confidence !== 'high'),
-    ];
+    const otherItems = classesAndModules.filter((issue) => issue.assessment.confidence !== 'high');
 
     if (otherItems.length > 0) {
       output += chalk.bold.yellow('OTHER ITEMS (VERIFICATION RECOMMENDED):\n\n');
@@ -432,67 +368,130 @@ export function formatUnusedCodeReviewForTerminal(review: ImprovedUnusedCodeRevi
 }
 
 /**
+ * Format a single issue for terminal output
+ * @param issue Issue to format
+ * @param color Color to use for issue title
+ * @returns Formatted terminal output
+ */
+function formatSingleIssueForTerminal(
+  issue: ImprovedUnusedCodeIssue,
+  color: TerminalColor,
+): string {
+  let output = '';
+
+  const lines =
+    issue.location.lineStart && issue.location.lineEnd
+      ? `(lines ${issue.location.lineStart}-${issue.location.lineEnd})`
+      : '';
+
+  const isCompleteElement = issue.isCompleteElement
+    ? chalk.bold.underline('[COMPLETE ELEMENT] ')
+    : '';
+
+  output += chalk[color](`• ${isCompleteElement}${issue.title} ${lines}\n`);
+  output += `  ${chalk.italic('Description')}: ${issue.description}\n`;
+
+  if (issue.location.codeSnippet) {
+    output += chalk.gray(`  ${issue.location.codeSnippet.trim()}\n`);
+  }
+
+  output += `  ${chalk.italic('Confidence')}: ${issue.assessment.confidence.toUpperCase()} - ${issue.assessment.reasoning}\n`;
+  output += `  ${chalk.italic('Suggested Action')}: ${issue.suggestedAction.explanation}\n`;
+
+  if (issue.relatedChecks && issue.relatedChecks.length > 0) {
+    output += `  ${chalk.italic('Related Checks')}:\n`;
+    for (const check of issue.relatedChecks) {
+      output += `    - ${check}\n`;
+    }
+  }
+
+  output += '\n';
+  return output;
+}
+
+/**
  * Format a list of issues for terminal output
  * @param issues Issues to format
  * @param color Color to use for issue titles
  * @returns Formatted string for terminal output
  */
-function formatIssuesForTerminal(
-  issues: ImprovedUnusedCodeIssue[],
-  color: 'green' | 'yellow' | 'red',
-): string {
+function formatIssuesForTerminal(issues: ImprovedUnusedCodeIssue[], color: TerminalColor): string {
   let output = '';
 
-  // Group issues by file
-  const issuesByFile: Record<string, ImprovedUnusedCodeIssue[]> = {};
+  const issuesByFile = groupByFile(issues, (issue) => issue.location.file || 'Unknown file');
 
-  for (const issue of issues) {
-    const filePath = issue.location.file || 'Unknown file';
-
-    if (!issuesByFile[filePath]) {
-      issuesByFile[filePath] = [];
-    }
-
-    issuesByFile[filePath].push(issue);
-  }
-
-  // Format issues by file
   for (const [filePath, fileIssues] of Object.entries(issuesByFile)) {
     output += chalk.bold.white(`${filePath}\n\n`);
-
     for (const issue of fileIssues) {
-      const lines =
-        issue.location.lineStart && issue.location.lineEnd
-          ? `(lines ${issue.location.lineStart}-${issue.location.lineEnd})`
-          : '';
-
-      const isCompleteElement = issue.isCompleteElement
-        ? chalk.bold.underline('[COMPLETE ELEMENT] ')
-        : '';
-
-      output += chalk[color](`• ${isCompleteElement}${issue.title} ${lines}\n`);
-      output += `  ${chalk.italic('Description')}: ${issue.description}\n`;
-
-      if (issue.location.codeSnippet) {
-        output += chalk.gray(`  ${issue.location.codeSnippet.trim()}\n`);
-      }
-
-      output += `  ${chalk.italic('Confidence')}: ${issue.assessment.confidence.toUpperCase()} - ${issue.assessment.reasoning}\n`;
-      output += `  ${chalk.italic('Suggested Action')}: ${issue.suggestedAction.explanation}\n`;
-
-      // Add related checks if available
-      if (issue.relatedChecks && issue.relatedChecks.length > 0) {
-        output += `  ${chalk.italic('Related Checks')}:\n`;
-        for (const check of issue.relatedChecks) {
-          output += `    - ${check}\n`;
-        }
-      }
-
-      output += '\n';
+      output += formatSingleIssueForTerminal(issue, color);
     }
   }
 
   return output;
+}
+
+/**
+ * Generate removal commands for issues grouped by file
+ * @param issuesByFile Issues grouped by file path
+ * @param sectionTitle Title for the section
+ * @returns Shell script commands
+ */
+function generateRemovalCommands(
+  issuesByFile: Record<string, ImprovedUnusedCodeIssue[]>,
+  sectionTitle: string,
+): string {
+  if (Object.keys(issuesByFile).length === 0) {
+    return '';
+  }
+
+  let script = `echo "${sectionTitle}:"\n`;
+
+  for (const [filePath, elements] of Object.entries(issuesByFile)) {
+    script += `echo "Processing ${filePath}"\n`;
+
+    for (const element of elements) {
+      if (element.location.lineStart && element.location.lineEnd) {
+        script += `sed -i '${element.location.lineStart},${element.location.lineEnd}d' "${filePath}"\n`;
+        script += `echo "  Removed ${element.title} (lines ${element.location.lineStart}-${element.location.lineEnd})"\n`;
+      }
+    }
+
+    script += '\n';
+  }
+
+  return script;
+}
+
+/**
+ * Group and sort issues by file for removal
+ * @param issues Issues to group
+ * @returns Issues grouped by file, sorted by line descending
+ */
+function groupAndSortForRemoval(
+  issues: ImprovedUnusedCodeIssue[],
+): Record<string, ImprovedUnusedCodeIssue[]> {
+  const grouped: Record<string, ImprovedUnusedCodeIssue[]> = {};
+
+  for (const issue of issues) {
+    const filePath = issue.location.file;
+    if (!filePath || !issue.location.lineStart || !issue.location.lineEnd) continue;
+
+    if (!grouped[filePath]) {
+      grouped[filePath] = [];
+    }
+
+    grouped[filePath].push(issue);
+  }
+
+  // Sort by line number descending to avoid line number changes
+  for (const filePath in grouped) {
+    grouped[filePath] = sortByLineDescending(
+      grouped[filePath],
+      (issue) => issue.location.lineStart,
+    );
+  }
+
+  return grouped;
 }
 
 /**
@@ -508,28 +507,14 @@ export function generateRemovalScript(review: ImprovedUnusedCodeReview): string 
 
   script += 'echo "This script will remove unused code found in the codebase."\n\n';
 
-  // Create collections of specific unused elements
-  const unusedFiles = getAllIssuesByCategory(review, 'unusedFile').filter(
-    (issue) => issue.assessment.confidence === 'high',
+  // Get high confidence unused files
+  const unusedFiles = filterByConfidence(
+    getAllIssuesByCategory(review, 'unusedFile'),
+    'high',
+    (issue) => issue.assessment.confidence as ConfidenceLevel,
   );
 
-  const unusedFunctions = getAllIssuesByCategory(review, 'unusedFunction').filter(
-    (issue) => issue.assessment.confidence === 'high' && issue.isCompleteElement,
-  );
-
-  const unusedClasses = getAllIssuesByCategory(review, 'unusedClass').filter(
-    (issue) => issue.assessment.confidence === 'high' && issue.isCompleteElement,
-  );
-
-  const unusedModules = getAllIssuesByCategory(review, 'unusedModule').filter(
-    (issue) => issue.assessment.confidence === 'high',
-  );
-
-  const otherHighConfidenceIssues = getAllIssuesByCategory(review, null, true).filter(
-    (issue) => issue.assessment.confidence === 'high',
-  );
-
-  // Start with removing entire files (most impactful)
+  // Remove entire files first
   if (unusedFiles.length > 0) {
     script += 'echo "REMOVING UNUSED FILES:"\n';
 
@@ -543,99 +528,44 @@ export function generateRemovalScript(review: ImprovedUnusedCodeReview): string 
     script += 'echo "Unused files removed successfully."\n\n';
   }
 
-  // Handle complete functions, classes, and modules that should be removed
+  // Get high confidence complete elements
   const completeElements = [
-    ...unusedFunctions,
-    ...unusedClasses,
-    ...unusedModules,
-    ...otherHighConfidenceIssues.filter((issue) => issue.isCompleteElement),
+    ...filterByConfidence(
+      getAllIssuesByCategory(review, 'unusedFunction'),
+      'high',
+      (issue) => issue.assessment.confidence as ConfidenceLevel,
+    ).filter((issue) => issue.isCompleteElement),
+    ...filterByConfidence(
+      getAllIssuesByCategory(review, 'unusedClass'),
+      'high',
+      (issue) => issue.assessment.confidence as ConfidenceLevel,
+    ).filter((issue) => issue.isCompleteElement),
+    ...filterByConfidence(
+      getAllIssuesByCategory(review, 'unusedModule'),
+      'high',
+      (issue) => issue.assessment.confidence as ConfidenceLevel,
+    ),
+    ...filterByConfidence(
+      getAllIssuesByCategory(review, null, true),
+      'high',
+      (issue) => issue.assessment.confidence as ConfidenceLevel,
+    ).filter((issue) => issue.isCompleteElement),
   ];
 
-  if (completeElements.length > 0) {
-    script += 'echo "REMOVING COMPLETE CODE ELEMENTS:"\n';
+  // Generate removal commands for complete elements
+  const completeElementsByFile = groupAndSortForRemoval(completeElements);
+  script += generateRemovalCommands(completeElementsByFile, 'REMOVING COMPLETE CODE ELEMENTS');
 
-    // Group by file
-    const elementsByFile: Record<string, ImprovedUnusedCodeIssue[]> = {};
+  // Get partial issues
+  const partialIssues = filterByConfidence(
+    getAllIssuesByCategory(review, null, true),
+    'high',
+    (issue) => issue.assessment.confidence as ConfidenceLevel,
+  ).filter((issue) => !issue.isCompleteElement);
 
-    for (const element of completeElements) {
-      const filePath = element.location.file;
-      if (!filePath || !element.location.lineStart || !element.location.lineEnd) continue;
-
-      if (!elementsByFile[filePath]) {
-        elementsByFile[filePath] = [];
-      }
-
-      elementsByFile[filePath].push(element);
-    }
-
-    // Sort elements within each file by line number (descending)
-    // This ensures we remove from bottom to top to avoid changing line numbers
-    for (const filePath in elementsByFile) {
-      elementsByFile[filePath].sort((a, b) => {
-        const aStart = a.location.lineStart || 0;
-        const bStart = b.location.lineStart || 0;
-        return bStart - aStart;
-      });
-    }
-
-    // Generate commands for each file
-    for (const [filePath, elements] of Object.entries(elementsByFile)) {
-      script += `echo "Processing ${filePath}"\n`;
-
-      for (const element of elements) {
-        if (element.location.lineStart && element.location.lineEnd) {
-          script += `sed -i '${element.location.lineStart},${element.location.lineEnd}d' "${filePath}"\n`;
-          script += `echo "  Removed ${element.title} (lines ${element.location.lineStart}-${element.location.lineEnd})"\n`;
-        }
-      }
-
-      script += '\n';
-    }
-  }
-
-  // Other high confidence issues (partial code removal)
-  const partialIssues = otherHighConfidenceIssues.filter((issue) => !issue.isCompleteElement);
-
-  if (partialIssues.length > 0) {
-    script += 'echo "REMOVING PARTIAL CODE ELEMENTS:"\n';
-
-    // Group by file
-    const issuesByFile: Record<string, ImprovedUnusedCodeIssue[]> = {};
-
-    for (const issue of partialIssues) {
-      const filePath = issue.location.file;
-      if (!filePath || !issue.location.lineStart || !issue.location.lineEnd) continue;
-
-      if (!issuesByFile[filePath]) {
-        issuesByFile[filePath] = [];
-      }
-
-      issuesByFile[filePath].push(issue);
-    }
-
-    // Sort issues within each file by line number (descending)
-    for (const filePath in issuesByFile) {
-      issuesByFile[filePath].sort((a, b) => {
-        const aStart = a.location.lineStart || 0;
-        const bStart = b.location.lineStart || 0;
-        return bStart - aStart;
-      });
-    }
-
-    // Generate commands for each file
-    for (const [filePath, fileIssues] of Object.entries(issuesByFile)) {
-      script += `echo "Processing ${filePath}"\n`;
-
-      for (const issue of fileIssues) {
-        if (issue.location.lineStart && issue.location.lineEnd) {
-          script += `sed -i '${issue.location.lineStart},${issue.location.lineEnd}d' "${filePath}"\n`;
-          script += `echo "  Removed ${issue.title} (lines ${issue.location.lineStart}-${issue.location.lineEnd})"\n`;
-        }
-      }
-
-      script += '\n';
-    }
-  }
+  // Generate removal commands for partial issues
+  const partialIssuesByFile = groupAndSortForRemoval(partialIssues);
+  script += generateRemovalCommands(partialIssuesByFile, 'REMOVING PARTIAL CODE ELEMENTS');
 
   script += 'echo "Unused code removal complete. Please review the changes before committing."\n';
 
