@@ -6,10 +6,10 @@
  */
 
 import * as readline from 'node:readline';
-import logger from './logger';
-import { validateApiKey } from './apiKeyHealthCheck';
-import { setApiKeyInProjectConfig, updateProjectConfig } from './projectConfigManager';
 import type { ProjectConfig } from '../types/review';
+import { validateApiKey } from './apiKeyHealthCheck';
+import logger from './logger';
+import { setApiKeyInProjectConfig, updateProjectConfig } from './projectConfigManager';
 
 /**
  * Create readline interface for user input
@@ -71,9 +71,7 @@ export async function promptForApiKey(provider: string): Promise<string | null> 
  * @param currentProvider Current provider that failed
  * @returns Selected provider or null if cancelled
  */
-export async function promptProviderSelection(
-  currentProvider: string,
-): Promise<string | null> {
+export async function promptProviderSelection(currentProvider: string): Promise<string | null> {
   const rl = createReadlineInterface();
 
   console.log('\n📌 Available providers:');
@@ -149,10 +147,7 @@ export interface RecoveryResult {
  * @param error Error message from validation
  * @returns User's recovery choice
  */
-export async function promptKeyRecovery(
-  provider: string,
-  error: string,
-): Promise<RecoveryResult> {
+export async function promptKeyRecovery(provider: string, error: string): Promise<RecoveryResult> {
   const rl = createReadlineInterface();
 
   console.log('\n⚠️  API Key Validation Failed');

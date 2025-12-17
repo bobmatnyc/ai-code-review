@@ -524,14 +524,12 @@ export async function generateArchitecturalAnthropicReview(
     }
 
     // Execute tool calling review
-    logger.info(`Generating architectural review with tool calling using Anthropic ${modelName}...`);
+    logger.info(
+      `Generating architectural review with tool calling using Anthropic ${modelName}...`,
+    );
     const userPrompt = await prepareArchitecturalPrompt(files, projectName, projectDocs, options);
 
-    const { content, structuredData } = await executeToolCallingReview(
-      config,
-      userPrompt,
-      options,
-    );
+    const { content, structuredData } = await executeToolCallingReview(config, userPrompt, options);
     const cost = calculateReviewCost(content, modelName);
 
     return {

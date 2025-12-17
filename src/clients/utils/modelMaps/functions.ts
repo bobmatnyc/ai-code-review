@@ -171,7 +171,11 @@ function calculateTierCost(
  * Calculate cost using tiered pricing model.
  */
 function calculateTieredCost(
-  tieredPricing: Array<{ tokenThreshold: number; inputPricePerMillion: number; outputPricePerMillion: number }>,
+  tieredPricing: Array<{
+    tokenThreshold: number;
+    inputPricePerMillion: number;
+    outputPricePerMillion: number;
+  }>,
   inputTokens: number,
   outputTokens: number,
 ): number {

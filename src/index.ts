@@ -233,14 +233,11 @@ import { testBuildCommand } from './commands/testBuild';
 import { testModelCommand } from './commands/testModel';
 import { PluginManager } from './plugins/PluginManager';
 import { PromptManager } from './prompts/PromptManager';
+import { validateApiKey } from './utils/apiKeyHealthCheck';
 // Import other dependencies after environment setup
 import { getConfig, hasAnyApiKey, validateConfigForSelectedModel } from './utils/config';
 import { initI18n, t } from './utils/i18n';
-import { validateApiKey } from './utils/apiKeyHealthCheck';
-import {
-  promptKeyRecovery,
-  RecoveryAction,
-} from './utils/interactiveKeyRecovery';
+import { promptKeyRecovery, RecoveryAction } from './utils/interactiveKeyRecovery';
 import { loadProjectConfig } from './utils/projectConfigManager';
 import { VERSION_WITH_BUILD } from './version';
 
@@ -388,6 +385,28 @@ async function main() {
 
     // API Key Validation (unless skipped)
     const projectConfig = loadProjectConfig();
+
+    // Merge saved API keys from project config into main config
+    if (projectConfig?.api?.keys) {
+      if (projectConfig.api.keys.google && !config.googleApiKey) {
+        config.googleApiKey = projectConfig.api.keys.google;
+        process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = projectConfig.api.keys.google;
+      }
+      if (projectConfig.api.keys.anthropic && !config.anthropicApiKey) {
+        config.anthropicApiKey = projectConfig.api.keys.anthropic;
+        process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY = projectConfig.api.keys.anthropic;
+      }
+      if (projectConfig.api.keys.openrouter && !config.openRouterApiKey) {
+        config.openRouterApiKey = projectConfig.api.keys.openrouter;
+        process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY = projectConfig.api.keys.openrouter;
+      }
+      if (projectConfig.api.keys.openai && !config.openAIApiKey) {
+        config.openAIApiKey = projectConfig.api.keys.openai;
+        process.env.AI_CODE_REVIEW_OPENAI_API_KEY = projectConfig.api.keys.openai;
+      }
+      logger.debug('Applied saved API keys from project config');
+    }
+
     const shouldSkipValidation =
       args.skipKeyCheck || projectConfig?.preferences?.skip_validation || false;
 
@@ -422,7 +441,10 @@ async function main() {
 
         if (!validationResult.valid) {
           // API key validation failed - prompt for recovery
-          const recovery = await promptKeyRecovery(providerKey, validationResult.error || 'Unknown error');
+          const recovery = await promptKeyRecovery(
+            providerKey,
+            validationResult.error || 'Unknown error',
+          );
 
           switch (recovery.action) {
             case RecoveryAction.ENTER_NEW_KEY:

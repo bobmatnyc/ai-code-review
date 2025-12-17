@@ -146,7 +146,9 @@ async function ensureUniqueOutputPath(
     );
 
     logger.info(`Using alternative output path to avoid overwriting: ${uniqueOutputPath}`);
-    logger.debug(`Changed output path from ${outputPath} to ${uniqueOutputPath} to avoid collision`);
+    logger.debug(
+      `Changed output path from ${outputPath} to ${uniqueOutputPath} to avoid collision`,
+    );
 
     return uniqueOutputPath;
   } catch (_error) {
@@ -193,18 +195,15 @@ async function addDependencyAnalysis(
 
     if (outputFormat === 'json') {
       return addDependencyToJsonOutput(formattedOutput, dependencySection);
-    } else {
-      formattedOutput += `\n\n${dependencySection}`;
-      logger.info('AI-powered dependency analysis added to markdown review output');
-      return formattedOutput;
     }
+    formattedOutput += `\n\n${dependencySection}`;
+    logger.info('AI-powered dependency analysis added to markdown review output');
+    return formattedOutput;
   } catch (error) {
     logger.error(
       `Error performing AI-powered dependency analysis for ${options.type} review: ${error instanceof Error ? error.message : String(error)}`,
     );
-    logger.error(
-      error instanceof Error && error.stack ? error.stack : 'No stack trace available',
-    );
+    logger.error(error instanceof Error && error.stack ? error.stack : 'No stack trace available');
     return formattedOutput;
   }
 }

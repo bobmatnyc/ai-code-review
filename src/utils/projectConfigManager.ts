@@ -360,10 +360,15 @@ export function toLegacyConfig(config: ProjectConfig): LegacyProjectConfig {
 export function fromLegacyConfig(legacy: LegacyProjectConfig): ProjectConfig {
   return {
     api: {
-      preferred_provider: legacy.apiKeys?.openrouter ? 'openrouter' :
-                         legacy.apiKeys?.anthropic ? 'anthropic' :
-                         legacy.apiKeys?.google ? 'google' :
-                         legacy.apiKeys?.openai ? 'openai' : 'openrouter',
+      preferred_provider: legacy.apiKeys?.openrouter
+        ? 'openrouter'
+        : legacy.apiKeys?.anthropic
+          ? 'anthropic'
+          : legacy.apiKeys?.google
+            ? 'google'
+            : legacy.apiKeys?.openai
+              ? 'openai'
+              : 'openrouter',
       model: legacy.defaultModel || '',
       keys: legacy.apiKeys || {},
     },

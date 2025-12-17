@@ -130,14 +130,18 @@ function tryAlternativeFormats(
   logger.debug(`Trying alternative format (dots to hyphens): ${alternativeKey1}`);
   const altConfig1 = getModelMapping(alternativeKey1);
   if (altConfig1?.apiIdentifier) {
-    logger.debug(`Found match with alternative format: ${alternativeKey1} -> ${altConfig1.apiIdentifier}`);
+    logger.debug(
+      `Found match with alternative format: ${alternativeKey1} -> ${altConfig1.apiIdentifier}`,
+    );
     return altConfig1.apiIdentifier;
   }
 
   logger.debug(`Trying alternative format (hyphens to dots): ${alternativeKey2}`);
   const altConfig2 = getModelMapping(alternativeKey2);
   if (altConfig2?.apiIdentifier) {
-    logger.debug(`Found match with alternative format: ${alternativeKey2} -> ${altConfig2.apiIdentifier}`);
+    logger.debug(
+      `Found match with alternative format: ${alternativeKey2} -> ${altConfig2.apiIdentifier}`,
+    );
     return altConfig2.apiIdentifier;
   }
 

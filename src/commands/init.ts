@@ -10,11 +10,11 @@ import logger from '../utils/logger';
 import {
   configExists,
   ensureGitignore,
+  fromLegacyConfig,
   type LegacyProjectConfig,
   loadProjectConfig,
   saveProjectConfig,
   validateApiKeyFormat,
-  fromLegacyConfig,
 } from '../utils/projectConfigManager';
 import { detectToolchain, getToolchainDescription } from '../utils/toolchainDetector';
 
