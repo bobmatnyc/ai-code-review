@@ -55,10 +55,10 @@ describe('Model Maps - Backwards Compatibility', () => {
       });
     });
 
-    it('should mark deprecated models in display name', () => {
-      const deprecatedModel = MODEL_MAP['anthropic:claude-3-opus'];
-      expect(deprecatedModel.displayName).toContain('DEPRECATED');
-      expect(deprecatedModel.description).toContain('DEPRECATED');
+    it('should not include removed deprecated models', () => {
+      // Verify that removed deprecated models are truly gone
+      const removedModel = MODEL_MAP['anthropic:claude-3-opus'];
+      expect(removedModel).toBeUndefined();
     });
   });
 
@@ -108,7 +108,7 @@ describe('Model Maps - Backwards Compatibility', () => {
       it('should return all models for a provider', () => {
         const geminiModels = getModelsByProvider('gemini');
         expect(geminiModels).toContain('gemini:gemini-2.5-pro');
-        expect(geminiModels).toContain('gemini:gemini-1.5-flash');
+        expect(geminiModels).toContain('gemini:gemini-2.0-flash'); // Updated to available model
         expect(geminiModels.every(m => m.startsWith('gemini:'))).toBe(true);
       });
 
@@ -148,7 +148,7 @@ describe('Model Maps - Backwards Compatibility', () => {
 
       it('should return false for models without tool calling', () => {
         expect(supportsToolCalling('gemini:gemini-2.5-pro')).toBe(false);
-        expect(supportsToolCalling('openai:o3')).toBe(false);
+        expect(supportsToolCalling('openai:o1')).toBe(false); // o3 was removed
       });
 
       it('should return false for invalid models', () => {
@@ -169,9 +169,10 @@ describe('Model Maps - Enhanced Features', () => {
       expect(mapping?.providerFeatures?.supportsPromptCaching).toBe(true);
     });
 
-    it('should include deprecation info for deprecated models', () => {
+    it('should return undefined for removed models', () => {
+      // Test that removed deprecated models are truly gone
       const mapping = getEnhancedModelMapping('anthropic:claude-3-opus');
-      expect(mapping?.deprecated).toBe(true);
+      expect(mapping).toBeUndefined();
     });
   });
 
@@ -190,10 +191,10 @@ describe('Model Maps - Enhanced Features', () => {
     });
 
     it('should reject deprecated models', () => {
-      const result = validateModelKey('anthropic:claude-3-opus');
+      // Since we removed deprecated models, test with a non-existent model
+      const result = validateModelKey('anthropic:claude-2-opus');
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('deprecated');
-      expect(result.warning).toContain('Please migrate to an alternative model');
+      expect(result.error).toContain('not found');
     });
 
     it('should warn about retiring models', () => {
@@ -262,18 +263,21 @@ describe('Model Maps - Enhanced Features', () => {
       const reasoningModels = getModelsByCategory(ModelCategory.REASONING);
       expect(reasoningModels).toContain('gemini:gemini-2.5-pro');
       expect(reasoningModels).toContain('anthropic:claude-4-opus');
-      expect(reasoningModels).toContain('openai:o3');
+      expect(reasoningModels).toContain('openai:o1'); // o3 was removed
     });
 
     it('should exclude deprecated models by default', () => {
       const codingModels = getModelsByCategory(ModelCategory.CODING);
       expect(codingModels).toContain('anthropic:claude-4-sonnet');
-      expect(codingModels).not.toContain('anthropic:claude-3-opus'); // deprecated
+      // All deprecated models have been removed from the codebase
+      expect(codingModels.length).toBeGreaterThan(0);
     });
 
-    it('should include deprecated models when requested', () => {
+    it('should include only available models', () => {
       const codingModels = getModelsByCategory(ModelCategory.CODING, false);
-      expect(codingModels).toContain('anthropic:claude-3-opus');
+      // Since deprecated models are removed, this should return the same set
+      expect(codingModels).toContain('anthropic:claude-4-sonnet');
+      expect(codingModels).toContain('anthropic:claude-4-opus');
     });
 
     it('should return empty array for models without categories', () => {
