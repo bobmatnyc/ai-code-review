@@ -91,6 +91,220 @@ export function addFileTreeToReview(
 }
 
 /**
+ * Generate output file paths for review results
+ * @param outputBaseDir Base directory for output
+ * @param reviewType Type of review
+ * @param extension File extension (.json or .md)
+ * @param modelName Name of the model used
+ * @param targetName Name of the target
+ * @returns Promise resolving to output and raw data paths
+ */
+async function generateOutputPaths(
+  outputBaseDir: string,
+  reviewType: string,
+  extension: string,
+  modelName: string,
+  targetName: string,
+): Promise<{ outputPath: string; rawDataPath: string }> {
+  const outputPath = await generateVersionedOutputPath(
+    outputBaseDir,
+    `${reviewType}-review`,
+    extension,
+    modelName,
+    targetName,
+  );
+
+  const rawDataPath = await generateUniqueOutputPath(
+    outputBaseDir,
+    `${reviewType}-review-raw-data-${path.basename(outputPath, extension)}.json`,
+  );
+
+  return { outputPath, rawDataPath };
+}
+
+/**
+ * Ensure output path is unique to avoid overwriting existing files
+ * @param outputPath Initial output path
+ * @param outputBaseDir Base directory for output
+ * @param reviewType Type of review
+ * @param extension File extension
+ * @returns Promise resolving to unique output path
+ */
+async function ensureUniqueOutputPath(
+  outputPath: string,
+  outputBaseDir: string,
+  reviewType: string,
+  extension: string,
+): Promise<string> {
+  try {
+    await fs.access(outputPath);
+    logger.warn(`Output file already exists: ${outputPath}`);
+
+    const uniqueOutputPath = await generateUniqueOutputPath(
+      outputBaseDir,
+      `${reviewType}-review-${Date.now()}${extension}`,
+    );
+
+    logger.info(`Using alternative output path to avoid overwriting: ${uniqueOutputPath}`);
+    logger.debug(`Changed output path from ${outputPath} to ${uniqueOutputPath} to avoid collision`);
+
+    return uniqueOutputPath;
+  } catch (_error) {
+    logger.debug(`Output file doesn't exist yet, proceeding with: ${outputPath}`);
+    return outputPath;
+  }
+}
+
+/**
+ * Add dependency analysis section to review output
+ * @param formattedOutput Current formatted output
+ * @param options Review options
+ * @param files Files included in review
+ * @param outputFormat Output format (markdown or json)
+ * @returns Promise resolving to enhanced output with dependency analysis
+ */
+async function addDependencyAnalysis(
+  formattedOutput: string,
+  options: ReviewOptions,
+  files: FileInfo[] | undefined,
+  outputFormat: string,
+): Promise<string> {
+  const reviewTypeNeedsDependencyAnalysis = ['architectural', 'security'].includes(options.type);
+  if (!reviewTypeNeedsDependencyAnalysis || options.includeDependencyAnalysis === false) {
+    return formattedOutput;
+  }
+
+  console.log(
+    `=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`,
+  );
+  logger.info(
+    `=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`,
+  );
+
+  try {
+    logger.info(`Performing AI-powered dependency analysis for ${options.type} review...`);
+
+    const projectPath =
+      files && files.length > 0 ? path.dirname(files[0].path) : path.resolve(process.cwd());
+    console.log(`Project path for dependency analysis: ${projectPath}`);
+    logger.info(`Project path for dependency analysis: ${projectPath}`);
+
+    const dependencySection = await createAIDependencyAnalysis(projectPath);
+
+    if (outputFormat === 'json') {
+      return addDependencyToJsonOutput(formattedOutput, dependencySection);
+    } else {
+      formattedOutput += `\n\n${dependencySection}`;
+      logger.info('AI-powered dependency analysis added to markdown review output');
+      return formattedOutput;
+    }
+  } catch (error) {
+    logger.error(
+      `Error performing AI-powered dependency analysis for ${options.type} review: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    logger.error(
+      error instanceof Error && error.stack ? error.stack : 'No stack trace available',
+    );
+    return formattedOutput;
+  }
+}
+
+/**
+ * Add dependency analysis to JSON formatted output
+ * @param formattedOutput Current JSON output
+ * @param dependencySection Dependency analysis section
+ * @returns Enhanced JSON output
+ */
+function addDependencyToJsonOutput(formattedOutput: string, dependencySection: string): string {
+  try {
+    const reviewObj = JSON.parse(formattedOutput);
+    reviewObj.dependencyAnalysis = dependencySection;
+    logger.info('AI-powered dependency analysis added to JSON review output');
+    return JSON.stringify(reviewObj, null, 2);
+  } catch (error) {
+    logger.warn(`Error adding dependency analysis section to JSON review: ${error}`);
+    logger.info(
+      'AI-powered dependency analysis appended as text to JSON review (JSON parsing failed)',
+    );
+    return formattedOutput + `\n\n${dependencySection}`;
+  }
+}
+
+/**
+ * Process optional review outputs (diagrams, raw data, removal scripts)
+ * @param review Review result
+ * @param options Review options
+ * @param formattedOutput Formatted review output
+ * @param outputPath Path to saved review file
+ * @param rawDataPath Path for raw data
+ * @param outputBaseDir Base directory for output
+ */
+async function processOptionalOutputs(
+  review: ReviewResult,
+  options: ReviewOptions,
+  formattedOutput: string,
+  outputPath: string,
+  rawDataPath: string,
+  outputBaseDir: string,
+): Promise<void> {
+  // Process and save any Mermaid diagrams if requested
+  if (options.diagram && options.type === 'architectural') {
+    const diagramPaths = await processDiagrams(formattedOutput, outputPath, options);
+    if (diagramPaths.length > 0) {
+      logger.info(`Generated ${diagramPaths.length} architecture diagram file(s)`);
+    }
+  }
+
+  // Optionally save raw review data for debugging
+  if (options.debug) {
+    logger.debug(`Saving raw review data for debugging to: ${rawDataPath}`);
+    await fs.writeFile(rawDataPath, JSON.stringify(review, null, 2));
+    logger.debug(`Raw review data saved to: ${rawDataPath}`);
+  }
+
+  // If this is an unused code review, generate a removal script
+  if (options.type === 'unused-code' && review.metadata?.removalScript) {
+    const scriptPath = await saveRemovalScript(review, outputBaseDir);
+    printRemovalScriptInstructions(scriptPath);
+  }
+}
+
+/**
+ * Handle and log errors during output saving
+ * @param error Error that occurred
+ * @param options Review options
+ */
+async function handleSaveError(error: unknown, options: ReviewOptions): Promise<void> {
+  if (error instanceof Error) {
+    const errorLogPath = await logError(error, {
+      operation: 'writeFile',
+      outputPath: 'unknown',
+      reviewType: options.type,
+    });
+
+    logger.error(`Error saving review output:`);
+    logger.error(`  Message: ${error.message}`);
+    logger.error(`  Error details logged to: ${errorLogPath}`);
+
+    if (error.stack) {
+      logger.debug(`Error stack trace: ${error.stack}`);
+    }
+
+    if (error.name === 'EACCES') {
+      logger.error(
+        `  This appears to be a permission error. Please check that you have write access to the output directory.`,
+      );
+    } else if (error.name === 'ENOSPC') {
+      logger.error(
+        `  This appears to be a disk space error. Please free up some disk space and try again.`,
+      );
+    }
+  } else {
+    logger.error(`Unknown error saving review output: ${String(error)}`);
+  }
+}
+
+/**
  * Format and save a review result to a file
  * @param review Review result to save
  * @param options Review options
@@ -109,23 +323,13 @@ export async function saveReviewOutput(
   files?: FileInfo[],
 ): Promise<string> {
   try {
-    // Generate a versioned output path
     const extension = options.output === 'json' ? '.json' : '.md';
-
-    // Create unique filenames for different types of output
-    // For formatted review output
-    let outputPath = await generateVersionedOutputPath(
+    const { outputPath: initialPath, rawDataPath } = await generateOutputPaths(
       outputBaseDir,
-      `${options.type}-review`,
+      options.type,
       extension,
       modelName,
       targetName,
-    );
-
-    // For raw review data (if needed for debugging)
-    const rawDataPath = await generateUniqueOutputPath(
-      outputBaseDir,
-      `${options.type}-review-raw-data-${path.basename(outputPath, extension)}.json`,
     );
 
     // Ensure costInfo is set if only cost is available
@@ -143,140 +347,40 @@ export async function saveReviewOutput(
       formattedOutput = addFileTreeToReview(formattedOutput, files, options.output || 'markdown');
     }
 
-    // For architectural and security reviews, dependency analysis is ON by default unless explicitly disabled
-    const reviewTypeNeedsDependencyAnalysis = ['architectural', 'security'].includes(options.type);
-    if (reviewTypeNeedsDependencyAnalysis && options.includeDependencyAnalysis !== false) {
-      console.log(
-        `=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`,
-      );
-      logger.info(
-        `=========== DEPENDENCY ANALYSIS FOR ${options.type.toUpperCase()} REVIEW ===========`,
-      );
-      try {
-        // Use the AI-powered dependency analyzer (no external dependencies required)
-        logger.info(`Performing AI-powered dependency analysis for ${options.type} review...`);
+    // Add dependency analysis if needed
+    formattedOutput = await addDependencyAnalysis(
+      formattedOutput,
+      options,
+      files,
+      options.output || 'markdown',
+    );
 
-        // Use project directory path instead of current working directory to ensure correct analysis
-        const projectPath =
-          files && files.length > 0 ? path.dirname(files[0].path) : path.resolve(process.cwd());
-        console.log(`Project path for dependency analysis: ${projectPath}`);
-        logger.info(`Project path for dependency analysis: ${projectPath}`);
-
-        // Run the AI-powered dependency analysis
-        const dependencySection = await createAIDependencyAnalysis(projectPath);
-
-        // Append dependency analysis section to the review
-        if (options.output === 'json') {
-          try {
-            // Parse JSON, add dependency analysis section, and stringify again
-            const reviewObj = JSON.parse(formattedOutput);
-            reviewObj.dependencyAnalysis = dependencySection;
-            formattedOutput = JSON.stringify(reviewObj, null, 2);
-            logger.info('AI-powered dependency analysis added to JSON review output');
-          } catch (error) {
-            logger.warn(`Error adding dependency analysis section to JSON review: ${error}`);
-            // If JSON parsing fails, append as text
-            formattedOutput += `\n\n${dependencySection}`;
-            logger.info(
-              'AI-powered dependency analysis appended as text to JSON review (JSON parsing failed)',
-            );
-          }
-        } else {
-          // For markdown, append at the end
-          formattedOutput += `\n\n${dependencySection}`;
-          logger.info('AI-powered dependency analysis added to markdown review output');
-        }
-      } catch (error) {
-        logger.error(
-          `Error performing AI-powered dependency analysis for ${options.type} review: ${error instanceof Error ? error.message : String(error)}`,
-        );
-        logger.error(
-          error instanceof Error && error.stack ? error.stack : 'No stack trace available',
-        );
-      }
-    }
-
-    // Check if the output file already exists (to avoid overwriting)
-    try {
-      await fs.access(outputPath);
-      logger.warn(`Output file already exists: ${outputPath}`);
-
-      // Generate a new unique path to avoid overwriting
-      const uniqueOutputPath = await generateUniqueOutputPath(
-        outputBaseDir,
-        `${options.type}-review-${Date.now()}${extension}`,
-      );
-
-      logger.info(`Using alternative output path to avoid overwriting: ${uniqueOutputPath}`);
-
-      // Update the output path
-      const originalPath = outputPath;
-      outputPath = uniqueOutputPath;
-
-      // Log this change for debugging
-      logger.debug(`Changed output path from ${originalPath} to ${outputPath} to avoid collision`);
-    } catch (_error) {
-      // File doesn't exist, which is good
-      logger.debug(`Output file doesn't exist yet, proceeding with: ${outputPath}`);
-    }
+    // Ensure output path is unique
+    const outputPath = await ensureUniqueOutputPath(
+      initialPath,
+      outputBaseDir,
+      options.type,
+      extension,
+    );
 
     // Write the formatted output to the file
     logger.debug(`Writing formatted review output to: ${outputPath}`);
     await fs.writeFile(outputPath, formattedOutput);
     logger.info(`Review output saved to: ${outputPath}`);
 
-    // Process and save any Mermaid diagrams if requested
-    if (options.diagram && options.type === 'architectural') {
-      const diagramPaths = await processDiagrams(formattedOutput, outputPath, options);
-      if (diagramPaths.length > 0) {
-        logger.info(`Generated ${diagramPaths.length} architecture diagram file(s)`);
-      }
-    }
-
-    // Optionally save raw review data for debugging (only if debug mode is enabled)
-    if (options.debug) {
-      logger.debug(`Saving raw review data for debugging to: ${rawDataPath}`);
-      await fs.writeFile(rawDataPath, JSON.stringify(review, null, 2));
-      logger.debug(`Raw review data saved to: ${rawDataPath}`);
-    }
-
-    // If this is an unused code review, generate a removal script
-    if (options.type === 'unused-code' && review.metadata?.removalScript) {
-      const scriptPath = await saveRemovalScript(review, outputBaseDir);
-      printRemovalScriptInstructions(scriptPath);
-    }
+    // Process optional outputs (diagrams, raw data, removal scripts)
+    await processOptionalOutputs(
+      review,
+      options,
+      formattedOutput,
+      outputPath,
+      rawDataPath,
+      outputBaseDir,
+    );
 
     return outputPath;
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      const errorLogPath = await logError(error, {
-        operation: 'writeFile',
-        outputPath: 'unknown',
-        reviewType: options.type,
-      });
-
-      logger.error(`Error saving review output:`);
-      logger.error(`  Message: ${error.message}`);
-      logger.error(`  Error details logged to: ${errorLogPath}`);
-
-      // Add more detailed error information
-      if (error.stack) {
-        logger.debug(`Error stack trace: ${error.stack}`);
-      }
-
-      if (error.name === 'EACCES') {
-        logger.error(
-          `  This appears to be a permission error. Please check that you have write access to the output directory.`,
-        );
-      } else if (error.name === 'ENOSPC') {
-        logger.error(
-          `  This appears to be a disk space error. Please free up some disk space and try again.`,
-        );
-      }
-    } else {
-      logger.error(`Unknown error saving review output: ${String(error)}`);
-    }
-
+    await handleSaveError(error, options);
     throw error;
   }
 }
