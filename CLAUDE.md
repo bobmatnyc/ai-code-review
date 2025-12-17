@@ -1,6 +1,6 @@
 # AI Code Review - Claude AI Instructions
 
-**Version**: 4.5.0
+**Version**: 4.6.0
 **Last Updated**: 2025-12-16
 **Project Type**: CLI Tool / NPM Package
 **Language**: TypeScript/JavaScript
@@ -44,13 +44,14 @@ AI Code Review is a TypeScript-based CLI tool for automated code reviews using m
 - **Library Mode**: Use as npm package in web applications
 - **Interactive Mode**: Process review results in real-time
 
-### Version 4.5.0 Release (2025-12-16)
+### Version 4.6.0 Release (2025-12-17)
 
-This is a major release with:
-- MCP workflow implementation
-- Documentation overhaul and reorganization
-- Enhanced model maps and client system
-- Improved project structure
+This is a minor release with:
+- API Key Validation on Startup with interactive recovery
+- Project Configuration Storage in `.ai-code-review/config.yaml`
+- Enhanced configuration precedence (CLI > Project Config > Env > Defaults)
+- New `--skip-key-check` CLI flag
+- Fixed model selection propagation throughout codebase
 
 ---
 
@@ -839,4 +840,4 @@ kuzu-memory learn "Project uses unified client factory for all AI providers"
 
 *Last updated: 2025-12-16*
 *Generated for Claude AI optimization*
-*Version: 4.5.0*
+*Version: 4.6.0*

@@ -10,6 +10,7 @@ import type { AbstractClient } from '../clients/base/abstractClient';
 // Import the client wrappers directly
 import { initializeAnyOpenRouterModel } from '../clients/openRouterClientWrapper';
 import { getApiKeyType } from '../utils/api/apiUtils';
+import { getConfig } from '../utils/config';
 import logger from '../utils/logger';
 
 /**
@@ -47,7 +48,9 @@ interface ParsedModel {
  * @returns Parsed provider and model name
  */
 function parseModelString(cliOptions?: any): ParsedModel {
-  const modelEnv = cliOptions?.model || process.env.AI_CODE_REVIEW_MODEL || '';
+  // Use cached config (which has project config merged in) instead of env var directly
+  const appConfig = getConfig();
+  const modelEnv = cliOptions?.model || appConfig.selectedModel || '';
   logger.debug(`parseModelString: modelEnv=${modelEnv}`);
 
   let provider: string;
@@ -300,7 +303,9 @@ export async function selectApiClient(cliOptions?: any): Promise<ApiClientConfig
   logger.debug(`selectApiClient: apiKeyType=${apiKeyType}`);
 
   const parsedModel = parseModelString(cliOptions);
-  const modelEnv = cliOptions?.model || process.env.AI_CODE_REVIEW_MODEL || '';
+  // Use cached config (which has project config merged in) instead of env var directly
+  const appConfig = getConfig();
+  const modelEnv = cliOptions?.model || appConfig.selectedModel || '';
 
   let config: ApiClientConfig;
 

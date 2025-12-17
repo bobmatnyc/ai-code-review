@@ -384,10 +384,6 @@ async function main() {
       process.exit(1);
     }
 
-    // Log the selected model
-    const [provider, model] = config.selectedModel.split(':');
-    console.log(`Using ${provider} API with model: ${model}`);
-
     // API Key Validation (unless skipped)
     const projectConfig = loadProjectConfig();
 
@@ -434,6 +430,8 @@ async function main() {
       config.selectedModel = projectConfig.api.model;
       configUpdates.selectedModel = projectConfig.api.model;
       process.env.AI_CODE_REVIEW_MODEL = projectConfig.api.model;
+      // Also update args.model so it propagates to selectApiClient/parseModelString
+      args.model = projectConfig.api.model;
       console.log(`📁 Using saved model: ${projectConfig.api.model}`);
       logger.debug('Applied saved model from project config with precedence over env vars');
     }
@@ -443,6 +441,10 @@ async function main() {
       updateCachedConfig(configUpdates);
       logger.debug('Updated cached configuration with project config values');
     }
+
+    // Log the final selected model (after project config merge)
+    const [provider, model] = config.selectedModel.split(':');
+    console.log(`Using ${provider} API with model: ${model}`);
 
     const shouldSkipValidation =
       args.skipKeyCheck || projectConfig?.preferences?.skip_validation || false;

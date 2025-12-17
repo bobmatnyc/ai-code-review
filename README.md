@@ -1,6 +1,58 @@
-# AI Code Review v4.4.6
+# AI Code Review v4.6.0
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
+
+## What's New in v4.6.0
+
+### API Key Validation and Project Configuration
+- **🔑 API Key Validation on Startup**: Automatically validates API keys before running reviews
+  - Live validation against provider APIs (Google, OpenRouter, Anthropic, OpenAI)
+  - Clear error messages when keys are invalid or expired
+  - Prevents wasted time on reviews that would fail due to authentication issues
+- **🔄 Interactive Key Recovery**: When API key validation fails, provides interactive options
+  - Enter a new API key directly in the terminal
+  - Switch to a different provider
+  - Continue anyway (for testing)
+  - Exit gracefully
+- **💾 Project Configuration Storage**: Save API keys and preferences per-project
+  - Configuration stored in `.ai-code-review/config.yaml`
+  - Saved keys take precedence over environment variables
+  - Option to save keys for future use when entering new keys
+  - Secure storage with proper `.gitignore` patterns
+- **⚡ New CLI Flag**: `--skip-key-check` to bypass API key validation on startup
+
+### Configuration Precedence
+The tool now follows a clear configuration hierarchy:
+1. **CLI flags** (highest priority)
+2. **Project config** (`.ai-code-review/config.yaml`)
+3. **Environment variables** (`.env.local`, `.env`)
+4. **Defaults** (lowest priority)
+
+### Example Workflow
+```bash
+$ ai-code-review .
+
+🔑 Validating API key for OpenRouter...
+❌ API key validation failed: Invalid API key
+
+Options:
+  [1] Enter a new API key
+  [2] Switch to a different provider
+  [3] Continue anyway (review may fail)
+  [4] Exit
+
+Select [1-4]: 1
+
+Enter your OpenRouter API key: sk-or-v1-xxx...
+
+🔑 Validating new API key...
+✅ API key is valid!
+
+Would you like to save this key for future use? (y/n): y
+📁 Saved to .ai-code-review/config.yaml
+
+Continuing with review...
+```
 
 ## What's New in v4.4.6
 
@@ -120,8 +172,9 @@ A TypeScript-based tool for automated code reviews using Google's Gemini AI mode
 For detailed version history and release notes, see [CHANGELOG.md](CHANGELOG.md).
 
 ### Recent Releases
-- **v4.4.6** (2025-08-17): Flutter/Dart support, comprehensive review type, enhanced framework detection, improved documentation
-- **v4.4.5** (2025-08-17): Documentation consistency improvements, enhanced CLAUDE.md, updated review types documentation
+- **v4.6.0** (2025-12-17): API Key Validation, Interactive Key Recovery, Project Configuration Storage
+- **v4.5.0** (2025-11-16): MCP Workflow Integration, Library Interface for Programmatic Usage
+- **v4.4.6** (2025-08-17): Flutter/Dart support, comprehensive review type, enhanced framework detection
 - **v4.4.4** (2025-08-16): Unified Client System, Build Number Tracking, Enhanced Consolidation Service
 - **v4.3.0** (2025-06-30): Prompt Template Manager, Extract Patterns Review Type, YAML Configuration Support
 - **v4.2.0** (2025-06-24): Evaluation Review Type, Golang Language Support, Enhanced Grading System

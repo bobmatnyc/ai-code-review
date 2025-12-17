@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.0] - 2025-12-17
+
+### Features
+- **API Key Validation on Startup**: Automatically validates API keys before running reviews
+  - Live validation against provider APIs (Google, OpenRouter, Anthropic, OpenAI)
+  - Clear error messages when keys are invalid or expired
+  - Prevents wasted time on reviews that would fail due to auth issues
+- **Interactive Key Recovery**: When API key validation fails, provides interactive options
+  - Enter a new API key directly in the terminal
+  - Switch to a different provider
+  - Continue anyway (for testing)
+  - Exit gracefully
+- **Project Configuration Storage**: Save API keys and preferences per-project
+  - Configuration stored in `.ai-code-review/config.yaml`
+  - Saved keys take precedence over environment variables
+  - Option to save keys for future use when entering new keys
+  - Secure storage with proper `.gitignore` patterns
+- **New CLI Flag**: `--skip-key-check` to bypass API key validation on startup
+
+### Improvements
+- **Configuration Precedence**: Clear hierarchy for settings
+  - CLI flags > Project config (`.ai-code-review/config.yaml`) > Environment variables > Defaults
+  - Saved API keys and model selection persist across sessions
+  - Model selection properly propagates through all code paths
+- **Better Model Selection**: Saved model from project config now correctly used everywhere
+  - Fixed multiple code paths that were reading directly from environment variables
+  - Consistent model display in all log messages
+
+### Technical Changes
+- Added `src/utils/apiKeyHealthCheck.ts` for API key validation
+- Added `src/utils/interactiveKeyRecovery.ts` for interactive prompts
+- Updated `src/utils/projectConfigManager.ts` for YAML config support
+- Added `updateCachedConfig()` function to properly update configuration singleton
+- Fixed configuration caching issues in `ApiClientSelector.ts` and `openRouterClient.ts`
+
+### Migration Notes
+- **No Breaking Changes**: Fully backward compatible with v4.5.x
+- **New `.gitignore` Pattern**: `.ai-code-review/` directory is now gitignored by default
+- **Optional Project Config**: API key validation and project config are opt-in features
+  - Use `--skip-key-check` if you prefer the previous behavior
+  - Environment variables continue to work as before
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.0
+```
+
+
 ## [4.5.1] - 2025-12-17
 
 ### Changes

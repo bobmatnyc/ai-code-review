@@ -196,8 +196,9 @@ export async function generateOpenRouterReview(
     // For consolidation mode, use the writer model if specified, otherwise use the review model
     let modelName: string;
     if (options?.isConsolidation) {
-      // During consolidation, the model is already set in the environment by consolidateReview.ts
-      const consolidationModel = process.env.AI_CODE_REVIEW_MODEL || '';
+      // During consolidation, get model from cached config (which has project config merged in)
+      const config = getConfig();
+      const consolidationModel = config.selectedModel || 'openrouter:openai/gpt-5.2';
       const [, model] = consolidationModel.includes(':')
         ? consolidationModel.split(':')
         : ['openrouter', consolidationModel];
@@ -562,8 +563,9 @@ export async function generateOpenRouterConsolidatedReview(
     // For consolidation mode, use the writer model if specified, otherwise use the review model
     let modelName: string;
     if (options?.isConsolidation) {
-      // During consolidation, the model is already set in the environment by consolidateReview.ts
-      const consolidationModel = process.env.AI_CODE_REVIEW_MODEL || '';
+      // During consolidation, get model from cached config (which has project config merged in)
+      const config = getConfig();
+      const consolidationModel = config.selectedModel || 'openrouter:openai/gpt-5.2';
       const [, model] = consolidationModel.includes(':')
         ? consolidationModel.split(':')
         : ['openrouter', consolidationModel];
