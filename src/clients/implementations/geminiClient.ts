@@ -324,36 +324,23 @@ export class GeminiClient extends AbstractClient {
   }
 
   /**
-   * Generate a response from the Gemini API
-   * @param prompt The prompt to send to the API
-   * @param options Review options
-   * @returns Promise resolving to the response text
+   * Build the output instruction prefix based on mode
+   * @param isInteractiveMode Whether interactive mode is enabled
+   * @returns The output instruction string
    */
-  private async generateGeminiResponse(prompt: string, options?: ReviewOptions): Promise<string> {
-    if (!this.genAI || !this.customModel) {
-      throw new Error('Gemini client not initialized');
+  private buildOutputInstructions(isInteractiveMode: boolean): string {
+    if (isInteractiveMode) {
+      return this.getJsonOutputInstructions();
     }
+    return this.getMarkdownOutputInstructions();
+  }
 
-    try {
-      // Create a model instance
-      const modelOptions = {
-        model: this.customModel.name,
-        safetySettings: DEFAULT_SAFETY_SETTINGS,
-        apiVersion: this.customModel.useV1Beta ? 'v1beta' : undefined,
-      };
-
-      const model = this.genAI.getGenerativeModel(modelOptions);
-
-      // Determine if we need to use structured JSON output (interactive mode)
-      const isInteractiveMode = options?.interactive === true;
-
-      // Generate content
-      // Add a prefix to the prompt to instruct the model on output format
-      let outputInstructions = '';
-
-      if (isInteractiveMode) {
-        // In interactive mode, request structured JSON that matches our schema
-        outputInstructions = `
+  /**
+   * Get JSON output instructions for interactive mode
+   * @returns JSON format instructions
+   */
+  private getJsonOutputInstructions(): string {
+    return `
 You are a helpful AI assistant that provides code reviews. Focus on providing actionable feedback. Do not repeat the instructions in your response.
 
 CRITICAL INSTRUCTION: Your response MUST be valid JSON that follows the exact schema below.
@@ -366,31 +353,31 @@ The response must validate against this schema:
 {
   "review": {
     "version": "1.0",
-    "timestamp": "2024-05-15T12:00:00Z", 
+    "timestamp": "2024-05-15T12:00:00Z",
     "files": [
       {
-        "filePath": "path/to/file.ts", 
+        "filePath": "path/to/file.ts",
         "issues": [
           {
-            "id": "ISSUE-1", 
-            "priority": "HIGH", 
+            "id": "ISSUE-1",
+            "priority": "HIGH",
             "description": "A clear description of the issue",
             "location": {
-              "startLine": 10, 
-              "endLine": 15 
+              "startLine": 10,
+              "endLine": 15
             },
-            "currentCode": "function example() {\\n  // Problematic code here\\n}", 
-            "suggestedCode": "function example() {\\n  // Improved code here\\n}", 
+            "currentCode": "function example() {\\n  // Problematic code here\\n}",
+            "suggestedCode": "function example() {\\n  // Improved code here\\n}",
             "explanation": "Detailed explanation of why this change is recommended"
           }
         ]
       }
     ],
     "summary": {
-      "highPriorityIssues": 1, 
-      "mediumPriorityIssues": 2, 
-      "lowPriorityIssues": 3, 
-      "totalIssues": 6 
+      "highPriorityIssues": 1,
+      "mediumPriorityIssues": 2,
+      "lowPriorityIssues": 3,
+      "totalIssues": 6
     }
   }
 }
@@ -408,14 +395,19 @@ Guidelines for filling the schema:
 10. For code snippets, use double backslashes for newlines (\\n) and escape any quotes or backslashes
 
 CRITICAL: YOUR OUTPUT MUST BE VALID JSON WITH NO TEXT OUTSIDE THE JSON STRUCTURE.
-DO NOT USE COMMENTS IN YOUR FINAL JSON. 
+DO NOT USE COMMENTS IN YOUR FINAL JSON.
 DO NOT USE MARKDOWN CODE BLOCKS.
 DO NOT START WITH TRIPLE BACKTICKS OR END WITH TRIPLE BACKTICKS.
 DO NOT EXPLAIN OR DESCRIBE YOUR RESPONSE.
 `;
-      } else {
-        // In standard mode, use markdown format
-        outputInstructions = `
+  }
+
+  /**
+   * Get Markdown output instructions for standard mode
+   * @returns Markdown format instructions
+   */
+  private getMarkdownOutputInstructions(): string {
+    return `
 You are a helpful AI assistant that provides code reviews. Focus on providing actionable feedback. Do not repeat the instructions in your response.
 
 IMPORTANT: Format your response as a well-structured Markdown document with the following sections:
@@ -450,102 +442,151 @@ For each high priority issue:
 
 Ensure your response is well-formatted Markdown with proper headings, bullet points, and code blocks.
 `;
-      }
+  }
 
+  /**
+   * Extract JSON from text response using multiple strategies
+   * @param text The text to extract JSON from
+   * @returns The extracted JSON string
+   * @throws Error if JSON cannot be extracted
+   */
+  private extractJsonFromResponse(text: string): string {
+    const trimmedText = text.trim();
+
+    // Check if already valid JSON
+    if (trimmedText.startsWith('{') && trimmedText.endsWith('}')) {
+      return trimmedText;
+    }
+
+    logger.warn(
+      'Response from Gemini is not properly formatted as JSON. Attempting to extract JSON...',
+    );
+
+    // Strategy 1: Extract JSON using regex
+    const extractedJson = trimmedText.match(/({[\s\S]*})/);
+    if (extractedJson) {
+      return extractedJson[1];
+    }
+
+    // Strategy 2: Handle language identifiers before JSON
+    const languageMatch = trimmedText.match(
+      /^(?:typescript|javascript|json|ts|js)\s*\n?\s*({[\s\S]*})$/i,
+    );
+    if (languageMatch) {
+      logger.info('Found JSON after language identifier, extracting...');
+      return languageMatch[1];
+    }
+
+    // Strategy 3: Extract from code blocks
+    const codeBlockMatch = trimmedText.match(/```(?:json|typescript|javascript)?\s*([^`]+)\s*```/i);
+    if (codeBlockMatch) {
+      const blockContent = codeBlockMatch[1].trim();
+      const cleanContent = blockContent.replace(/^(?:typescript|javascript|json|ts|js)\s*\n?/i, '');
+      if (cleanContent.startsWith('{')) {
+        logger.info('Found JSON in code block, extracting...');
+        return cleanContent;
+      }
+    }
+
+    // Strategy 4: Remove prefix before first brace
+    const braceIndex = trimmedText.indexOf('{');
+    if (braceIndex > 0) {
+      const jsonCandidate = trimmedText.substring(braceIndex);
+      try {
+        JSON.parse(jsonCandidate);
+        logger.info('Successfully extracted JSON by removing prefix content');
+        return jsonCandidate;
+      } catch (_parseError) {
+        // Continue to error
+      }
+    }
+
+    logger.error('Failed to extract JSON from Gemini response');
+    throw new Error('Gemini API returned a response that is not valid JSON');
+  }
+
+  /**
+   * Validate and process JSON response for interactive mode
+   * @param text The response text to validate
+   * @returns The validated/extracted JSON string
+   */
+  private processInteractiveResponse(text: string): string {
+    try {
+      return this.extractJsonFromResponse(text);
+    } catch (error) {
+      logger.error('Error validating JSON response:', error);
+      throw new Error('Gemini API returned a response that is not valid JSON');
+    }
+  }
+
+  /**
+   * Execute the API call to generate content
+   * @param model The Gemini model instance
+   * @param prompt The formatted prompt
+   * @param isInteractiveMode Whether interactive mode is enabled
+   * @returns Promise resolving to the API response text
+   */
+  private async executeGeminiCall(
+    model: ReturnType<GoogleGenerativeAI['getGenerativeModel']>,
+    prompt: string,
+    isInteractiveMode: boolean,
+  ): Promise<string> {
+    const temperature = isInteractiveMode ? 0.1 : 0.2;
+
+    const result = await withRetry(() =>
+      model.generateContent({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          temperature,
+          topP: 0.8,
+          topK: 40,
+          maxOutputTokens: MAX_TOKENS_PER_REQUEST,
+        },
+      }),
+    );
+
+    return result.response.text();
+  }
+
+  /**
+   * Generate a response from the Gemini API
+   * @param prompt The prompt to send to the API
+   * @param options Review options
+   * @returns Promise resolving to the response text
+   */
+  private async generateGeminiResponse(prompt: string, options?: ReviewOptions): Promise<string> {
+    if (!this.genAI || !this.customModel) {
+      throw new Error('Gemini client not initialized');
+    }
+
+    try {
+      // Create model instance
+      const model = this.genAI.getGenerativeModel({
+        model: this.customModel.name,
+        safetySettings: DEFAULT_SAFETY_SETTINGS,
+        apiVersion: this.customModel.useV1Beta ? 'v1beta' : undefined,
+      });
+
+      // Determine mode and build prompt
+      const isInteractiveMode = options?.interactive === true;
+      const outputInstructions = this.buildOutputInstructions(isInteractiveMode);
       const modifiedPrompt = `${outputInstructions}\n\n${prompt}`;
 
-      // Adjust temperature based on whether we need structured JSON
-      const temperature = isInteractiveMode ? 0.1 : 0.2;
+      // Execute API call
+      const text = await this.executeGeminiCall(model, modifiedPrompt, isInteractiveMode);
 
-      const result = await withRetry(() =>
-        model.generateContent({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: modifiedPrompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: temperature,
-            topP: 0.8,
-            topK: 40,
-            maxOutputTokens: MAX_TOKENS_PER_REQUEST,
-          },
-        }),
-      );
-
-      // Extract the response text
-      const response = result.response;
-      const text = response.text();
-
-      // For interactive mode, do a basic validation to ensure we have JSON
+      // Process response based on mode
       if (isInteractiveMode) {
-        try {
-          // Check if the response starts and ends with JSON braces
-          const trimmedText = text.trim();
-          if (!trimmedText.startsWith('{') || !trimmedText.endsWith('}')) {
-            logger.warn(
-              'Response from Gemini is not properly formatted as JSON. Attempting to extract JSON...',
-            );
-
-            // Strategy 1: Try to extract JSON from response using regex
-            const extractedJson = trimmedText.match(/({[\s\S]*})/);
-            if (extractedJson) {
-              return extractedJson[1];
-            }
-
-            // Strategy 2: Handle responses that start with language identifiers
-            const languageMatch = trimmedText.match(
-              /^(?:typescript|javascript|json|ts|js)\s*\n?\s*({[\s\S]*})$/i,
-            );
-            if (languageMatch) {
-              logger.info('Found JSON after language identifier, extracting...');
-              return languageMatch[1];
-            }
-
-            // Strategy 3: Look for JSON in code blocks
-            const codeBlockMatch = trimmedText.match(
-              /```(?:json|typescript|javascript)?\s*([^`]+)\s*```/i,
-            );
-            if (codeBlockMatch) {
-              const blockContent = codeBlockMatch[1].trim();
-              // Remove language identifier if it's at the start of the block
-              const cleanContent = blockContent.replace(
-                /^(?:typescript|javascript|json|ts|js)\s*\n?/i,
-                '',
-              );
-              if (cleanContent.startsWith('{')) {
-                logger.info('Found JSON in code block, extracting...');
-                return cleanContent;
-              }
-            }
-
-            // Strategy 4: Remove everything before the first opening brace
-            const braceIndex = trimmedText.indexOf('{');
-            if (braceIndex > 0) {
-              const jsonCandidate = trimmedText.substring(braceIndex);
-              try {
-                // Validate it's actually JSON
-                JSON.parse(jsonCandidate);
-                logger.info('Successfully extracted JSON by removing prefix content');
-                return jsonCandidate;
-              } catch (_parseError) {
-                // Continue to error handling
-              }
-            }
-
-            logger.error('Failed to extract JSON from Gemini response');
-            throw new Error('Gemini API returned a response that is not valid JSON');
-          }
-        } catch (error) {
-          logger.error('Error validating JSON response:', error);
-          throw new Error('Gemini API returned a response that is not valid JSON');
-        }
+        return this.processInteractiveResponse(text);
       }
 
       return text;
     } catch (error) {
-      // Handle API errors
       if (error instanceof Error) {
         throw new Error(`Gemini API error: ${error.message}`);
       }
