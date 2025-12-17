@@ -9,6 +9,18 @@ import type {
   CodeTracingUnusedCodeReview,
   TracedUnusedElement,
 } from '../prompts/schemas/code-tracing-unused-code-schema';
+import {
+  type ConfidenceLevel,
+  cleanCodeSnippet,
+  cleanFilePath,
+  filterByConfidence,
+  formatElementType,
+  formatLocation,
+  groupByFile,
+  indentSnippet,
+  MARKDOWN_CONFIDENCE_HEADERS,
+  sortByLineDescending,
+} from './unusedCodeFormatterUtils';
 
 /**
  * Format a code tracing unused code review as markdown
@@ -18,18 +30,43 @@ import type {
 export function formatCodeTracingUnusedCodeReviewAsMarkdown(
   review: CodeTracingUnusedCodeReview,
 ): string {
-  // Build the header
   let markdown = '# Code Tracing Unused Code Detection Report\n\n';
 
-  // Add a summary section
-  markdown += '## Summary\n\n';
+  markdown += formatSummarySection(review);
+  markdown += formatMethodologySection(review);
+  markdown += formatUnusedElementsSection('Unused Files', review.unusedFiles);
+  markdown += formatUnusedElementsSection('Unused Functions', review.unusedFunctions);
+  markdown += formatUnusedElementsSection('Unused Classes', review.unusedClasses);
+  markdown += formatUnusedElementsSection(
+    'Unused Types and Interfaces',
+    review.unusedTypesAndInterfaces,
+  );
+  markdown += formatUnusedElementsSection('Dead Code Branches', review.deadCodeBranches);
+  markdown += formatUnusedElementsSection(
+    'Unused Variables and Imports',
+    review.unusedVariablesAndImports,
+  );
+
+  return markdown;
+}
+
+/**
+ * Format the summary section
+ */
+function formatSummarySection(review: CodeTracingUnusedCodeReview): string {
+  let markdown = '## Summary\n\n';
   markdown += `- **Total unused elements**: ${review.summary.totalUnusedElements}\n`;
   markdown += `- **High-confidence findings**: ${review.summary.highConfidenceCount}\n`;
   markdown += `- **Files with unused code**: ${review.summary.filesWithUnusedCode}\n`;
   markdown += `- **Potential code reduction**: ${review.summary.potentialCodeReduction}\n\n`;
+  return markdown;
+}
 
-  // Add methodology section
-  markdown += '## Analysis Methodology\n\n';
+/**
+ * Format the methodology section
+ */
+function formatMethodologySection(review: CodeTracingUnusedCodeReview): string {
+  let markdown = '## Analysis Methodology\n\n';
   markdown += '### Entry Points\n\n';
   for (const entryPoint of review.analysisMethodology.entryPoints) {
     markdown += `- ${entryPoint}\n`;
@@ -45,182 +82,46 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
   }
   markdown += '\n';
 
-  // Unused Files Section
-  if (review.unusedFiles.length > 0) {
-    markdown += '## Unused Files\n\n';
-    markdown +=
-      'The following files are never imported or used anywhere in the codebase and can be safely removed:\n\n';
+  return markdown;
+}
 
-    // Group by confidence
-    const highConfidence = review.unusedFiles.filter((file) => file.confidence === 'high');
-    const mediumConfidence = review.unusedFiles.filter((file) => file.confidence === 'medium');
-    const lowConfidence = review.unusedFiles.filter((file) => file.confidence === 'low');
-
-    if (highConfidence.length > 0) {
-      markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
-      markdown += formatTracedElementsAsChecklist(highConfidence);
-    }
-
-    if (mediumConfidence.length > 0) {
-      markdown += '### ⚠️ Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatTracedElementsAsChecklist(mediumConfidence);
-    }
-
-    if (lowConfidence.length > 0) {
-      markdown += '### ❓ Low Confidence (Needs Further Investigation)\n\n';
-      markdown += formatTracedElementsAsChecklist(lowConfidence);
-    }
+/**
+ * Format a section of unused elements grouped by confidence
+ */
+function formatUnusedElementsSection(title: string, elements: TracedUnusedElement[]): string {
+  if (elements.length === 0) {
+    return '';
   }
 
-  // Unused Functions Section
-  if (review.unusedFunctions.length > 0) {
-    markdown += '## Unused Functions\n\n';
-    markdown +=
-      'The following functions are never called in the codebase and can be safely removed:\n\n';
+  const descriptions: Record<string, string> = {
+    'Unused Files': 'never imported or used anywhere in the codebase and can be safely removed',
+    'Unused Functions': 'never called in the codebase and can be safely removed',
+    'Unused Classes': 'never instantiated in the codebase and can be safely removed',
+    'Unused Types and Interfaces': 'never used in the codebase and can be safely removed',
+    'Dead Code Branches': 'can never execute and can be safely removed',
+    'Unused Variables and Imports': 'never used in the codebase and can be safely removed',
+  };
 
-    // Group by confidence
-    const highConfidence = review.unusedFunctions.filter((func) => func.confidence === 'high');
-    const mediumConfidence = review.unusedFunctions.filter((func) => func.confidence === 'medium');
-    const lowConfidence = review.unusedFunctions.filter((func) => func.confidence === 'low');
+  let markdown = `## ${title}\n\n`;
+  markdown += `The following ${title.toLowerCase()} are ${descriptions[title] || 'unused'}:\n\n`;
 
-    if (highConfidence.length > 0) {
-      markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
-      markdown += formatTracedElementsAsChecklist(highConfidence);
-    }
-
-    if (mediumConfidence.length > 0) {
-      markdown += '### ⚠️ Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatTracedElementsAsChecklist(mediumConfidence);
-    }
-
-    if (lowConfidence.length > 0) {
-      markdown += '### ❓ Low Confidence (Needs Further Investigation)\n\n';
-      markdown += formatTracedElementsAsChecklist(lowConfidence);
-    }
-  }
-
-  // Unused Classes Section
-  if (review.unusedClasses.length > 0) {
-    markdown += '## Unused Classes\n\n';
-    markdown +=
-      'The following classes are never instantiated in the codebase and can be safely removed:\n\n';
-
-    // Group by confidence
-    const highConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'high');
-    const mediumConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'medium');
-    const lowConfidence = review.unusedClasses.filter((cls) => cls.confidence === 'low');
-
-    if (highConfidence.length > 0) {
-      markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
-      markdown += formatTracedElementsAsChecklist(highConfidence);
-    }
-
-    if (mediumConfidence.length > 0) {
-      markdown += '### ⚠️ Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatTracedElementsAsChecklist(mediumConfidence);
-    }
-
-    if (lowConfidence.length > 0) {
-      markdown += '### ❓ Low Confidence (Needs Further Investigation)\n\n';
-      markdown += formatTracedElementsAsChecklist(lowConfidence);
-    }
-  }
-
-  // Unused Types and Interfaces Section
-  if (review.unusedTypesAndInterfaces.length > 0) {
-    markdown += '## Unused Types and Interfaces\n\n';
-    markdown +=
-      'The following types and interfaces are never used in the codebase and can be safely removed:\n\n';
-
-    // Group by confidence
-    const highConfidence = review.unusedTypesAndInterfaces.filter(
-      (type) => type.confidence === 'high',
-    );
-    const mediumConfidence = review.unusedTypesAndInterfaces.filter(
-      (type) => type.confidence === 'medium',
-    );
-    const lowConfidence = review.unusedTypesAndInterfaces.filter(
-      (type) => type.confidence === 'low',
-    );
-
-    if (highConfidence.length > 0) {
-      markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
-      markdown += formatTracedElementsAsChecklist(highConfidence);
-    }
-
-    if (mediumConfidence.length > 0) {
-      markdown += '### ⚠️ Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatTracedElementsAsChecklist(mediumConfidence);
-    }
-
-    if (lowConfidence.length > 0) {
-      markdown += '### ❓ Low Confidence (Needs Further Investigation)\n\n';
-      markdown += formatTracedElementsAsChecklist(lowConfidence);
-    }
-  }
-
-  // Dead Code Branches Section
-  if (review.deadCodeBranches.length > 0) {
-    markdown += '## Dead Code Branches\n\n';
-    markdown += 'The following code branches can never execute and can be safely removed:\n\n';
-
-    // Group by confidence
-    const highConfidence = review.deadCodeBranches.filter((branch) => branch.confidence === 'high');
-    const mediumConfidence = review.deadCodeBranches.filter(
-      (branch) => branch.confidence === 'medium',
-    );
-    const lowConfidence = review.deadCodeBranches.filter((branch) => branch.confidence === 'low');
-
-    if (highConfidence.length > 0) {
-      markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
-      markdown += formatTracedElementsAsChecklist(highConfidence);
-    }
-
-    if (mediumConfidence.length > 0) {
-      markdown += '### ⚠️ Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatTracedElementsAsChecklist(mediumConfidence);
-    }
-
-    if (lowConfidence.length > 0) {
-      markdown += '### ❓ Low Confidence (Needs Further Investigation)\n\n';
-      markdown += formatTracedElementsAsChecklist(lowConfidence);
-    }
-  }
-
-  // Unused Variables and Imports Section
-  if (review.unusedVariablesAndImports.length > 0) {
-    markdown += '## Unused Variables and Imports\n\n';
-    markdown +=
-      'The following variables and imports are never used in the codebase and can be safely removed:\n\n';
-
-    // Group by confidence
-    const highConfidence = review.unusedVariablesAndImports.filter(
-      (variable) => variable.confidence === 'high',
-    );
-    const mediumConfidence = review.unusedVariablesAndImports.filter(
-      (variable) => variable.confidence === 'medium',
-    );
-    const lowConfidence = review.unusedVariablesAndImports.filter(
-      (variable) => variable.confidence === 'low',
-    );
-
-    if (highConfidence.length > 0) {
-      markdown += '### ✅ High Confidence (Safe to Remove)\n\n';
-      markdown += formatTracedElementsAsChecklist(highConfidence);
-    }
-
-    if (mediumConfidence.length > 0) {
-      markdown += '### ⚠️ Medium Confidence (Verify Before Removing)\n\n';
-      markdown += formatTracedElementsAsChecklist(mediumConfidence);
-    }
-
-    if (lowConfidence.length > 0) {
-      markdown += '### ❓ Low Confidence (Needs Further Investigation)\n\n';
-      markdown += formatTracedElementsAsChecklist(lowConfidence);
+  const confidenceLevels: ConfidenceLevel[] = ['high', 'medium', 'low'];
+  for (const confidence of confidenceLevels) {
+    const filtered = filterByConfidence(elements, confidence, (e) => e.confidence);
+    if (filtered.length > 0) {
+      markdown += MARKDOWN_CONFIDENCE_HEADERS[confidence];
+      markdown += formatTracedElementsAsChecklist(filtered);
     }
   }
 
   return markdown;
+}
+
+/**
+ * Clean an element's file path
+ */
+function cleanElement(element: TracedUnusedElement): TracedUnusedElement {
+  return { ...element, filePath: cleanFilePath(element.filePath) };
 }
 
 /**
@@ -231,119 +132,16 @@ export function formatCodeTracingUnusedCodeReviewAsMarkdown(
 function formatTracedElementsAsChecklist(elements: TracedUnusedElement[]): string {
   let markdown = '';
 
-  // Group by file
-  const elementsByFile: Record<string, TracedUnusedElement[]> = {};
-
-  for (const element of elements) {
-    // Clean filePath - remove any ":N/A" suffixes or patterns that might appear
-    let cleanFilePath = element.filePath;
-
-    // Handle various problematic path formats
-    cleanFilePath = cleanFilePath.replace(/\s*:\s*N\/A\s*/g, '');
-
-    // Remove any trailing slashes for consistency
-    cleanFilePath = cleanFilePath.replace(/\/+$/g, '');
-
-    // If path is just a directory without specific file, ensure it doesn't look like a broken path
-    if (cleanFilePath.endsWith('/')) {
-      cleanFilePath = cleanFilePath.slice(0, -1);
-    }
-
-    if (!elementsByFile[cleanFilePath]) {
-      elementsByFile[cleanFilePath] = [];
-    }
-
-    // Create a copy of the element with the cleaned filePath
-    const elementCopy = { ...element, filePath: cleanFilePath };
-    elementsByFile[cleanFilePath].push(elementCopy);
-  }
+  // Clean and group elements by file
+  const cleanedElements = elements.map(cleanElement);
+  const elementsByFile = groupByFile(cleanedElements, (e) => e.filePath);
 
   // Format elements by file
   for (const [filePath, fileElements] of Object.entries(elementsByFile)) {
     markdown += `### ${filePath}\n\n`;
 
     for (const element of fileElements) {
-      // Format location correctly, handling missing line numbers
-      let location = '';
-      if (element.location.startLine && element.location.startLine > 0) {
-        location =
-          element.location.endLine && element.location.endLine > 0
-            ? `(lines ${element.location.startLine}-${element.location.endLine})`
-            : `(line ${element.location.startLine})`;
-      }
-
-      markdown += `- [ ] **${element.name}**${location ? ` ${location}` : ''}\n`;
-      markdown += `  - **Type**: ${formatElementType(element.elementType)}\n`;
-      markdown += `  - **Confidence**: ${element.confidence.toUpperCase()} - ${element.confidenceReason}\n`;
-
-      if (element.codeSnippet?.trim()) {
-        // Clean code snippet - handle improper markdown in the code snippet
-        let snippet = element.codeSnippet.trim();
-
-        // If the snippet already contains markdown code blocks, extract just the code
-        if (snippet.startsWith('```') && snippet.endsWith('```')) {
-          // Extract the code between the markdown code block delimiters
-          snippet = snippet.substring(snippet.indexOf('\n') + 1, snippet.lastIndexOf('```')).trim();
-        }
-
-        // Ensure proper indentation for markdown
-        snippet = snippet
-          .split('\n')
-          .map((line) => `  ${line}`)
-          .join('\n');
-
-        markdown += '  ```\n';
-        markdown += `${snippet}\n`;
-        markdown += '  ```\n';
-      }
-
-      // Add evidence section
-      markdown += '  - **Evidence of Non-Use**:\n';
-
-      // Format definition location with proper handling for missing line numbers
-      const defLine =
-        element.evidence.definition.line && element.evidence.definition.line > 0
-          ? `:${element.evidence.definition.line}`
-          : '';
-      markdown += `    - **Definition**: ${element.evidence.definition.file}${defLine}\n`;
-
-      if (element.evidence.exports && element.evidence.exports.length > 0) {
-        markdown += '    - **Exports**:\n';
-        for (const exportInfo of element.evidence.exports) {
-          // Format export location with proper handling for missing line numbers
-          const exportLine = exportInfo.line && exportInfo.line > 0 ? `:${exportInfo.line}` : '';
-          markdown += `      - ${exportInfo.exportType} export in ${exportInfo.file}${exportLine}\n`;
-        }
-      }
-
-      markdown += '    - **Import Search**:\n';
-      for (const searchArea of element.evidence.importSearch.searchedIn) {
-        markdown += `      - Searched in ${searchArea}\n`;
-      }
-      markdown += `      - Result: ${element.evidence.importSearch.noImportsFound ? 'No imports found' : 'Imports found'}\n`;
-      markdown += `      - Method: ${element.evidence.importSearch.searchMethod}\n`;
-
-      markdown += '    - **Reference Search**:\n';
-      for (const searchArea of element.evidence.referenceSearch.searchedIn) {
-        markdown += `      - Searched in ${searchArea}\n`;
-      }
-      markdown += `      - Result: ${element.evidence.referenceSearch.noReferencesFound ? 'No references found' : 'References found'}\n`;
-      markdown += `      - Method: ${element.evidence.referenceSearch.searchMethod}\n`;
-
-      markdown += '    - **Edge Cases Considered**:\n';
-      for (const edgeCase of element.evidence.edgeCasesConsidered) {
-        markdown += `      - ${edgeCase.case}: ${edgeCase.verification}\n`;
-      }
-
-      if (element.evidence.additionalEvidence) {
-        markdown += `    - **Additional Evidence**: ${element.evidence.additionalEvidence}\n`;
-      }
-
-      if (element.removalRisks) {
-        markdown += `  - **Removal Risks**: ${element.removalRisks}\n`;
-      }
-
-      markdown += '\n';
+      markdown += formatElement(element);
     }
   }
 
@@ -351,29 +149,119 @@ function formatTracedElementsAsChecklist(elements: TracedUnusedElement[]): strin
 }
 
 /**
- * Format element type for display
- * @param elementType Element type
- * @returns Formatted element type
+ * Format a single traced element
  */
-function formatElementType(elementType: string): string {
-  const mapping: Record<string, string> = {
-    file: 'File',
-    function: 'Function',
-    class: 'Class',
-    interface: 'Interface',
-    type: 'Type',
-    variable: 'Variable',
-    import: 'Import',
-    'dead-branch': 'Dead Code Branch',
-    parameter: 'Parameter',
-    property: 'Property',
-    enum: 'Enum',
-    export: 'Export',
-    hook: 'React Hook',
-    component: 'React Component',
-  };
+function formatElement(element: TracedUnusedElement): string {
+  let markdown = '';
+  const location = formatLocation(element.location.startLine, element.location.endLine);
 
-  return mapping[elementType] || elementType;
+  markdown += `- [ ] **${element.name}**${location ? ` ${location}` : ''}\n`;
+  markdown += `  - **Type**: ${formatElementType(element.elementType)}\n`;
+  markdown += `  - **Confidence**: ${element.confidence.toUpperCase()} - ${element.confidenceReason}\n`;
+
+  if (element.codeSnippet?.trim()) {
+    markdown += formatCodeSnippetSection(element.codeSnippet);
+  }
+
+  markdown += formatEvidenceSection(element);
+
+  if (element.removalRisks) {
+    markdown += `  - **Removal Risks**: ${element.removalRisks}\n`;
+  }
+
+  markdown += '\n';
+
+  return markdown;
+}
+
+/**
+ * Format code snippet section
+ */
+function formatCodeSnippetSection(codeSnippet: string): string {
+  const cleaned = cleanCodeSnippet(codeSnippet);
+  const indented = indentSnippet(cleaned);
+
+  return `  \`\`\`\n${indented}\n  \`\`\`\n`;
+}
+
+/**
+ * Format evidence section
+ */
+function formatEvidenceSection(element: TracedUnusedElement): string {
+  let markdown = '  - **Evidence of Non-Use**:\n';
+
+  markdown += formatDefinitionEvidence(element.evidence.definition);
+  markdown += formatExportsEvidence(element.evidence.exports);
+  markdown += formatSearchEvidence('Import', element.evidence.importSearch);
+  markdown += formatSearchEvidence('Reference', element.evidence.referenceSearch);
+  markdown += formatEdgeCasesEvidence(element.evidence.edgeCasesConsidered);
+
+  if (element.evidence.additionalEvidence) {
+    markdown += `    - **Additional Evidence**: ${element.evidence.additionalEvidence}\n`;
+  }
+
+  return markdown;
+}
+
+/**
+ * Format definition evidence
+ */
+function formatDefinitionEvidence(definition: { file: string; line?: number }): string {
+  const defLine = definition.line && definition.line > 0 ? `:${definition.line}` : '';
+  return `    - **Definition**: ${definition.file}${defLine}\n`;
+}
+
+/**
+ * Format exports evidence
+ */
+function formatExportsEvidence(
+  exports?: Array<{ file: string; line?: number; exportType: string }>,
+): string {
+  if (!exports || exports.length === 0) {
+    return '';
+  }
+
+  let markdown = '    - **Exports**:\n';
+  for (const exportInfo of exports) {
+    const exportLine = exportInfo.line && exportInfo.line > 0 ? `:${exportInfo.line}` : '';
+    markdown += `      - ${exportInfo.exportType} export in ${exportInfo.file}${exportLine}\n`;
+  }
+  return markdown;
+}
+
+/**
+ * Format search evidence (import or reference)
+ */
+function formatSearchEvidence(
+  type: 'Import' | 'Reference',
+  search: {
+    searchedIn: string[];
+    noImportsFound?: boolean;
+    noReferencesFound?: boolean;
+    searchMethod: string;
+  },
+): string {
+  let markdown = `    - **${type} Search**:\n`;
+  for (const searchArea of search.searchedIn) {
+    markdown += `      - Searched in ${searchArea}\n`;
+  }
+
+  const noFound = type === 'Import' ? search.noImportsFound : search.noReferencesFound;
+  markdown += `      - Result: ${noFound ? 'No references found' : 'References found'}\n`;
+  markdown += `      - Method: ${search.searchMethod}\n`;
+
+  return markdown;
+}
+
+/**
+ * Format edge cases evidence
+ */
+function formatEdgeCasesEvidence(edgeCases: Array<{ case: string; verification: string }>): string {
+  let markdown = '    - **Edge Cases Considered**:\n';
+  for (const edgeCase of edgeCases) {
+    markdown += `      - ${edgeCase.case}: ${edgeCase.verification}\n`;
+  }
+  return markdown;
 }
 
 /**
@@ -382,162 +270,197 @@ function formatElementType(elementType: string): string {
  * @returns Shell script for removing unused code
  */
 export function generateCodeTracingRemovalScript(review: CodeTracingUnusedCodeReview): string {
+  let script = generateScriptHeader();
+
+  const highConfidenceFiles = getHighConfidenceElements(review.unusedFiles);
+  script += generateFileRemovalCommands(highConfidenceFiles);
+
+  const highConfidenceElements = collectHighConfidenceElements(review);
+  script += generateElementRemovalCommands(highConfidenceElements, highConfidenceFiles);
+
+  script += generateScriptFooter();
+
+  return script;
+}
+
+/**
+ * Generate script header
+ */
+function generateScriptHeader(): string {
   let script = '#!/bin/bash\n\n';
   script +=
     '# Script generated by AI Code Review to remove unused code identified through code tracing\n';
   script += '# WARNING: This script should be carefully reviewed before execution\n';
   script += '# RECOMMENDED: Create a git branch before running this script\n\n';
-
   script += 'echo "This script will remove unused code identified through deep code tracing."\n\n';
+  return script;
+}
 
-  // Only include high confidence issues for the removal script
-  const highConfidenceFiles = review.unusedFiles
-    .filter((file) => file.confidence === 'high')
-    .map((file) => {
-      // Clean filePath - remove any ":N/A" suffixes or patterns that might appear
-      let cleanFilePath = file.filePath;
+/**
+ * Generate script footer
+ */
+function generateScriptFooter(): string {
+  return 'echo "Code removal complete. Please review the changes and run tests to ensure functionality."\n';
+}
 
-      // Handle various problematic path formats
-      cleanFilePath = cleanFilePath.replace(/\s*:\s*N\/A\s*/g, '');
+/**
+ * Get high confidence elements with cleaned paths
+ */
+function getHighConfidenceElements(elements: TracedUnusedElement[]): TracedUnusedElement[] {
+  return filterByConfidence(elements, 'high', (e) => e.confidence).map(cleanElement);
+}
 
-      // Remove any trailing slashes for consistency
-      cleanFilePath = cleanFilePath.replace(/\/+$/g, '');
+/**
+ * Collect all high confidence elements from review
+ */
+function collectHighConfidenceElements(
+  review: CodeTracingUnusedCodeReview,
+): Record<string, TracedUnusedElement[]> {
+  const allElements = [
+    ...getHighConfidenceElements(review.unusedFunctions),
+    ...getHighConfidenceElements(review.unusedClasses),
+    ...getHighConfidenceElements(review.unusedTypesAndInterfaces),
+    ...getHighConfidenceElements(review.deadCodeBranches),
+  ];
 
-      // If path is just a directory without specific file, ensure it doesn't look like a broken path
-      if (cleanFilePath.endsWith('/')) {
-        cleanFilePath = cleanFilePath.slice(0, -1);
-      }
-      return { ...file, filePath: cleanFilePath };
-    });
-
-  // Start with removing entire files (most impactful)
-  if (highConfidenceFiles.length > 0) {
-    script += 'echo "REMOVING UNUSED FILES:"\n';
-
-    for (const file of highConfidenceFiles) {
-      script += `echo "  - ${file.filePath} (${file.confidence.toUpperCase()} confidence)"\n`;
-      script += `rm "${file.filePath}"\n`;
-    }
-
-    script += 'echo "Unused files removed successfully."\n\n';
-  }
-
-  // Add removal commands for high-confidence functions, classes, etc.
-  // This uses sed to remove specific line ranges
-
-  const highConfidenceFunctions = review.unusedFunctions.filter(
-    (func) => func.confidence === 'high',
-  );
-  const highConfidenceClasses = review.unusedClasses.filter((cls) => cls.confidence === 'high');
-  const highConfidenceTypes = review.unusedTypesAndInterfaces.filter(
-    (type) => type.confidence === 'high',
-  );
-  const highConfidenceBranches = review.deadCodeBranches.filter(
-    (branch) => branch.confidence === 'high',
-  );
-
-  // Group all elements by file for targeted removal
-  const elementsByFile: Record<string, Array<TracedUnusedElement>> = {};
-
-  // Helper function to add elements to the file mapping with clean paths
-  const addElementToFile = (element: TracedUnusedElement) => {
-    // Clean filePath - remove any ":N/A" suffixes or patterns that might appear
-    let cleanFilePath = element.filePath;
-
-    // Handle various problematic path formats
-    cleanFilePath = cleanFilePath.replace(/\s*:\s*N\/A\s*/g, '');
-
-    // Remove any trailing slashes for consistency
-    cleanFilePath = cleanFilePath.replace(/\/+$/g, '');
-
-    // If path is just a directory without specific file, ensure it doesn't look like a broken path
-    if (cleanFilePath.endsWith('/')) {
-      cleanFilePath = cleanFilePath.slice(0, -1);
-    }
-
-    if (!elementsByFile[cleanFilePath]) {
-      elementsByFile[cleanFilePath] = [];
-    }
-
-    // Create a copy of the element with the cleaned filePath
-    const elementCopy = { ...element, filePath: cleanFilePath };
-    elementsByFile[cleanFilePath].push(elementCopy);
-  };
-
-  // Add functions
-  for (const func of highConfidenceFunctions) {
-    addElementToFile(func);
-  }
-
-  // Add classes
-  for (const cls of highConfidenceClasses) {
-    addElementToFile(cls);
-  }
-
-  // Add types
-  for (const type of highConfidenceTypes) {
-    addElementToFile(type);
-  }
-
-  // Add branches
-  for (const branch of highConfidenceBranches) {
-    addElementToFile(branch);
-  }
+  const elementsByFile = groupByFile(allElements, (e) => e.filePath);
 
   // Sort elements within each file by line number (descending)
-  // This ensures we remove from bottom to top to avoid changing line numbers
   for (const filePath in elementsByFile) {
-    // Clean the file path for comparison
-    const cleanPath = filePath.endsWith(':N/A') ? filePath.replace(':N/A', '') : filePath;
+    elementsByFile[filePath] = sortByLineDescending(
+      elementsByFile[filePath],
+      (e) => e.location.startLine,
+    );
+  }
 
-    if (highConfidenceFiles.find((file) => file.filePath === cleanPath)) {
-      // Skip files that will be removed entirely
+  return elementsByFile;
+}
+
+/**
+ * Generate file removal commands
+ */
+function generateFileRemovalCommands(files: TracedUnusedElement[]): string {
+  if (files.length === 0) {
+    return '';
+  }
+
+  let script = 'echo "REMOVING UNUSED FILES:"\n';
+  for (const file of files) {
+    script += `echo "  - ${file.filePath} (${file.confidence.toUpperCase()} confidence)"\n`;
+    script += `rm "${file.filePath}"\n`;
+  }
+  script += 'echo "Unused files removed successfully."\n\n';
+
+  return script;
+}
+
+/**
+ * Generate element removal commands
+ */
+function generateElementRemovalCommands(
+  elementsByFile: Record<string, TracedUnusedElement[]>,
+  highConfidenceFiles: TracedUnusedElement[],
+): string {
+  if (Object.keys(elementsByFile).length === 0) {
+    return '';
+  }
+
+  let script = 'echo "REMOVING UNUSED CODE ELEMENTS:"\n\n';
+
+  for (const [filePath, elements] of Object.entries(elementsByFile)) {
+    if (shouldSkipFile(filePath, highConfidenceFiles)) {
       continue;
     }
 
-    elementsByFile[filePath].sort((a, b) => {
-      return (b.location.startLine || 0) - (a.location.startLine || 0);
-    });
+    script += `echo "Processing ${filePath}"\n`;
+    script += generateFileElementRemovalCommands(filePath, elements);
+    script += '\n';
   }
 
-  if (Object.keys(elementsByFile).length > 0) {
-    script += 'echo "REMOVING UNUSED CODE ELEMENTS:"\n\n';
+  return script;
+}
 
-    for (const [filePath, elements] of Object.entries(elementsByFile)) {
-      // Clean the file path for comparison
-      const cleanPath = filePath.endsWith(':N/A') ? filePath.replace(':N/A', '') : filePath;
+/**
+ * Check if file should be skipped (will be removed entirely)
+ */
+function shouldSkipFile(filePath: string, highConfidenceFiles: TracedUnusedElement[]): boolean {
+  const cleanPath = cleanFilePath(filePath);
+  return highConfidenceFiles.some((file) => file.filePath === cleanPath);
+}
 
-      if (highConfidenceFiles.find((file) => file.filePath === cleanPath)) {
-        // Skip files that will be removed entirely
-        continue;
-      }
+/**
+ * Generate removal commands for elements in a file
+ */
+function generateFileElementRemovalCommands(
+  filePath: string,
+  elements: TracedUnusedElement[],
+): string {
+  let script = '';
 
-      script += `echo "Processing ${filePath}"\n`;
-
-      for (const element of elements) {
-        // Only include elements with valid line numbers in the removal script
-        if (element.location.startLine && element.location.startLine > 0) {
-          if (element.location.endLine && element.location.endLine > 0) {
-            script += `sed -i '${element.location.startLine},${element.location.endLine}d' "${filePath}"\n`;
-            script += `echo "  Removed ${element.name} (${formatElementType(element.elementType)}, lines ${element.location.startLine}-${element.location.endLine})"\n`;
-          } else {
-            script += `sed -i '${element.location.startLine}d' "${filePath}"\n`;
-            script += `echo "  Removed ${element.name} (${formatElementType(element.elementType)}, line ${element.location.startLine})"\n`;
-          }
-        } else {
-          // For elements without line numbers, just add a comment
-          script += `echo "  Note: Could not generate removal command for ${element.name} (${formatElementType(element.elementType)}) - no line numbers available"\n`;
-          script += `echo "  Please manually remove this element from ${filePath}"\n`;
-        }
-      }
-
-      script += '\n';
-    }
+  for (const element of elements) {
+    script += generateSingleElementRemovalCommand(filePath, element);
   }
 
-  script +=
-    'echo "Code removal complete. Please review the changes and run tests to ensure functionality."\n';
+  return script;
+}
 
+/**
+ * Generate removal command for a single element
+ */
+function generateSingleElementRemovalCommand(
+  filePath: string,
+  element: TracedUnusedElement,
+): string {
+  const startLine = element.location.startLine;
+  const endLine = element.location.endLine;
+
+  if (!startLine || startLine <= 0) {
+    return generateManualRemovalNote(element, filePath);
+  }
+
+  if (endLine && endLine > 0) {
+    return generateLineRangeRemovalCommand(filePath, element, startLine, endLine);
+  }
+
+  return generateSingleLineRemovalCommand(filePath, element, startLine);
+}
+
+/**
+ * Generate manual removal note
+ */
+function generateManualRemovalNote(element: TracedUnusedElement, filePath: string): string {
+  let script = '';
+  script += `echo "  Note: Could not generate removal command for ${element.name} (${formatElementType(element.elementType)}) - no line numbers available"\n`;
+  script += `echo "  Please manually remove this element from ${filePath}"\n`;
+  return script;
+}
+
+/**
+ * Generate line range removal command
+ */
+function generateLineRangeRemovalCommand(
+  filePath: string,
+  element: TracedUnusedElement,
+  startLine: number,
+  endLine: number,
+): string {
+  let script = '';
+  script += `sed -i '${startLine},${endLine}d' "${filePath}"\n`;
+  script += `echo "  Removed ${element.name} (${formatElementType(element.elementType)}, lines ${startLine}-${endLine})"\n`;
+  return script;
+}
+
+/**
+ * Generate single line removal command
+ */
+function generateSingleLineRemovalCommand(
+  filePath: string,
+  element: TracedUnusedElement,
+  startLine: number,
+): string {
+  let script = '';
+  script += `sed -i '${startLine}d' "${filePath}"\n`;
+  script += `echo "  Removed ${element.name} (${formatElementType(element.elementType)}, line ${startLine})"\n`;
   return script;
 }
 
