@@ -12,6 +12,315 @@ import { generateFileTree } from '../utils/treeGenerator';
 import { formatReviewOutput } from './outputFormatter';
 
 /**
+ * Format a single issue for display
+ * @param issue The issue object or string
+ * @returns Formatted markdown string
+ */
+function formatIssue(issue: any): string {
+  let result = '';
+
+  if (typeof issue === 'string') {
+    result += `- ⚠️ ${issue}\n`;
+  } else {
+    const title = issue.title || issue.name || '';
+    const severity = issue.severity || issue.priority || 'medium';
+    const desc = issue.description || issue.issue || issue.concern || 'Unknown issue';
+    const type = issue.type || '';
+    const filePath = issue.filePath || '';
+    const lineNumbers = issue.lineNumbers || '';
+    const codeSnippet = issue.codeSnippet || '';
+    const suggestedFix = issue.suggestedFix || issue.recommendation || '';
+    const impact = issue.impact || '';
+
+    const emoji = severity === 'high' ? '🔴' : severity === 'medium' ? '🟡' : '🟢';
+
+    // Format the issue with title if available
+    if (title) {
+      result += `#### ${emoji} ${title}\n\n`;
+    } else {
+      result += `- ${emoji} **${severity.toUpperCase()}**\n\n`;
+    }
+
+    // Add type and location info
+    if (type || filePath) {
+      result += `**Type:** ${type}${filePath ? ` | **File:** \`${filePath}\`` : ''}${lineNumbers ? ` (lines ${lineNumbers})` : ''}\n\n`;
+    }
+
+    // Add description
+    result += `${desc}\n\n`;
+
+    // Add code snippet if available
+    if (codeSnippet) {
+      result += `**Code:**\n\`\`\`typescript\n${codeSnippet}\n\`\`\`\n\n`;
+    }
+
+    // Add impact
+    if (impact) {
+      result += `**Impact:** ${impact}\n\n`;
+    }
+
+    // Add suggested fix
+    if (suggestedFix) {
+      result += `**Suggested Fix:** ${suggestedFix}\n\n`;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Generate Mermaid diagram from components/layers
+ * @param items Components or layers data
+ * @param dependencies Optional dependencies data
+ * @returns Mermaid diagram markdown string
+ */
+function generateMermaidDiagram(items: any, dependencies?: any[]): string {
+  let markdown = '## System Architecture\n\n';
+  markdown += '```mermaid\ngraph TB\n';
+
+  // Create nodes for each component
+  if (Array.isArray(items)) {
+    items.forEach((item: any, index: number) => {
+      const id = `C${index}`;
+      const name = item.name || item.component || item.layer || `Component${index}`;
+      const desc = item.description || item.purpose || '';
+      markdown += `    ${id}["${name}${desc ? `<br/>${desc.substring(0, 50)}` : ''}"]\n`;
+    });
+
+    // Add relationships if available
+    if (dependencies) {
+      markdown += '\n';
+      dependencies.forEach((dep: any) => {
+        const fromIndex = items.findIndex(
+          (i: any) => (i.name || i.component || i.layer) === dep.from,
+        );
+        const toIndex = items.findIndex((i: any) => (i.name || i.component || i.layer) === dep.to);
+        if (fromIndex >= 0 && toIndex >= 0) {
+          markdown += `    C${fromIndex} --> C${toIndex}\n`;
+        }
+      });
+    }
+  } else if (typeof items === 'object') {
+    // Handle object format
+    let index = 0;
+    for (const [key, value] of Object.entries(items)) {
+      const id = `C${index}`;
+      const desc = typeof value === 'string' ? value : (value as any).description || '';
+      markdown += `    ${id}["${key}${desc ? `<br/>${desc.substring(0, 50)}` : ''}"]\n`;
+      index++;
+    }
+  }
+
+  markdown += '```\n\n';
+  return markdown;
+}
+
+/**
+ * Format components section
+ * @param items Components or layers data
+ * @returns Formatted markdown string
+ */
+function formatComponents(items: any): string {
+  let markdown = '## Components\n\n';
+
+  if (Array.isArray(items)) {
+    items.forEach((item: any) => {
+      const name = item.name || item.component || item.layer || 'Unknown';
+      const desc = item.description || item.purpose || 'No description';
+      const tech = item.technologies || item.tech || [];
+
+      markdown += `### ${name}\n\n`;
+      markdown += `${desc}\n\n`;
+
+      if (Array.isArray(tech) && tech.length > 0) {
+        markdown += `**Technologies:** ${tech.join(', ')}\n\n`;
+      }
+
+      if (item.responsibilities && Array.isArray(item.responsibilities)) {
+        markdown += '**Responsibilities:**\n';
+        item.responsibilities.forEach((resp: string) => {
+          markdown += `- ${resp}\n`;
+        });
+        markdown += '\n';
+      }
+    });
+  } else if (typeof items === 'object') {
+    for (const [key, value] of Object.entries(items)) {
+      markdown += `### ${key}\n\n`;
+      if (typeof value === 'string') {
+        markdown += `${value}\n\n`;
+      } else {
+        const desc = (value as any).description || 'No description';
+        markdown += `${desc}\n\n`;
+      }
+    }
+  }
+
+  return markdown;
+}
+
+/**
+ * Format data flow diagram
+ * @param flow Data flow array
+ * @returns Formatted markdown string
+ */
+function formatDataFlow(flow: any[]): string {
+  let markdown = '## Data Flow\n\n';
+  markdown += '```mermaid\nsequenceDiagram\n';
+
+  if (Array.isArray(flow)) {
+    flow.forEach((step: any) => {
+      if (step.from && step.to) {
+        const action = step.action || step.message || 'interacts with';
+        markdown += `    ${step.from}->>${step.to}: ${action}\n`;
+      }
+    });
+  }
+
+  markdown += '```\n\n';
+  return markdown;
+}
+
+/**
+ * Format architectural patterns section
+ * @param patterns Patterns array
+ * @returns Formatted markdown string
+ */
+function formatPatterns(patterns: any[]): string {
+  let markdown = '## Architectural Patterns\n\n';
+  if (Array.isArray(patterns)) {
+    patterns.forEach((pattern: any) => {
+      if (typeof pattern === 'string') {
+        markdown += `- ${pattern}\n`;
+      } else {
+        const name = pattern.name || pattern.pattern || 'Unknown';
+        const desc = pattern.description || '';
+        markdown += `- **${name}**${desc ? `: ${desc}` : ''}\n`;
+      }
+    });
+  }
+  markdown += '\n';
+  return markdown;
+}
+
+/**
+ * Format issues section with priority grouping
+ * @param issues Issues array
+ * @returns Formatted markdown string
+ */
+function formatIssues(issues: any[]): string {
+  let markdown = '## Architectural Issues\n\n';
+
+  if (!Array.isArray(issues)) {
+    return markdown;
+  }
+
+  // Group issues by priority
+  const highPriority = issues.filter((i) => i.priority === 'high');
+  const mediumPriority = issues.filter((i) => i.priority === 'medium');
+  const lowPriority = issues.filter((i) => i.priority === 'low');
+  const unclassified = issues.filter(
+    (i) => !i.priority || !['high', 'medium', 'low'].includes(i.priority),
+  );
+
+  if (highPriority.length > 0) {
+    markdown += '### High Priority\n\n';
+    highPriority.forEach((issue: any) => {
+      markdown += formatIssue(issue);
+    });
+  }
+
+  if (mediumPriority.length > 0) {
+    markdown += '### Medium Priority\n\n';
+    mediumPriority.forEach((issue: any) => {
+      markdown += formatIssue(issue);
+    });
+  }
+
+  if (lowPriority.length > 0) {
+    markdown += '### Low Priority\n\n';
+    lowPriority.forEach((issue: any) => {
+      markdown += formatIssue(issue);
+    });
+  }
+
+  if (
+    unclassified.length > 0 &&
+    highPriority.length + mediumPriority.length + lowPriority.length === 0
+  ) {
+    // Only show unclassified if there are no classified issues
+    unclassified.forEach((issue: any) => {
+      markdown += formatIssue(issue);
+    });
+  }
+
+  markdown += '\n';
+  return markdown;
+}
+
+/**
+ * Format recommendations section
+ * @param recommendations Recommendations array
+ * @returns Formatted markdown string
+ */
+function formatRecommendations(recommendations: any[]): string {
+  let markdown = '## Recommendations\n\n';
+  if (Array.isArray(recommendations)) {
+    recommendations.forEach((rec: any) => {
+      if (typeof rec === 'string') {
+        markdown += `- ${rec}\n`;
+      } else {
+        const title = rec.title || rec.recommendation || 'Recommendation';
+        const desc = rec.description || rec.details || '';
+        markdown += `- **${title}**${desc ? `: ${desc}` : ''}\n`;
+        if (rec.priority) {
+          markdown += `  - Priority: ${rec.priority}\n`;
+        }
+        if (rec.effort) {
+          markdown += `  - Effort: ${rec.effort}\n`;
+        }
+      }
+    });
+  }
+  markdown += '\n';
+  return markdown;
+}
+
+/**
+ * Format tech stack section
+ * @param tech Tech stack data
+ * @returns Formatted markdown string
+ */
+function formatTechStack(tech: any): string {
+  let markdown = '## Technology Stack\n\n';
+
+  if (Array.isArray(tech)) {
+    tech.forEach((item: any) => {
+      if (typeof item === 'string') {
+        markdown += `- ${item}\n`;
+      } else {
+        const name = item.name || item.technology || 'Unknown';
+        const version = item.version || '';
+        const purpose = item.purpose || item.usage || '';
+        markdown += `- **${name}**${version ? ` v${version}` : ''}${purpose ? `: ${purpose}` : ''}\n`;
+      }
+    });
+  } else if (typeof tech === 'object') {
+    for (const [category, items] of Object.entries(tech)) {
+      markdown += `### ${category}\n`;
+      if (Array.isArray(items)) {
+        items.forEach((item: any) => {
+          markdown += `- ${item}\n`;
+        });
+      }
+      markdown += '\n';
+    }
+  }
+  markdown += '\n';
+  return markdown;
+}
+
+/**
  * Convert JSON architectural review data to Markdown format with diagrams
  *
  * WHY: OpenRouter models often return JSON even when Markdown is requested.
@@ -34,273 +343,41 @@ function convertJsonArchitectureToMarkdown(jsonData: any): string {
     // Generate Mermaid diagram from components/layers
     if (jsonData.components || jsonData.layers) {
       const items = jsonData.components || jsonData.layers;
-      markdown += '## System Architecture\n\n';
-      markdown += '```mermaid\ngraph TB\n';
-
-      // Create nodes for each component
-      if (Array.isArray(items)) {
-        items.forEach((item: any, index: number) => {
-          const id = `C${index}`;
-          const name = item.name || item.component || item.layer || `Component${index}`;
-          const desc = item.description || item.purpose || '';
-          markdown += `    ${id}["${name}${desc ? `<br/>${desc.substring(0, 50)}` : ''}"]\n`;
-        });
-
-        // Add relationships if available
-        if (jsonData.dependencies) {
-          markdown += '\n';
-          jsonData.dependencies.forEach((dep: any) => {
-            const fromIndex = items.findIndex(
-              (i: any) => (i.name || i.component || i.layer) === dep.from,
-            );
-            const toIndex = items.findIndex(
-              (i: any) => (i.name || i.component || i.layer) === dep.to,
-            );
-            if (fromIndex >= 0 && toIndex >= 0) {
-              markdown += `    C${fromIndex} --> C${toIndex}\n`;
-            }
-          });
-        }
-      } else if (typeof items === 'object') {
-        // Handle object format
-        let index = 0;
-        for (const [key, value] of Object.entries(items)) {
-          const id = `C${index}`;
-          const desc = typeof value === 'string' ? value : (value as any).description || '';
-          markdown += `    ${id}["${key}${desc ? `<br/>${desc.substring(0, 50)}` : ''}"]\n`;
-          index++;
-        }
-      }
-
-      markdown += '```\n\n';
+      markdown += generateMermaidDiagram(items, jsonData.dependencies);
     }
 
     // Add components/layers details
     if (jsonData.components || jsonData.layers) {
       const items = jsonData.components || jsonData.layers;
-      markdown += '## Components\n\n';
-
-      if (Array.isArray(items)) {
-        items.forEach((item: any) => {
-          const name = item.name || item.component || item.layer || 'Unknown';
-          const desc = item.description || item.purpose || 'No description';
-          const tech = item.technologies || item.tech || [];
-
-          markdown += `### ${name}\n\n`;
-          markdown += `${desc}\n\n`;
-
-          if (Array.isArray(tech) && tech.length > 0) {
-            markdown += `**Technologies:** ${tech.join(', ')}\n\n`;
-          }
-
-          if (item.responsibilities && Array.isArray(item.responsibilities)) {
-            markdown += '**Responsibilities:**\n';
-            item.responsibilities.forEach((resp: string) => {
-              markdown += `- ${resp}\n`;
-            });
-            markdown += '\n';
-          }
-        });
-      } else if (typeof items === 'object') {
-        for (const [key, value] of Object.entries(items)) {
-          markdown += `### ${key}\n\n`;
-          if (typeof value === 'string') {
-            markdown += `${value}\n\n`;
-          } else {
-            const desc = (value as any).description || 'No description';
-            markdown += `${desc}\n\n`;
-          }
-        }
-      }
+      markdown += formatComponents(items);
     }
 
     // Add data flow diagram if available
     if (jsonData.dataFlow || jsonData.flow) {
       const flow = jsonData.dataFlow || jsonData.flow;
-      markdown += '## Data Flow\n\n';
-      markdown += '```mermaid\nsequenceDiagram\n';
-
-      if (Array.isArray(flow)) {
-        flow.forEach((step: any) => {
-          if (step.from && step.to) {
-            const action = step.action || step.message || 'interacts with';
-            markdown += `    ${step.from}->>${step.to}: ${action}\n`;
-          }
-        });
-      }
-
-      markdown += '```\n\n';
+      markdown += formatDataFlow(flow);
     }
 
     // Add architectural patterns
     if (jsonData.patterns) {
-      markdown += '## Architectural Patterns\n\n';
-      if (Array.isArray(jsonData.patterns)) {
-        jsonData.patterns.forEach((pattern: any) => {
-          if (typeof pattern === 'string') {
-            markdown += `- ${pattern}\n`;
-          } else {
-            const name = pattern.name || pattern.pattern || 'Unknown';
-            const desc = pattern.description || '';
-            markdown += `- **${name}**${desc ? `: ${desc}` : ''}\n`;
-          }
-        });
-      }
-      markdown += '\n';
+      markdown += formatPatterns(jsonData.patterns);
     }
 
     // Add issues/concerns
     if (jsonData.issues || jsonData.concerns) {
       const issues = jsonData.issues || jsonData.concerns;
-      markdown += '## Architectural Issues\n\n';
-
-      if (Array.isArray(issues)) {
-        // Group issues by priority if they have priority field
-        const highPriority = issues.filter((i) => i.priority === 'high');
-        const mediumPriority = issues.filter((i) => i.priority === 'medium');
-        const lowPriority = issues.filter((i) => i.priority === 'low');
-        const unclassified = issues.filter(
-          (i) => !i.priority || !['high', 'medium', 'low'].includes(i.priority),
-        );
-
-        if (highPriority.length > 0) {
-          markdown += '### High Priority\n\n';
-          highPriority.forEach((issue: any) => {
-            markdown += formatIssue(issue);
-          });
-        }
-
-        if (mediumPriority.length > 0) {
-          markdown += '### Medium Priority\n\n';
-          mediumPriority.forEach((issue: any) => {
-            markdown += formatIssue(issue);
-          });
-        }
-
-        if (lowPriority.length > 0) {
-          markdown += '### Low Priority\n\n';
-          lowPriority.forEach((issue: any) => {
-            markdown += formatIssue(issue);
-          });
-        }
-
-        if (
-          unclassified.length > 0 &&
-          highPriority.length + mediumPriority.length + lowPriority.length === 0
-        ) {
-          // Only show unclassified if there are no classified issues
-          unclassified.forEach((issue: any) => {
-            markdown += formatIssue(issue);
-          });
-        }
-      }
-      markdown += '\n';
-    }
-
-    // Helper function to format an issue
-    function formatIssue(issue: any): string {
-      let result = '';
-
-      if (typeof issue === 'string') {
-        result += `- ⚠️ ${issue}\n`;
-      } else {
-        const title = issue.title || issue.name || '';
-        const severity = issue.severity || issue.priority || 'medium';
-        const desc = issue.description || issue.issue || issue.concern || 'Unknown issue';
-        const type = issue.type || '';
-        const filePath = issue.filePath || '';
-        const lineNumbers = issue.lineNumbers || '';
-        const codeSnippet = issue.codeSnippet || '';
-        const suggestedFix = issue.suggestedFix || issue.recommendation || '';
-        const impact = issue.impact || '';
-
-        const emoji = severity === 'high' ? '🔴' : severity === 'medium' ? '🟡' : '🟢';
-
-        // Format the issue with title if available
-        if (title) {
-          result += `#### ${emoji} ${title}\n\n`;
-        } else {
-          result += `- ${emoji} **${severity.toUpperCase()}**\n\n`;
-        }
-
-        // Add type and location info
-        if (type || filePath) {
-          result += `**Type:** ${type}${filePath ? ` | **File:** \`${filePath}\`` : ''}${lineNumbers ? ` (lines ${lineNumbers})` : ''}\n\n`;
-        }
-
-        // Add description
-        result += `${desc}\n\n`;
-
-        // Add code snippet if available
-        if (codeSnippet) {
-          result += `**Code:**\n\`\`\`typescript\n${codeSnippet}\n\`\`\`\n\n`;
-        }
-
-        // Add impact
-        if (impact) {
-          result += `**Impact:** ${impact}\n\n`;
-        }
-
-        // Add suggested fix
-        if (suggestedFix) {
-          result += `**Suggested Fix:** ${suggestedFix}\n\n`;
-        }
-      }
-
-      return result;
+      markdown += formatIssues(issues);
     }
 
     // Add recommendations
     if (jsonData.recommendations) {
-      markdown += '## Recommendations\n\n';
-      if (Array.isArray(jsonData.recommendations)) {
-        jsonData.recommendations.forEach((rec: any) => {
-          if (typeof rec === 'string') {
-            markdown += `- ${rec}\n`;
-          } else {
-            const title = rec.title || rec.recommendation || 'Recommendation';
-            const desc = rec.description || rec.details || '';
-            markdown += `- **${title}**${desc ? `: ${desc}` : ''}\n`;
-            if (rec.priority) {
-              markdown += `  - Priority: ${rec.priority}\n`;
-            }
-            if (rec.effort) {
-              markdown += `  - Effort: ${rec.effort}\n`;
-            }
-          }
-        });
-      }
-      markdown += '\n';
+      markdown += formatRecommendations(jsonData.recommendations);
     }
 
     // Add tech stack if available
     if (jsonData.techStack || jsonData.technologies) {
       const tech = jsonData.techStack || jsonData.technologies;
-      markdown += '## Technology Stack\n\n';
-
-      if (Array.isArray(tech)) {
-        tech.forEach((item: any) => {
-          if (typeof item === 'string') {
-            markdown += `- ${item}\n`;
-          } else {
-            const name = item.name || item.technology || 'Unknown';
-            const version = item.version || '';
-            const purpose = item.purpose || item.usage || '';
-            markdown += `- **${name}**${version ? ` v${version}` : ''}${purpose ? `: ${purpose}` : ''}\n`;
-          }
-        });
-      } else if (typeof tech === 'object') {
-        for (const [category, items] of Object.entries(tech)) {
-          markdown += `### ${category}\n`;
-          if (Array.isArray(items)) {
-            items.forEach((item: any) => {
-              markdown += `- ${item}\n`;
-            });
-          }
-          markdown += '\n';
-        }
-      }
-      markdown += '\n';
+      markdown += formatTechStack(tech);
     }
 
     return markdown;
