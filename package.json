@@ -1,6 +1,6 @@
 {
   "name": "@bobmatnyc/ai-code-review",
-  "version": "4.6.1",
+  "version": "4.6.2",
   "description": "A TypeScript-based tool for automated code reviews using AI models from Google Gemini, Anthropic Claude, and OpenRouter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

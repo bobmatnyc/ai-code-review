@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.2] - 2025-12-18
+
+### Changes
+- fix: Resolve npm audit vulnerabilities via overrides (fd4dc63)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.2
+```
+
+
 ## [4.6.1] - 2025-12-18
 
 ### Changes
