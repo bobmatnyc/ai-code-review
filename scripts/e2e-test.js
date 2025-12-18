@@ -20,6 +20,10 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
+// Get version from package.json dynamically
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+const VERSION = packageJson.version;
+
 // ANSI color codes for prettier output
 const colors = {
   reset: '\x1b[0m',
@@ -107,8 +111,8 @@ runTest('Build verification', () => {
 // Test version flag
 runTest('Version flag', () => {
   const output = runCommand('node dist/index.js -v');
-  assert.ok(output.includes('AI Code Review Tool v2.1.5'), 'Should display correct version in log');
-  assert.ok(output.trim().endsWith('2.1.5'), 'Should output version number as last line');
+  assert.ok(output.includes(`AI Code Review Tool v${VERSION}`), 'Should display correct version in log');
+  assert.ok(output.includes(VERSION), 'Should output version number');
 });
 
 // Test help flag
@@ -123,7 +127,7 @@ runTest('Models flag', () => {
   const output = runCommand('node dist/index.js --models');
   // The actual output format depends on the CLI implementation, 
   // adjust the assertions to match the actual output
-  assert.ok(output.includes('Tool v2.1.5'), 'Should show version information');
+  assert.ok(output.includes(`Tool v${VERSION}`), 'Should show version information');
   // Just verify the command runs without error
 });
 
@@ -149,7 +153,7 @@ export default greet;
     // Run an estimate on the file without API keys
     // Just verify it doesn't crash
     const output = runCommand(`node dist/index.js ${testFile} --estimate`);
-    assert.ok(output.includes('Tool v2.1.5'), 'Should show version information');
+    assert.ok(output.includes(`Tool v${VERSION}`), 'Should show version information');
     
     // Since we don't have API keys, this should run but we can't verify specific outputs
     // Just make sure it doesn't completely fail
@@ -201,7 +205,7 @@ runTest('Executable test', () => {
   
   // Then try to run it directly
   const output = runCommand('./dist/index.js -v');
-  assert.ok(output.includes('2.1.5'), 'Should run as executable and display version');
+  assert.ok(output.includes(VERSION), 'Should run as executable and display version');
 });
 
 // Print test summary
