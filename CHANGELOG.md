@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.1] - 2025-12-18
+
+### Changes
+- fix: Update e2e tests to use dynamic version from package.json (fc3bf60)
+- style: Fix linting and import organization (8981501)
+- refactor: Remove legacy compatibility layer (#81) (49c7118)
+- feat: Add fallback defaults for unknown models (#80) (6a1308d)
+- refactor: Consolidate model definitions, remove 267 lines (#79) (c5f40a5)
+- feat: Model map simplification Phase 1 (#76, #77, #78) (37c7cf3)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.1
+```
+
+
 ## [4.6.0] - 2025-12-17
 
 ### Changes
