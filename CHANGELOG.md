@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.3] - 2025-12-30
+
+### Changes
+- chore: update build artifacts (d3e4ad4)
+- fix: resolve TypeScript 'never nullish' errors in configuration files (32e59b3)
+- security: remove .mcp-vector-search from git tracking (06f0761)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.3
+```
+
+
 ## [4.6.2] - 2025-12-18
 
 ### Changes
