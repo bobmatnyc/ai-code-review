@@ -350,6 +350,14 @@ export class ConfigurationService {
   }
 
   /**
+   * Parse boolean environment variable, returning undefined if not set
+   */
+  private parseBoolEnv(envVar: string | undefined): boolean | undefined {
+    if (envVar === undefined) return undefined;
+    return envVar === 'true';
+  }
+
+  /**
    * Get API key configuration from environment variables
    */
   private getApiKeyConfig(): Partial<Config> {
@@ -414,7 +422,7 @@ export class ConfigurationService {
     return {
       debug:
         cliOptions?.debug ??
-        process.env.AI_CODE_REVIEW_DEBUG === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_DEBUG) ??
         configFile?.behavior?.debug ??
         configFile?.system?.debug ??
         false,
@@ -428,7 +436,7 @@ export class ConfigurationService {
 
       interactive:
         cliOptions?.interactive ??
-        process.env.AI_CODE_REVIEW_INTERACTIVE === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_INTERACTIVE) ??
         configFile?.behavior?.interactive ??
         configFile?.review?.interactive ??
         false,
@@ -445,28 +453,28 @@ export class ConfigurationService {
     return {
       includeTests:
         cliOptions?.includeTests ??
-        process.env.AI_CODE_REVIEW_INCLUDE_TESTS === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_INCLUDE_TESTS) ??
         configFile?.features?.include_tests ??
         configFile?.review?.include_tests ??
         false,
 
       includeProjectDocs:
         cliOptions?.includeProjectDocs ??
-        process.env.AI_CODE_REVIEW_INCLUDE_PROJECT_DOCS === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_INCLUDE_PROJECT_DOCS) ??
         configFile?.features?.include_project_docs ??
         configFile?.review?.include_project_docs ??
         true,
 
       includeDependencyAnalysis:
         cliOptions?.includeDependencyAnalysis ??
-        process.env.AI_CODE_REVIEW_INCLUDE_DEPENDENCY_ANALYSIS === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_INCLUDE_DEPENDENCY_ANALYSIS) ??
         configFile?.features?.include_dependency_analysis ??
         configFile?.review?.include_dependency_analysis ??
         true,
 
       enableSemanticChunking:
         cliOptions?.enableSemanticChunking ??
-        process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING) ??
         configFile?.features?.enable_semantic_chunking ??
         true,
     };
@@ -482,19 +490,21 @@ export class ConfigurationService {
     return {
       multiPass:
         cliOptions?.multiPass ??
-        process.env.AI_CODE_REVIEW_MULTI_PASS === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_MULTI_PASS) ??
         configFile?.features?.multi_pass ??
         false,
 
       forceSinglePass:
         cliOptions?.forceSinglePass ??
-        process.env.AI_CODE_REVIEW_FORCE_SINGLE_PASS === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_FORCE_SINGLE_PASS) ??
         configFile?.features?.force_single_pass ??
         false,
 
       contextMaintenanceFactor:
         cliOptions?.contextMaintenanceFactor ??
-        Number(process.env.AI_CODE_REVIEW_CONTEXT_MAINTENANCE_FACTOR) ??
+        (process.env.AI_CODE_REVIEW_CONTEXT_MAINTENANCE_FACTOR !== undefined
+          ? Number(process.env.AI_CODE_REVIEW_CONTEXT_MAINTENANCE_FACTOR)
+          : undefined) ??
         0.15,
     };
   }
@@ -509,15 +519,16 @@ export class ConfigurationService {
     return {
       testApi:
         cliOptions?.testApi ??
-        process.env.AI_CODE_REVIEW_TEST_API === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_TEST_API) ??
         configFile?.api?.test_api ??
         false,
 
-      estimate: cliOptions?.estimate ?? process.env.AI_CODE_REVIEW_ESTIMATE === 'true' ?? false,
+      estimate:
+        cliOptions?.estimate ?? this.parseBoolEnv(process.env.AI_CODE_REVIEW_ESTIMATE) ?? false,
 
       noConfirm:
         cliOptions?.noConfirm ??
-        process.env.AI_CODE_REVIEW_NO_CONFIRM === 'true' ??
+        this.parseBoolEnv(process.env.AI_CODE_REVIEW_NO_CONFIRM) ??
         !(configFile?.review?.confirm ?? true),
     };
   }

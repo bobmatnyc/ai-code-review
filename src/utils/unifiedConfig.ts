@@ -233,7 +233,9 @@ function buildConfiguration(cliOptions?: CliOptions): Config {
     // Behavior configuration
     debug:
       cliOptions?.debug ??
-      process.env.AI_CODE_REVIEW_DEBUG === 'true' ??
+      (process.env.AI_CODE_REVIEW_DEBUG !== undefined
+        ? process.env.AI_CODE_REVIEW_DEBUG === 'true'
+        : undefined) ??
       configFile?.behavior?.debug ??
       false,
 
@@ -258,7 +260,9 @@ function buildConfiguration(cliOptions?: CliOptions): Config {
 
     enableSemanticChunking:
       cliOptions?.enableSemanticChunking ??
-      process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'true' ??
+      (process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING !== undefined
+        ? process.env.AI_CODE_REVIEW_ENABLE_SEMANTIC_CHUNKING === 'true'
+        : undefined) ??
       configFile?.features?.enable_semantic_chunking ??
       true,
 
