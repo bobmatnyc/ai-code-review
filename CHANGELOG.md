@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.4] - 2026-01-18
+
+### Security
+- **CRITICAL**: Fixed 6 critical security vulnerabilities in dependencies (#82)
+  - Removed unused `langchain` package (0 imports in codebase)
+  - Updated `@langchain/core` to ^0.3.80 (GHSA-r399-636x-v7f6)
+  - Updated `@modelcontextprotocol/sdk` to ^1.25.2 (GHSA-8r9q-7v3j-jr4g)
+  - Updated `mem0ai` to ^2.2.1
+  - Added overrides for transitive deps: `axios` ^1.13.2, `undici` ^6.23.0, `qs` ^6.14.1
+
+### Fixed
+- Pre-commit hook configuration issues (missing `.secrets.baseline`, build loop)
+- Biome lint errors in forEach callbacks (ChunkGenerator, TokenTracker, reportFormatter, consolidateReview)
+
+### Changed
+- Codebase whitespace cleanup (264 files)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.4
+```
+
+
 ## [4.6.3] - 2025-12-30
 
 ### Changes
