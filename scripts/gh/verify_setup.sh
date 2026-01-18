@@ -29,7 +29,7 @@ done
 echo "Checking required GitHub configuration files..."
 required_files=(
     ".github/CODEOWNERS"
-    ".github/pull_request_template.md" 
+    ".github/pull_request_template.md"
     ".github/SECURITY.md"
     ".github/dependabot.yml"
     ".github/ISSUE_TEMPLATE/bug_report.yml"
@@ -48,14 +48,14 @@ done
 echo "Checking branch protection rules..."
 if gh api repos/$REPO/branches/main/protection &>/dev/null; then
     echo "✓ Main branch has protection rules"
-    
+
     # Check for required status checks
     if gh api repos/$REPO/branches/main/protection | grep -q '"required_status_checks":'; then
         echo "  ✓ Required status checks configured"
     else
         echo "  ✗ Missing required status checks"
     fi
-    
+
     # Check for pull request reviews
     if gh api repos/$REPO/branches/main/protection | grep -q '"required_pull_request_reviews":'; then
         echo "  ✓ Required pull request reviews configured"

@@ -72,20 +72,20 @@ export function useDataFetcher(endpoint: string) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-  
+
   // Unused debug variable
   const debug = process.env.NODE_ENV === 'development';
-  
+
   // Feature flag for new API - always true now
   const useNewApi = true;
-  
+
   const fetchFromApi = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       let url = \`/api/\${API_VERSION}/\${endpoint}\`;
-      
+
       // Dead code path - useNewApi is always true
       if (!useNewApi) {
         url = LEGACY_ENDPOINTS[endpoint as keyof typeof LEGACY_ENDPOINTS] || url;
@@ -103,11 +103,11 @@ export function useDataFetcher(endpoint: string) {
       setLoading(false);
     }
   }, [endpoint]);
-  
+
   useEffect(() => {
     fetchFromApi();
   }, [fetchFromApi]);
-  
+
   // Unused function - was part of a feature that was never implemented
   function transformData(rawData: any) {
     return {
@@ -115,7 +115,7 @@ export function useDataFetcher(endpoint: string) {
       timestamp: new Date().toISOString()
     };
   }
-  
+
   return { data, loading, error, refetch: fetchFromApi };
 }
   `;

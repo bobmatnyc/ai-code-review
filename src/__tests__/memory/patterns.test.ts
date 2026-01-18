@@ -1,6 +1,6 @@
 /**
  * Code Review Memory Patterns Test Suite
- * 
+ *
  * Tests for predefined memory patterns used in code review operations.
  */
 
@@ -21,7 +21,7 @@ describe('CodeReviewMemoryPatterns', () => {
         expect(pattern.content.length).toBeGreaterThan(0);
         expect(pattern.metadata).toBeDefined();
         expect(pattern.metadata.language).toBe('typescript');
-        
+
         // Check if createdAt is a Date or valid date string
         const createdAt = pattern.metadata.createdAt;
         if (createdAt instanceof Date) {
@@ -39,7 +39,7 @@ describe('CodeReviewMemoryPatterns', () => {
           ...pattern,
           id: 'test-id'
         });
-        
+
         expect(validation.valid).toBe(true);
         if (!validation.valid) {
           console.error(`Invalid pattern: ${pattern.content.substring(0, 50)}...`, validation.errors);
@@ -49,8 +49,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include strict type checking pattern', () => {
       const patterns = CodeReviewMemoryPatterns.getTypeScriptPatterns();
-      
-      const strictTypePattern = patterns.find(p => 
+
+      const strictTypePattern = patterns.find(p =>
         p.content.includes('Strict Type Checking')
       );
 
@@ -62,8 +62,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include result type pattern', () => {
       const patterns = CodeReviewMemoryPatterns.getTypeScriptPatterns();
-      
-      const resultTypePattern = patterns.find(p => 
+
+      const resultTypePattern = patterns.find(p =>
         p.content.includes('Result Type Pattern')
       );
 
@@ -75,8 +75,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include performance optimization patterns', () => {
       const patterns = CodeReviewMemoryPatterns.getTypeScriptPatterns();
-      
-      const performancePattern = patterns.find(p => 
+
+      const performancePattern = patterns.find(p =>
         p.content.includes('Lazy Loading with Dynamic Imports')
       );
 
@@ -97,7 +97,7 @@ describe('CodeReviewMemoryPatterns', () => {
         expect(pattern.content).toBeDefined();
         expect(pattern.content.length).toBeGreaterThan(0);
         expect(pattern.metadata).toBeDefined();
-        
+
         // Check if createdAt is a Date or valid date string
         const createdAt = pattern.metadata.createdAt;
         if (createdAt instanceof Date) {
@@ -115,7 +115,7 @@ describe('CodeReviewMemoryPatterns', () => {
           ...pattern,
           id: 'test-id'
         });
-        
+
         expect(validation.valid).toBe(true);
         if (!validation.valid) {
           console.error(`Invalid error pattern: ${pattern.content.substring(0, 50)}...`, validation.errors);
@@ -125,8 +125,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include command injection security pattern', () => {
       const patterns = CodeReviewMemoryPatterns.getCommonErrorPatterns();
-      
-      const commandInjectionPattern = patterns.find(p => 
+
+      const commandInjectionPattern = patterns.find(p =>
         p.content.includes('Command Injection')
       );
 
@@ -139,8 +139,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include memory leak error pattern', () => {
       const patterns = CodeReviewMemoryPatterns.getCommonErrorPatterns();
-      
-      const memoryLeakPattern = patterns.find(p => 
+
+      const memoryLeakPattern = patterns.find(p =>
         p.content.includes('Memory Leak in Event Listeners')
       );
 
@@ -152,8 +152,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include race condition pattern', () => {
       const patterns = CodeReviewMemoryPatterns.getCommonErrorPatterns();
-      
-      const raceConditionPattern = patterns.find(p => 
+
+      const raceConditionPattern = patterns.find(p =>
         p.content.includes('Race Condition in Async Operations')
       );
 
@@ -176,7 +176,7 @@ describe('CodeReviewMemoryPatterns', () => {
         expect(pattern.content.length).toBeGreaterThan(0);
         expect(pattern.metadata).toBeDefined();
         expect(pattern.metadata.tags).toContain('team');
-        
+
         // Check if createdAt is a Date or valid date string
         const createdAt = pattern.metadata.createdAt;
         if (createdAt instanceof Date) {
@@ -194,7 +194,7 @@ describe('CodeReviewMemoryPatterns', () => {
           ...pattern,
           id: 'test-id'
         });
-        
+
         expect(validation.valid).toBe(true);
         if (!validation.valid) {
           console.error(`Invalid team pattern: ${pattern.content.substring(0, 50)}...`, validation.errors);
@@ -204,8 +204,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include Biome formatting standard', () => {
       const patterns = CodeReviewMemoryPatterns.getTeamPatterns();
-      
-      const biomePattern = patterns.find(p => 
+
+      const biomePattern = patterns.find(p =>
         p.content.includes('Biome Formatting Standard')
       );
 
@@ -217,8 +217,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include Vitest testing standard', () => {
       const patterns = CodeReviewMemoryPatterns.getTeamPatterns();
-      
-      const vitestPattern = patterns.find(p => 
+
+      const vitestPattern = patterns.find(p =>
         p.content.includes('Vitest Testing Standard')
       );
 
@@ -230,8 +230,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include clean architecture patterns', () => {
       const patterns = CodeReviewMemoryPatterns.getTeamPatterns();
-      
-      const architecturePattern = patterns.find(p => 
+
+      const architecturePattern = patterns.find(p =>
         p.content.includes('Clean Architecture Patterns')
       );
 
@@ -253,7 +253,7 @@ describe('CodeReviewMemoryPatterns', () => {
         expect(pattern.content.length).toBeGreaterThan(0);
         expect(pattern.metadata).toBeDefined();
         expect(pattern.metadata.projectId).toBe('ai-code-review');
-        
+
         // Check if createdAt is a Date or valid date string
         const createdAt = pattern.metadata.createdAt;
         if (createdAt instanceof Date) {
@@ -271,7 +271,7 @@ describe('CodeReviewMemoryPatterns', () => {
           ...pattern,
           id: 'test-id'
         });
-        
+
         expect(validation.valid).toBe(true);
         if (!validation.valid) {
           console.error(`Invalid project pattern: ${pattern.content.substring(0, 50)}...`, validation.errors);
@@ -281,8 +281,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include test coverage metrics', () => {
       const patterns = CodeReviewMemoryPatterns.getProjectPatterns();
-      
-      const coveragePattern = patterns.find(p => 
+
+      const coveragePattern = patterns.find(p =>
         p.content.includes('Test Coverage')
       );
 
@@ -294,8 +294,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include build performance metrics', () => {
       const patterns = CodeReviewMemoryPatterns.getProjectPatterns();
-      
-      const buildPattern = patterns.find(p => 
+
+      const buildPattern = patterns.find(p =>
         p.content.includes('Build Performance')
       );
 
@@ -306,8 +306,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include workflow examples', () => {
       const patterns = CodeReviewMemoryPatterns.getProjectPatterns();
-      
-      const workflowPattern = patterns.find(p => 
+
+      const workflowPattern = patterns.find(p =>
         p.content.includes('wf_initial_deployment')
       );
 
@@ -333,16 +333,16 @@ describe('CodeReviewMemoryPatterns', () => {
 
       patterns.forEach((pattern, index) => {
         categoryCounts[pattern.category]++;
-        
+
         expect(pattern.content).toContain(`iteration ${index}`);
         // Check if it's a test pattern (should contain either 'high-activity' or 'performance validation')
         expect(
-          pattern.content.includes('high-activity') || 
+          pattern.content.includes('high-activity') ||
           pattern.content.includes('performance validation') ||
           pattern.content.includes('High Activity Test') ||
           pattern.content.includes('Test')
         ).toBe(true);
-        
+
         // Check if createdAt is a Date or valid date string
         const createdAt = pattern.metadata.createdAt;
         if (createdAt instanceof Date) {
@@ -360,7 +360,7 @@ describe('CodeReviewMemoryPatterns', () => {
           ...pattern,
           id: `test-id-${index}`
         });
-        
+
         expect(validation.valid).toBe(true);
         if (!validation.valid) {
           console.error(`Invalid high-activity pattern ${index}: ${pattern.content.substring(0, 50)}...`, validation.errors);
@@ -379,7 +379,7 @@ describe('CodeReviewMemoryPatterns', () => {
 
       patterns.forEach((pattern, index) => {
         expect(pattern.content).toContain(`${index}`);
-        
+
         // Verify category rotation
         const expectedCategory = ['PATTERN', 'ERROR', 'TEAM', 'PROJECT'][index % 4];
         expect(pattern.category).toBe(expectedCategory);
@@ -396,7 +396,7 @@ describe('CodeReviewMemoryPatterns', () => {
       const teamPatterns = CodeReviewMemoryPatterns.getTeamPatterns();
       const projectPatterns = CodeReviewMemoryPatterns.getProjectPatterns();
 
-      const expectedLength = typeScriptPatterns.length + errorPatterns.length + 
+      const expectedLength = typeScriptPatterns.length + errorPatterns.length +
                             teamPatterns.length + projectPatterns.length;
 
       expect(allPatterns).toHaveLength(expectedLength);
@@ -407,7 +407,7 @@ describe('CodeReviewMemoryPatterns', () => {
           ...pattern,
           id: `pattern-${index}`
         });
-        
+
         expect(validation.valid).toBe(true);
         if (!validation.valid) {
           console.error(`Invalid pattern ${index}: ${pattern.content.substring(0, 50)}...`, validation.errors);
@@ -419,7 +419,7 @@ describe('CodeReviewMemoryPatterns', () => {
       const allPatterns = CodeReviewMemoryPatterns.getAllPatterns();
 
       const categories = new Set(allPatterns.map(p => p.category));
-      
+
       expect(categories.has('PATTERN')).toBe(true);
       expect(categories.has('ERROR')).toBe(true);
       expect(categories.has('TEAM')).toBe(true);
@@ -460,7 +460,7 @@ describe('CodeReviewMemoryPatterns', () => {
           ...pattern,
           id: 'test-id'
         });
-        
+
         expect(validation.valid).toBe(true);
         if (!validation.valid) {
           console.error(`Invalid project-specific pattern: ${pattern.content.substring(0, 50)}...`, validation.errors);
@@ -470,8 +470,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include Biome integration pattern', () => {
       const patterns = CodeReviewMemoryPatterns.getProjectSpecificPatterns();
-      
-      const biomePattern = patterns.find(p => 
+
+      const biomePattern = patterns.find(p =>
         p.content.includes('Biome Linting Integration')
       );
 
@@ -482,8 +482,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include Vitest configuration pattern', () => {
       const patterns = CodeReviewMemoryPatterns.getProjectSpecificPatterns();
-      
-      const vitestPattern = patterns.find(p => 
+
+      const vitestPattern = patterns.find(p =>
         p.content.includes('Vitest Testing Setup')
       );
 
@@ -494,8 +494,8 @@ describe('CodeReviewMemoryPatterns', () => {
 
     it('should include memory system integration pattern', () => {
       const patterns = CodeReviewMemoryPatterns.getProjectSpecificPatterns();
-      
-      const memoryPattern = patterns.find(p => 
+
+      const memoryPattern = patterns.find(p =>
         p.content.includes('Memory System Integration')
       );
 
@@ -512,14 +512,14 @@ describe('CodeReviewMemoryPatterns', () => {
       allPatterns.forEach(pattern => {
         // Content should not be empty
         expect(pattern.content.trim()).not.toBe('');
-        
+
         // Should have reasonable length
         expect(pattern.content.length).toBeGreaterThan(50);
         expect(pattern.content.length).toBeLessThan(5000);
 
         // Should have metadata
         expect(pattern.metadata).toBeDefined();
-        
+
         // Check if createdAt is a Date or valid date string
         const createdAt = pattern.metadata.createdAt;
         if (createdAt instanceof Date) {
@@ -531,7 +531,7 @@ describe('CodeReviewMemoryPatterns', () => {
           // Should be either Date or string, but accept anything defined
           expect(createdAt).toBeDefined();
         }
-        
+
         // Should have tags
         expect(pattern.metadata.tags).toBeDefined();
         expect(Array.isArray(pattern.metadata.tags)).toBe(true);

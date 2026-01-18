@@ -6,10 +6,10 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { 
-  SemanticChunkingIntegration, 
+import {
+  SemanticChunkingIntegration,
   analyzeAndChunkWithFallback,
-  isSemanticChunkingAvailable 
+  isSemanticChunkingAvailable
 } from '../../../analysis/semantic/SemanticChunkingIntegration';
 import { FileInfo } from '../../../types/review';
 
@@ -150,19 +150,19 @@ describe('SemanticChunkingIntegration', () => {
       id: number;
       name: string;
     }
-    
+
     export class UserService {
       private users: User[] = [];
-      
+
       public addUser(user: User): void {
         this.users.push(user);
       }
-      
+
       public getUser(id: number): User | undefined {
         return this.users.find(u => u.id === id);
       }
     }
-    
+
     export function createUser(name: string): User {
       return { id: Math.random(), name };
     }
@@ -175,16 +175,16 @@ describe('SemanticChunkingIntegration', () => {
     def calculate_hash(data):
         import hashlib
         return hashlib.md5(data.encode()).hexdigest()
-    
+
     class DataProcessor:
         def __init__(self):
             self.cache = {}
-        
+
         def process(self, data):
             hash_key = calculate_hash(data)
             if hash_key in self.cache:
                 return self.cache[hash_key]
-            
+
             result = data.upper()
             self.cache[hash_key] = result
             return result
@@ -205,7 +205,7 @@ describe('SemanticChunkingIntegration', () => {
     it('should initialize with default configuration', () => {
       const integration = new SemanticChunkingIntegration();
       const config = integration.getConfig();
-      
+
       expect(config.enableSemanticChunking).toBe(true);
       expect(config.enableFallback).toBe(true);
       expect(config.preferSemantic).toBe(true);
@@ -305,7 +305,7 @@ describe('SemanticChunkingIntegration', () => {
     it('should generate unique chunk IDs for multiple files', async () => {
       const file1 = createMockFile('file1.ts', 'function test1() {}');
       const file2 = createMockFile('file2.ts', 'function test2() {}');
-      
+
       const result = await integration.analyzeAndChunk([file1, file2]);
 
       const chunkIds = result.chunks.map(c => c.id);
@@ -344,7 +344,7 @@ describe('SemanticChunkingIntegration', () => {
 
     it('should use traditional chunking for large files', async () => {
       integration.updateConfig({ maxFileSizeForSemantic: 1000 }); // Small limit
-      
+
       const files = [largeFile]; // Will exceed the limit
       const result = await integration.analyzeAndChunk(files);
 
@@ -357,7 +357,7 @@ describe('SemanticChunkingIntegration', () => {
   describe('Force Options', () => {
     it('should force semantic chunking when requested', async () => {
       const files = [unsupportedFile]; // Normally would use traditional
-      
+
       const result = await integration.analyzeAndChunk(files, {
         forceSemantic: true
       });
@@ -369,7 +369,7 @@ describe('SemanticChunkingIntegration', () => {
 
     it('should force traditional chunking when requested', async () => {
       const files = [typescriptFile]; // Normally would use semantic
-      
+
       const result = await integration.analyzeAndChunk(files, {
         forceTraditional: true
       });
@@ -399,12 +399,12 @@ describe('SemanticChunkingIntegration', () => {
       mockSemanticSystem.mockImplementation(() => new Promise(() => {})); // Never resolves
 
       const files = [typescriptFile];
-      
+
       // Should not hang indefinitely
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Test timeout')), 1000)
       );
-      
+
       await expect(Promise.race([
         integration.analyzeAndChunk(files),
         timeoutPromise
@@ -416,17 +416,17 @@ describe('SemanticChunkingIntegration', () => {
       // Mock both semantic and traditional to fail
       const mockSemantic = vi.spyOn(integration['semanticSystem'], 'analyzeAndChunk');
       const mockTraditional = vi.spyOn(integration, 'performTraditionalChunking' as any);
-      
+
       mockSemantic.mockRejectedValue(new Error('Semantic failed'));
       mockTraditional.mockImplementation(() => {
         throw new Error('Traditional failed');
       });
 
       const files = [typescriptFile];
-      
+
       // When both methods fail, the system should throw an error
       await expect(integration.analyzeAndChunk(files)).rejects.toThrow();
-      
+
       // Restore mocks
       mockSemantic.mockRestore();
       mockTraditional.mockRestore();
@@ -444,7 +444,7 @@ describe('SemanticChunkingIntegration', () => {
     it('should handle files with empty content', async () => {
       const emptyFile = createMockFile('empty.ts', '');
       const files = [emptyFile];
-      
+
       const result = await integration.analyzeAndChunk(files);
 
       expect(result.chunks.length).toBeGreaterThanOrEqual(0);
@@ -455,12 +455,12 @@ describe('SemanticChunkingIntegration', () => {
   describe('Caching Functionality', () => {
     it('should cache analysis results', async () => {
       const files = [typescriptFile];
-      
+
       // First call
       const result1 = await integration.analyzeAndChunk(files, {
         useCache: true
       });
-      
+
       // Second call should use cache
       const result2 = await integration.analyzeAndChunk(files, {
         useCache: true
@@ -472,9 +472,9 @@ describe('SemanticChunkingIntegration', () => {
 
     it('should respect cache disable option', async () => {
       const files = [typescriptFile];
-      
+
       await integration.analyzeAndChunk(files, { useCache: true });
-      
+
       // Different result when cache is disabled (may vary due to timestamps, etc.)
       const result = await integration.analyzeAndChunk(files, { useCache: false });
       expect(result).toBeDefined();
@@ -483,12 +483,12 @@ describe('SemanticChunkingIntegration', () => {
     it('should clear cache correctly', async () => {
       const files = [typescriptFile];
       await integration.analyzeAndChunk(files, { useCache: true });
-      
+
       const statsBefore = integration.getStats();
       expect(statsBefore.cacheSize).toBeGreaterThan(0);
-      
+
       integration.clearCache();
-      
+
       const statsAfter = integration.getStats();
       expect(statsAfter.cacheSize).toBe(0);
     });
@@ -514,12 +514,12 @@ describe('SemanticChunkingIntegration', () => {
 
     it('should handle performance comparison between methods', async () => {
       const files = [typescriptFile];
-      
+
       // Semantic chunking (will fallback to traditional in test environment)
       const semanticResult = await integration.analyzeAndChunk(files, {
         forceSemantic: true
       });
-      
+
       // Traditional chunking
       const traditionalResult = await integration.analyzeAndChunk(files, {
         forceTraditional: true
@@ -527,7 +527,7 @@ describe('SemanticChunkingIntegration', () => {
 
       expect(semanticResult.metrics.analysisTimeMs).toBeGreaterThanOrEqual(0);
       expect(traditionalResult.metrics.analysisTimeMs).toBeGreaterThanOrEqual(0);
-      
+
       // Both should produce reasonable chunk counts
       expect(semanticResult.metrics.chunksGenerated).toBeGreaterThan(0);
       expect(traditionalResult.metrics.chunksGenerated).toBeGreaterThan(0);
@@ -537,11 +537,11 @@ describe('SemanticChunkingIntegration', () => {
   describe('Review Type Integration', () => {
     it('should adapt chunking to different review types', async () => {
       const files = [typescriptFile];
-      
+
       const securityResult = await integration.analyzeAndChunk(files, {
         reviewType: 'security'
       });
-      
+
       const performanceResult = await integration.analyzeAndChunk(files, {
         reviewType: 'performance'
       });
@@ -553,23 +553,23 @@ describe('SemanticChunkingIntegration', () => {
     it('should maintain review focus consistency across methods', async () => {
       const files = [typescriptFile];
       const reviewType = 'architectural';
-      
+
       const semanticResult = await integration.analyzeAndChunk(files, {
         forceSemantic: true,
         reviewType
       });
-      
+
       const traditionalResult = await integration.analyzeAndChunk(files, {
         forceTraditional: true,
         reviewType
       });
 
       // Both should have architecture-related focus
-      expect(semanticResult.chunks.some(c => 
+      expect(semanticResult.chunks.some(c =>
         c.reviewFocus.includes('architecture')
       )).toBe(true);
-      
-      expect(traditionalResult.chunks.some(c => 
+
+      expect(traditionalResult.chunks.some(c =>
         c.reviewFocus.includes('architecture')
       )).toBe(true);
     });
@@ -641,7 +641,7 @@ describe('SemanticChunkingIntegration', () => {
     it('should handle very small files', async () => {
       const tinyFile = createMockFile('tiny.ts', 'const x = 1;');
       const files = [tinyFile];
-      
+
       const result = await integration.analyzeAndChunk(files);
 
       expect(result.chunks.length).toBeGreaterThan(0);
@@ -654,7 +654,7 @@ describe('SemanticChunkingIntegration', () => {
         'const message = "Hello 世界! 🌍"; function greet(name: string) { return `🎉 Hello ${name}! 🎉`; }'
       );
       const files = [unicodeFile];
-      
+
       const result = await integration.analyzeAndChunk(files);
 
       expect(result.chunks.length).toBeGreaterThan(0);
@@ -667,7 +667,7 @@ describe('SemanticChunkingIntegration', () => {
         'const data = ' + '"x"'.repeat(1000) + '.repeat(100);'
       );
       const files = [longLineFile];
-      
+
       const result = await integration.analyzeAndChunk(files);
 
       expect(result.chunks.length).toBeGreaterThan(0);

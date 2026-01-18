@@ -13,7 +13,7 @@ function listFiles(directory, extension, callback) {
 // Set project root path for correct file references
 const projectRoot = path.join(__dirname, '../..');
 
-    
+
     const files = stdout.trim().split('\n').filter(Boolean);
     callback(null, files);
   });
@@ -28,9 +28,9 @@ const projects = [
 
 projects.forEach(project => {
   const projectDir = path.join('/Users/masa/Projects/ai-code-review/test-projects', project);
-  
+
   console.log(`\n====== Testing ${project} project ======`);
-  
+
   // Define relevant extensions for each project
   let extensions = [];
   if (project === 'typescript') {
@@ -40,7 +40,7 @@ projects.forEach(project => {
   } else if (project === 'php') {
     extensions = ['php', 'json'];
   }
-  
+
   // Check each extension
   extensions.forEach(ext => {
     listFiles(projectDir, ext, (err, files) => {
@@ -48,7 +48,7 @@ projects.forEach(project => {
         console.error(`Error listing ${ext} files:`, err);
         return;
       }
-      
+
       console.log(`\nFound ${files.length} ${ext} files:`);
       files.forEach(file => {
         console.log(`  - ${path.relative(projectDir, file)}`);

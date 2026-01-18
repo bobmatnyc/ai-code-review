@@ -14,7 +14,7 @@ describe('CSS Framework Detection', () => {
     expect(result).not.toBeNull();
     expect(result?.cssFrameworks).toBeDefined();
     expect(result?.cssFrameworks?.length).toBeGreaterThan(0);
-    
+
     // Find TailwindCSS in CSS frameworks
     const tailwind = result?.cssFrameworks?.find(cf => cf.name === 'tailwind');
     expect(tailwind).toBeDefined();
@@ -25,10 +25,10 @@ describe('CSS Framework Detection', () => {
   it('should include CSS framework information in the detection result', async () => {
     const result = await detectFramework(path.join(testProjectsPath, 'node/react-app'));
     expect(result).not.toBeNull();
-    
+
     // Log the detection result for debugging
     console.log('CSS Framework Detection Result:', JSON.stringify(result?.cssFrameworks, null, 2));
-    
+
     // Verify the structure of the result
     if (result?.cssFrameworks && result.cssFrameworks.length > 0) {
       const framework = result.cssFrameworks[0];

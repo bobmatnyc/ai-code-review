@@ -2,7 +2,7 @@
 
 /**
  * Test script for tool calling with a mock SERPAPI implementation
- * 
+ *
  * This script temporarily replaces the serpApiHelper.ts file with our mock implementation,
  * then runs the tests for both OpenAI and Anthropic tool calling.
  */
@@ -67,20 +67,20 @@ try {
   console.log('\n\x1b[36mBacking up original serpApiHelper.ts...\x1b[0m');
   fs.copyFileSync(serpApiHelperPath, backupHelperPath);
   console.log('Backup created at: ' + backupHelperPath);
-  
+
   // Install mock implementation
   console.log('\n\x1b[36mInstalling mock implementation...\x1b[0m');
   fs.copyFileSync(mockHelperPath, serpApiHelperPath);
   console.log('Mock implementation installed');
-  
+
   // Set dummy SERPAPI_KEY for testing
   process.env.SERPAPI_KEY = 'MOCK-NOT-REAL-serpapi-key';
-  
+
   // Create our own minimal test instead of running the full CLI
   const mockInitializer = require('../../../src/clients/mockInitializer.ts');
   const { extractPackageInfo } = require('../../../src/utils/dependencies/packageAnalyzer');
   const { searchPackageSecurity, batchSearchPackageSecurity } = require('../../../src/utils/dependencies/serpApiHelper');
-  
+
   // Test OpenAI if selected
   if (testOpenAI) {
     console.log('\n\x1b[33m=== Testing OpenAI Tool Calling ===\x1b[0m');
@@ -89,7 +89,7 @@ try {
       console.log('Extracting package information...');
       const packageResults = await extractPackageInfo(testDir);
       console.log(`Found ${packageResults.length} package files`);
-      
+
       // Log found packages
       for (const result of packageResults) {
         if (result.npm) {
@@ -98,14 +98,14 @@ try {
             console.log(`  - ${pkg.name}${pkg.version ? ` (${pkg.version})` : ''}`);
           });
         }
-        
+
         if (result.python) {
           console.log(`Found ${result.python.length} Python packages in ${result.filename}`);
           result.python.forEach(pkg => {
             console.log(`  - ${pkg.name}${pkg.constraint ? ` (${pkg.constraint})` : ''}`);
           });
         }
-        
+
         if (result.composer) {
           console.log(`Found ${result.composer.length} PHP packages in ${result.filename}`);
           result.composer.forEach(pkg => {
@@ -113,7 +113,7 @@ try {
           });
         }
       }
-      
+
       // Test searching for package security info
       console.log('\nTesting security search for axios...');
       const axiosInfo = await searchPackageSecurity({ name: 'axios', version: '0.21.1' }, 'npm');
@@ -122,7 +122,7 @@ try {
         console.log(`  Severity: ${axiosInfo.vulnerabilities[0].severity}`);
         console.log(`  Recommended version: ${axiosInfo.recommendedVersion}`);
       }
-      
+
       // Test batch searching
       console.log('\nTesting batch security search...');
       const packages = packageResults.find(r => r.npm)?.npm || [];
@@ -133,7 +133,7 @@ try {
           console.log(`  - ${result.packageName}: ${result.vulnerabilities.length} vulnerabilities`);
         });
       }
-      
+
       // Mock the architectural review call
       console.log('\nGenerating mock OpenAI architectural review...');
       const files = [{ relativePath: 'test.js', content: 'const test = 1;', path: '/test.js' }];
@@ -141,13 +141,13 @@ try {
       console.log('Mock review generated successfully:');
       console.log(`  Model: ${review.modelUsed}`);
       console.log(`  Content length: ${review.content.length} characters`);
-      
+
       console.log('\n\x1b[32m=== OpenAI Tool Calling Test Completed ===\x1b[0m');
     } catch (error) {
       console.error('\n\x1b[31mOpenAI test failed:\x1b[0m', error.message);
     }
   }
-  
+
   // Test Anthropic if selected
   if (testAnthropic) {
     console.log('\n\x1b[33m=== Testing Anthropic Tool Calling ===\x1b[0m');
@@ -156,7 +156,7 @@ try {
       console.log('Extracting package information...');
       const packageResults = await extractPackageInfo(testDir);
       console.log(`Found ${packageResults.length} package files`);
-      
+
       // Test searching for package security info
       console.log('\nTesting security search for node-forge...');
       const forgeInfo = await searchPackageSecurity({ name: 'node-forge', version: '0.9.0' }, 'npm');
@@ -165,7 +165,7 @@ try {
         console.log(`  Severity: ${forgeInfo.vulnerabilities[0].severity}`);
         console.log(`  Recommended version: ${forgeInfo.recommendedVersion}`);
       }
-      
+
       // Mock the architectural review call
       console.log('\nGenerating mock Anthropic architectural review...');
       const files = [{ relativePath: 'test.js', content: 'const test = 1;', path: '/test.js' }];
@@ -173,13 +173,13 @@ try {
       console.log('Mock review generated successfully:');
       console.log(`  Model: ${review.modelUsed}`);
       console.log(`  Content length: ${review.content.length} characters`);
-      
+
       console.log('\n\x1b[32m=== Anthropic Tool Calling Test Completed ===\x1b[0m');
     } catch (error) {
       console.error('\n\x1b[31mAnthropic test failed:\x1b[0m', error.message);
     }
   }
-  
+
   console.log('\n\x1b[36m=== All Tests Completed ===\x1b[0m');
 } catch (error) {
   console.error('\x1b[31mERROR:\x1b[0m', error.message);

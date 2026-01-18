@@ -22,18 +22,18 @@ describe('ReviewExecutor', () => {
   const mockStrategy = {
     execute: vi.fn().mockResolvedValue({ issues: [] })
   };
-  
+
   const mockFileInfos = [
     { path: 'file1.ts', content: 'content1', relativePath: 'file1.ts' }
   ];
-  
-  const mockOptions = { 
+
+  const mockOptions = {
     type: 'quick-fixes',
     multiPass: false,
     forceSinglePass: false
   };
-  
-  const mockApiClientConfig = { 
+
+  const mockApiClientConfig = {
     modelName: 'openai:gpt-4'
   };
 
@@ -50,7 +50,7 @@ describe('ReviewExecutor', () => {
     it('should execute review with correct strategy', async () => {
       // Mock the strategy.execute to return a specific value
       vi.mocked(mockStrategy.execute).mockResolvedValue({ issues: [] });
-      
+
       const result = await executeReview(
         mockFileInfos,
         mockOptions,
@@ -59,7 +59,7 @@ describe('ReviewExecutor', () => {
         null,
         null
       );
-      
+
       expect(StrategyFactory.createStrategy).toHaveBeenCalledWith(mockOptions);
       expect(mockStrategy.execute).toHaveBeenCalled();
       expect(result).toEqual({ issues: [] });
@@ -68,7 +68,7 @@ describe('ReviewExecutor', () => {
 
     it('should throw error for unsupported review type', async () => {
       vi.mocked(StrategyFactory.createStrategy).mockReturnValue(null);
-      
+
       await expect(executeReview(
         mockFileInfos,
         mockOptions,
@@ -81,7 +81,7 @@ describe('ReviewExecutor', () => {
 
     it('should enable multi-pass mode when needed', async () => {
       const options = { ...mockOptions, multiPass: true };
-      
+
       await executeReview(
         mockFileInfos,
         options,
@@ -90,7 +90,7 @@ describe('ReviewExecutor', () => {
         null,
         null
       );
-      
+
       expect(logger.info).toHaveBeenCalledWith('Using multi-pass review strategy');
     });
   });
@@ -104,16 +104,16 @@ describe('ReviewExecutor', () => {
 
     it('should return false when forceSinglePass option is enabled', () => {
       const options = { ...mockOptions, forceSinglePass: true };
-      const tokenAnalysis = { 
-        chunkingRecommendation: { chunkingRecommended: true } 
+      const tokenAnalysis = {
+        chunkingRecommendation: { chunkingRecommended: true }
       };
       const result = determineIfMultiPassNeeded(options, tokenAnalysis);
       expect(result).toBe(false);
     });
 
     it('should use token analysis recommendation when available', () => {
-      const tokenAnalysis = { 
-        chunkingRecommendation: { chunkingRecommended: true } 
+      const tokenAnalysis = {
+        chunkingRecommendation: { chunkingRecommended: true }
       };
       const result = determineIfMultiPassNeeded(mockOptions, tokenAnalysis);
       expect(result).toBe(true);

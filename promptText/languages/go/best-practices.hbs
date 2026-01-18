@@ -68,7 +68,7 @@ package user     // Single responsibility: user management
 import (
     "context"
     "errors"
-    
+
     "github.com/myapp/internal/database"
     "github.com/myapp/pkg/validation"
 )
@@ -89,29 +89,29 @@ func CreateUser(ctx context.Context, req CreateUserRequest) (*User, error) {
     if err := userValidator.Validate(req); err != nil {
         return nil, fmt.Errorf("validation failed: %w", err)
     }
-    
+
     newUser := &User{
         ID:        generateID(),
         Email:     req.Email,
         CreatedAt: time.Now(),
     }
-    
+
     return newUser, nil
 }
 
-// AVOID: Unclear or abbreviated names  
+// AVOID: Unclear or abbreviated names
 func CrUsr(c context.Context, r CrUsrReq) (*U, error) {
     v := validation.NewValidator()
     if err := v.Val(r); err != nil {
         return nil, err
     }
-    
+
     u := &U{
         I: genID(),
         E: r.E,
         C: time.Now(),
     }
-    
+
     return u, nil
 }
 ```
@@ -167,7 +167,7 @@ func (s *UserService) CreateUser(ctx context.Context, req CreateUserRequest) (*U
     if err := s.validator.ValidateCreateRequest(req); err != nil {
         return nil, fmt.Errorf("invalid create user request: %w", err)
     }
-    
+
     existingUser, err := s.repository.GetByEmail(ctx, req.Email)
     if err != nil && !errors.Is(err, ErrUserNotFound) {
         return nil, fmt.Errorf("failed to check existing user: %w", err)
@@ -175,24 +175,24 @@ func (s *UserService) CreateUser(ctx context.Context, req CreateUserRequest) (*U
     if existingUser != nil {
         return nil, ErrUserAlreadyExists
     }
-    
+
     user := &User{
         ID:    generateID(),
         Email: req.Email,
         Name:  req.Name,
     }
-    
+
     if err := s.repository.Create(ctx, user); err != nil {
         return nil, fmt.Errorf("failed to create user in database: %w", err)
     }
-    
+
     return user, nil
 }
 
 // Custom error types for better error handling
 var (
     ErrUserNotFound      = errors.New("user not found")
-    ErrUserAlreadyExists = errors.New("user already exists") 
+    ErrUserAlreadyExists = errors.New("user already exists")
     ErrInvalidEmail      = errors.New("invalid email format")
 )
 
@@ -201,7 +201,7 @@ func (s *UserService) CreateUser(ctx context.Context, req CreateUserRequest) (*U
     if err := s.validator.ValidateCreateRequest(req); err != nil {
         return nil, errors.New("validation failed") // Lost original error
     }
-    
+
     existingUser, err := s.repository.GetByEmail(ctx, req.Email)
     if err != nil {
         return nil, err // No context about what failed
@@ -209,7 +209,7 @@ func (s *UserService) CreateUser(ctx context.Context, req CreateUserRequest) (*U
     if existingUser != nil {
         return nil, errors.New("error") // Too generic
     }
-    
+
     // Implementation continues...
 }
 ```
@@ -223,19 +223,19 @@ func (s *UserService) ProcessUserData(ctx context.Context, userID string) error 
     // Set timeout for database operations
     dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
     defer cancel()
-    
+
     user, err := s.repository.GetByID(dbCtx, userID)
     if err != nil {
         return fmt.Errorf("failed to get user: %w", err)
     }
-    
+
     // Check for cancellation before expensive operation
     select {
     case <-ctx.Done():
         return ctx.Err()
     default:
     }
-    
+
     // Process user data with original context
     return s.processUser(ctx, user)
 }
@@ -262,7 +262,7 @@ func (s *UserService) ProcessUserData(userID string) error {
     if err != nil {
         return err
     }
-    
+
     // Long-running operation without cancellation support
     return s.processUser(user)
 }
@@ -278,7 +278,7 @@ func (p *Processor) ProcessItems(ctx context.Context, items []Item) error {
     jobs := make(chan Item, len(items))
     results := make(chan Result, len(items))
     errors := make(chan error, numWorkers)
-    
+
     // Start workers
     var wg sync.WaitGroup
     for i := 0; i < numWorkers; i++ {
@@ -303,7 +303,7 @@ func (p *Processor) ProcessItems(ctx context.Context, items []Item) error {
             }
         }()
     }
-    
+
     // Send jobs
     go func() {
         defer close(jobs)
@@ -315,14 +315,14 @@ func (p *Processor) ProcessItems(ctx context.Context, items []Item) error {
             }
         }
     }()
-    
+
     // Wait for completion
     go func() {
         wg.Wait()
         close(results)
         close(errors)
     }()
-    
+
     // Collect results or handle errors
     for i := 0; i < len(items); i++ {
         select {
@@ -334,7 +334,7 @@ func (p *Processor) ProcessItems(ctx context.Context, items []Item) error {
             return ctx.Err()
         }
     }
-    
+
     return nil
 }
 
@@ -408,19 +408,19 @@ func TestUserService_CreateUser(t *testing.T) {
             },
         },
     }
-    
+
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
             ctrl := gomock.NewController(t)
             defer ctrl.Finish()
-            
+
             mockRepo := NewMockRepository(ctrl)
             tt.setupMocks(t, mockRepo)
-            
+
             service := NewUserService(mockRepo, &validator{})
-            
+
             user, err := service.CreateUser(context.Background(), tt.request)
-            
+
             if tt.expectedError != nil {
                 assert.Error(t, err)
                 assert.True(t, errors.Is(err, tt.expectedError))
@@ -439,11 +439,11 @@ func TestUserService_CreateUser(t *testing.T) {
 func setupTestDB(t *testing.T) *sql.DB {
     db, err := sql.Open("sqlite3", ":memory:")
     require.NoError(t, err)
-    
+
     t.Cleanup(func() {
         db.Close()
     })
-    
+
     return db
 }
 ```
@@ -466,13 +466,13 @@ package user
 type User struct {
     // ID is the unique identifier for the user
     ID string `json:"id" db:"id"`
-    
+
     // Email is the user's email address, used for authentication
     Email string `json:"email" db:"email"`
-    
+
     // Name is the user's display name
     Name string `json:"name" db:"name"`
-    
+
     // CreatedAt is the timestamp when the user was created
     CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
@@ -556,17 +556,17 @@ func NewDependencies() (*Dependencies, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to create logger: %w", err)
     }
-    
+
     config, err := LoadConfig()
     if err != nil {
         return nil, fmt.Errorf("failed to load config: %w", err)
     }
-    
+
     db, err := sql.Open("postgres", config.DatabaseURL)
     if err != nil {
         return nil, fmt.Errorf("failed to connect to database: %w", err)
     }
-    
+
     return &Dependencies{
         Logger:     logger,
         DB:         db,
@@ -587,9 +587,9 @@ Overall assessment of Go best practices adherence and areas for improvement.
 ## Best Practice Violations
 
 ### [Category] - [Issue Title]
-**Priority:** High/Medium/Low  
-**File:** `path/to/file.go`  
-**Lines:** X-Y  
+**Priority:** High/Medium/Low
+**File:** `path/to/file.go`
+**Lines:** X-Y
 **Go Convention:** [Specific Go convention or best practice]
 
 **Current Implementation:**

@@ -37,22 +37,22 @@ describe('templateLoader', () => {
   const mockTemplatePath = 'languages/typescript/best-practices.hbs';
   const mockTemplateContent = 'Hello {{name}}!';
   // const mockVariables = { name: 'World' }; // Not used
-  
+
   // Set up mocks before each test
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
-    
+
     // Mock path.resolve
     (path.resolve as any).mockImplementation((_dir: string, ..._segments: string[]) => {
       return mockTemplatesDir;
     });
-    
+
     // Mock path.join
     (path.join as any).mockImplementation((...segments: string[]) => {
       // Join path segments
       const joined = segments.join('/');
-      
+
       // Return proper paths for directories and files
       if (joined.includes('variables/framework-versions.json')) {
         return `${mockTemplatesDir}/common/variables/framework-versions.json`;
@@ -69,7 +69,7 @@ describe('templateLoader', () => {
       if (joined.includes('languages/generic/best-practices.hbs')) {
         return `${mockTemplatesDir}/languages/generic/best-practices.hbs`;
       }
-      
+
       // Handle directory checks for listAvailableTemplates
       if (joined.endsWith('/frameworks') || joined.includes('promptText/frameworks')) {
         return `${mockTemplatesDir}/frameworks`;
@@ -98,10 +98,10 @@ describe('templateLoader', () => {
       if (joined.includes('languages/ruby')) {
         return `${mockTemplatesDir}/languages/ruby`;
       }
-      
+
       return joined;
     });
-    
+
     // Mock fs.existsSync
     (fs.existsSync as any).mockImplementation((filePath: string) => {
       // Return true for expected paths
@@ -118,7 +118,7 @@ describe('templateLoader', () => {
         `${mockTemplatesDir}/frameworks/react`,
       ].includes(filePath);
     });
-    
+
     // Mock fs.readFileSync
     (fs.readFileSync as any).mockImplementation((filePath: string, _encoding: string) => {
       if (filePath.includes('framework-versions.json')) {
@@ -149,24 +149,24 @@ describe('templateLoader', () => {
       }
       return '';
     });
-    
+
     // Mock fs.readdirSync
     (fs.readdirSync as any).mockImplementation((dirPath: string, options?: any) => {
       // Check for withFileTypes option which is used in listAvailableTemplates
       const withFileTypes = options && options.withFileTypes;
-      
+
       if (dirPath.includes('frameworks')) {
         if (dirPath.includes('frameworks/react')) {
-          return withFileTypes 
+          return withFileTypes
             ? ['best-practices.hbs', 'security-review.hbs'].map(name => ({ name, isDirectory: () => false }))
             : ['best-practices.hbs', 'security-review.hbs'];
         }
         // Main frameworks directory
-        return withFileTypes 
+        return withFileTypes
           ? ['react', 'angular', 'vue'].map(name => ({ name, isDirectory: () => true }))
           : ['react', 'angular', 'vue'];
       }
-      
+
       if (dirPath.includes('languages')) {
         if (dirPath.includes('languages/generic')) {
           return withFileTypes
@@ -178,10 +178,10 @@ describe('templateLoader', () => {
           ? ['typescript', 'python', 'ruby', 'generic'].map(name => ({ name, isDirectory: () => true }))
           : ['typescript', 'python', 'ruby', 'generic'];
       }
-      
+
       return withFileTypes ? [] : [];
     });
-    
+
     // Mock fs.statSync
     (fs.statSync as any).mockImplementation((filePath: string) => {
       return {
@@ -189,32 +189,32 @@ describe('templateLoader', () => {
       };
     });
   });
-  
+
   describe('renderTemplate', () => {
     it('should render a template with variables', () => {
       const result = renderTemplate(mockTemplatePath, { name: 'World' });
       expect(result).toBe('Hello World!');
     });
-    
+
     it('should return null if template does not exist', () => {
       (fs.existsSync as any).mockReturnValue(false);
       const result = renderTemplate('nonexistent-template.hbs');
       expect(result).toBe(null);
     });
-    
+
     it('should use default variables if no custom variables provided', () => {
       const result = renderTemplate(mockTemplatePath);
       // Since our mock template uses {{name}}, it should be empty or undefined without custom vars
       expect(result).toBe('Hello !');
     });
   });
-  
+
   describe('loadPromptTemplate', () => {
     it('should load framework-specific template if available', () => {
       const result = loadPromptTemplate('best-practices', 'typescript', 'react');
       expect(result).toBe('Hello !');
     });
-    
+
     it('should fall back to language-specific template if framework template is not available', () => {
       // Make framework template not exist
       (fs.existsSync as any).mockImplementation((filePath: string) => {
@@ -228,16 +228,16 @@ describe('templateLoader', () => {
           `${mockTemplatesDir}/languages`,
         ].includes(filePath);
       });
-      
+
       const result = loadPromptTemplate('best-practices', 'typescript', 'react');
       expect(result).toBe('Hello !');
     });
-    
+
     it('should fall back to generic template if language template is not available', () => {
       // Make framework and language templates not exist
       (fs.existsSync as any).mockImplementation((filePath: string) => {
-        return !filePath.includes('frameworks/react') && 
-               !filePath.includes('languages/typescript') && 
+        return !filePath.includes('frameworks/react') &&
+               !filePath.includes('languages/typescript') &&
                [
                  `${mockTemplatesDir}`,
                  `${mockTemplatesDir}/common/variables/framework-versions.json`,
@@ -247,34 +247,34 @@ describe('templateLoader', () => {
                  `${mockTemplatesDir}/languages`,
                ].includes(filePath);
       });
-      
+
       const result = loadPromptTemplate('best-practices', 'typescript', 'react');
       expect(result).toBe('Hello !');
     });
-    
+
     it('should return null if no template is found', () => {
       // Make all templates not exist
       (fs.existsSync as any).mockReturnValue(false);
-      
+
       const result = loadPromptTemplate('nonexistent-review-type', 'typescript', 'react');
       expect(result).toBe(null);
     });
   });
-  
+
   describe('listAvailableTemplates', () => {
     it('should return a list of available templates', () => {
       const result = listAvailableTemplates();
-      
+
       expect(result).toHaveProperty('frameworks');
       expect(result).toHaveProperty('languages');
       expect(result).toHaveProperty('reviewTypes');
-      
+
       expect(result.frameworks).toContain('react');
       expect(result.languages).toContain('typescript');
       expect(result.reviewTypes).toContain('best-practices');
       expect(result.reviewTypes).toContain('security-review');
     });
-    
+
     it('should handle missing directories', () => {
       // Make frameworks directory not exist
       (fs.existsSync as any).mockImplementation((filePath: string) => {
@@ -286,16 +286,16 @@ describe('templateLoader', () => {
           `${mockTemplatesDir}/languages/generic`,
         ].includes(filePath);
       });
-      
+
       const result = listAvailableTemplates();
-      
+
       expect(result.frameworks).toEqual([]);
       expect(result.languages).toContain('typescript');
       expect(result.reviewTypes).toHaveLength(2);
       expect(result.reviewTypes).toContain('best-practices');
       expect(result.reviewTypes).toContain('security-review');
     });
-    
+
     it('should get review types from generic directory when frameworks are not available', () => {
       // Make frameworks directory not exist but ensure generic directory exists
       (fs.existsSync as any).mockImplementation((filePath: string) => {
@@ -307,9 +307,9 @@ describe('templateLoader', () => {
           `${mockTemplatesDir}/languages/generic`,
         ].includes(filePath);
       });
-      
+
       const result = listAvailableTemplates();
-      
+
       expect(result.frameworks).toEqual([]);
       expect(result.reviewTypes).toContain('best-practices');
       expect(result.reviewTypes).toContain('security-review');

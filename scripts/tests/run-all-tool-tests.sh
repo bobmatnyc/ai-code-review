@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to run all tool calling tests
-# This script runs both OpenAI and Anthropic tool calling tests 
+# This script runs both OpenAI and Anthropic tool calling tests
 
 PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 TESTS_DIR="$PROJECT_ROOT/scripts/tests"

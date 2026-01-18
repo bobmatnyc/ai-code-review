@@ -5,7 +5,7 @@
     "requirements": [
       "Implement user authentication and authorization",
       "Create event management endpoints (CRUD operations)",
-      "Add event attendance/booking functionality", 
+      "Add event attendance/booking functionality",
       "Include proper error handling and validation",
       "Write comprehensive tests for core functionality",
       "Provide API documentation",
@@ -17,7 +17,7 @@
     "difficulty": "senior",
     "timeLimit": 240
   },
-  
+
   "evaluation": {
     "criteria": {
       "technicalImplementation": {
@@ -114,7 +114,7 @@
     },
     "apiDesign": {
       "weight": 5,
-      "description": "RESTful API design principles and conventions" 
+      "description": "RESTful API design principles and conventions"
     },
     "performanceOptimization": {
       "weight": 5,
@@ -156,7 +156,7 @@
   "bonusPoints": [
     "Docker containerization with docker-compose",
     "CI/CD pipeline setup (GitHub Actions)",
-    "Rate limiting implementation", 
+    "Rate limiting implementation",
     "Caching strategy (Redis/Memory)",
     "Real-time features (WebSockets/SSE)",
     "Email notifications system",
@@ -212,7 +212,7 @@
         "criteria": ["builds successfully", "runs without errors", "basic functionality works"]
       },
       {
-        "name": "Code Quality Review", 
+        "name": "Code Quality Review",
         "criteria": ["TypeScript usage", "error handling", "code organization", "documentation"]
       },
       {
@@ -238,7 +238,7 @@
     "sections": [
       "Executive Summary with overall grade",
       "Technical Implementation Analysis",
-      "Code Quality Assessment", 
+      "Code Quality Assessment",
       "Security Evaluation",
       "Testing and Quality Assurance Review",
       "Architecture and Design Analysis",

@@ -2,17 +2,17 @@
 
 /**
  * Phase 2 Test Runner for Extract Patterns Review Type
- * 
+ *
  * This is the main orchestrator for all Phase 2 testing activities:
  * 1. Real API Testing
  * 2. Output Quality Validation
  * 3. LangChain Evaluation
  * 4. External Project Testing
  * 5. Pattern Database Storage
- * 
+ *
  * Usage:
  *   node tests/extract-patterns/phase2-test-runner.js [options]
- * 
+ *
  * Options:
  *   --suite <name>      Test suite to run (all, api, validation, evaluation, external, database)
  *   --model <model>     Model to test with
@@ -90,7 +90,7 @@ class Phase2TestResult {
   addSuiteResult(suiteName, result) {
     this.suites[suiteName] = result;
     this.summary.total++;
-    
+
     if (result.success) {
       this.summary.passed++;
     } else if (result.skipped) {
@@ -104,7 +104,7 @@ class Phase2TestResult {
    * Calculate overall success rate
    */
   getSuccessRate() {
-    return this.summary.total > 0 ? 
+    return this.summary.total > 0 ?
       (this.summary.passed / this.summary.total) * 100 : 0;
   }
 
@@ -121,7 +121,7 @@ class Phase2TestResult {
  */
 async function runApiTestSuite(options) {
   console.log('\n🔍 Running Real API Testing Suite...');
-  
+
   const result = {
     name: 'Real API Testing',
     success: false,
@@ -133,7 +133,7 @@ async function runApiTestSuite(options) {
   try {
     // Check API keys
     const { availableModels, missingKeys } = checkApiKeys();
-    
+
     if (availableModels.length === 0) {
       result.skipped = true;
       result.details.push('❌ No API keys available for testing');
@@ -149,7 +149,7 @@ async function runApiTestSuite(options) {
     };
 
     const apiResult = await runExtractPatternsReview(testConfig);
-    
+
     if (apiResult.success) {
       result.success = true;
       result.details.push(`✅ API test completed in ${apiResult.duration}ms`);
@@ -175,7 +175,7 @@ async function runApiTestSuite(options) {
  */
 async function runValidationSuite(apiOutput, options) {
   console.log('\n📋 Running Output Validation Suite...');
-  
+
   const result = {
     name: 'Output Validation',
     success: false,
@@ -197,12 +197,12 @@ async function runValidationSuite(apiOutput, options) {
 
     // Run validation
     const validationResult = await validateExtractPatternsOutput(tempFile);
-    
+
     result.success = validationResult.isPassed();
     result.details.push(`📊 Validation score: ${validationResult.getScorePercentage()}%`);
     result.details.push(`✅ Sections found: ${validationResult.sections.found.length}`);
     result.details.push(`❌ Sections missing: ${validationResult.sections.missing.length}`);
-    
+
     if (validationResult.quality.indicators.length > 0) {
       result.details.push(`🎯 Quality indicators: ${validationResult.quality.indicators.join(', ')}`);
     }
@@ -228,7 +228,7 @@ async function runValidationSuite(apiOutput, options) {
  */
 async function runEvaluationSuite(apiOutput, options) {
   console.log('\n🎯 Running LangChain Evaluation Suite...');
-  
+
   const result = {
     name: 'LangChain Evaluation',
     success: false,
@@ -250,11 +250,11 @@ async function runEvaluationSuite(apiOutput, options) {
 
     // Run evaluation
     const evaluationResult = await evaluateExtractPatternsOutput(tempFile);
-    
+
     result.success = evaluationResult.overallScore >= 70;
     result.details.push(`📊 Overall score: ${evaluationResult.overallScore.toFixed(1)}/100`);
     result.details.push(`🎓 Grade: ${evaluationResult.getGrade()}`);
-    
+
     // Add metric details
     for (const [name, metric] of Object.entries(evaluationResult.metrics)) {
       result.details.push(`   ${name}: ${metric.score.toFixed(1)}/100`);
@@ -281,7 +281,7 @@ async function runEvaluationSuite(apiOutput, options) {
  */
 async function runExternalTestSuite(options) {
   console.log('\n🌐 Running External Project Testing Suite...');
-  
+
   const result = {
     name: 'External Project Testing',
     success: false,
@@ -305,7 +305,7 @@ async function runExternalTestSuite(options) {
     };
 
     const externalResult = await testExternalProject('nest', testOptions);
-    
+
     result.success = externalResult.success && externalResult.patternMatchScore >= 60;
     result.details.push(`📊 Pattern match score: ${externalResult.patternMatchScore.toFixed(1)}%`);
     result.details.push(`⏱️ Duration: ${Math.round(externalResult.duration / 1000)}s`);
@@ -329,7 +329,7 @@ async function runExternalTestSuite(options) {
  */
 async function runDatabaseSuite(apiOutput, options) {
   console.log('\n🗄️ Running Pattern Database Storage Suite...');
-  
+
   const result = {
     name: 'Pattern Database Storage',
     success: false,
@@ -370,7 +370,7 @@ async function runDatabaseSuite(apiOutput, options) {
 
     // Store in database
     const patternId = await db.storePattern(patternRecord);
-    
+
     result.success = true;
     result.details.push(`✅ Pattern stored with ID: ${patternId}`);
     result.details.push(`📊 Architecture patterns: ${patternRecord.patterns.architecture.length}`);
@@ -403,11 +403,11 @@ function printPhase2Results(testResult) {
   console.log(`\n${'='.repeat(80)}`);
   console.log('📊 PHASE 2 TEST RESULTS SUMMARY');
   console.log(`${'='.repeat(80)}`);
-  
+
   console.log(`Overall Success Rate: ${testResult.getSuccessRate().toFixed(1)}%`);
   console.log(`Status: ${testResult.isPassed() ? '✅ PASSED' : '❌ FAILED'}`);
   console.log(`Timestamp: ${testResult.timestamp}`);
-  
+
   console.log(`\n📈 Summary:`);
   console.log(`   Total Suites: ${testResult.summary.total}`);
   console.log(`   Passed: ${testResult.summary.passed}`);
@@ -416,11 +416,11 @@ function printPhase2Results(testResult) {
 
   console.log(`\n📋 Suite Results:`);
   for (const [suiteName, suiteResult] of Object.entries(testResult.suites)) {
-    const status = suiteResult.skipped ? '⏭️ SKIPPED' : 
+    const status = suiteResult.skipped ? '⏭️ SKIPPED' :
                    suiteResult.success ? '✅ PASSED' : '❌ FAILED';
-    
+
     console.log(`\n${status} ${suiteResult.name}`);
-    
+
     if (suiteResult.details.length > 0) {
       suiteResult.details.forEach(detail => console.log(`   ${detail}`));
     }
@@ -432,7 +432,7 @@ function printPhase2Results(testResult) {
   }
 
   console.log(`\n📄 Artifacts Generated: ${testResult.artifacts.length}`);
-  testResult.artifacts.forEach(artifact => 
+  testResult.artifacts.forEach(artifact =>
     console.log(`   • ${artifact.type}: ${artifact.description}`)
   );
 }
@@ -486,7 +486,7 @@ async function main() {
 
   // Determine which suites to run
   const suitesToRun = args.suite === 'all' ? Object.keys(TEST_SUITES) : [args.suite];
-  
+
   console.log(`Running ${suitesToRun.length} test suite(s): ${suitesToRun.join(', ')}`);
   console.log(`Model: ${args.model}`);
   console.log(`Output: ${args.output}`);
@@ -560,9 +560,9 @@ async function main() {
 
   // Print results
   printPhase2Results(testResult);
-  
+
   console.log(`\n📄 Detailed results saved to: ${resultsFile}`);
-  
+
   // Exit with appropriate code
   process.exit(testResult.isPassed() ? 0 : 1);
 }

@@ -31,14 +31,14 @@ function loadEnvVars(): void {
 export async function runApiConnectionTests(): Promise<void> {
   // Load environment variables
   loadEnvVars();
-  
+
   console.log('Testing API connections...');
-  
+
   // Google Gemini API
-  const googleApiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || 
-                      process.env.GOOGLE_AI_STUDIO_KEY || 
+  const googleApiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY ||
+                      process.env.GOOGLE_AI_STUDIO_KEY ||
                       process.env.GOOGLE_GENERATIVE_AI_KEY;
-  
+
   // Skip if no API key
   if (!googleApiKey) {
     console.warn('No Google Gemini API key found in environment variables');
@@ -46,23 +46,23 @@ export async function runApiConnectionTests(): Promise<void> {
     console.log('Google Gemini API key is available');
     // We don't actually test the connection in this function to avoid making API calls
   }
-  
+
   // OpenRouter API
-  const openRouterApiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || 
+  const openRouterApiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY ||
                           process.env.OPENROUTER_API_KEY;
-  
-  // Skip if no API key  
+
+  // Skip if no API key
   if (!openRouterApiKey) {
     console.warn('No OpenRouter API key found in environment variables');
   } else {
     console.log('OpenRouter API key is available');
     // We don't actually test the connection in this function to avoid making API calls
   }
-  
+
   // Anthropic API
-  const anthropicApiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY || 
+  const anthropicApiKey = process.env.AI_CODE_REVIEW_ANTHROPIC_API_KEY ||
                          process.env.ANTHROPIC_API_KEY;
-  
+
   // Skip if no API key
   if (!anthropicApiKey) {
     console.warn('No Anthropic API key found in environment variables');
@@ -70,7 +70,7 @@ export async function runApiConnectionTests(): Promise<void> {
     console.log('Anthropic API key is available');
     // We don't actually test the connection in this function to avoid making API calls
   }
-  
+
   console.log('API connection tests complete');
 }
 
@@ -88,59 +88,59 @@ if (typeof describe === 'function') {
   describe('API Connection Tests', () => {
     describe('Google Gemini API', () => {
       test('API key is checked', () => {
-        const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || 
-                      process.env.GOOGLE_AI_STUDIO_KEY || 
+        const apiKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY ||
+                      process.env.GOOGLE_AI_STUDIO_KEY ||
                       process.env.GOOGLE_GENERATIVE_AI_KEY;
-                      
+
         // This allows the tests to run in CI environments without API keys
         if (!apiKey) {
           console.warn('No Google Gemini API key found in environment variables');
         } else {
           console.log('Google Gemini API key is available');
         }
-        
+
         // Test passes regardless of whether API key exists
         expect(true).toBe(true);
       });
-      
+
       test('Can connect to Google Gemini API', () => {
         // Simply verify we can load the test
         expect(true).toBe(true);
       });
     });
-    
+
     describe('OpenRouter API', () => {
       test('API key is checked', () => {
-        const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY || 
+        const apiKey = process.env.AI_CODE_REVIEW_OPENROUTER_API_KEY ||
                       process.env.OPENROUTER_API_KEY;
-                      
+
         // This allows the tests to run in CI environments without API keys
         if (!apiKey) {
           console.warn('No OpenRouter API key found in environment variables');
         } else {
           console.log('OpenRouter API key is available');
         }
-        
+
         // Test passes regardless of whether API key exists
         expect(true).toBe(true);
       });
-      
+
       test('Can connect to OpenRouter API', () => {
         // Simply verify we can load the test
         expect(true).toBe(true);
       });
     });
-    
+
     describe('Selected Model', () => {
       test('CODE_REVIEW_MODEL is properly formatted if present', () => {
         const modelName = process.env.AI_CODE_REVIEW_MODEL;
-        
+
         if (modelName) {
           // Should have provider:model format
           const parts = modelName.split(':');
           expect(parts.length).toBeGreaterThanOrEqual(1);
         }
-        
+
         // Test passes even if MODEL is not set
         expect(true).toBe(true);
       });

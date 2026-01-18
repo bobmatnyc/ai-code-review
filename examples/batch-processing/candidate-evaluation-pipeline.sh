@@ -54,14 +54,14 @@ log_success() {
 # Validate environment
 validate_environment() {
     log_info "Validating environment..."
-    
+
     # Check if ai-code-review is installed
     if ! command -v ai-code-review &> /dev/null; then
         log_error "ai-code-review tool not found. Please install it first:"
         log_error "npm install -g @bobmatnyc/ai-code-review"
         exit 1
     fi
-    
+
     # Check required tools
     for tool in jq bc; do
         if ! command -v "$tool" &> /dev/null; then
@@ -69,10 +69,10 @@ validate_environment() {
             exit 1
         fi
     done
-    
+
     # Create directories
     mkdir -p "$RESULTS_DIR" "$REPORTS_DIR"
-    
+
     log_success "Environment validation complete"
 }
 
@@ -80,7 +80,7 @@ validate_environment() {
 get_position_config() {
     local position="$1"
     local config_file=""
-    
+
     case "$position" in
         "junior")
             config_file="$CONFIG_DIR/hiring-junior-dev.yaml"
@@ -104,7 +104,7 @@ get_position_config() {
             config_file=""
             ;;
     esac
-    
+
     echo "$config_file"
 }
 
@@ -113,24 +113,24 @@ evaluate_candidate() {
     local candidate_dir="$1"
     local candidate_name="$(basename "$candidate_dir")"
     local config_file="$2"
-    
+
     log_info "Evaluating candidate: $candidate_name"
-    
+
     # Validate candidate directory
     if [[ ! -d "$candidate_dir" ]]; then
         log_error "Candidate directory not found: $candidate_dir"
         return 1
     fi
-    
+
     # Check if directory has any code files
     if ! find "$candidate_dir" -type f \( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rb" -o -name "*.php" \) | head -1 | grep -q .; then
         log_warn "No code files found for candidate: $candidate_name"
         return 1
     fi
-    
+
     local result_file="$RESULTS_DIR/${candidate_name}-evaluation.json"
     local report_file="$REPORTS_DIR/${candidate_name}-report.md"
-    
+
     # Build AI Code Review command
     local cmd_args=(
         "$candidate_dir"
@@ -142,23 +142,23 @@ evaluate_candidate() {
         --format json
         --output "$result_file"
     )
-    
+
     # Add config file if available
     if [[ -n "$config_file" && -f "$config_file" ]]; then
         cmd_args+=(--config "$config_file")
         log_info "Using configuration: $config_file"
     fi
-    
+
     # Add fail-on-detection if enabled
     if [[ "$FAIL_ON_DETECTION" == "true" ]]; then
         cmd_args+=(--ai-detection-fail-on-detection)
         log_info "Automatic failure on AI detection enabled"
     fi
-    
+
     # Run evaluation
     log_info "Running evaluation for $candidate_name..."
     local start_time=$(date +%s)
-    
+
     if ai-code-review "${cmd_args[@]}" 2>&1 | tee -a "$LOG_FILE"; then
         local end_time=$(date +%s)
         local duration=$((end_time - start_time))
@@ -168,7 +168,7 @@ evaluate_candidate() {
         log_error "Evaluation failed for $candidate_name (exit code: $exit_code)"
         return $exit_code
     fi
-    
+
     # Extract and process results
     if [[ -f "$result_file" ]]; then
         extract_candidate_metrics "$result_file" "$candidate_name" "$report_file"
@@ -184,9 +184,9 @@ extract_candidate_metrics() {
     local result_file="$1"
     local candidate_name="$2"
     local report_file="$3"
-    
+
     log_info "Extracting metrics for $candidate_name..."
-    
+
     # Extract AI detection results
     local ai_detected
     local confidence
@@ -194,14 +194,14 @@ extract_candidate_metrics() {
     local high_confidence_patterns
     local analysis_time
     local overall_score
-    
+
     ai_detected=$(jq -r '.metadata.aiDetection.isAIGenerated // false' "$result_file")
     confidence=$(jq -r '.metadata.aiDetection.confidenceScore // 0' "$result_file")
     patterns_count=$(jq -r '.metadata.aiDetection.patternsDetected // 0' "$result_file")
     high_confidence_patterns=$(jq -r '.metadata.aiDetection.highConfidencePatterns // 0' "$result_file")
     analysis_time=$(jq -r '.metadata.aiDetection.analysisTime // 0' "$result_file")
     overall_score=$(jq -r '.metadata.overallScore // "N/A"' "$result_file")
-    
+
     # Determine risk level
     local risk_level
     if (( $(echo "$confidence >= 0.9" | bc -l) )); then
@@ -215,7 +215,7 @@ extract_candidate_metrics() {
     else
         risk_level="MINIMAL"
     fi
-    
+
     # Log results
     log_info "Results for $candidate_name:"
     log_info "  AI Detected: $ai_detected"
@@ -223,12 +223,12 @@ extract_candidate_metrics() {
     log_info "  Risk Level: $risk_level"
     log_info "  Patterns: $patterns_count"
     log_info "  Analysis Time: ${analysis_time}ms"
-    
+
     # Generate human-readable report
     generate_candidate_report "$candidate_name" "$report_file" \
         "$ai_detected" "$confidence" "$risk_level" "$patterns_count" \
         "$high_confidence_patterns" "$analysis_time" "$overall_score"
-    
+
     # Add to summary data
     add_to_summary "$candidate_name" "$ai_detected" "$confidence" \
         "$risk_level" "$patterns_count" "$overall_score"
@@ -245,7 +245,7 @@ generate_candidate_report() {
     local high_confidence_patterns="$7"
     local analysis_time="$8"
     local overall_score="$9"
-    
+
     cat > "$report_file" << EOF
 # Evaluation Report: $candidate_name
 
@@ -256,7 +256,7 @@ generate_candidate_report() {
 ## Summary
 
 EOF
-    
+
     if [[ "$ai_detected" == "true" ]]; then
         cat >> "$report_file" << EOF
 ⚠️ **AI-Generated Content Detected**
@@ -272,7 +272,7 @@ This candidate's submission appears to be human-authored based on the analysis.
 
 EOF
     fi
-    
+
     cat >> "$report_file" << EOF
 ## AI Detection Results
 
@@ -289,7 +289,7 @@ EOF
 ## Risk Assessment
 
 EOF
-    
+
     case "$risk_level" in
         "CRITICAL")
             cat >> "$report_file" << EOF
@@ -327,12 +327,12 @@ EOF
 EOF
             ;;
     esac
-    
+
     cat >> "$report_file" << EOF
 ## Recommendations
 
 EOF
-    
+
     if [[ "$ai_detected" == "true" ]]; then
         cat >> "$report_file" << EOF
 1. **Manual Review**: Conduct thorough manual code review
@@ -350,7 +350,7 @@ EOF
 
 EOF
     fi
-    
+
     cat >> "$report_file" << EOF
 ## Next Steps
 
@@ -365,7 +365,7 @@ EOF
 *Report generated by AI Code Review v4.3.1+ Candidate Evaluation Pipeline*
 *Configuration: Position=$POSITION_LEVEL, Threshold=$AI_DETECTION_THRESHOLD*
 EOF
-    
+
     log_success "Report generated: $report_file"
 }
 
@@ -377,12 +377,12 @@ add_to_summary() {
     local risk_level="$4"
     local patterns_count="$5"
     local overall_score="$6"
-    
+
     # Initialize summary file if it doesn't exist
     if [[ ! -f "$SUMMARY_FILE" ]]; then
         echo '{"evaluation_summary": {"timestamp": "", "position_level": "", "threshold": "", "candidates": []}}' > "$SUMMARY_FILE"
     fi
-    
+
     # Add candidate data
     local temp_file=$(mktemp)
     jq --arg name "$candidate_name" \
@@ -413,18 +413,18 @@ add_to_summary() {
 # Generate final summary report
 generate_summary_report() {
     log_info "Generating summary report..."
-    
+
     local summary_report="$REPORTS_DIR/evaluation-summary.md"
     local total_candidates
     local ai_detected_count
     local high_risk_count
     local critical_risk_count
-    
+
     total_candidates=$(jq -r '.evaluation_summary.candidates | length' "$SUMMARY_FILE")
     ai_detected_count=$(jq -r '.evaluation_summary.candidates | map(select(.ai_detected == true)) | length' "$SUMMARY_FILE")
     high_risk_count=$(jq -r '.evaluation_summary.candidates | map(select(.risk_level == "HIGH" or .risk_level == "CRITICAL")) | length' "$SUMMARY_FILE")
     critical_risk_count=$(jq -r '.evaluation_summary.candidates | map(select(.risk_level == "CRITICAL")) | length' "$SUMMARY_FILE")
-    
+
     cat > "$summary_report" << EOF
 # Candidate Evaluation Summary
 
@@ -436,7 +436,7 @@ generate_summary_report() {
 ## Overview
 
 EOF
-    
+
     if [[ $ai_detected_count -gt 0 ]]; then
         cat >> "$summary_report" << EOF
 ⚠️ **AI Detection Alerts**: $ai_detected_count of $total_candidates candidates showed AI-generated patterns
@@ -448,7 +448,7 @@ EOF
 
 EOF
     fi
-    
+
     cat >> "$summary_report" << EOF
 ## Statistics
 
@@ -462,28 +462,28 @@ EOF
 ## Candidate Results
 
 EOF
-    
+
     # Generate candidate table
     echo "| Candidate | AI Detected | Confidence | Risk Level | Action Required |" >> "$summary_report"
     echo "|-----------|-------------|------------|------------|-----------------|" >> "$summary_report"
-    
-    jq -r '.evaluation_summary.candidates[] | 
-           [.name, 
-            (if .ai_detected then "⚠️ Yes" else "✅ No" end), 
-            (.confidence_score | tostring), 
-            .risk_level, 
-            (if .risk_level == "CRITICAL" then "🚨 Immediate Review" 
-             elif .risk_level == "HIGH" then "⚠️ Manual Review" 
+
+    jq -r '.evaluation_summary.candidates[] |
+           [.name,
+            (if .ai_detected then "⚠️ Yes" else "✅ No" end),
+            (.confidence_score | tostring),
+            .risk_level,
+            (if .risk_level == "CRITICAL" then "🚨 Immediate Review"
+             elif .risk_level == "HIGH" then "⚠️ Manual Review"
              elif .risk_level == "MEDIUM" then "📋 Additional Verification"
-             else "✅ Standard Process" end)] | 
+             else "✅ Standard Process" end)] |
            "| " + join(" | ") + " |"' "$SUMMARY_FILE" >> "$summary_report"
-    
+
     cat >> "$summary_report" << EOF
 
 ## Recommendations
 
 EOF
-    
+
     if [[ $critical_risk_count -gt 0 ]]; then
         cat >> "$summary_report" << EOF
 ### 🚨 Critical Risk Candidates ($critical_risk_count)
@@ -493,7 +493,7 @@ EOF
 
 EOF
     fi
-    
+
     if [[ $high_risk_count -gt $critical_risk_count ]]; then
         local high_only=$((high_risk_count - critical_risk_count))
         cat >> "$summary_report" << EOF
@@ -504,7 +504,7 @@ EOF
 
 EOF
     fi
-    
+
     cat >> "$summary_report" << EOF
 ### 📊 Process Improvements
 - Review AI detection threshold effectiveness
@@ -522,7 +522,7 @@ EOF
 
 *Generated by AI Code Review Candidate Evaluation Pipeline*
 EOF
-    
+
     log_success "Summary report generated: $summary_report"
 }
 
@@ -536,48 +536,48 @@ main() {
     log_info "  AI Detection Threshold: $AI_DETECTION_THRESHOLD"
     log_info "  Analyzers: $AI_DETECTION_ANALYZERS"
     log_info "  Fail on Detection: $FAIL_ON_DETECTION"
-    
+
     # Initialize summary file
     echo '{"evaluation_summary": {"timestamp": "", "position_level": "", "threshold": "", "candidates": []}}' > "$SUMMARY_FILE"
-    
+
     validate_environment
-    
+
     # Get position-specific configuration
     local config_file
     config_file=$(get_position_config "$POSITION_LEVEL")
-    
+
     if [[ -n "$config_file" && -f "$config_file" ]]; then
         log_info "Using position-specific configuration: $config_file"
     else
         log_warn "No position-specific configuration found, using CLI parameters"
     fi
-    
+
     # Check if candidates directory exists
     if [[ ! -d "$CANDIDATES_DIR" ]]; then
         log_error "Candidates directory not found: $CANDIDATES_DIR"
         exit 1
     fi
-    
+
     # Find candidate directories
     local candidate_dirs=()
     while IFS= read -r -d '' dir; do
         candidate_dirs+=("$dir")
     done < <(find "$CANDIDATES_DIR" -mindepth 1 -maxdepth 1 -type d -print0)
-    
+
     if [[ ${#candidate_dirs[@]} -eq 0 ]]; then
         log_error "No candidate directories found in $CANDIDATES_DIR"
         exit 1
     fi
-    
+
     log_info "Found ${#candidate_dirs[@]} candidates to evaluate"
-    
+
     # Evaluate each candidate
     local successful_evaluations=0
     local failed_evaluations=0
-    
+
     for candidate_dir in "${candidate_dirs[@]}"; do
         local candidate_name=$(basename "$candidate_dir")
-        
+
         if evaluate_candidate "$candidate_dir" "$config_file"; then
             ((successful_evaluations++))
             log_success "Completed evaluation for $candidate_name"
@@ -585,20 +585,20 @@ main() {
             ((failed_evaluations++))
             log_error "Failed evaluation for $candidate_name"
         fi
-        
+
         echo "" # Add spacing between candidates
     done
-    
+
     # Generate summary
     generate_summary_report
-    
+
     # Final summary
     log_info "Evaluation pipeline completed!"
     log_info "Results:"
     log_info "  Successful evaluations: $successful_evaluations"
     log_info "  Failed evaluations: $failed_evaluations"
     log_info "  Total candidates: ${#candidate_dirs[@]}"
-    
+
     if [[ $failed_evaluations -gt 0 ]]; then
         log_warn "Some evaluations failed. Check the log file for details: $LOG_FILE"
         exit 1

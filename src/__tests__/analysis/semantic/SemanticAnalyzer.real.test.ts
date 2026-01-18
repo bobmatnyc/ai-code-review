@@ -41,21 +41,21 @@ function getUserData(id: string): User | null {
 class UserService {
   private users: User[] = [];
   private static instance: UserService;
-  
+
   constructor() {
     this.users = [];
   }
-  
+
   public addUser(user: User): void {
     if (this.validateUser(user)) {
       this.users.push(user);
     }
   }
-  
+
   private validateUser(user: User): boolean {
     return !!(user.id && user.name);
   }
-  
+
   public static getInstance(): UserService {
     if (!UserService.instance) {
       UserService.instance = new UserService();
@@ -82,20 +82,20 @@ export { User };
 
       expect(result.success).toBe(true);
       const declarations = result.analysis!.topLevelDeclarations;
-      
+
       // Should find interface, function, and class
       expect(declarations).toHaveLength(3);
-      
+
       const interfaceDecl = declarations.find(d => d.type === 'interface');
       expect(interfaceDecl).toBeDefined();
       expect(interfaceDecl!.name).toBe('User');
       expect(interfaceDecl!.startLine).toBeGreaterThan(0);
-      
+
       const functionDecl = declarations.find(d => d.type === 'function');
       expect(functionDecl).toBeDefined();
       expect(functionDecl!.name).toBe('getUserData');
       expect(functionDecl!.cyclomaticComplexity).toBeGreaterThan(1); // Has if statement
-      
+
       const classDecl = declarations.find(d => d.type === 'class');
       expect(classDecl).toBeDefined();
       expect(classDecl!.name).toBe('UserService');
@@ -107,15 +107,15 @@ export { User };
 
       expect(result.success).toBe(true);
       const classDecl = result.analysis!.topLevelDeclarations.find(d => d.type === 'class');
-      
+
       expect(classDecl).toBeDefined();
       expect(classDecl!.children.length).toBeGreaterThanOrEqual(4); // constructor, addUser, validateUser, getInstance + fields
-      
+
       const addUserMethod = classDecl!.children.find(c => c.name === 'addUser');
       expect(addUserMethod).toBeDefined();
       expect(addUserMethod!.type).toBe('method');
       expect(addUserMethod!.modifiers).toContain('public');
-      
+
       const validateUserMethod = classDecl!.children.find(c => c.name === 'validateUser');
       expect(validateUserMethod).toBeDefined();
       expect(validateUserMethod!.modifiers).toContain('private');
@@ -126,11 +126,11 @@ export { User };
 
       expect(result.success).toBe(true);
       const analysis = result.analysis!;
-      
+
       expect(analysis.complexity).toBeDefined();
       expect(analysis.complexity.cyclomaticComplexity).toBeGreaterThan(1);
       expect(analysis.complexity.totalDeclarations).toBe(3); // interface, function, class
-      
+
       // Function with if statement should have complexity > 1
       const functionDecl = analysis.topLevelDeclarations.find(d => d.type === 'function');
       expect(functionDecl!.cyclomaticComplexity).toBeGreaterThan(1);
@@ -141,7 +141,7 @@ export { User };
 
       expect(result.success).toBe(true);
       const strategy = result.analysis!.suggestedChunkingStrategy;
-      
+
       expect(strategy).toBeDefined();
       expect(strategy.strategy).toBeDefined();
       expect(strategy.reasoning).toBeDefined();
@@ -165,11 +165,11 @@ class ShoppingCart {
   constructor() {
     this.items = [];
   }
-  
+
   addItem(item) {
     this.items.push(item);
   }
-  
+
   getTotal() {
     return calculateTotal(this.items);
   }
@@ -191,11 +191,11 @@ module.exports = { ShoppingCart, calculateTotal };
 
       expect(result.success).toBe(true);
       const declarations = result.analysis!.topLevelDeclarations;
-      
+
       const functionDecl = declarations.find(d => d.name === 'calculateTotal');
       expect(functionDecl).toBeDefined();
       expect(functionDecl!.cyclomaticComplexity).toBeGreaterThan(2); // for loop + if statement
-      
+
       const classDecl = declarations.find(d => d.name === 'ShoppingCart');
       expect(classDecl).toBeDefined();
       expect(classDecl!.children.length).toBeGreaterThan(0);
@@ -207,16 +207,16 @@ module.exports = { ShoppingCart, calculateTotal };
 class UserManager:
     def __init__(self):
         self.users = []
-    
+
     def add_user(self, user):
         if self.validate_user(user):
             self.users.append(user)
             return True
         return False
-    
+
     def validate_user(self, user):
         return user.get('name') and user.get('email')
-    
+
     def find_user_by_email(self, email):
         for user in self.users:
             if user.get('email') == email:
@@ -240,7 +240,7 @@ def create_user(name, email):
 
       expect(result.success).toBe(true);
       const classDecl = result.analysis!.topLevelDeclarations.find(d => d.type === 'class');
-      
+
       expect(classDecl).toBeDefined();
       expect(classDecl!.name).toBe('UserManager');
       expect(classDecl!.children.length).toBeGreaterThan(0);
@@ -299,13 +299,13 @@ interface Config {
 
 abstract class BaseService {
   protected config: Config;
-  
+
   constructor(config: Config) {
     this.config = config;
   }
-  
+
   abstract processData(data: any): Promise<any>;
-  
+
   protected async makeRequest(url: string): Promise<any> {
     for (let i = 0; i < (this.config.retries || 3); i++) {
       try {
@@ -330,11 +330,11 @@ class UserService extends BaseService {
     if (!validated) {
       throw new Error('Invalid user data');
     }
-    
+
     const user = await this.makeRequest(\`\${this.config.apiUrl}/users\`);
     return user;
   }
-  
+
   private validateUserData(data: any): boolean {
     return !!(data.name && data.email && data.id);
   }
@@ -348,13 +348,13 @@ export { BaseService, UserService, Config };
 
       expect(result.success).toBe(true);
       const declarations = result.analysis!.topLevelDeclarations;
-      
+
       expect(declarations.length).toBeGreaterThanOrEqual(3); // interface, abstract class, concrete class
-      
+
       const baseClass = declarations.find(d => d.name === 'BaseService');
       expect(baseClass).toBeDefined();
       expect(baseClass!.modifiers).toContain('abstract');
-      
+
       const userService = declarations.find(d => d.name === 'UserService');
       expect(userService).toBeDefined();
       expect(userService!.children.length).toBeGreaterThan(0);
@@ -365,11 +365,11 @@ export { BaseService, UserService, Config };
 
       expect(result.success).toBe(true);
       const analysis = result.analysis!;
-      
+
       // makeRequest method should have high complexity due to loops, try-catch, conditionals
       const baseClass = analysis.topLevelDeclarations.find(d => d.name === 'BaseService');
       const makeRequestMethod = baseClass!.children.find(c => c.name === 'makeRequest');
-      
+
       expect(makeRequestMethod).toBeDefined();
       expect(makeRequestMethod!.cyclomaticComplexity).toBeGreaterThan(5);
     });

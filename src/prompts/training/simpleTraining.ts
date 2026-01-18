@@ -93,11 +93,11 @@ export interface ReviewStrategy {
 \`\`\`typescript
 export class EventDispatcher {
   private listeners = new Map<string, Set<EventListener>>();
-  
+
   subscribe(event: string, listener: EventListener): () => void {
     // Implementation
   }
-  
+
   async dispatch(event: string, data: any): Promise<void> {
     // Implementation
   }

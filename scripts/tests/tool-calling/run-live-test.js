@@ -2,7 +2,7 @@
 
 /**
  * Live test for tool calling implementation
- * 
+ *
  * This script tests the tool calling implementation with a simulated SERPAPI_KEY
  * by running an architectural review on this project itself.
  */
@@ -33,13 +33,13 @@ function setupMockSerpApi() {
   const serpApiHelperPath = path.join(projectRoot, 'src/utils/dependencies/serpApiHelper.ts');
   const backupPath = path.join(projectRoot, 'src/utils/dependencies/serpApiHelper.ts.bak');
   const mockPath = path.join(projectRoot, 'src/utils/dependencies/serpApiHelperMock.ts');
-  
+
   // Create a mock implementation if it doesn't exist
   if (!fs.existsSync(mockPath)) {
     console.log('Creating mock serpApiHelper implementation...');
     const mockContent = `/**
  * @fileoverview Mock SerpAPI helper for testing without real API calls
- * 
+ *
  * This module provides mock responses for known vulnerable packages.
  */
 
@@ -139,15 +139,15 @@ export async function searchPackageSecurity(
   ecosystem: 'npm' | 'composer' | 'pip' | 'gem'
 ): Promise<DependencySecurityInfo | null> {
   logger.debug(\`[MOCK] Searching for security info for \${packageInfo.name} \${packageInfo.version || ''}\`);
-  
+
   // Add a small delay to simulate network latency
   await new Promise(resolve => setTimeout(resolve, 200));
-  
+
   // Check if we have mock data for this package
   if (MOCK_DATA[packageInfo.name]) {
     return MOCK_DATA[packageInfo.name];
   }
-  
+
   // Return a generic response for unknown packages
   return {
     packageName: packageInfo.name,
@@ -173,13 +173,13 @@ export async function batchSearchPackageSecurity(
   limit: number = 5
 ): Promise<DependencySecurityInfo[]> {
   logger.debug(\`[MOCK] Batch searching for security info for \${packages.length} packages\`);
-  
+
   // Add a small delay to simulate network latency
   await new Promise(resolve => setTimeout(resolve, 500));
-  
+
   // Limit the number of packages to search for
   const packagesToSearch = packages.slice(0, limit);
-  
+
   // Search for each package
   const results: DependencySecurityInfo[] = [];
   for (const pkg of packagesToSearch) {
@@ -188,24 +188,24 @@ export async function batchSearchPackageSecurity(
       results.push(result);
     }
   }
-  
+
   return results;
 }`;
     fs.writeFileSync(mockPath, mockContent);
   }
-  
+
   // Backup the original file if it exists
   if (fs.existsSync(serpApiHelperPath) && !fs.existsSync(backupPath)) {
     console.log('Backing up original serpApiHelper.ts...');
     fs.copyFileSync(serpApiHelperPath, backupPath);
   }
-  
+
   // Replace serpApiHelper.ts with our mock implementation
   console.log('Installing mock serpApiHelper.ts...');
   if (fs.existsSync(mockPath)) {
     fs.copyFileSync(mockPath, serpApiHelperPath);
   }
-  
+
   return { serpApiHelperPath, backupPath };
 }
 
@@ -221,37 +221,37 @@ function restoreSerpApi(serpApiHelperPath, backupPath) {
 // Main function
 async function main() {
   console.log('=== Testing Tool Calling Implementation ===');
-  
+
   // Setup mock SERPAPI helper
   const { serpApiHelperPath, backupPath } = setupMockSerpApi();
-  
+
   try {
     // Test both OpenAI and Anthropic models
-    
+
     // Test OpenAI first
     if (openaiEnabled) {
       console.log('\n=== Testing OpenAI Tool Calling ===');
       process.env.AI_CODE_REVIEW_MODEL = 'openai:gpt-4o';
-      
+
       try {
         console.log('Running architectural review with OpenAI GPT-4o...');
         // Use execSync to run the CLI but capture the output instead of showing it
         // This is just a demonstration, so we'll limit the review to src/utils/dependencies
         const output = execSync(
           `node ${path.join(projectRoot, 'src/index.js')} ${path.join(projectRoot, 'src/utils/dependencies')} --type=arch --verbose`,
-          { 
+          {
             env: process.env,
             encoding: 'utf8',
-            stdio: ['pipe', 'pipe', 'pipe'], 
+            stdio: ['pipe', 'pipe', 'pipe'],
             maxBuffer: 10 * 1024 * 1024 // 10MB buffer for large outputs
           }
         );
-        
+
         console.log('OpenAI architectural review completed successfully!');
         console.log('To see the full output, check the generated file in ai-code-review-docs/');
       } catch (error) {
         console.error('Error during OpenAI test:', error.message);
-        
+
         // Try to get the stderr output
         if (error.stderr) {
           console.error('Error output:', error.stderr.toString());
@@ -260,31 +260,31 @@ async function main() {
     } else {
       console.log('OpenAI testing skipped (no valid API key)');
     }
-    
+
     // Test Anthropic
     if (anthropicEnabled) {
       console.log('\n=== Testing Anthropic Tool Calling ===');
       process.env.AI_CODE_REVIEW_MODEL = 'anthropic:claude-3-opus';
-      
+
       try {
         console.log('Running architectural review with Anthropic Claude 3 Opus...');
         // Use execSync to run the CLI but capture the output instead of showing it
         // This is just a demonstration, so we'll limit the review to src/utils/dependencies
         const output = execSync(
           `node ${path.join(projectRoot, 'src/index.js')} ${path.join(projectRoot, 'src/utils/dependencies')} --type=arch --verbose`,
-          { 
+          {
             env: process.env,
             encoding: 'utf8',
-            stdio: ['pipe', 'pipe', 'pipe'], 
+            stdio: ['pipe', 'pipe', 'pipe'],
             maxBuffer: 10 * 1024 * 1024 // 10MB buffer for large outputs
           }
         );
-        
+
         console.log('Anthropic architectural review completed successfully!');
         console.log('To see the full output, check the generated file in ai-code-review-docs/');
       } catch (error) {
         console.error('Error during Anthropic test:', error.message);
-        
+
         // Try to get the stderr output
         if (error.stderr) {
           console.error('Error output:', error.stderr.toString());
@@ -293,11 +293,11 @@ async function main() {
     } else {
       console.log('Anthropic testing skipped (no valid API key)');
     }
-    
+
     console.log('\n=== Testing Completed ===');
     console.log('Check the ai-code-review-docs/ directory for the generated review files.');
     console.log('The tool calling feature for both OpenAI and Anthropic models has been implemented successfully.');
-    
+
   } finally {
     // Always restore the original file
     restoreSerpApi(serpApiHelperPath, backupPath);

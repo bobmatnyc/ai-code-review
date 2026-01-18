@@ -2,16 +2,16 @@
 
 /**
  * E2E Test Script for AI Code Review
- * 
+ *
  * This script performs a series of end-to-end tests for the AI Code Review tool before publishing.
  * It verifies that the core functionality works correctly by:
- * 
+ *
  * 1. Testing the CLI with --version flag
  * 2. Testing the CLI with --help flag
  * 3. Testing the model listing feature
  * 4. Testing a simple code review on test projects
  * 5. Testing various command line arguments
- * 
+ *
  * These tests ensure that the package is functioning correctly before publishing.
  */
 
@@ -49,7 +49,7 @@ function runCommand(command, silent = false) {
   if (!silent) {
     console.log(`${colors.cyan}> ${command}${colors.reset}`);
   }
-  
+
   try {
     const output = execSync(command, { encoding: 'utf8' });
     if (!silent) {
@@ -125,7 +125,7 @@ runTest('Help flag', () => {
 // Test models flag
 runTest('Models flag', () => {
   const output = runCommand('node dist/index.js --models');
-  // The actual output format depends on the CLI implementation, 
+  // The actual output format depends on the CLI implementation,
   // adjust the assertions to match the actual output
   assert.ok(output.includes(`Tool v${VERSION}`), 'Should show version information');
   // Just verify the command runs without error
@@ -138,7 +138,7 @@ runTest('Basic file analysis', () => {
   if (!fs.existsSync(testDir)) {
     fs.mkdirSync(testDir);
   }
-  
+
   const testFile = path.join(testDir, 'test.ts');
   fs.writeFileSync(testFile, `
 // Simple TypeScript file for testing
@@ -148,13 +148,13 @@ function greet(name: string): string {
 
 export default greet;
 `);
-  
+
   try {
     // Run an estimate on the file without API keys
     // Just verify it doesn't crash
     const output = runCommand(`node dist/index.js ${testFile} --estimate`);
     assert.ok(output.includes(`Tool v${VERSION}`), 'Should show version information');
-    
+
     // Since we don't have API keys, this should run but we can't verify specific outputs
     // Just make sure it doesn't completely fail
   } finally {
@@ -178,16 +178,16 @@ if (hasGeminiKey || hasAnthropicKey || hasOpenRouterKey) {
     const output = runCommand('node dist/index.js --test-api');
     assert.ok(output.includes('API connection tests completed'), 'Should complete API connection tests');
   });
-  
+
   // Only run full review test if we have API keys
   runTest('Simple code review', () => {
     const testProject = path.join(__dirname, '..', 'test-projects', 'typescript');
     const output = runCommand(`node dist/index.js ${testProject} --type quick-fixes --output-dir ./temp-review-output`);
-    
+
     assert.ok(output.includes('Starting code review'), 'Should start code review');
     assert.ok(output.includes('Code review complete'), 'Should complete code review');
     assert.ok(fs.existsSync('./temp-review-output'), 'Should create output directory');
-    
+
     // Clean up output directory
     if (fs.existsSync('./temp-review-output')) {
       fs.rmSync('./temp-review-output', { recursive: true, force: true });
@@ -202,7 +202,7 @@ if (hasGeminiKey || hasAnthropicKey || hasOpenRouterKey) {
 runTest('Executable test', () => {
   // First make sure the file has execute permissions
   runCommand('chmod +x dist/index.js', true);
-  
+
   // Then try to run it directly
   const output = runCommand('./dist/index.js -v');
   assert.ok(output.includes(VERSION), 'Should run as executable and display version');

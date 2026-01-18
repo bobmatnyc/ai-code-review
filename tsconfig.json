@@ -40,10 +40,10 @@
   },
   "include": ["src/**/*"],
   "exclude": [
-    "node_modules", 
-    "dist", 
-    "**/*.test.ts", 
-    "test-projects/**/*", 
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "test-projects/**/*",
     "**/examples/**/*",
     "src/prompts/schemas/*-schema.ts"
   ]

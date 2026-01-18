@@ -2,18 +2,18 @@
 
 /**
  * LangChain Evaluation Framework for Extract Patterns Review Type
- * 
+ *
  * This module implements LangChain-based evaluation metrics for pattern extraction
  * quality, including relevance, completeness, accuracy, and usefulness scores.
- * 
+ *
  * Usage:
  *   node tests/extract-patterns/langchain-evaluation.js <review-file> [options]
- * 
+ *
  * Options:
  *   --reference <file>    Reference file for comparison evaluation
  *   --metrics <list>      Comma-separated list of metrics to evaluate
  *   --output <file>       Output file for evaluation results
- * 
+ *
  * Metrics:
  *   - relevance: How relevant the extracted patterns are to the codebase
  *   - completeness: How complete the analysis is
@@ -42,7 +42,7 @@ const EVALUATION_METRICS = {
       'Technology choices are accurate'
     ]
   },
-  
+
   completeness: {
     name: 'Completeness',
     description: 'How complete is the pattern extraction analysis?',
@@ -55,7 +55,7 @@ const EVALUATION_METRICS = {
       'Development workflow described'
     ]
   },
-  
+
   accuracy: {
     name: 'Accuracy',
     description: 'How accurate are the technical details and recommendations?',
@@ -68,7 +68,7 @@ const EVALUATION_METRICS = {
       'No misleading information'
     ]
   },
-  
+
   usefulness: {
     name: 'Usefulness',
     description: 'How useful would this analysis be for replicating the project?',
@@ -81,7 +81,7 @@ const EVALUATION_METRICS = {
       'Identifies key success factors'
     ]
   },
-  
+
   clarity: {
     name: 'Clarity',
     description: 'How clear and understandable is the analysis?',
@@ -154,22 +154,22 @@ class EvaluationResult {
  */
 function evaluateRelevance(content, codebaseInfo) {
   const score = { value: 0, details: [] };
-  
+
   // Check if patterns match actual code structure
-  const hasCodeStructure = content.toLowerCase().includes('structure') || 
+  const hasCodeStructure = content.toLowerCase().includes('structure') ||
                           content.toLowerCase().includes('organization');
   if (hasCodeStructure) {
     score.value += 20;
     score.details.push('✅ Code structure patterns identified');
   }
-  
+
   // Check for actual examples from codebase
   const hasCodeExamples = (content.match(/```[\s\S]*?```/g) || []).length > 0;
   if (hasCodeExamples) {
     score.value += 25;
     score.details.push('✅ Code examples included');
   }
-  
+
   // Check for architectural decisions
   const hasArchitecture = content.toLowerCase().includes('architecture') ||
                          content.toLowerCase().includes('design pattern');
@@ -177,7 +177,7 @@ function evaluateRelevance(content, codebaseInfo) {
     score.value += 25;
     score.details.push('✅ Architectural decisions documented');
   }
-  
+
   // Check for technology choices
   const hasTechChoices = content.toLowerCase().includes('technology') ||
                         content.toLowerCase().includes('framework') ||
@@ -186,7 +186,7 @@ function evaluateRelevance(content, codebaseInfo) {
     score.value += 30;
     score.details.push('✅ Technology choices analyzed');
   }
-  
+
   return score;
 }
 
@@ -202,10 +202,10 @@ function evaluateCompleteness(content) {
     { name: 'Testing', keywords: ['test', 'testing', 'spec'] },
     { name: 'Workflow', keywords: ['workflow', 'process', 'development'] }
   ];
-  
+
   const contentLower = content.toLowerCase();
   let foundSections = 0;
-  
+
   for (const section of requiredSections) {
     const found = section.keywords.some(keyword => contentLower.includes(keyword));
     if (found) {
@@ -215,7 +215,7 @@ function evaluateCompleteness(content) {
       score.details.push(`❌ ${section.name} section missing`);
     }
   }
-  
+
   score.value = (foundSections / requiredSections.length) * 100;
   return score;
 }
@@ -225,7 +225,7 @@ function evaluateCompleteness(content) {
  */
 function evaluateAccuracy(content) {
   const score = { value: 80, details: [] }; // Start with high score, deduct for issues
-  
+
   // Check for red flags that indicate inaccuracy
   const redFlags = [
     'I cannot',
@@ -234,20 +234,20 @@ function evaluateAccuracy(content) {
     'Not enough information',
     'Cannot determine'
   ];
-  
+
   const contentLower = content.toLowerCase();
   let redFlagCount = 0;
-  
+
   for (const flag of redFlags) {
     if (contentLower.includes(flag.toLowerCase())) {
       redFlagCount++;
       score.details.push(`❌ Red flag: "${flag}"`);
     }
   }
-  
+
   // Deduct points for red flags
   score.value -= redFlagCount * 15;
-  
+
   // Check for technical depth indicators
   const techIndicators = [
     'configuration',
@@ -256,20 +256,20 @@ function evaluateAccuracy(content) {
     'example',
     'pattern'
   ];
-  
+
   let techDepth = 0;
   for (const indicator of techIndicators) {
     const matches = (contentLower.match(new RegExp(indicator, 'g')) || []).length;
     techDepth += matches;
   }
-  
+
   if (techDepth > 10) {
     score.details.push('✅ Good technical depth');
   } else {
     score.value -= 10;
     score.details.push('⚠️ Limited technical depth');
   }
-  
+
   return { value: Math.max(0, score.value), details: score.details };
 }
 
@@ -278,7 +278,7 @@ function evaluateAccuracy(content) {
  */
 function evaluateUsefulness(content) {
   const score = { value: 0, details: [] };
-  
+
   const usefulnessIndicators = [
     { keyword: 'setup', points: 20, description: 'Setup instructions' },
     { keyword: 'replication', points: 20, description: 'Replication guidance' },
@@ -287,19 +287,19 @@ function evaluateUsefulness(content) {
     { keyword: 'recommendation', points: 15, description: 'Recommendations' },
     { keyword: 'best practice', points: 15, description: 'Best practices' }
   ];
-  
+
   const contentLower = content.toLowerCase();
-  
+
   for (const indicator of usefulnessIndicators) {
     if (contentLower.includes(indicator.keyword)) {
       score.value += indicator.points;
       score.details.push(`✅ ${indicator.description} provided`);
     }
   }
-  
+
   // Cap at 100
   score.value = Math.min(100, score.value);
-  
+
   return score;
 }
 
@@ -308,39 +308,39 @@ function evaluateUsefulness(content) {
  */
 function evaluateClarity(content) {
   const score = { value: 0, details: [] };
-  
+
   // Check structure (headers)
   const headerCount = (content.match(/^#{1,6}\s+/gm) || []).length;
   if (headerCount >= 5) {
     score.value += 25;
     score.details.push('✅ Well-structured with headers');
   }
-  
+
   // Check for examples
   const exampleCount = (content.match(/example|e\.g\.|such as|like:/gi) || []).length;
   if (exampleCount >= 5) {
     score.value += 25;
     score.details.push('✅ Good use of examples');
   }
-  
+
   // Check for code blocks
   const codeBlockCount = (content.match(/```[\s\S]*?```/g) || []).length;
   if (codeBlockCount >= 3) {
     score.value += 25;
     score.details.push('✅ Code examples included');
   }
-  
+
   // Check readability (sentence length, paragraph structure)
   const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
   const avgSentenceLength = sentences.reduce((sum, s) => sum + s.length, 0) / sentences.length;
-  
+
   if (avgSentenceLength < 150) { // Reasonable sentence length
     score.value += 25;
     score.details.push('✅ Good readability');
   } else {
     score.details.push('⚠️ Some sentences may be too long');
   }
-  
+
   return score;
 }
 
@@ -349,33 +349,33 @@ function evaluateClarity(content) {
  */
 async function evaluateExtractPatternsOutput(filePath, options = {}) {
   const result = new EvaluationResult();
-  
+
   try {
     // Read the content
     const content = await fs.readFile(filePath, 'utf8');
-    
+
     // Get codebase info if available
     const codebaseInfo = options.codebaseInfo || {};
-    
+
     // Evaluate each metric
     const relevanceScore = evaluateRelevance(content, codebaseInfo);
     result.addMetric('relevance', relevanceScore.value, relevanceScore.details);
-    
+
     const completenessScore = evaluateCompleteness(content);
     result.addMetric('completeness', completenessScore.value, completenessScore.details);
-    
+
     const accuracyScore = evaluateAccuracy(content);
     result.addMetric('accuracy', accuracyScore.value, accuracyScore.details);
-    
+
     const usefulnessScore = evaluateUsefulness(content);
     result.addMetric('usefulness', usefulnessScore.value, usefulnessScore.details);
-    
+
     const clarityScore = evaluateClarity(content);
     result.addMetric('clarity', clarityScore.value, clarityScore.details);
-    
+
     // Calculate overall score
     result.calculateOverallScore();
-    
+
     // Generate recommendations
     if (result.overallScore < 70) {
       result.recommendations.push('Consider improving prompt templates for better coverage');
@@ -389,11 +389,11 @@ async function evaluateExtractPatternsOutput(filePath, options = {}) {
     if (result.metrics.accuracy?.score < 70) {
       result.recommendations.push('Verify technical accuracy and reduce uncertainty language');
     }
-    
+
   } catch (error) {
     result.details.push(`❌ Evaluation error: ${error.message}`);
   }
-  
+
   return result;
 }
 
@@ -406,18 +406,18 @@ function printEvaluationResults(result, filePath) {
   console.log(`File: ${filePath}`);
   console.log(`Overall Score: ${result.overallScore.toFixed(1)}/100 (Grade: ${result.getGrade()})`);
   console.log(`Timestamp: ${result.timestamp}`);
-  
+
   console.log(`\n📊 Metric Breakdown:`);
   for (const [name, metric] of Object.entries(result.metrics)) {
     const config = EVALUATION_METRICS[name];
     console.log(`\n${config.name}: ${metric.score.toFixed(1)}/100 (Weight: ${(config.weight * 100).toFixed(0)}%)`);
     console.log(`   ${config.description}`);
-    
+
     if (metric.details.length > 0) {
       metric.details.forEach(detail => console.log(`   ${detail}`));
     }
   }
-  
+
   if (result.recommendations.length > 0) {
     console.log(`\n💡 Recommendations:`);
     result.recommendations.forEach(rec => console.log(`   • ${rec}`));
@@ -446,31 +446,31 @@ async function main() {
     })
     .help()
     .argv;
-  
+
   const filePath = args._[0];
-  
+
   if (!filePath) {
     console.error('Error: Please provide a review file path');
     process.exit(1);
   }
-  
+
   if (!await fs.access(filePath).then(() => true).catch(() => false)) {
     console.error(`Error: File not found: ${filePath}`);
     process.exit(1);
   }
-  
+
   // Run evaluation
   const result = await evaluateExtractPatternsOutput(filePath);
-  
+
   // Print results
   printEvaluationResults(result, filePath);
-  
+
   // Save results if output file specified
   if (args.output) {
     await fs.writeFile(args.output, JSON.stringify(result, null, 2));
     console.log(`\n📄 Results saved to: ${args.output}`);
   }
-  
+
   // Exit with appropriate code
   process.exit(result.overallScore >= 70 ? 0 : 1);
 }

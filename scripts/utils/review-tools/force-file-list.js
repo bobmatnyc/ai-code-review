@@ -21,10 +21,10 @@ function getFileList() {
 // Add file list to review
 function addFileList(reviewPath, files) {
   console.log(`Adding file list to ${reviewPath}`);
-  
+
   // Read review file
   const review = fs.readFileSync(reviewPath, 'utf8');
-  
+
   // Generate file list section
   const fileListSection = `
 ## Files Analyzed
@@ -37,20 +37,20 @@ ${files.map(file => `- \`${file}\``).join('\n')}
 
   // Find cost information section to insert before
   const costIndex = review.indexOf('## Cost Information');
-  
+
   if (costIndex === -1) {
     // If no cost section, append to end
     const newReview = review + fileListSection;
     fs.writeFileSync(reviewPath, newReview);
   } else {
     // Insert before cost section
-    const newReview = 
-      review.substring(0, costIndex) + 
-      fileListSection + 
+    const newReview =
+      review.substring(0, costIndex) +
+      fileListSection +
       review.substring(costIndex);
     fs.writeFileSync(reviewPath, newReview);
   }
-  
+
   console.log('File list added successfully!');
 }
 
@@ -61,7 +61,7 @@ function main() {
     console.error('No review file found!');
     return;
   }
-  
+
   const files = getFileList();
   addFileList(reviewPath, files);
 }

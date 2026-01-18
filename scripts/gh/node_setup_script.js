@@ -105,9 +105,9 @@ async function writeFile(filePath, content) {
       const answer = await new Promise(resolve => {
         readline.question(`⚠️ File ${filePath} already exists. Overwrite? (y/n): `, resolve);
       });
-      
+
       readline.close();
-      
+
       if (answer.toLowerCase() === 'y') {
         await fs.writeFile(filePath, content);
         console.log(`✓ Updated file: ${filePath}`);
@@ -134,7 +134,7 @@ async function checkGitHubCLI() {
 
 async function setupBranchProtection() {
   console.log('\n🔒 Setting up branch protection rules...');
-  
+
   const mainProtection = {
     required_status_checks: {
       strict: true,
@@ -157,11 +157,11 @@ async function setupBranchProtection() {
   try {
     // Create a temporary file with the protection rules
     await fs.writeFile('main-protection.json', JSON.stringify(mainProtection, null, 2));
-    
+
     execSync(`gh api repos/${REPO_FULL}/branches/main/protection --method PUT --input main-protection.json`, {
       stdio: 'inherit'
     });
-    
+
     await fs.unlink('main-protection.json');
     console.log('✓ Main branch protection rules applied');
   } catch (error) {
@@ -173,7 +173,7 @@ async function setupBranchProtection() {
 
 async function setupRepositorySettings() {
   console.log('\n⚙️ Configuring repository settings...');
-  
+
   const repoSettings = {
     has_issues: true,
     has_projects: true,
@@ -191,11 +191,11 @@ async function setupRepositorySettings() {
 
   try {
     await fs.writeFile('repo-settings.json', JSON.stringify(repoSettings, null, 2));
-    
+
     execSync(`gh api repos/${REPO_FULL} --method PATCH --input repo-settings.json`, {
       stdio: 'inherit'
     });
-    
+
     await fs.unlink('repo-settings.json');
     console.log('✓ Repository settings configured');
   } catch (error) {
@@ -235,10 +235,10 @@ async function main() {
     try {
       // Check authentication
       execSync('gh auth status', { stdio: 'pipe' });
-      
+
       await setupRepositorySettings();
       await setupBranchProtection();
-      
+
       // Enable vulnerability alerts
       console.log('\n🔐 Enabling security features...');
       try {
@@ -247,7 +247,7 @@ async function main() {
       } catch (error) {
         console.log('⚠ Could not enable vulnerability alerts automatically');
       }
-      
+
     } catch (error) {
       console.log('\n⚠ GitHub CLI is not authenticated.');
       console.log('  Run "gh auth login" to authenticate, then re-run this script for full setup.');
@@ -260,7 +260,7 @@ async function main() {
   console.log('2. Set up CI/CD workflows');
   console.log('3. Configure security advisories if needed');
   console.log('4. Add team members as collaborators');
-  
+
   if (!hasGH) {
     console.log('5. Apply branch protection rules manually in GitHub repository settings');
   }

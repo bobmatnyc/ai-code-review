@@ -2,15 +2,15 @@
 
 /**
  * Test script for verifying environment variable loading.
- * 
+ *
  * This script demonstrates how the AI Code Review tool prioritizes loading
  * environment variables from its own directory first, before falling back
  * to the target project directory.
- * 
+ *
  * Usage:
  *   node scripts/test-env-loading.js [--debug]
  *   node scripts/test-env-loading.js --debug --override
- * 
+ *
  * The --override flag will test loading with dotenv override option enabled.
  */
 
@@ -33,7 +33,7 @@ const colors = {
 
 // Helper for consistent log output
 function log(message, type = 'info') {
-  const prefix = type === 'info' 
+  const prefix = type === 'info'
     ? `${colors.blue}[INFO]${colors.reset}`
     : type === 'success'
       ? `${colors.green}[SUCCESS]${colors.reset}`
@@ -44,7 +44,7 @@ function log(message, type = 'info') {
           : type === 'env'
             ? `${colors.magenta}[ENV]${colors.reset}`
             : `${colors.cyan}[DEBUG]${colors.reset}`;
-  
+
   console.log(`${prefix} ${message}`);
 }
 
@@ -106,7 +106,7 @@ function extractEnvVars(envPath) {
   try {
     const envContent = fs.readFileSync(envPath, 'utf8');
     const vars = {};
-    
+
     envContent
       .split('\n')
       .filter(line => line.trim() && !line.startsWith('#'))
@@ -116,7 +116,7 @@ function extractEnvVars(envPath) {
           vars[match[1].trim()] = match[2].trim();
         }
       });
-      
+
     return vars;
   } catch (err) {
     log(`Error reading env file: ${err.message}`, 'error');
@@ -127,7 +127,7 @@ function extractEnvVars(envPath) {
 // Function to check .env file for log level
 function checkForLogLevel(envPath) {
   const vars = extractEnvVars(envPath);
-  
+
   if (vars.AI_CODE_REVIEW_LOG_LEVEL) {
     log(`AI_CODE_REVIEW_LOG_LEVEL found in ${path.basename(envPath)}: ${vars.AI_CODE_REVIEW_LOG_LEVEL}`, 'success');
     return true;
@@ -141,62 +141,62 @@ function checkForLogLevel(envPath) {
 if (toolEnvExists) {
   log('Found .env.local in tool directory, checking contents:', 'info');
   checkForLogLevel(toolEnvPath);
-  
+
   log(`Loading from tool directory with ${useOverride ? 'override enabled' : 'default settings'}`, 'env');
-  const result = dotenv.config({ 
+  const result = dotenv.config({
     path: toolEnvPath,
     override: useOverride
   });
-  
+
   if (result.error) {
     log(`Error loading environment: ${result.error.message}`, 'error');
   } else {
     log('Successfully loaded environment from tool directory', 'success');
-    
+
     // Show what was loaded
     const varNames = Object.keys(result.parsed || {});
     log(`Loaded ${varNames.length} variables:`, 'success');
     if (isDebug) {
       log(varNames.join(', '), 'debug');
     }
-    
+
     // Check if log level was loaded
     if (result.parsed && result.parsed.AI_CODE_REVIEW_LOG_LEVEL) {
       log(`Loaded AI_CODE_REVIEW_LOG_LEVEL=${result.parsed.AI_CODE_REVIEW_LOG_LEVEL}`, 'success');
     }
-    
+
     // Check if it's actually in process.env
     log(`Environment now has AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL || '(not set)'}`, 'env');
   }
-} 
+}
 // Fall back to current directory
 else if (cwdEnvExists) {
   log('No .env.local in tool directory, checking current directory:', 'info');
   checkForLogLevel(cwdEnvPath);
-  
+
   log(`Loading from current directory with ${useOverride ? 'override enabled' : 'default settings'}`, 'env');
-  const result = dotenv.config({ 
+  const result = dotenv.config({
     path: cwdEnvPath,
-    override: useOverride 
+    override: useOverride
   });
-  
+
   if (result.error) {
     log(`Error loading environment: ${result.error.message}`, 'error');
   } else {
     log('Successfully loaded environment from current directory', 'success');
-    
+
     // Show what was loaded
     const varNames = Object.keys(result.parsed || {});
     log(`Loaded ${varNames.length} variables:`, 'success');
     if (isDebug) {
       log(varNames.join(', '), 'debug');
     }
-    
+
     // Check if log level was loaded
     if (result.parsed && result.parsed.AI_CODE_REVIEW_LOG_LEVEL) {
       log(`Loaded AI_CODE_REVIEW_LOG_LEVEL=${result.parsed.AI_CODE_REVIEW_LOG_LEVEL}`, 'success');
     }
-    
+
     // Check if it's actually in process.env
     log(`Environment now has AI_CODE_REVIEW_LOG_LEVEL=${process.env.AI_CODE_REVIEW_LOG_LEVEL || '(not set)'}`, 'env');
   }
@@ -207,8 +207,8 @@ else if (cwdEnvExists) {
 // Check for API keys (prioritizing AI_CODE_REVIEW prefixed keys)
 log('\nChecking for API keys and configuration:', 'info');
 
-const googleKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY || 
-                 process.env.CODE_REVIEW_GOOGLE_API_KEY || 
+const googleKey = process.env.AI_CODE_REVIEW_GOOGLE_API_KEY ||
+                 process.env.CODE_REVIEW_GOOGLE_API_KEY ||
                  process.env.GOOGLE_GENERATIVE_AI_KEY ||
                  process.env.GOOGLE_AI_STUDIO_KEY;
 
@@ -260,7 +260,7 @@ function mockGetCurrentLogLevel() {
   }
 
   const envLogLevel = process.env.AI_CODE_REVIEW_LOG_LEVEL?.toLowerCase();
-  
+
   if (envLogLevel && envLogLevel in mockLogLevelMap) {
     log(`Found log level "${envLogLevel}" in AI_CODE_REVIEW_LOG_LEVEL, would set level to ${envLogLevel.toUpperCase()}`, 'success');
     return mockLogLevelMap[envLogLevel];
@@ -309,6 +309,6 @@ log('\nTips for fixing common issues:', 'info');
 log('- Check for whitespace or quotes in your .env.local file values', 'info');
 log('- Try adding the variable via command line: export AI_CODE_REVIEW_LOG_LEVEL=debug', 'info');
 log('- To find the correct location for .env.local in global installations, run:', 'info');
-log('  ai-code-review --which-dir', 'info'); 
+log('  ai-code-review --which-dir', 'info');
 
 log('\nEnvironment variable loading test complete!', 'success');

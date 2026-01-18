@@ -2,20 +2,20 @@
 
 /**
  * Real API Testing Script for Extract Patterns Review Type
- * 
+ *
  * This script tests the extract-patterns functionality with real API calls
  * to validate the quality and accuracy of pattern extraction.
- * 
+ *
  * Usage:
  *   node tests/extract-patterns/real-api-test.js [options]
- * 
+ *
  * Options:
  *   --model <model>     Specify model to test (e.g., anthropic:claude-3-opus)
  *   --target <path>     Target directory/file to analyze (default: src/)
  *   --output <path>     Output directory for results (default: test-results/)
  *   --interactive       Enable interactive mode for structured output
  *   --validate          Run validation checks on output
- * 
+ *
  * Environment Variables:
  *   AI_CODE_REVIEW_ANTHROPIC_API_KEY - Anthropic API key
  *   AI_CODE_REVIEW_OPENAI_API_KEY    - OpenAI API key
@@ -138,7 +138,7 @@ async function ensureOutputDirectory(outputPath) {
  */
 async function runExtractPatternsReview(config) {
   const { model, target, output, interactive } = config;
-  
+
   console.log(`\n🔍 Running extract-patterns review...`);
   console.log(`   Model: ${model}`);
   console.log(`   Target: ${target}`);
@@ -165,7 +165,7 @@ async function runExtractPatternsReview(config) {
 
   try {
     const startTime = Date.now();
-    
+
     // Execute the command
     const result = execSync(cmd.join(' '), {
       cwd: PROJECT_ROOT,
@@ -178,7 +178,7 @@ async function runExtractPatternsReview(config) {
     const duration = endTime - startTime;
 
     console.log(`✅ Review completed in ${duration}ms`);
-    
+
     return {
       success: true,
       output: result,
@@ -238,16 +238,16 @@ async function main() {
 
   // Parse arguments
   const args = parseArguments();
-  
+
   // Check API keys
   const { availableModels, missingKeys } = checkApiKeys();
-  
+
   console.log(`📋 Available models: ${availableModels.length}`);
   availableModels.forEach(model => console.log(`   ✅ ${model}`));
-  
+
   if (missingKeys.length > 0) {
     console.log(`\n⚠️  Missing API keys for:`);
-    missingKeys.forEach(({ model, envVar }) => 
+    missingKeys.forEach(({ model, envVar }) =>
       console.log(`   ❌ ${model} (${envVar})`)
     );
   }
@@ -273,7 +273,7 @@ async function main() {
 
   // Run tests
   const results = [];
-  
+
   for (const model of modelsToTest) {
     console.log(`\n${'='.repeat(60)}`);
     console.log(`Testing model: ${model}`);
@@ -303,14 +303,14 @@ async function main() {
   console.log(`\n${'='.repeat(60)}`);
   console.log('📊 TEST SUMMARY');
   console.log(`${'='.repeat(60)}`);
-  
+
   const successful = results.filter(r => r.success);
   const failed = results.filter(r => !r.success);
-  
+
   console.log(`Total tests: ${results.length}`);
   console.log(`Successful: ${successful.length}`);
   console.log(`Failed: ${failed.length}`);
-  
+
   if (successful.length > 0) {
     const avgDuration = successful.reduce((sum, r) => sum + r.duration, 0) / successful.length;
     console.log(`Average duration: ${Math.round(avgDuration)}ms`);
@@ -324,7 +324,7 @@ async function main() {
   }
 
   console.log(`\n📄 Detailed results: ${resultsFile}`);
-  
+
   // Exit with appropriate code
   process.exit(failed.length > 0 ? 1 : 0);
 }

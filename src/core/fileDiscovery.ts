@@ -45,7 +45,7 @@ function validateTargetParameter(target: string): void {
     // This avoids false positives for file paths like "src/file=name.ts"
     if (commonOptions.includes(key)) {
       throw new Error(`Invalid parameter format: '${target}'
-    
+
 It looks like you're trying to set the '${key}' option.
 Did you mean: --${key} ${value}
 
@@ -59,7 +59,7 @@ Run 'ai-code-review --help' for more options.`);
     if (!key.includes('/') && !key.includes('\\') && !key.includes('.')) {
       // If the key doesn't look like a path (no slashes or dots), it's probably a parameter mistake
       throw new Error(`Invalid parameter format: '${target}'
-    
+
 Parameters should use '--' prefix, not '=' format.
 Example: --type performance
 
@@ -91,7 +91,7 @@ Run 'ai-code-review --help' for all options.`);
   ];
   if (commonOptions.includes(target)) {
     throw new Error(`'${target}' looks like an option but is missing '--' prefix.
-    
+
 Did you mean: --${target}
 
 Example usage:
@@ -109,7 +109,7 @@ Run 'ai-code-review --help' for more information.`);
   // Check for other common mistakes
   if (target.startsWith('-') && !target.startsWith('--')) {
     throw new Error(`Invalid option format: '${target}'
-    
+
 Options should use double dashes (--), not single dash (-).
 Did you mean: -${target}?
 

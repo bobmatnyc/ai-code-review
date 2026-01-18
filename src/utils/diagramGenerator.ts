@@ -66,17 +66,17 @@ graph TB
         UI[User Interface]
         API[API Gateway]
     end
-    
+
     subgraph "Business Logic"
         Service[Service Layer]
         Domain[Domain Models]
     end
-    
+
     subgraph "Data Layer"
         DB[(Database)]
         Cache[(Cache)]
     end
-    
+
     UI --> API
     API --> Service
     Service --> Domain

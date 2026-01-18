@@ -174,7 +174,7 @@ def user_profile_view(request, user_id):
     recent_posts = user.posts.order_by('-created_at')[:5]
     post_count = user.posts.count()
     follower_count = user.followers.count()
-    
+
     context = {
         'user': user,
         'recent_posts': recent_posts,
@@ -191,26 +191,26 @@ def user_profile_view(request, user_id):
     # Cache key for user profile data
     cache_key = f'user_profile_{user_id}'
     cached_data = cache.get(cache_key)
-    
+
     if cached_data:
         return render(request, 'profile.html', cached_data)
-    
+
     # Single query with annotations
     user = User.objects.select_related('profile').annotate(
         post_count=Count('posts'),
         follower_count=Count('followers')
     ).get(id=user_id)
-    
+
     # Efficient query for recent posts
     recent_posts = user.posts.select_related('category').order_by('-created_at')[:5]
-    
+
     context = {
         'user': user,
         'recent_posts': recent_posts,
         'post_count': user.post_count,
         'follower_count': user.follower_count,
     }
-    
+
     # Cache for 5 minutes
     cache.set(cache_key, context, 300)
     return render(request, 'profile.html', context)
@@ -227,7 +227,7 @@ async def get_user_data(user_ids):
         user = await fetch_user(user_id)
         profile = await fetch_user_profile(user_id)
         posts = await fetch_user_posts(user_id)
-        
+
         results.append({
             'user': user,
             'profile': profile,
@@ -248,13 +248,13 @@ async def get_user_data(user_ids: List[int], batch_size: int = 10):
             fetch_user_posts(user_id),
             return_exceptions=True
         )
-        
+
         return {
             'user': user if not isinstance(user, Exception) else None,
             'profile': profile if not isinstance(profile, Exception) else None,
             'posts': posts if not isinstance(posts, Exception) else []
         }
-    
+
     # Process in batches to avoid overwhelming the system
     results = []
     for i in range(0, len(user_ids), batch_size):
@@ -263,9 +263,9 @@ async def get_user_data(user_ids: List[int], batch_size: int = 10):
             *[fetch_user_data(user_id) for user_id in batch],
             return_exceptions=True
         )
-        results.extend(result for result in batch_results 
+        results.extend(result for result in batch_results
                       if not isinstance(result, Exception))
-    
+
     return results
 ```
 
@@ -297,7 +297,7 @@ async def managed_file_processing(file_path):
 
 async def process_files(file_paths: List[str], concurrency_limit: int = 5):
     semaphore = asyncio.Semaphore(concurrency_limit)
-    
+
     async def process_single_file(file_path: str):
         async with semaphore:
             try:
@@ -306,12 +306,12 @@ async def process_files(file_paths: List[str], concurrency_limit: int = 5):
             except Exception as e:
                 logger.error(f"Failed to process {file_path}: {e}")
                 return None
-    
+
     results = await asyncio.gather(
         *[process_single_file(path) for path in file_paths],
         return_exceptions=True
     )
-    
+
     return [result for result in results if result is not None]
 ```
 
@@ -497,32 +497,32 @@ class PerformantCache:
         self._cache: Dict[str, Dict[str, Any]] = {}
         self.max_size = max_size
         self.ttl = ttl
-    
+
     @lru_cache(maxsize=128)
     def expensive_computation(self, n: int) -> int:
         # Cached expensive computation
         return sum(i ** 2 for i in range(n))
-    
+
     async def cached_async_operation(self, key: str) -> Any:
         cache_entry = self._cache.get(key)
-        
+
         if cache_entry and (time.time() - cache_entry['timestamp']) < self.ttl:
             return cache_entry['value']
-        
+
         # Expensive async operation
         result = await self._fetch_data(key)
-        
+
         # Implement LRU eviction
         if len(self._cache) >= self.max_size:
-            oldest_key = min(self._cache.keys(), 
+            oldest_key = min(self._cache.keys(),
                            key=lambda k: self._cache[k]['timestamp'])
             del self._cache[oldest_key]
-        
+
         self._cache[key] = {
             'value': result,
             'timestamp': time.time()
         }
-        
+
         return result
 ```
 
@@ -538,7 +538,7 @@ class PerformantDBPool:
         self.min_size = min_size
         self.max_size = max_size
         self.pool = None
-    
+
     async def initialize(self):
         self.pool = await asyncpg.create_pool(
             self.database_url,
@@ -546,13 +546,13 @@ class PerformantDBPool:
             max_size=self.max_size,
             command_timeout=60
         )
-    
+
     @asynccontextmanager
     async def get_connection(self):
         async with self.pool.acquire() as connection:
             async with connection.transaction():
                 yield connection
-    
+
     async def execute_batch(self, query: str, batch_data: list):
         async with self.get_connection() as conn:
             return await conn.executemany(query, batch_data)

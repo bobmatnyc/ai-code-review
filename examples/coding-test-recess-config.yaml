@@ -6,7 +6,7 @@ assessment:
   type: "take-home"
   difficulty: "senior"
   timeLimit: 240  # 4 hours
-  
+
 assignment:
   title: "Events Platform API Development"
   description: |
@@ -22,7 +22,7 @@ assignment:
     - "Implement proper database design and relationships"
     - "Add search and filtering capabilities for events"
     - "Include proper logging and monitoring"
-  
+
 evaluation:
   criteria:
     correctness:
@@ -40,23 +40,23 @@ evaluation:
     testing:
       weight: 10
       description: "Test coverage, test quality, and testing strategy"
-  
+
 scoring:
   system: "numeric"
   maxScore: 100
   passingThreshold: 75
   breakdown: true
-  
+
 feedback:
   level: "comprehensive"
   includeExamples: true
   includeSuggestions: true
   includeResources: true
-  
+
 constraints:
   targetLanguage: "typescript"
   framework: "express"
-  allowedLibraries: 
+  allowedLibraries:
     - "express"
     - "joi"
     - "jsonwebtoken"
@@ -120,7 +120,7 @@ technicalRequirements:
   logging: "Structured logging implementation"
   testing: "Unit tests and integration tests required"
   documentation: "API documentation required"
-  
+
 # Bonus points (optional but valued)
 bonusPoints:
   - "Docker containerization"

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Comprehensive tests for enhanced model maps
- * 
+ *
  * Tests verify:
  * - Backwards compatibility with existing code
  * - New enhanced functionality
@@ -208,11 +208,11 @@ describe('Model Maps - Enhanced Features', () => {
       // Modify a model to be retiring for testing
       const originalStatus = ENHANCED_MODEL_MAP['openai:gpt-4o'].status;
       ENHANCED_MODEL_MAP['openai:gpt-4o'].status = 'retiring';
-      
+
       const result = validateModelKey('openai:gpt-4o');
       expect(result.isValid).toBe(true);
       expect(result.warning).toContain('being retired');
-      
+
       // Restore original status
       ENHANCED_MODEL_MAP['openai:gpt-4o'].status = originalStatus;
     });
@@ -229,11 +229,11 @@ describe('Model Maps - Enhanced Features', () => {
       // Gemini 2.5 Pro has tiered pricing
       // First 200k tokens: $1.25/1M input, $5/1M output
       // After 200k: $2.5/1M input, $10/1M output
-      
+
       // Test within first tier
       const cost1 = calculateCost('gemini:gemini-2.5-pro', 100000, 100000);
       expect(cost1).toBeCloseTo(0.125 + 0.5); // $0.625
-      
+
       // Test across tiers (300k input, 300k output)
       const cost2 = calculateCost('gemini:gemini-2.5-pro', 300000, 300000);
       const expectedInput = (100000 / 1_000_000 * 2.5) + (200000 / 1_000_000 * 1.25);
@@ -251,10 +251,10 @@ describe('Model Maps - Enhanced Features', () => {
         apiKeyEnvVar: 'TEST_KEY',
         supportsToolCalling: false
       };
-      
+
       const cost = calculateCost(testKey, 100000, 100000);
       expect(cost).toBeUndefined();
-      
+
       // Clean up
       delete ENHANCED_MODEL_MAP[testKey];
     });
@@ -297,10 +297,10 @@ describe('Model Maps - Enhanced Features', () => {
         apiKeyEnvVar: 'TEST_KEY',
         supportsToolCalling: false
       };
-      
+
       const models = getModelsByCategory(ModelCategory.REASONING);
       expect(models).not.toContain(testKey);
-      
+
       // Clean up
       delete ENHANCED_MODEL_MAP[testKey];
     });
@@ -364,7 +364,7 @@ describe('Model Maps - Data Integrity', () => {
       'AI_CODE_REVIEW_OPENAI_API_KEY',
       'AI_CODE_REVIEW_OPENROUTER_API_KEY'
     ];
-    
+
     Object.entries(ENHANCED_MODEL_MAP).forEach(([_key, mapping]) => {
       expect(validEnvVars).toContain(mapping.apiKeyEnvVar);
     });
@@ -378,7 +378,7 @@ describe('Model Maps - Data Integrity', () => {
       if (mapping.outputPricePerMillion !== undefined) {
         expect(mapping.outputPricePerMillion).toBeGreaterThanOrEqual(0);
       }
-      
+
       // Output pricing should generally be higher than input
       if (mapping.inputPricePerMillion && mapping.outputPricePerMillion) {
         // Most models have higher output pricing
@@ -398,7 +398,7 @@ describe('Model Maps - Data Integrity', () => {
       if (mapping.deprecation?.removalDate) {
         const date = new Date(mapping.deprecation.removalDate);
         expect(date.toString()).not.toBe('Invalid Date');
-        
+
         // Removal date should be after deprecation date
         if (mapping.deprecation.deprecationDate) {
           const deprecationDate = new Date(mapping.deprecation.deprecationDate);

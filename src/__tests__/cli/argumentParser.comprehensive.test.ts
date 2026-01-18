@@ -343,7 +343,7 @@ describe('Comprehensive CLI Argument Parser Tests', () => {
       ];
       const argv = parseArguments();
       const options = mapArgsToReviewOptions(argv);
-      
+
       expect(options).toMatchObject({
         target: './src',
         type: 'security',

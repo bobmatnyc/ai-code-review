@@ -30,7 +30,7 @@ const modifiedContent = content.replace(
     // First try to use OWASP Dependency-Check if available
     try {
       const { createOwaspSecuritySection } = require('./owaspDependencyCheck');
-      
+
       try {
         logger.info('Using OWASP Dependency-Check for security analysis...');
         const owaspReport = await createOwaspSecuritySection(projectPath);
@@ -50,15 +50,15 @@ const modifiedContent = content.replace(
     logger.debug('Analyzing package stack awareness for project: ' + projectPath);
     const stackAnalysis = await analyzePackagesWithStackAwareness(projectPath);
     logger.debug('Stack analysis complete, formatting summary');
-    const techStackReport = stackAnalysis && stackAnalysis.packageResults ? 
-      formatStackSummary(stackAnalysis) : 
+    const techStackReport = stackAnalysis && stackAnalysis.packageResults ?
+      formatStackSummary(stackAnalysis) :
       "## Project Stack Analysis\\n\\nNo project dependencies detected.";
     logger.debug('Tech stack report generated');
 
     // First try to use OWASP Dependency-Check if available
     try {
       const { createOwaspSecuritySection } = require('./owaspDependencyCheck');
-      
+
       try {
         logger.info('Using OWASP Dependency-Check for security analysis...');
         const owaspReport = await createOwaspSecuritySection(projectPath);
@@ -86,9 +86,9 @@ const securityScannerPath = path.join(__dirname, 'dependencySecurityScanner.ts')
 let scannerContent = fs.readFileSync(securityScannerPath, 'utf8');
 scannerContent = `/**
  * @fileoverview Advanced dependency scanning for package security analysis
- * 
- * This module implements comprehensive dependency scanning and vulnerability detection 
- * for architectural and security reviews. It uses multiple sources to detect publicly 
+ *
+ * This module implements comprehensive dependency scanning and vulnerability detection
+ * for architectural and security reviews. It uses multiple sources to detect publicly
  * disclosed vulnerabilities in project dependencies.
  */
 
@@ -107,12 +107,12 @@ scannerContent = scannerContent.replace(
   `async function isDependencyScannerInstalled(): Promise<boolean> {
   try {
     // Try to execute dependency-check script to see if it's installed
-    const result = spawnSync('dependency-check', ['--version'], { 
+    const result = spawnSync('dependency-check', ['--version'], {
       timeout: 10000,
       stdio: 'pipe',
       encoding: 'utf-8'
     });
-    
+
     return result.status === 0;
   } catch (error) {
     logger.debug('Dependency scanner not found in PATH');
@@ -124,15 +124,15 @@ scannerContent = scannerContent.replace(
     // Get the appropriate command based on the platform
     const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
     logger.debug(\`Checking for dependency scanner using command: \${command}\`);
-    
+
     // Try to execute dependency-check script to see if it's installed
-    const result = spawnSync(command, ['--version'], { 
+    const result = spawnSync(command, ['--version'], {
       timeout: 10000,
       stdio: 'pipe',
       encoding: 'utf-8',
       shell: true // Use shell on all platforms for better compatibility
     });
-    
+
     logger.debug(\`Dependency scanner check result: status=\${result.status}, stderr=\${result.stderr}\`);
     return result.status === 0;
   } catch (error) {
@@ -154,7 +154,7 @@ scannerContent = scannerContent.replace(
   `    // Get the appropriate command based on the platform
     const command = os.platform() === 'win32' ? 'dependency-check.bat' : 'dependency-check';
     logger.debug(\`Running dependency scanner using command: \${command} with args: \${args.join(' ')}\`);
-    
+
     // Run the command
     const result = spawnSync(command, args, {
       cwd: projectPath,

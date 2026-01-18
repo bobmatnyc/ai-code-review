@@ -7,7 +7,7 @@ import { ReviewContext, CodeElementType } from '../../analysis/context';
 
 describe('ReviewContext', () => {
   let context: ReviewContext;
-  
+
   // Create some test file data
   const testFiles = [
     {
@@ -45,9 +45,9 @@ describe('ReviewContext', () => {
       file: '/test/file1.ts',
       importance: 8
     };
-    
+
     context.addCodeElement(element);
-    
+
     const elements = context.getCodeElements();
     expect(elements).toHaveLength(1);
     expect(elements[0]).toEqual(element);
@@ -61,7 +61,7 @@ describe('ReviewContext', () => {
       severity: 8,
       passNumber: 1
     };
-    
+
     context.startPass(); // Start pass 1
     context.addFinding({
       type: finding.type,
@@ -70,7 +70,7 @@ describe('ReviewContext', () => {
       severity: finding.severity,
       passNumber: 0 // This will be overridden
     });
-    
+
     const findings = context.getFindings();
     expect(findings).toHaveLength(1);
     expect(findings[0].passNumber).toBe(1); // Should be set to current pass
@@ -84,7 +84,7 @@ describe('ReviewContext', () => {
       keyElements: ['hello'],
       passNumber: 1
     };
-    
+
     context.startPass(); // Start pass 1
     context.addFileSummary({
       path: summary.path,
@@ -93,7 +93,7 @@ describe('ReviewContext', () => {
       keyElements: summary.keyElements,
       passNumber: 0 // This will be overridden
     });
-    
+
     const retrievedSummary = context.getFileSummary('/test/file1.ts');
     expect(retrievedSummary).toBeDefined();
     expect(retrievedSummary?.passNumber).toBe(1); // Should be set to current pass
@@ -101,9 +101,9 @@ describe('ReviewContext', () => {
 
   it('should add and retrieve general notes', () => {
     const note = 'This is a test note';
-    
+
     context.addGeneralNote(note);
-    
+
     const notes = context.getGeneralNotes();
     expect(notes).toHaveLength(1);
     expect(notes[0]).toBe(note);
@@ -111,7 +111,7 @@ describe('ReviewContext', () => {
 
   it('should generate context for the next pass', () => {
     context.startPass(); // Start pass 1
-    
+
     // Add findings
     context.addFinding({
       type: 'bug',
@@ -120,7 +120,7 @@ describe('ReviewContext', () => {
       severity: 9,
       passNumber: 1
     });
-    
+
     // Add file summaries
     context.addFileSummary({
       path: '/test/file1.ts',
@@ -129,7 +129,7 @@ describe('ReviewContext', () => {
       keyElements: ['hello'],
       passNumber: 1
     });
-    
+
     // Add code elements
     context.addCodeElement({
       type: CodeElementType.Function,
@@ -137,12 +137,12 @@ describe('ReviewContext', () => {
       file: '/test/file1.ts',
       importance: 8
     });
-    
+
     // Add general notes
     context.addGeneralNote('This is a test note');
-    
+
     const nextPassContext = context.generateNextPassContext(['/test/file2.ts']);
-    
+
     expect(nextPassContext).toContain('Review Context (Pass 1)');
     expect(nextPassContext).toContain('Test bug');
     expect(nextPassContext).toContain('/test/file1.ts');
@@ -151,7 +151,7 @@ describe('ReviewContext', () => {
 
   it('should serialize and deserialize correctly', () => {
     context.startPass(); // Start pass 1
-    
+
     // Add some data
     context.addFinding({
       type: 'bug',
@@ -160,20 +160,20 @@ describe('ReviewContext', () => {
       severity: 9,
       passNumber: 1
     });
-    
+
     context.addCodeElement({
       type: CodeElementType.Function,
       name: 'testFunction',
       file: '/test/file1.ts',
       importance: 8
     });
-    
+
     // Serialize to JSON
     const json = context.toJSON();
-    
+
     // Deserialize from JSON
     const deserializedContext = ReviewContext.fromJSON(json);
-    
+
     // Verify that the deserialized context has the same data
     expect(deserializedContext.getCurrentPass()).toBe(context.getCurrentPass());
     expect(deserializedContext.getFindings()).toHaveLength(context.getFindings().length);

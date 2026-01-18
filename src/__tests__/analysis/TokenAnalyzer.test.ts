@@ -55,7 +55,7 @@ describe('TokenAnalyzer', () => {
   describe('analyzeFile', () => {
     it('should analyze a single file correctly', () => {
       const result = TokenAnalyzer.analyzeFile(testFiles[0], testOptions);
-      
+
       expect(result).toBeDefined();
       expect(result.path).toBe(testFiles[0].path);
       expect(result.relativePath).toBe(testFiles[0].relativePath);
@@ -68,7 +68,7 @@ describe('TokenAnalyzer', () => {
   describe('analyzeFiles', () => {
     it('should analyze multiple files correctly', () => {
       const result = TokenAnalyzer.analyzeFiles(testFiles, testOptions);
-      
+
       expect(result).toBeDefined();
       expect(result.files).toHaveLength(testFiles.length);
       expect(result.totalTokens).toBeGreaterThan(0);
@@ -173,14 +173,14 @@ describe('TokenAnalyzer', () => {
       // Check that chunks are created appropriately
       expect(result.chunkingRecommendation.chunkingRecommended).toBe(true);
       expect(result.chunkingRecommendation.recommendedChunks.length).toBeGreaterThan(1);
-      
+
       // Verify that files are distributed across multiple chunks
       const chunks = result.chunkingRecommendation.recommendedChunks;
       const totalFilesInChunks = chunks.reduce((sum, chunk) => sum + chunk.files.length, 0);
-      
+
       // All files should be included in chunks
       expect(totalFilesInChunks).toBe(5);
-      
+
       // Each chunk should respect the context window limits
       chunks.forEach(chunk => {
         expect(chunk.estimatedTokenCount).toBeLessThanOrEqual(9000); // Effective context size

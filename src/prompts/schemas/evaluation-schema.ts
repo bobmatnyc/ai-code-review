@@ -181,7 +181,7 @@ export function getEvaluationSchemaAsString(): string {
     "timestamp": "2024-04-06T12:00:00Z",
     "projectName": "example-project",
     "filesEvaluated": 25,
-    
+
     "skillAssessment": {
       "level": "Intermediate",
       "confidence": "High",
@@ -195,7 +195,7 @@ export function getEvaluationSchemaAsString(): string {
         "Appropriate abstraction levels for the problem domain"
       ]
     },
-    
+
     "aiAssistanceAssessment": {
       "likelihood": "Low",
       "confidence": "Medium",
@@ -208,7 +208,7 @@ export function getEvaluationSchemaAsString(): string {
         "Natural, domain-specific variable naming"
       ]
     },
-    
+
     "professionalMaturityAssessment": {
       "level": "Mid-level",
       "confidence": "High",
@@ -223,14 +223,14 @@ export function getEvaluationSchemaAsString(): string {
         "Logging and monitoring setup"
       ]
     },
-    
+
     "developmentContext": {
       "workingEnvironment": "Team collaboration",
       "timeConstraints": "Balanced",
       "experienceDomain": "Applying known patterns",
       "reasoning": "Code shows consistency with team standards and thoughtful implementation without rush indicators"
     },
-    
+
     "notableObservations": {
       "uniqueStrengths": [
         "Excellent TypeScript type safety practices",
@@ -245,9 +245,9 @@ export function getEvaluationSchemaAsString(): string {
         "API design and implementation"
       ]
     },
-    
+
     "overallProfile": "This developer appears to be a mid-level professional with solid TypeScript experience and good architectural instincts. The code suggests someone working in a collaborative environment with established standards, showing growth toward senior-level decision making.",
-    
+
     "languageSpecificInsights": {
       "language": "TypeScript",
       "skillMarkers": [

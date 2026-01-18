@@ -74,7 +74,7 @@ def ProcessUserData(userID, userName):
 class userManager:
     def __init__(self):
         self.UserList = []
-    
+
     def AddUser(self, user):
         self.UserList.append(user)
 
@@ -90,10 +90,10 @@ def process_user_data(user_id: str, user_name: str) -> dict[str, Any]:
 
 class UserManager:
     """Manages user operations and data."""
-    
+
     def __init__(self):
         self.user_list: list[dict] = []
-    
+
     def add_user(self, user: dict) -> None:
         """Add a user to the user list."""
         self.user_list.append(user)
@@ -273,7 +273,7 @@ class UserView(View):
 # ✅ Optimized Django patterns
 class UserView(View):
     """Optimized user view with proper QuerySet usage."""
-    
+
     def get(self, request):
         users = User.objects.select_related('profile').all()
         user_data = [
@@ -295,13 +295,13 @@ def create_user_view(request):
         username = request.POST.get('username')
         email = request.POST.get('email')
         password = request.POST.get('password')
-        
+
         if not username or not email or not password:
             return JsonResponse({'error': 'Missing fields'})
-        
+
         if len(password) < 8:
             return JsonResponse({'error': 'Password too short'})
-        
+
         user = User.objects.create_user(username, email, password)
         return JsonResponse({'user_id': user.id})
 
@@ -311,13 +311,13 @@ from django.contrib.auth.forms import UserCreationForm
 
 class CustomUserForm(UserCreationForm):
     """Custom user creation form with additional validation."""
-    
+
     email = forms.EmailField(required=True)
-    
+
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2')
-    
+
     def clean_email(self):
         email = self.cleaned_data['email']
         if User.objects.filter(email=email).exists():
@@ -333,7 +333,7 @@ def create_user_view(request):
             return JsonResponse({'user_id': user.id})
         else:
             return JsonResponse({'errors': form.errors}, status=400)
-    
+
     return JsonResponse({'error': 'GET not allowed'}, status=405)
 ```
 
@@ -347,13 +347,13 @@ class User:
         self.name = name
         self.email = email
         self.age = age
-    
+
     def __repr__(self):
         return f"User({self.name}, {self.email}, {self.age})"
-    
+
     def __eq__(self, other):
-        return (self.name == other.name and 
-                self.email == other.email and 
+        return (self.name == other.name and
+                self.email == other.email and
                 self.age == other.age)
 
 def process_users(user_list, min_age):
@@ -373,7 +373,7 @@ class User:
     name: str
     email: str
     age: int
-    
+
     def __post_init__(self):
         """Validate user data after initialization."""
         if self.age < 0:

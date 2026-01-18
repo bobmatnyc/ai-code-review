@@ -2,11 +2,11 @@
 
 /**
  * Script to increment the build number during the build process.
- * 
+ *
  * WHY: We need to track each build to verify deployments.
  * This script is called during the build process to increment
  * the build number and update the build-number.json file.
- * 
+ *
  * DESIGN DECISION: This is a separate script from generate-version.js
  * because we want to increment only during actual builds, not every
  * time version.ts is generated (which happens during tests too).
@@ -33,7 +33,7 @@ let buildInfo = {
 try {
   if (fs.existsSync(buildNumberPath)) {
     const existingInfo = JSON.parse(fs.readFileSync(buildNumberPath, 'utf8'));
-    
+
     if (existingInfo.version === currentVersion) {
       // Same version, increment build number
       buildInfo.buildNumber = existingInfo.buildNumber + 1;

@@ -18,7 +18,7 @@ class User:
         self.email = email
         self.password = password  # Security issue: storing password unencrypted
         self.created_at = created_at
-    
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -37,7 +37,7 @@ def find_user_by_id(id):
 
 def create_user(user):
     # Missing validation
-    
+
     # Security issue: No password hashing
     users.append(user)
     return user

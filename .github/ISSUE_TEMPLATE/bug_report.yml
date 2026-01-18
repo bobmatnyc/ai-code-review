@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report! 🐛
-        
+
   - type: dropdown
     id: provider
     attributes:
@@ -22,7 +22,7 @@ body:
         - Not sure
     validations:
       required: true
-      
+
   - type: input
     id: version
     attributes:
@@ -31,7 +31,7 @@ body:
       placeholder: e.g., 2.1.15 (run `ai-code-review --version`)
     validations:
       required: true
-      
+
   - type: textarea
     id: description
     attributes:
@@ -40,7 +40,7 @@ body:
       placeholder: Tell us what went wrong...
     validations:
       required: true
-      
+
   - type: textarea
     id: steps
     attributes:
@@ -51,12 +51,12 @@ body:
         2. With these options: `...`
         3. See error...
       value: |
-        1. 
-        2. 
-        3. 
+        1.
+        2.
+        3.
     validations:
       required: true
-      
+
   - type: textarea
     id: expected
     attributes:
@@ -64,7 +64,7 @@ body:
       description: A clear and concise description of what you expected to happen
     validations:
       required: true
-      
+
   - type: textarea
     id: actual
     attributes:
@@ -72,14 +72,14 @@ body:
       description: What actually happened instead
     validations:
       required: true
-      
+
   - type: textarea
     id: logs
     attributes:
       label: Logs
       description: If applicable, add any relevant log output or error messages
       render: shell
-      
+
   - type: textarea
     id: environment
     attributes:
@@ -87,12 +87,12 @@ body:
       description: |
         Please provide details about your environment
       value: |
-        - OS: 
-        - Node.js version: 
-        - npm/pnpm/yarn version: 
-        - Shell: 
+        - OS:
+        - Node.js version:
+        - npm/pnpm/yarn version:
+        - Shell:
       render: markdown
-      
+
   - type: textarea
     id: additional
     attributes:

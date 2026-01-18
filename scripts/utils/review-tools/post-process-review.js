@@ -2,10 +2,10 @@
 
 /**
  * Post-processing script for architectural code reviews.
- * 
+ *
  * This script runs after a review is generated and adds a list of analyzed files
  * to architectural reviews.
- * 
+ *
  * Usage: node post-process-review.js <review-file-path>
  */
 
@@ -48,32 +48,32 @@ function extractTargetFromReview(reviewContent) {
 function addFileList(reviewPath, targetDir) {
   console.log(`Adding file list to ${reviewPath}`);
   console.log(`Target directory: ${targetDir}`);
-  
+
   // Read review file
   const review = fs.readFileSync(reviewPath, 'utf8');
-  
+
   // Check if file list is already present
   if (review.includes('## Files Analyzed')) {
     console.log('File list already present, skipping');
     return;
   }
-  
+
   // Extract target directory
   const targetFromReview = extractTargetFromReview(review);
   const targetDirectory = targetFromReview || targetDir;
-  
+
   console.log(`Using target directory: ${targetDirectory}`);
-  
+
   // Ensure target directory exists
   if (!targetDirectory || !fs.existsSync(targetDirectory)) {
     console.error(`Target directory not found: ${targetDirectory}`);
     process.exit(1);
   }
-  
+
   // Get files in target directory
   const files = getFilesInDirectory(targetDirectory);
   console.log(`Found ${files.length} files in target directory`);
-  
+
   // Generate file list section
   const fileListSection = `
 ## Files Analyzed
@@ -85,13 +85,13 @@ ${files.map(file => `- \`${file}\``).join('\n')}
 
   // Find the position to insert (before cost information section)
   const costSectionMatch = review.match(/^## Cost Information/m);
-  
+
   let updatedReview;
   if (costSectionMatch && costSectionMatch.index) {
     // Insert before cost information
     const position = costSectionMatch.index;
     console.log('Inserting file list before Cost Information section');
-    updatedReview = 
+    updatedReview =
       review.substring(0, position) +
       fileListSection +
       review.substring(position);
@@ -101,7 +101,7 @@ ${files.map(file => `- \`${file}\``).join('\n')}
     if (footnoteMatch && footnoteMatch.index) {
       const position = footnoteMatch.index;
       console.log('Appending file list before footnote');
-      updatedReview = 
+      updatedReview =
         review.substring(0, position) +
         fileListSection + '\n' +
         review.substring(position);
@@ -111,7 +111,7 @@ ${files.map(file => `- \`${file}\``).join('\n')}
       updatedReview = review + fileListSection;
     }
   }
-  
+
   // Write updated review back to file
   fs.writeFileSync(reviewPath, updatedReview);
   console.log('File list added successfully');
@@ -127,14 +127,14 @@ function getFilesInDirectory(directory) {
     '**/.git/**',
     '**/ai-code-review-docs/**'
   ];
-  
+
   // Get all files recursively
   const files = glob.sync('**/*', {
     cwd: directory,
     ignore: ignorePatterns,
     nodir: true
   });
-  
+
   return files;
 }
 
@@ -145,14 +145,14 @@ try {
     console.log(`Skipping non-architectural review: ${reviewPath}`);
     process.exit(0);
   }
-  
+
   // Get the target directory - try to parse from review file first
   const reviewContent = fs.readFileSync(reviewPath, 'utf8');
   const targetDir = extractTargetFromReview(reviewContent);
-  
+
   // If we couldn't extract the target, use the current working directory
   const effectiveTargetDir = targetDir || process.cwd();
-  
+
   // Add file list to the review
   addFileList(reviewPath, effectiveTargetDir);
 } catch (error) {

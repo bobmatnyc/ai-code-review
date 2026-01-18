@@ -1,6 +1,6 @@
 /**
  * @fileoverview Tests for bundled prompts
- * 
+ *
  * This file contains tests to verify that bundled prompts are properly
  * loaded and used by the system.
  */
@@ -39,7 +39,7 @@ describe('bundledPrompts', () => {
       const genericPrompt = getBundledPrompt('architectural');
       expect(genericPrompt).toBeDefined();
       expect(genericPrompt).toContain('Architectural Code Review');
-      
+
       // They should be different
       expect(tsPrompt).not.toBe(genericPrompt);
     });
@@ -48,7 +48,7 @@ describe('bundledPrompts', () => {
       // Test a language that has specific prompts
       const pythonPrompt = getBundledPrompt('quick-fixes', 'python');
       const genericPrompt = getBundledPrompt('quick-fixes');
-      
+
       expect(pythonPrompt).toBeDefined();
       expect(genericPrompt).toBeDefined();
       // Python now has a specific prompt, so we expect them to be different
@@ -59,10 +59,10 @@ describe('bundledPrompts', () => {
   describe('PromptManager integration', () => {
     it('should prioritize bundled prompts', async () => {
       const promptManager = PromptManager.getInstance();
-      
+
       // Get a prompt template for a review type that has a bundled prompt
       const prompt = await promptManager.getPromptTemplate('quick-fixes');
-      
+
       // Verify it's the bundled prompt
       expect(prompt).toBeDefined();
       expect(prompt).toContain('TypeScript Quick Fixes Review');
@@ -70,13 +70,13 @@ describe('bundledPrompts', () => {
 
     it('should include language-specific information in prompts', async () => {
       const promptManager = PromptManager.getInstance();
-      
+
       // Get a prompt template with language option
       const prompt = await promptManager.getPromptTemplate('quick-fixes', {
         language: 'javascript',
         type: 'quick-fixes'
       });
-      
+
       // Verify language-specific content is present
       expect(prompt).toBeDefined();
       // Check that it's the TypeScript template (since JavaScript uses TypeScript templates)

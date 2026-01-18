@@ -78,18 +78,18 @@ function isTestFile(filePath) {
     /\/__tests__\//.test(filePath) ||
     /\/__mocks__\//.test(filePath)
   );
-  
+
   if (isTest) {
     console.log('Ignoring test file:', filePath);
   }
-  
+
   return isTest;
 }
 
 async function testFileDetection(targetPath) {
   console.log('Testing file detection for:', targetPath);
   const projectRoot = targetPath;
-  
+
   const gitignorePatterns = await getGitignorePatterns(projectRoot);
   console.log('Gitignore patterns:', gitignorePatterns);
 
@@ -100,9 +100,9 @@ async function testFileDetection(targetPath) {
       absolute: true,
       ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.venv/**', '**/env/**', '**/__pycache__/**']
     });
-    
+
     console.log(`Found ${allFiles.length} files with glob`);
-    
+
     if (allFiles.length === 0) {
       console.log('No files found matching patterns');
       return;
@@ -117,7 +117,7 @@ async function testFileDetection(targetPath) {
       }
       filesByExt[ext].push(file);
     }
-    
+
     console.log('Files grouped by extension:');
     for (const [ext, files] of Object.entries(filesByExt)) {
       console.log(`${ext}: ${files.length} files`);
@@ -160,7 +160,7 @@ async function main() {
     '/Users/masa/Projects/ai-code-review/test-projects/python',
     '/Users/masa/Projects/ai-code-review/test-projects/php'
   ];
-  
+
   for (const project of projects) {
     console.log('\n=================================');
     console.log(`Testing project: ${path.basename(project)}`);

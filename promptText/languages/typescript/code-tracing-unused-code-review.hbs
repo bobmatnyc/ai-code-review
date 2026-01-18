@@ -87,7 +87,7 @@ For each unused element:
 I will focus on these exact issues:
 
 1. **DUPLICATE UTILITY FILES**:
-   - Same functionality in multiple locations 
+   - Same functionality in multiple locations
    - Versions in both utils/ and utils/subdirectories
 
 2. **COMPLETELY UNUSED FILES**:
@@ -119,11 +119,11 @@ For each issue, I will provide:
    IMPORTS TRACED:
      - src/utils/projectDocs.ts: 0 direct imports
      - src/utils/files/projectDocs.ts: 5 imports via barrel file
-   
+
    BARREL FILE ANALYSIS:
      - src/utils/index.ts: exports { projectDocs } from './projectDocs'
      - src/utils/files/index.ts: exports { projectDocs } from './projectDocs'
-   
+
    REFERENCES:
      - Only the files/ version is imported by application code
      - The utils/ version is only imported by its duplicate
@@ -135,7 +135,7 @@ For each issue, I will provide:
      1. REMOVE file: src/utils/projectDocs.ts
      2. EDIT file: src/utils/index.ts
         - REMOVE line: export { projectDocs } from './projectDocs'
-     3. EDIT file: src/utils/files/projectDocs.ts 
+     3. EDIT file: src/utils/files/projectDocs.ts
         - REMOVE import { projectDocs as baseProjectDocs } from '../index'
         - ADD any functionality from original file
    ```
@@ -163,7 +163,7 @@ For each issue, I will provide:
 
 4. ✅ HANDLE TYPESCRIPT-SPECIFIC CASES:
    - Type-only imports
-   - Interface inheritance 
+   - Interface inheritance
    - Type annotations
    - Generic constraints
 
@@ -173,7 +173,7 @@ For each issue, I will provide:
 ===== DUPLICATE UTILITY DETECTION =====
 
 DUPLICATE: Found duplicate utilities:
-  - src/utils/projectDocs.ts  
+  - src/utils/projectDocs.ts
   - src/utils/files/projectDocs.ts
 
 IMPORT TRACING RESULTS:
@@ -181,7 +181,7 @@ IMPORT TRACING RESULTS:
     - EXPORTED BY: src/utils/index.ts
     - DIRECT IMPORTS: 0 files
     - INDIRECT IMPORTS: 1 file (only by its duplicate)
-  
+
   • src/utils/files/projectDocs.ts:
     - EXPORTED BY: src/utils/files/index.ts
     - DIRECT IMPORTS: 0 files

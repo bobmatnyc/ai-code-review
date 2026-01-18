@@ -85,11 +85,11 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
  * System prompt for architectural reviews with dependency analysis
  * Used for reviews that need to analyze project dependencies
  */
-export const ARCHITECTURAL_REVIEW_SYSTEM_PROMPT = `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations. 
-                    
+export const ARCHITECTURAL_REVIEW_SYSTEM_PROMPT = `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations.
+
 ESSENTIAL TASK: For ALL major dependencies in the project, you MUST thoroughly check for:
 1. Security vulnerabilities and CVEs
-2. Version updates and recommendations 
+2. Version updates and recommendations
 3. Compatibility issues and breaking changes
 4. Deprecation warnings
 5. Maintenance status

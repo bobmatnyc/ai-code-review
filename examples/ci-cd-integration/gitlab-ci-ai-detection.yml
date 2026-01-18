@@ -24,24 +24,24 @@ before_script:
 ai_detection_analysis:
   stage: analysis
   image: node:${NODE_VERSION}
-  
+
   variables:
     GIT_DEPTH: 0  # Full git history for git analyzer
-  
+
   before_script:
     - echo "Installing AI Code Review tool..."
     - npm install -g @bobmatnyc/ai-code-review
     - echo "Tool installed successfully"
-  
+
   script:
     - echo "Starting AI detection analysis..."
     - echo "Repository: ${CI_PROJECT_PATH}"
     - echo "Branch: ${CI_COMMIT_REF_NAME}"
     - echo "Commit: ${CI_COMMIT_SHA}"
-    
+
     # Create results directory
     - mkdir -p ai-detection-results
-    
+
     # Run AI detection analysis
     - |
       ai-code-review . \
@@ -52,18 +52,18 @@ ai_detection_analysis:
         --ai-detection-include-in-report \
         --format json \
         --output ai-detection-results/analysis.json || echo "Analysis completed with warnings"
-    
+
     # Extract key metrics for downstream jobs
     - |
       if [ -f "ai-detection-results/analysis.json" ]; then
         AI_DETECTED=$(jq -r '.metadata.aiDetection.isAIGenerated // false' ai-detection-results/analysis.json)
         CONFIDENCE=$(jq -r '.metadata.aiDetection.confidenceScore // 0' ai-detection-results/analysis.json)
         PATTERNS=$(jq -r '.metadata.aiDetection.patternsDetected // 0' ai-detection-results/analysis.json)
-        
+
         echo "AI_DETECTED=${AI_DETECTED}" >> ai-detection-results/metrics.env
         echo "CONFIDENCE=${CONFIDENCE}" >> ai-detection-results/metrics.env
         echo "PATTERNS_COUNT=${PATTERNS}" >> ai-detection-results/metrics.env
-        
+
         echo "Analysis Results:"
         echo "  AI Detected: ${AI_DETECTED}"
         echo "  Confidence: ${CONFIDENCE}"
@@ -74,53 +74,53 @@ ai_detection_analysis:
         echo "CONFIDENCE=0" >> ai-detection-results/metrics.env
         echo "PATTERNS_COUNT=0" >> ai-detection-results/metrics.env
       fi
-    
+
     # Generate human-readable summary
     - |
       cat > ai-detection-results/summary.md << EOF
       # AI Detection Analysis Report
-      
+
       **Project:** ${CI_PROJECT_PATH}
       **Branch:** ${CI_COMMIT_REF_NAME}
       **Commit:** ${CI_COMMIT_SHA}
       **Pipeline:** ${CI_PIPELINE_ID}
       **Analysis Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
-      
+
       ## Configuration
       - **Threshold:** ${AI_DETECTION_THRESHOLD}
       - **Analyzers:** ${AI_DETECTION_ANALYZERS}
-      
+
       ## Results
       EOF
-      
+
       source ai-detection-results/metrics.env
-      
+
       if [ "${AI_DETECTED}" = "true" ]; then
         cat >> ai-detection-results/summary.md << EOF
-        
+
       ⚠️ **AI-Generated Content Detected**
-      
+
       - **Confidence Score:** ${CONFIDENCE}
       - **Patterns Found:** ${PATTERNS_COUNT}
       - **Risk Level:** $(if (( $(echo "${CONFIDENCE} >= 0.9" | bc -l) )); then echo "CRITICAL"; elif (( $(echo "${CONFIDENCE} >= 0.8" | bc -l) )); then echo "HIGH"; elif (( $(echo "${CONFIDENCE} >= 0.6" | bc -l) )); then echo "MEDIUM"; else echo "LOW"; fi)
-      
+
       **Recommended Actions:**
       - Conduct manual code review
       - Verify contributor understanding
       - Consider additional verification methods
-      
+
       EOF
       else
         cat >> ai-detection-results/summary.md << EOF
-        
+
       ✅ **No AI-Generated Patterns Detected**
-      
+
       - **Confidence Score:** ${CONFIDENCE}
       - **Analysis:** Code appears to be human-authored
-      
+
       EOF
       fi
-  
+
   artifacts:
     reports:
       junit: ai-detection-results/analysis.json
@@ -128,7 +128,7 @@ ai_detection_analysis:
       - ai-detection-results/
     expire_in: 30 days
     when: always
-  
+
   only:
     - merge_requests
     - main
@@ -138,16 +138,16 @@ ai_detection_analysis:
 generate_report:
   stage: report
   image: node:${NODE_VERSION}
-  
+
   dependencies:
     - ai_detection_analysis
-  
+
   script:
     - echo "Generating comprehensive AI detection report..."
-    
+
     # Load metrics
     - source ai-detection-results/metrics.env
-    
+
     # Create detailed HTML report (optional)
     - |
       cat > ai-detection-results/report.html << EOF
@@ -173,7 +173,7 @@ generate_report:
               <p><strong>Date:</strong> $(date -u '+%Y-%m-%d %H:%M:%S UTC')</p>
           </div>
       EOF
-      
+
       if [ "${AI_DETECTED}" = "true" ]; then
         cat >> ai-detection-results/report.html << EOF
           <div class="result-positive">
@@ -189,7 +189,7 @@ generate_report:
           </div>
       EOF
       fi
-      
+
       cat >> ai-detection-results/report.html << EOF
           <div class="metrics">
               <div class="metric">
@@ -205,23 +205,23 @@ generate_report:
                   <p style="font-size: 2em; margin: 0;">${AI_DETECTION_THRESHOLD}</p>
               </div>
           </div>
-          
+
           <h3>Full Analysis</h3>
           <pre>$(cat ai-detection-results/analysis.json | jq '.' 2>/dev/null || echo "Analysis data not available")</pre>
-          
+
           <hr>
           <p><em>Generated by AI Code Review v4.3.1+ on $(date -u)</em></p>
       </body>
       </html>
       EOF
-    
+
     - echo "Report generated successfully"
-  
+
   artifacts:
     paths:
       - ai-detection-results/
     expire_in: 30 days
-  
+
   only:
     - merge_requests
     - main
@@ -231,25 +231,25 @@ generate_report:
 notify_detection:
   stage: notify
   image: alpine:latest
-  
+
   dependencies:
     - ai_detection_analysis
-  
+
   before_script:
     - apk add --no-cache jq curl
-  
+
   script:
     - source ai-detection-results/metrics.env
-    
+
     - echo "Checking if notification is needed..."
     - echo "AI Detected: ${AI_DETECTED}"
     - echo "Confidence: ${CONFIDENCE}"
-    
+
     # Only proceed if AI was detected with high confidence
     - |
       if [ "${AI_DETECTED}" = "true" ] && (( $(echo "${CONFIDENCE} >= 0.8" | bc -l) )); then
         echo "High-confidence AI detection - sending notifications"
-        
+
         # Example: Send to Slack (configure SLACK_WEBHOOK_URL in CI/CD variables)
         if [ -n "${SLACK_WEBHOOK_URL}" ]; then
           curl -X POST -H 'Content-type: application/json' \
@@ -272,7 +272,7 @@ notify_detection:
             }" \
             "${SLACK_WEBHOOK_URL}"
         fi
-        
+
         # Example: Create GitLab issue (if enabled)
         if [ "${CREATE_ISSUE_ON_DETECTION}" = "true" ]; then
           curl --request POST \
@@ -285,23 +285,23 @@ notify_detection:
             }" \
             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/issues"
         fi
-        
+
         echo "Notifications sent successfully"
       else
         echo "No notification needed (low confidence or no detection)"
       fi
-  
+
   only:
     variables:
       - $ENABLE_AI_DETECTION_NOTIFICATIONS == "true"
-  
+
   when: on_success
 
 # Optional: Manual trigger for ad-hoc analysis
 manual_ai_detection:
   stage: analysis
   image: node:${NODE_VERSION}
-  
+
   script:
     - npm install -g @bobmatnyc/ai-code-review
     - |
@@ -313,13 +313,13 @@ manual_ai_detection:
         --debug \
         --format markdown \
         --output manual-ai-analysis.md
-    
+
     - echo "Manual analysis complete. Check artifacts for results."
-  
+
   artifacts:
     paths:
       - manual-ai-analysis.md
     expire_in: 7 days
-  
+
   when: manual
   allow_failure: true

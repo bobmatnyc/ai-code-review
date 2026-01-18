@@ -64,10 +64,10 @@ function processData(data) {
   if (!data) {
     return null;
   }
-  
+
   console.log('Processing:', data); // Reachable
   return processResult(data);
-  
+
   console.log('This will never execute'); // ❌ UNREACHABLE
   cleanupTempFiles(); // ❌ UNREACHABLE
 }
@@ -89,7 +89,7 @@ def calculate_total(items):
     subtotal = sum(item.price for item in items)
     tax_rate = 0.08  # ❌ UNUSED - calculated but never used
     discount = 0.10  # ❌ UNUSED - calculated but never used
-    
+
     return subtotal
 
 # ❌ Unused function - no callers found
@@ -110,12 +110,12 @@ def get_timestamp():
 public class UserService {
     private static final String API_VERSION = "v1"; // ❌ UNUSED FIELD
     private Logger logger = LoggerFactory.getLogger(UserService.class); // ✅ USED
-    
+
     // ❌ UNUSED METHOD - no callers
     private void validateLegacyUser(User user) {
         // Legacy validation logic
     }
-    
+
     // ✅ USED METHOD
     public User createUser(String name, String email) {
         logger.info("Creating user: {}", name);
@@ -310,7 +310,7 @@ function processUserType(userType) {
     default:
       return handleDefault();
   }
-  
+
   // ❌ UNREACHABLE - all cases return
   console.log('This will never execute');
 }

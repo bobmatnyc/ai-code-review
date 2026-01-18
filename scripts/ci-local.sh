@@ -18,10 +18,10 @@ FAILED=0
 run_check() {
     local name=$1
     local command=$2
-    
+
     echo -e "\n${YELLOW}Running: ${name}${NC}"
     echo "Command: ${command}"
-    
+
     if eval "${command}"; then
         echo -e "${GREEN}✓ ${name} passed${NC}"
     else

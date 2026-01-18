@@ -65,7 +65,7 @@ if [ -z "$OPENAI_KEY" ]; then
 fi
 
 # Define the model to use (hardcoding this to avoid detection issues)
-MODEL="openai:gpt-4.1" 
+MODEL="openai:gpt-4.1"
 
 # Add the model and OpenAI API key arguments
 if [ -n "$OPENAI_KEY" ]; then
@@ -88,7 +88,7 @@ sudo ln -sf "$WRAPPER_SCRIPT" /usr/local/bin/ai-code-review-enhanced
 
 echo
 echo "==== Installation Completed Successfully ===="
-echo 
+echo
 echo "You can now use AI Code Review with the enhanced wrapper:"
 echo "   ai-code-review-enhanced ."
 echo

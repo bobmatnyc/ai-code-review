@@ -1,6 +1,6 @@
 /**
  * @fileoverview Examples of using the Unified Client System
- * 
+ *
  * This file demonstrates various ways to use the unified client system
  * for AI code reviews. These examples can be used as a reference for
  * integrating the unified clients into your application.
@@ -24,14 +24,14 @@ import type { ProjectDocs } from '../src/utils/projectDocs';
  */
 export async function basicUsageExample() {
   console.log('=== Basic Usage Example ===');
-  
+
   try {
     // Initialize the unified client system
     initializeUnifiedClients();
-    
+
     // Create a client for OpenAI GPT-4
     const client = await createUnifiedClient('openai:gpt-4');
-    
+
     // Sample code to review
     const codeContent = `
 function calculateTotal(items) {
@@ -41,7 +41,7 @@ function calculateTotal(items) {
   }
   return total;
 }`;
-    
+
     // Generate a review
     const result = await client.generateReview(
       codeContent,
@@ -50,14 +50,14 @@ function calculateTotal(items) {
       null, // No project docs
       { includePositiveFeedback: true }
     );
-    
+
     console.log('Review Result:', {
       modelUsed: result.modelUsed,
       reviewType: result.reviewType,
       contentLength: result.content.length,
       costInfo: result.costInfo,
     });
-    
+
     return result;
   } catch (error) {
     console.error('Basic usage failed:', error);
@@ -71,11 +71,11 @@ function calculateTotal(items) {
  */
 export async function multiFileReviewExample() {
   console.log('=== Multi-file Review Example ===');
-  
+
   try {
     // Create a client for Anthropic Claude
     const client = await createUnifiedClient('anthropic:claude-3-5-sonnet-20241022');
-    
+
     // Sample files to review
     const fileInfos: FileInfo[] = [
       {
@@ -89,11 +89,11 @@ export interface User {
 
 export class UserService {
   private users: User[] = [];
-  
+
   addUser(user: User) {
     this.users.push(user);
   }
-  
+
   findUser(id: string) {
     return this.users.find(u => u.id === id);
   }
@@ -108,13 +108,13 @@ import { UserService } from '../models/User';
 
 export class UserController {
   constructor(private userService: UserService) {}
-  
+
   async createUser(req: any, res: any) {
     const user = req.body;
     this.userService.addUser(user);
     res.json({ success: true });
   }
-  
+
   async getUser(req: any, res: any) {
     const user = this.userService.findUser(req.params.id);
     res.json(user);
@@ -124,26 +124,26 @@ export class UserController {
         size: 300,
       },
     ];
-    
+
     // Generate consolidated review
     const result = await client.generateConsolidatedReview(
       fileInfos,
       'User Management System',
       'security',
       null, // No project docs
-      { 
+      {
         includePositiveFeedback: false,
         focusAreas: ['security', 'error-handling', 'type-safety']
       }
     );
-    
+
     console.log('Consolidated Review Result:', {
       modelUsed: result.modelUsed,
       reviewType: result.reviewType,
       filesReviewed: fileInfos.length,
       costInfo: result.costInfo,
     });
-    
+
     return result;
   } catch (error) {
     console.error('Multi-file review failed:', error);
@@ -157,26 +157,26 @@ export class UserController {
  */
 export async function bestClientSelectionExample() {
   console.log('=== Best Client Selection Example ===');
-  
+
   try {
     // Find the best client for GPT-4 (will try multiple providers)
     const { client, supportInfo } = await getBestUnifiedClient('gpt-4');
-    
+
     console.log('Best client found:', {
       provider: supportInfo.provider,
       isSupported: supportInfo.isSupported,
       confidence: supportInfo.confidence,
       features: supportInfo.features,
     });
-    
+
     // Use the client
     const result = await client.estimateCost(
       'console.log("Hello, world!");',
       'quick-fixes'
     );
-    
+
     console.log('Cost estimation:', result);
-    
+
     return { client, supportInfo, costEstimate: result };
   } catch (error) {
     console.error('Best client selection failed:', error);
@@ -190,21 +190,21 @@ export async function bestClientSelectionExample() {
  */
 export async function errorHandlingExample() {
   console.log('=== Error Handling Example ===');
-  
+
   try {
     // Try to create a client for an unsupported model
     await createUnifiedClient('unsupported:model-xyz');
   } catch (error) {
     console.log('Expected error for unsupported model:', error.message);
   }
-  
+
   try {
     // Try to create a client without API key
     const originalKey = process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
     delete process.env.AI_CODE_REVIEW_OPENAI_API_KEY;
-    
+
     await createUnifiedClient('openai:gpt-4');
-    
+
     // Restore the key
     if (originalKey) {
       process.env.AI_CODE_REVIEW_OPENAI_API_KEY = originalKey;
@@ -212,7 +212,7 @@ export async function errorHandlingExample() {
   } catch (error) {
     console.log('Expected error for missing API key:', error.message);
   }
-  
+
   try {
     // Test connection with invalid credentials
     const client = await createUnifiedClient('openai:gpt-4');
@@ -230,24 +230,24 @@ export async function errorHandlingExample() {
  */
 export async function systemMonitoringExample() {
   console.log('=== System Monitoring Example ===');
-  
+
   try {
     // Get system statistics
     const stats = getUnifiedClientStats();
     console.log('System Statistics:', stats);
-    
+
     // Test all available clients
     const testResults = await testUnifiedClients();
     console.log('Client Test Results:', testResults);
-    
+
     // Get available providers
     const providers = UnifiedClientFactory.getAvailableProviders();
     console.log('Available Providers:', providers);
-    
+
     // Get detailed provider statistics
     const detailedStats = UnifiedClientFactory.getStatistics();
     console.log('Detailed Statistics:', detailedStats);
-    
+
     return {
       stats,
       testResults,
@@ -266,13 +266,13 @@ export async function systemMonitoringExample() {
  */
 export async function customProviderExample() {
   console.log('=== Custom Provider Example ===');
-  
+
   // This is a mock implementation for demonstration
   class MockApiClient {
     constructor(private config: any) {}
-    
+
     async initialize() { return true; }
-    async generateReview() { 
+    async generateReview() {
       return {
         content: 'Mock review content',
         reviewType: 'quick-fixes',
@@ -290,7 +290,7 @@ export async function customProviderExample() {
     }
     async generateConsolidatedReview() { return this.generateReview(); }
     async testConnection() { return true; }
-    async estimateCost() { 
+    async estimateCost() {
       return {
         inputTokens: 100,
         outputTokens: 50,
@@ -314,16 +314,16 @@ export async function customProviderExample() {
       };
     }
   }
-  
+
   try {
     // Register the custom provider
     UnifiedClientFactory.registerProvider('mock', (config) => {
       return new MockApiClient(config) as any;
     });
-    
+
     // Set a mock API key
     process.env.AI_CODE_REVIEW_MOCK_API_KEY = 'mock-key';
-    
+
     // Use the custom provider
     const client = await createUnifiedClient('mock:mock-model-1');
     const result = await client.generateReview(
@@ -333,16 +333,16 @@ export async function customProviderExample() {
       null,
       {}
     );
-    
+
     console.log('Custom provider result:', {
       modelUsed: result.modelUsed,
       provider: client.getProviderName(),
       costInfo: result.costInfo,
     });
-    
+
     // Clean up
     delete process.env.AI_CODE_REVIEW_MOCK_API_KEY;
-    
+
     return result;
   } catch (error) {
     console.error('Custom provider example failed:', error);
@@ -355,26 +355,26 @@ export async function customProviderExample() {
  */
 export async function runAllExamples() {
   console.log('Running Unified Client System Examples...\n');
-  
+
   try {
     await basicUsageExample();
     console.log('\n');
-    
+
     await multiFileReviewExample();
     console.log('\n');
-    
+
     await bestClientSelectionExample();
     console.log('\n');
-    
+
     await errorHandlingExample();
     console.log('\n');
-    
+
     await systemMonitoringExample();
     console.log('\n');
-    
+
     await customProviderExample();
     console.log('\n');
-    
+
     console.log('All examples completed successfully!');
   } catch (error) {
     console.error('Example execution failed:', error);

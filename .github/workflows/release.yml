@@ -13,7 +13,7 @@ jobs:
       contents: write
       packages: write
       id-token: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -71,7 +71,7 @@ jobs:
         run: |
           echo "## What's Changed" > RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
-          
+
           # Get commits since last tag
           LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$LAST_TAG" ]; then
@@ -80,7 +80,7 @@ jobs:
           else
             echo "Initial release" >> RELEASE_NOTES.md
           fi
-          
+
           echo "" >> RELEASE_NOTES.md
           echo "## Installation" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
@@ -128,7 +128,7 @@ jobs:
         run: |
           echo "Waiting for npm propagation..."
           sleep 30
-          
+
           echo "Verifying npm publication..."
           npm view @bobmatnyc/ai-code-review@${{ steps.version.outputs.version }} version
           echo "npm publication verified"

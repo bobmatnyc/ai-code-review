@@ -6,13 +6,13 @@ const projectRoot = path.join(__dirname, '../..');
 
 /**
  * Real-world test for tool calling implementation (improved version)
- * 
+ *
  * This script tests the actual tool calling implementation by:
  * 1. Creating a test directory with vulnerable dependencies
- * 2. Testing the OpenAI tool calling flow with real API keys 
+ * 2. Testing the OpenAI tool calling flow with real API keys
  * 3. Testing the Anthropic tool calling flow with real API keys
  * 4. Examining the generated review files for security information
- * 
+ *
  * Requires actual API keys in .env.local for:
  * - SERPAPI_KEY
  * - AI_CODE_REVIEW_OPENAI_API_KEY or AI_CODE_REVIEW_ANTHROPIC_API_KEY
@@ -72,21 +72,21 @@ let testRun = false;
 function findMostRecentReview(modelPrefix) {
   // Get all files in the review directory
   const files = fs.readdirSync(REVIEW_DIR);
-  
+
   // Filter files that match the model prefix
-  const modelFiles = files.filter(file => 
-    file.startsWith('architectural-review') && 
+  const modelFiles = files.filter(file =>
+    file.startsWith('architectural-review') &&
     file.includes(modelPrefix) &&
     file.endsWith('.md')
   );
-  
+
   // Sort files by creation time (newest first)
   modelFiles.sort((a, b) => {
     const statA = fs.statSync(path.join(REVIEW_DIR, a));
     const statB = fs.statSync(path.join(REVIEW_DIR, b));
     return statB.mtimeMs - statA.mtimeMs;
   });
-  
+
   // Return the most recent file
   return modelFiles.length > 0 ? path.join(REVIEW_DIR, modelFiles[0]) : null;
 }
@@ -97,26 +97,26 @@ function checkFileForSecurityInfo(filePath) {
     console.log(`Review file not found: ${filePath}`);
     return null;
   }
-  
+
   // Read the file
   const content = fs.readFileSync(filePath, 'utf8');
-  
+
   // Check for security-related content
   const securityKeywords = [
-    'security', 'vulnerability', 'vulnerabilities', 'CVE', 
+    'security', 'vulnerability', 'vulnerabilities', 'CVE',
     'dependency', 'dependencies', 'axios', 'node-forge', 'log4js'
   ];
-  
+
   // Look for dependency analysis section
   const dependencySection = content.match(/## Dependency (Security )?Analysis[\s\S]*?(?=^##|\Z)/mi);
-  
+
   if (dependencySection) {
     return dependencySection[0];
   }
-  
+
   // Look for security references in issues section
   const securityReferences = [];
-  
+
   // Match sections that mention security
   const sections = content.split(/^#{2,3} /m);
   for (const section of sections) {
@@ -127,9 +127,9 @@ function checkFileForSecurityInfo(filePath) {
       }
     }
   }
-  
-  return securityReferences.length > 0 ? 
-    `Security references found: ${securityReferences.join(', ')}` : 
+
+  return securityReferences.length > 0 ?
+    `Security references found: ${securityReferences.join(', ')}` :
     null;
 }
 
@@ -140,24 +140,24 @@ if (SERPAPI_KEY && OPENAI_API_KEY) {
   try {
     // Set the model to GPT-4o which supports tool calling
     env.AI_CODE_REVIEW_MODEL = 'openai:gpt-4o';
-    
+
     // Run an architectural review with the CLI
     console.log(`Running architectural review on ${TEST_DIR} with OpenAI GPT-4o...`);
     const codeBin = path.join(__dirname, 'dist', 'index.js');
-    
+
     // Execute the code review
     execSync(`${codeBin} ${TEST_DIR} --type=arch`, {
       env,
       stdio: 'inherit'
     });
-    
+
     // Look for the most recent OpenAI review file
     const reviewFile = findMostRecentReview('gpt-4');
     console.log(`\nLooking for OpenAI review file: ${reviewFile}`);
-    
+
     // Check if the file contains security information
     const securityInfo = checkFileForSecurityInfo(reviewFile);
-    
+
     if (securityInfo) {
       console.log(`\n✅ OpenAI tool calling successfully found security information!`);
       console.log(`\nSecurity Info Excerpt:\n${securityInfo.substring(0, 500)}...`);
@@ -165,7 +165,7 @@ if (SERPAPI_KEY && OPENAI_API_KEY) {
       console.log(`\n⚠️ No security information found in the OpenAI review.`);
       console.log(`This could be because the model didn't use the tool, or the output format is different.`);
     }
-    
+
     testRun = true;
   } catch (error) {
     console.error(`Error during OpenAI test: ${error.message}`);
@@ -179,24 +179,24 @@ if (SERPAPI_KEY && ANTHROPIC_API_KEY) {
   try {
     // Set the model to Claude 3 Opus which supports tool calling
     env.AI_CODE_REVIEW_MODEL = 'anthropic:claude-3-opus';
-    
+
     // Run an architectural review with the CLI
     console.log(`Running architectural review on ${TEST_DIR} with Anthropic Claude 3 Opus...`);
     const codeBin = path.join(__dirname, 'dist', 'index.js');
-    
+
     // Execute the code review
     execSync(`${codeBin} ${TEST_DIR} --type=arch`, {
       env,
       stdio: 'inherit'
     });
-    
+
     // Look for the most recent Anthropic review file
     const reviewFile = findMostRecentReview('claude-3');
     console.log(`\nLooking for Anthropic review file: ${reviewFile}`);
-    
+
     // Check if the file contains security information
     const securityInfo = checkFileForSecurityInfo(reviewFile);
-    
+
     if (securityInfo) {
       console.log(`\n✅ Anthropic tool calling successfully found security information!`);
       console.log(`\nSecurity Info Excerpt:\n${securityInfo.substring(0, 500)}...`);
@@ -204,7 +204,7 @@ if (SERPAPI_KEY && ANTHROPIC_API_KEY) {
       console.log(`\n⚠️ No security information found in the Anthropic review.`);
       console.log(`This could be because the model didn't use the tool, or the output format is different.`);
     }
-    
+
     testRun = true;
   } catch (error) {
     console.error(`Error during Anthropic test: ${error.message}`);

@@ -108,7 +108,7 @@ describe('Unified Client System', () => {
   describe('Client Registration', () => {
     it('should register unified clients', () => {
       initializeUnifiedClients();
-      
+
       const providers = UnifiedClientFactory.getAvailableProviders();
       expect(providers).toContain('openai');
     });

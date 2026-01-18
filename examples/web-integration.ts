@@ -1,18 +1,18 @@
 /**
  * @fileoverview Example of using AI Code Review as a library in web applications
- * 
+ *
  * This example shows how to integrate AI Code Review into a web application,
  * such as the Next.js web dashboard.
  */
 
-import { 
-  performCodeReview, 
-  testModelConnection, 
+import {
+  performCodeReview,
+  testModelConnection,
   getAvailableModels,
   validateLibraryConfig,
   type ReviewRequest,
   type ReviewResult,
-  type LibraryConfig 
+  type LibraryConfig
 } from '../src/lib/index';
 
 /**
@@ -27,7 +27,7 @@ export async function reviewCodeForAPI(
     provider: 'openrouter' | 'anthropic' | 'openai' | 'google';
   }
 ): Promise<ReviewResult> {
-  
+
   // Build library configuration
   const config: LibraryConfig = {
     model: userConfig.model,
@@ -129,13 +129,13 @@ export async function batchReviewRepositories(
   result?: ReviewResult;
   error?: string;
 }>> {
-  
+
   const results = [];
-  
+
   for (const repo of repositories) {
     try {
       console.log(`Reviewing repository: ${repo.name}`);
-      
+
       const result = await performCodeReview({
         target: repo.path,
         config: repo.config,
@@ -145,13 +145,13 @@ export async function batchReviewRepositories(
           }
         }
       });
-      
+
       results.push({
         repository: repo.name,
         success: true,
         result
       });
-      
+
     } catch (error) {
       results.push({
         repository: repo.name,
@@ -160,7 +160,7 @@ export async function batchReviewRepositories(
       });
     }
   }
-  
+
   return results;
 }
 
@@ -178,17 +178,17 @@ export async function findBestModel(
     error?: string;
   }>;
 }> {
-  
+
   const models = getAvailableModels();
   const testResults = [];
   let bestModel = '';
   let bestResponseTime = Infinity;
-  
+
   for (const model of models) {
     // Check if we have the required API key
     const provider = model.provider.toLowerCase();
     const hasKey = apiKeys[provider] || apiKeys[provider.replace(' (via OpenRouter)', '')];
-    
+
     if (!hasKey) {
       testResults.push({
         model: model.id,
@@ -197,24 +197,24 @@ export async function findBestModel(
       });
       continue;
     }
-    
+
     try {
       const startTime = Date.now();
       const result = await testModelConnection(model.id);
       const responseTime = Date.now() - startTime;
-      
+
       testResults.push({
         model: model.id,
         success: result.success,
         responseTime,
         error: result.error
       });
-      
+
       if (result.success && responseTime < bestResponseTime) {
         bestModel = model.id;
         bestResponseTime = responseTime;
       }
-      
+
     } catch (error) {
       testResults.push({
         model: model.id,
@@ -223,7 +223,7 @@ export async function findBestModel(
       });
     }
   }
-  
+
   return {
     bestModel,
     testResults
@@ -238,18 +238,18 @@ export async function performCustomReview(
   focus: 'security' | 'performance' | 'maintainability',
   config: LibraryConfig
 ): Promise<ReviewResult> {
-  
+
   // Customize configuration based on focus
   const customConfig: LibraryConfig = {
     ...config,
-    reviewType: focus === 'security' ? 'security' : 
-                focus === 'performance' ? 'performance' : 
+    reviewType: focus === 'security' ? 'security' :
+                focus === 'performance' ? 'performance' :
                 'architectural',
     includeTests: focus === 'maintainability',
     traceCode: focus === 'performance',
     consolidated: true
   };
-  
+
   // Add custom context based on focus
   let additionalContext = '';
   switch (focus) {
@@ -263,7 +263,7 @@ export async function performCustomReview(
       additionalContext = 'Focus on code organization, readability, documentation, test coverage, and maintainability issues.';
       break;
   }
-  
+
   return await performCodeReview({
     target,
     config: customConfig,

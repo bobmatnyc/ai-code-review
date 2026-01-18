@@ -18,13 +18,13 @@ const factoryStrategyExample: PatternTrainingExample = {
 // ApiClientFactory.ts (45 lines)
 export class ApiClientFactory {
   private static clients = new Map<string, ApiClient>();
-  
+
   static createClient(provider: string, config: ApiConfig): ApiClient {
     const key = \`\${provider}-\${config.model}\`;
     if (this.clients.has(key)) {
       return this.clients.get(key)!;
     }
-    
+
     let client: ApiClient;
     switch (provider) {
       case 'openai':
@@ -39,7 +39,7 @@ export class ApiClientFactory {
       default:
         throw new Error(\`Unknown provider: \${provider}\`);
     }
-    
+
     this.clients.set(key, client);
     return client;
   }
@@ -52,12 +52,12 @@ export interface ReviewStrategy {
 
 export class ArchitecturalReviewStrategy implements ReviewStrategy {
   constructor(private client: ApiClient) {}
-  
+
   async execute(code: string, options: ReviewOptions): Promise<ReviewResult> {
     const prompt = this.buildArchitecturalPrompt(code, options);
     return await this.client.review(prompt);
   }
-  
+
   private buildArchitecturalPrompt(code: string, options: ReviewOptions): string {
     return \`Analyze the architectural patterns in: \${code}\`;
   }
@@ -70,7 +70,7 @@ export class CodeReviewer {
     const strategy = this.getStrategy(type, client);
     return await strategy.execute(code, options);
   }
-  
+
   private getStrategy(type: string, client: ApiClient): ReviewStrategy {
     switch (type) {
       case 'architectural': return new ArchitecturalReviewStrategy(client);
@@ -119,27 +119,27 @@ const observerDispatchExample: PatternTrainingExample = {
 export class EventDispatcher {
   private listeners = new Map<string, Set<EventListener>>();
   private middleware: EventMiddleware[] = [];
-  
+
   subscribe(event: string, listener: EventListener): () => void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(listener);
-    
+
     return () => this.unsubscribe(event, listener);
   }
-  
+
   async dispatch(event: string, data: any): Promise<void> {
     const processedData = await this.applyMiddleware(event, data);
     const listeners = this.listeners.get(event) || new Set();
-    
+
     await Promise.all(
-      Array.from(listeners).map(listener => 
+      Array.from(listeners).map(listener =>
         this.safeExecute(listener, processedData)
       )
     );
   }
-  
+
   private async applyMiddleware(event: string, data: any): Promise<any> {
     let processedData = data;
     for (const middleware of this.middleware) {
@@ -147,7 +147,7 @@ export class EventDispatcher {
     }
     return processedData;
   }
-  
+
   private async safeExecute(listener: EventListener, data: any): Promise<void> {
     try {
       await listener(data);
@@ -160,26 +160,26 @@ export class EventDispatcher {
 // ReviewEventSystem.ts (40 lines)
 export class ReviewEventSystem {
   private dispatcher = new EventDispatcher();
-  
+
   onReviewStarted(callback: (data: ReviewStartedEvent) => void): () => void {
     return this.dispatcher.subscribe('review:started', callback);
   }
-  
+
   onReviewCompleted(callback: (data: ReviewCompletedEvent) => void): () => void {
     return this.dispatcher.subscribe('review:completed', callback);
   }
-  
+
   async startReview(reviewData: ReviewData): Promise<void> {
-    await this.dispatcher.dispatch('review:started', { 
-      timestamp: Date.now(), 
-      ...reviewData 
+    await this.dispatcher.dispatch('review:started', {
+      timestamp: Date.now(),
+      ...reviewData
     });
   }
-  
+
   async completeReview(result: ReviewResult): Promise<void> {
-    await this.dispatcher.dispatch('review:completed', { 
-      timestamp: Date.now(), 
-      result 
+    await this.dispatcher.dispatch('review:completed', {
+      timestamp: Date.now(),
+      result
     });
   }
 }
@@ -223,25 +223,25 @@ const inheritanceMixinExample: PatternTrainingExample = {
 export abstract class BaseClient {
   protected config: ClientConfig;
   protected rateLimiter: RateLimiter;
-  
+
   constructor(config: ClientConfig) {
     this.config = config;
     this.rateLimiter = new RateLimiter(config.rateLimit);
   }
-  
+
   abstract async makeRequest(prompt: string): Promise<Response>;
-  
+
   protected async executeWithRetry<T>(
     operation: () => Promise<T>,
     maxRetries: number = 3
   ): Promise<T> {
     // 15 lines of retry logic
   }
-  
+
   protected validateConfig(): void {
     // 10 lines of validation
   }
-  
+
   protected logRequest(prompt: string): void {
     // 8 lines of logging
   }
@@ -251,11 +251,11 @@ export abstract class BaseClient {
 export const CacheMixin = <T extends Constructor>(Base: T) => {
   return class extends Base {
     private cache = new Map<string, any>();
-    
+
     protected getCached<R>(key: string): R | undefined {
       return this.cache.get(key);
     }
-    
+
     protected setCached<R>(key: string, value: R): void {
       this.cache.set(key, value);
     }
@@ -265,11 +265,11 @@ export const CacheMixin = <T extends Constructor>(Base: T) => {
 export const MetricsMixin = <T extends Constructor>(Base: T) => {
   return class extends Base {
     private metrics = new Map<string, number>();
-    
+
     protected recordMetric(name: string, value: number): void {
       this.metrics.set(name, value);
     }
-    
+
     protected getMetrics(): Record<string, number> {
       return Object.fromEntries(this.metrics);
     }
@@ -285,23 +285,23 @@ export class OpenAIClient extends CacheMixin(MetricsMixin(BaseClient)) {
       this.recordMetric('cache_hits', 1);
       return cached;
     }
-    
+
     const startTime = Date.now();
-    const response = await this.executeWithRetry(() => 
+    const response = await this.executeWithRetry(() =>
       this.performOpenAIRequest(prompt)
     );
-    
+
     const duration = Date.now() - startTime;
     this.recordMetric('request_duration', duration);
     this.setCached(cacheKey, response);
-    
+
     return response;
   }
-  
+
   private async performOpenAIRequest(prompt: string): Promise<Response> {
     // 25 lines of OpenAI-specific request logic
   }
-  
+
   private generateCacheKey(prompt: string): string {
     // 8 lines of cache key generation
   }

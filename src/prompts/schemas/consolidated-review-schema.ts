@@ -170,11 +170,11 @@ export function getConsolidatedSchemaAsString(): string {
     "timestamp": "2024-04-06T12:00:00Z",
     "projectName": "my-project",
     "filesReviewed": 150,
-    
+
     "executiveSummary": "This codebase demonstrates solid engineering practices with room for improvement in testing and documentation...",
     "overallGrade": "B+",
     "gradeRationale": "The code is well-structured and functional, but lacks comprehensive testing and documentation...",
-    
+
     "gradeCategories": {
       "functionality": "A-",
       "codeQuality": "B+",
@@ -184,7 +184,7 @@ export function getConsolidatedSchemaAsString(): string {
       "security": "B+",
       "performance": "B"
     },
-    
+
     "categoryRationale": {
       "functionality": "All features work as expected with minimal bugs...",
       "codeQuality": "Code follows consistent patterns but has some complexity issues...",
@@ -194,7 +194,7 @@ export function getConsolidatedSchemaAsString(): string {
       "security": "Good security practices with minor input validation gaps...",
       "performance": "Generally performant with some optimization opportunities..."
     },
-    
+
     "issues": {
       "high": [
         {
@@ -210,7 +210,7 @@ export function getConsolidatedSchemaAsString(): string {
       "medium": [...],
       "low": [...]
     },
-    
+
     "strengths": [
       {
         "title": "Well-structured component architecture",
@@ -218,7 +218,7 @@ export function getConsolidatedSchemaAsString(): string {
         "files": ["src/components/", "src/features/"]
       }
     ],
-    
+
     "architecturalInsights": [
       {
         "title": "Effective use of dependency injection",
@@ -227,7 +227,7 @@ export function getConsolidatedSchemaAsString(): string {
         "relatedFiles": ["src/services/", "src/core/"]
       }
     ],
-    
+
     "summary": {
       "totalIssues": 45,
       "highPriorityIssues": 5,
@@ -235,7 +235,7 @@ export function getConsolidatedSchemaAsString(): string {
       "lowPriorityIssues": 25,
       "totalStrengths": 8
     },
-    
+
     "recommendations": {
       "immediate": [
         "Add input validation to all API endpoints",
