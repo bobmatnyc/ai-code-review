@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.5] - 2026-01-18
+
+### Fixed
+- CI/CD: Release workflow now handles existing releases gracefully on re-runs
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.5
+```
+
+
 ## [4.6.4] - 2026-01-18
 
 ### Changes
