@@ -384,7 +384,11 @@ export class ChunkGenerator {
       const endLine = Math.max(...declarations.map((d) => d.endLine));
 
       const allDependencies = new Set<string>();
-      declarations.forEach((d) => d.dependencies.forEach((dep) => allDependencies.add(dep)));
+      for (const d of declarations) {
+        for (const dep of d.dependencies) {
+          allDependencies.add(dep);
+        }
+      }
 
       const context = this.config.includeContext
         ? this.findContextDeclarations(declarations[0], analysis.topLevelDeclarations)
@@ -575,14 +579,18 @@ export class ChunkGenerator {
         const unprocessed = declarations.filter((d) => !processed.has(d));
         if (unprocessed.length > 0) {
           groups.push(unprocessed);
-          unprocessed.forEach((d) => processed.add(d));
+          for (const d of unprocessed) {
+            processed.add(d);
+          }
         }
       }
     }
 
     // Add remaining individual declarations
     const remaining = declarations.filter((d) => !processed.has(d));
-    remaining.forEach((d) => groups.push([d]));
+    for (const d of remaining) {
+      groups.push([d]);
+    }
 
     return groups;
   }

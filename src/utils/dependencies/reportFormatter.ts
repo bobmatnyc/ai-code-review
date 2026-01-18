@@ -175,13 +175,17 @@ function formatUnusedDependencies(unusedDeps: string[], projectName: string): st
 
   if (prodDeps.length > 0) {
     section += '**Unused production dependencies**:\n';
-    prodDeps.forEach((dep) => (section += `- \`${dep}\`\n`));
+    for (const dep of prodDeps) {
+      section += `- \`${dep}\`\n`;
+    }
     section += '\n';
   }
 
   if (devDeps.length > 0) {
     section += '**Unused development dependencies**:\n';
-    devDeps.forEach((dep) => (section += `- \`${dep}\`\n`));
+    for (const dep of devDeps) {
+      section += `- \`${dep}\`\n`;
+    }
     section += '\n';
   }
 
@@ -272,19 +276,25 @@ function formatRecommendations(recommendations: string[]): string {
 
   if (security.length > 0) {
     section += '**Security Improvements**:\n';
-    security.forEach((rec) => (section += `- 🔒 ${rec}\n`));
+    for (const rec of security) {
+      section += `- 🔒 ${rec}\n`;
+    }
     section += '\n';
   }
 
   if (performance.length > 0) {
     section += '**Performance Improvements**:\n';
-    performance.forEach((rec) => (section += `- ⚡ ${rec}\n`));
+    for (const rec of performance) {
+      section += `- ⚡ ${rec}\n`;
+    }
     section += '\n';
   }
 
   if (maintenance.length > 0) {
     section += '**Maintenance Improvements**:\n';
-    maintenance.forEach((rec) => (section += `- 🔧 ${rec}\n`));
+    for (const rec of maintenance) {
+      section += `- 🔧 ${rec}\n`;
+    }
     section += '\n';
   }
 

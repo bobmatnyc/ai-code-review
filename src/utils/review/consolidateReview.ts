@@ -653,19 +653,25 @@ function createFallbackConsolidation(review: ReviewResult): string {
     let highMatch: RegExpExecArray | null;
     highPriorityRegex.lastIndex = 0; // Reset regex
     while ((highMatch = highPriorityRegex.exec(passContent)) !== null) {
-      extractIssueTitles(highMatch[1]).forEach((title) => highPriorityFindings.add(title));
+      for (const title of extractIssueTitles(highMatch[1])) {
+        highPriorityFindings.add(title);
+      }
     }
 
     let mediumMatch: RegExpExecArray | null;
     mediumPriorityRegex.lastIndex = 0; // Reset regex
     while ((mediumMatch = mediumPriorityRegex.exec(passContent)) !== null) {
-      extractIssueTitles(mediumMatch[1]).forEach((title) => mediumPriorityFindings.add(title));
+      for (const title of extractIssueTitles(mediumMatch[1])) {
+        mediumPriorityFindings.add(title);
+      }
     }
 
     let lowMatch: RegExpExecArray | null;
     lowPriorityRegex.lastIndex = 0; // Reset regex
     while ((lowMatch = lowPriorityRegex.exec(passContent)) !== null) {
-      extractIssueTitles(lowMatch[1]).forEach((title) => lowPriorityFindings.add(title));
+      for (const title of extractIssueTitles(lowMatch[1])) {
+        lowPriorityFindings.add(title);
+      }
     }
   });
 
