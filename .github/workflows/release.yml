@@ -89,26 +89,34 @@ jobs:
           echo "\`\`\`" >> RELEASE_NOTES.md
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
-        id: create_release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          release_name: Release ${{ steps.version.outputs.tag }}
-          body_path: RELEASE_NOTES.md
-          draft: false
-          prerelease: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
+
+          # Check if release already exists
+          if gh release view "${TAG}" &>/dev/null; then
+            echo "Release ${TAG} already exists, skipping creation"
+          else
+            echo "Creating release ${TAG}..."
+            gh release create "${TAG}" \
+              --title "Release ${TAG}" \
+              --notes-file RELEASE_NOTES.md
+          fi
 
       - name: Upload CLI binary as release asset
-        uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/index.js
-          asset_name: ai-code-review-${{ steps.version.outputs.version }}.js
-          asset_content_type: application/javascript
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
+          ASSET_NAME="ai-code-review-${VERSION}.js"
+
+          # Upload asset (--clobber overwrites if it already exists)
+          gh release upload "${TAG}" \
+            "./dist/index.js#${ASSET_NAME}" \
+            --clobber
 
       - name: Publish to npm
         env:
