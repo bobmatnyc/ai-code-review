@@ -336,9 +336,11 @@ export class TokenTracker {
 
     // Calculate unique files (files may appear in multiple passes due to context maintenance)
     const uniqueFiles = new Set<string>();
-    passTokenUsage.forEach((pass) => {
-      pass.files.forEach((file) => uniqueFiles.add(file));
-    });
+    for (const pass of passTokenUsage) {
+      for (const file of pass.files) {
+        uniqueFiles.add(file);
+      }
+    }
 
     const totalFiles = uniqueFiles.size;
     const averageTokensPerFile = totalFiles > 0 ? totalTokens / totalFiles : 0;
