@@ -8,7 +8,7 @@ class CreateUsers < ActiveRecord::Migration[7.1]
       t.text :bio
       t.integer :role, default: 0
       t.boolean :active, default: true
-      
+
       # Devise fields
       t.string :encrypted_password, null: false, default: ""
       t.string :reset_password_token

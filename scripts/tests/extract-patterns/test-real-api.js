@@ -2,7 +2,7 @@
 
 /**
  * Real API testing for extract-patterns review type
- * 
+ *
  * This script tests the extract-patterns functionality with actual API calls
  * to validate output quality and ensure the feature works end-to-end.
  */
@@ -21,7 +21,7 @@ const TEST_CASES = [
     description: 'Test pattern extraction on a single TypeScript file'
   },
   {
-    name: 'Module Test', 
+    name: 'Module Test',
     path: 'src/strategies/',
     expectedCost: 0.05,
     description: 'Test pattern extraction on a module directory'
@@ -64,12 +64,12 @@ function hasApiKey(model) {
  */
 function runExtractPatternsReview(testPath, model, interactive = false) {
   const outputDir = path.join(projectRoot, 'ai-code-review-docs', 'extract-patterns-tests');
-  
+
   // Ensure output directory exists
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
-  
+
   const cmd = [
     'node',
     path.join(projectRoot, 'dist', 'index.js'),
@@ -78,17 +78,17 @@ function runExtractPatternsReview(testPath, model, interactive = false) {
     '--output-dir', outputDir,
     interactive ? '--interactive' : ''
   ].filter(Boolean).join(' ');
-  
+
   console.log(`Running: ${cmd}`);
   console.log(`Model: ${model}`);
-  
+
   const env = {
     ...process.env,
     AI_CODE_REVIEW_MODEL: model
   };
-  
+
   const startTime = Date.now();
-  
+
   try {
     const result = execSync(cmd, {
       env,
@@ -96,9 +96,9 @@ function runExtractPatternsReview(testPath, model, interactive = false) {
       stdio: 'pipe',
       encoding: 'utf8'
     });
-    
+
     const duration = Date.now() - startTime;
-    
+
     return {
       success: true,
       output: result,
@@ -107,7 +107,7 @@ function runExtractPatternsReview(testPath, model, interactive = false) {
     };
   } catch (error) {
     const duration = Date.now() - startTime;
-    
+
     return {
       success: false,
       error: error.message,
@@ -132,14 +132,14 @@ function validateOutput(outputDir, testName) {
         mtime: fs.statSync(path.join(outputDir, f)).mtime
       }))
       .sort((a, b) => b.mtime - a.mtime);
-    
+
     if (files.length === 0) {
       return { valid: false, error: 'No JSON output files found' };
     }
-    
+
     const outputFile = files[0].path;
     const content = fs.readFileSync(outputFile, 'utf8');
-    
+
     // Parse JSON
     let parsed;
     try {
@@ -147,12 +147,12 @@ function validateOutput(outputDir, testName) {
     } catch (parseError) {
       return { valid: false, error: `Invalid JSON: ${parseError.message}` };
     }
-    
+
     // Basic schema validation
     if (!parsed.patterns) {
       return { valid: false, error: 'Missing "patterns" root object' };
     }
-    
+
     const patterns = parsed.patterns;
     const requiredFields = [
       'version', 'timestamp', 'projectName', 'projectOverview',
@@ -160,35 +160,35 @@ function validateOutput(outputDir, testName) {
       'codeStyle', 'testingStrategy', 'exemplarCharacteristics',
       'replicationGuide', 'summary'
     ];
-    
+
     for (const field of requiredFields) {
       if (!patterns[field]) {
         return { valid: false, error: `Missing required field: ${field}` };
       }
     }
-    
+
     // Content quality checks
     const qualityIssues = [];
-    
+
     if (patterns.summary.length < 50) {
       qualityIssues.push('Summary too short');
     }
-    
+
     if (patterns.architecturalPatterns.length === 0) {
       qualityIssues.push('No architectural patterns identified');
     }
-    
+
     if (patterns.exemplarCharacteristics.strengths.length === 0) {
       qualityIssues.push('No strengths identified');
     }
-    
+
     return {
       valid: true,
       qualityIssues,
       outputFile,
       patterns
     };
-    
+
   } catch (error) {
     return { valid: false, error: `Validation error: ${error.message}` };
   }
@@ -205,12 +205,12 @@ function runCostEstimation(testPath, model) {
     testPath,
     '--estimate'
   ].join(' ');
-  
+
   const env = {
     ...process.env,
     AI_CODE_REVIEW_MODEL: model
   };
-  
+
   try {
     const result = execSync(cmd, {
       env,
@@ -218,7 +218,7 @@ function runCostEstimation(testPath, model) {
       stdio: 'pipe',
       encoding: 'utf8'
     });
-    
+
     return { success: true, output: result };
   } catch (error) {
     return { success: false, error: error.message };
@@ -230,10 +230,10 @@ function runCostEstimation(testPath, model) {
  */
 async function runRealApiTests() {
   console.log('=== Extract Patterns Real API Testing ===\n');
-  
+
   // Check available models
   const availableModels = MODELS_TO_TEST.filter(hasApiKey);
-  
+
   if (availableModels.length === 0) {
     console.error('❌ No API keys found for any supported models');
     console.error('Please set one of the following environment variables:');
@@ -242,25 +242,25 @@ async function runRealApiTests() {
     console.error('- AI_CODE_REVIEW_GOOGLE_API_KEY');
     process.exit(1);
   }
-  
+
   console.log(`✅ Found API keys for: ${availableModels.join(', ')}\n`);
-  
+
   const results = [];
-  
+
   // Test each available model with each test case
   for (const model of availableModels) {
     console.log(`\n🧪 Testing model: ${model}`);
     console.log('='.repeat(50));
-    
+
     for (const testCase of TEST_CASES) {
       console.log(`\n📋 ${testCase.name}: ${testCase.description}`);
       console.log(`   Path: ${testCase.path}`);
       console.log(`   Expected cost: ~$${testCase.expectedCost}`);
-      
+
       // Run cost estimation first
       console.log('   💰 Running cost estimation...');
       const costResult = runCostEstimation(testCase.path, model);
-      
+
       if (costResult.success) {
         console.log('   ✅ Cost estimation completed');
         // Extract cost from output if possible
@@ -271,18 +271,18 @@ async function runRealApiTests() {
       } else {
         console.log(`   ❌ Cost estimation failed: ${costResult.error}`);
       }
-      
+
       // Run actual review
       console.log('   🔍 Running extract-patterns review...');
       const reviewResult = runExtractPatternsReview(testCase.path, model, true);
-      
+
       if (reviewResult.success) {
         console.log(`   ✅ Review completed in ${reviewResult.duration}ms`);
-        
+
         // Validate output
         console.log('   📊 Validating output...');
         const validation = validateOutput(reviewResult.outputDir, testCase.name);
-        
+
         if (validation.valid) {
           console.log('   ✅ Output validation passed');
           if (validation.qualityIssues.length > 0) {
@@ -291,7 +291,7 @@ async function runRealApiTests() {
         } else {
           console.log(`   ❌ Output validation failed: ${validation.error}`);
         }
-        
+
         results.push({
           model,
           testCase: testCase.name,
@@ -299,13 +299,13 @@ async function runRealApiTests() {
           duration: reviewResult.duration,
           validation
         });
-        
+
       } else {
         console.log(`   ❌ Review failed: ${reviewResult.error}`);
         if (reviewResult.stderr) {
           console.log(`   📝 Error details: ${reviewResult.stderr}`);
         }
-        
+
         results.push({
           model,
           testCase: testCase.name,
@@ -315,33 +315,33 @@ async function runRealApiTests() {
       }
     }
   }
-  
+
   // Summary
   console.log('\n' + '='.repeat(60));
   console.log('📊 TEST SUMMARY');
   console.log('='.repeat(60));
-  
+
   const successful = results.filter(r => r.success);
   const failed = results.filter(r => !r.success);
-  
+
   console.log(`✅ Successful tests: ${successful.length}`);
   console.log(`❌ Failed tests: ${failed.length}`);
   console.log(`📈 Success rate: ${((successful.length / results.length) * 100).toFixed(1)}%`);
-  
+
   if (failed.length > 0) {
     console.log('\n❌ Failed Tests:');
     failed.forEach(result => {
       console.log(`   - ${result.model} / ${result.testCase}: ${result.error}`);
     });
   }
-  
+
   if (successful.length > 0) {
     console.log('\n✅ Successful Tests:');
     successful.forEach(result => {
       console.log(`   - ${result.model} / ${result.testCase}: ${result.duration}ms`);
     });
   }
-  
+
   console.log('\n🎉 Real API testing completed!');
   console.log('📁 Check ai-code-review-docs/extract-patterns-tests/ for output files');
 }

@@ -60,7 +60,7 @@ read -p "Enter your choice (1-5 or q): " choice
 safe_copy() {
     local src="$1"
     local dest="$2"
-    
+
     if [ -f "$dest" ]; then
         echo "⚠️ File already exists: $dest"
         read -p "   Overwrite? (y/n): " overwrite

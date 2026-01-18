@@ -1,5 +1,5 @@
 ---
-name: PHP Security Code Review  
+name: PHP Security Code Review
 description: Comprehensive PHP security review with PSR compliance, Laravel security, and modern PHP security patterns
 version: 2.0.0
 author: AI Code Review Tool
@@ -150,7 +150,7 @@ public function updateUser(Request $request, $id) {
 class User extends Model {
     protected $fillable = ['name', 'email', 'password'];
     protected $guarded = ['admin', 'role_id', 'is_verified'];
-    
+
     protected $hidden = ['password', 'remember_token'];
 }
 
@@ -172,12 +172,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 class UserController extends Controller {
     public function update(Request $request, User $user) {
         $this->authorize('update', $user);
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id
         ]);
-        
+
         $user->update($validated);
         return response()->json($user);
     }
@@ -213,15 +213,15 @@ public function uploadAvatar(Request $request) {
             'dimensions:max_width=1000,max_height=1000'
         ]
     ]);
-    
+
     $file = $request->file('avatar');
-    
+
     // Generate secure filename
     $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-    
+
     // Store outside web root
     $path = $file->storeAs('private/avatars', $filename);
-    
+
     return response()->json(['path' => $path]);
 }
 ```
@@ -242,7 +242,7 @@ public function uploadAvatar(Request $request) {
     },
     "psrCompliance": {
       "psr4": "COMPLIANT",
-      "psr7": "COMPLIANT", 
+      "psr7": "COMPLIANT",
       "psr12": "COMPLIANT"
     },
     "configurationSecurity": {
@@ -375,7 +375,7 @@ return [
 class ContentSecurityPolicyMiddleware {
     public function handle($request, Closure $next) {
         $response = $next($request);
-        
+
         $csp = "default-src 'self'; " .
                "script-src 'self' 'unsafe-inline'; " .
                "style-src 'self' 'unsafe-inline'; " .
@@ -383,7 +383,7 @@ class ContentSecurityPolicyMiddleware {
                "connect-src 'self'; " .
                "font-src 'self'; " .
                "frame-ancestors 'none';";
-               
+
         $response->headers->set('Content-Security-Policy', $csp);
         return $response;
     }
@@ -397,11 +397,11 @@ class ApiController extends Controller {
     public function __construct() {
         $this->middleware(['auth:sanctum', 'throttle:60,1']);
     }
-    
+
     public function store(StoreUserRequest $request) {
         // StoreUserRequest handles validation
         $user = User::create($request->validated());
-        
+
         return new UserResource($user);
     }
 }
@@ -411,7 +411,7 @@ class StoreUserRequest extends FormRequest {
     public function authorize() {
         return auth()->user()->can('create-users');
     }
-    
+
     public function rules() {
         return [
             'name' => ['required', 'string', 'max:255'],

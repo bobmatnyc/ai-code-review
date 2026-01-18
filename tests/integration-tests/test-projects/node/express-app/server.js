@@ -30,7 +30,7 @@ app.post('/api/users', (req, res) => {
   if (!name) {
     return res.status(400).json({ error: 'Name is required' });
   }
-  
+
   // In a real app, we would add to database here
   res.status(201).json({ id: 4, name });
 });

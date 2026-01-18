@@ -54,7 +54,7 @@ func main() {
 // CLEANUP SUGGESTION: Remove unused imports
 import (
     "fmt"
-    "os" 
+    "os"
 )
 ```
 
@@ -87,7 +87,7 @@ func unusedHelper() string {          // ❌ UNUSED
     return "never called"
 }
 
-func internalProcessor() error {      // ❌ UNUSED  
+func internalProcessor() error {      // ❌ UNUSED
     return nil
 }
 
@@ -170,7 +170,7 @@ var globalConfig Config              // ✅ USED
 ```go
 type User struct {
     ID       string    // ✅ USED - accessed via u.ID
-    Name     string    // ✅ USED - accessed via u.Name  
+    Name     string    // ✅ USED - accessed via u.Name
     Email    string    // ❌ UNUSED - field never accessed
     Internal string    // ❌ UNUSED - only set, never read
     Legacy   *string   // ❌ UNUSED - legacy field
@@ -222,7 +222,7 @@ func Helper() string {               // ❌ UNUSED - no imports of internal/unus
     return "unused"
 }
 
-// internal/utils/package.go - partially used package  
+// internal/utils/package.go - partially used package
 package utils
 
 func UsedFunction() string {         // ✅ USED
@@ -260,10 +260,10 @@ func WindowsSpecific() {             // ❌ UNUSED on non-Windows
     // Windows-only implementation
 }
 
-// +build !windows  
+// +build !windows
 
 func UnixSpecific() {                // ❌ UNUSED on Windows
-    // Unix-only implementation  
+    // Unix-only implementation
 }
 ```
 
@@ -356,7 +356,7 @@ import "unused/package"  // Never referenced
 ### Unused Functions and Methods
 **Impact:** Code maintenance, readability
 
-- **File:** `path/to/file.go`  
+- **File:** `path/to/file.go`
 - **Lines:** X-Y
 - **Type:** Function/Method
 ```go
@@ -367,7 +367,7 @@ func unusedFunction() error {
 **Usage Analysis:** No callers found in codebase
 **Safe to Remove:** Yes/No (explain public API considerations)
 
-### Unused Types and Structs  
+### Unused Types and Structs
 **Impact:** Memory usage, compilation time
 
 - **File:** `path/to/file.go`
@@ -401,7 +401,7 @@ type UnusedStruct struct {
    - Remove unused package-level variables
 
 ### Medium Priority (Review Required)
-1. **Exported Functions** 
+1. **Exported Functions**
    - Review public API functions with no internal usage
    - Consider deprecation before removal
    - Check external package usage
@@ -434,7 +434,7 @@ type UnusedStruct struct {
 # Find unused imports
 goimports -l .
 
-# Analyze module dependencies  
+# Analyze module dependencies
 go mod why <package>
 go mod graph | grep unused
 
@@ -461,7 +461,7 @@ unused ./...
 3. Remove unused constants and variables
 4. Run `go mod tidy` for dependency cleanup
 
-### Phase 2: API Review (Medium Risk) 
+### Phase 2: API Review (Medium Risk)
 1. Review exported functions for external usage
 2. Plan deprecation strategy for public APIs
 3. Clean up unused interface implementations

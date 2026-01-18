@@ -1,6 +1,6 @@
 /**
  * Memory Schemas Test Suite
- * 
+ *
  * Tests for enterprise memory schemas (MEM-002) to ensure
  * proper structure and validation of memory entries.
  */

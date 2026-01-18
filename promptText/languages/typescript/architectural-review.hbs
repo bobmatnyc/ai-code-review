@@ -171,7 +171,7 @@ interface UserStore {
   users: User[];
   selectedUser: User | null;
   isLoading: boolean;
-  
+
   // Actions with proper typing
   fetchUsers: () => Promise<void>;
   selectUser: (id: UserId) => void;
@@ -182,7 +182,7 @@ const useUserStore = create<UserStore>((set, get) => ({
   users: [],
   selectedUser: null,
   isLoading: false,
-  
+
   fetchUsers: async () => {
     set({ isLoading: true });
     try {
@@ -193,12 +193,12 @@ const useUserStore = create<UserStore>((set, get) => ({
       throw error;
     }
   },
-  
+
   selectUser: (id) => {
     const user = get().users.find(u => u.id === id) ?? null;
     set({ selectedUser: user });
   },
-  
+
   updateUser: (id, updates) => {
     set(state => ({
       users: state.users.map(u => u.id === id ? { ...u, ...updates } : u)
@@ -222,7 +222,7 @@ interface Repository<T, ID> {
 
 class UserRepository implements Repository<User, UserId> {
   constructor(private db: Database) {}
-  
+
   async findById(id: UserId): Promise<User | null> {
     // Type-safe database operations
     const result = await this.db.query<User>(
@@ -231,7 +231,7 @@ class UserRepository implements Repository<User, UserId> {
     );
     return result.rows[0] ?? null;
   }
-  
+
   // Other methods with full type safety
 }
 
@@ -248,7 +248,7 @@ class UserServiceImpl implements UserService {
     private logger: Logger,
     private validator: Validator
   ) {}
-  
+
   async getUser(id: UserId): Promise<User> {
     this.logger.info('Fetching user', { userId: id });
     const user = await this.userRepo.findById(id);
@@ -263,7 +263,7 @@ class UserServiceImpl implements UserService {
 #### API Route Type Safety
 ```typescript
 // ✅ Excellent: Type-safe Express routes
-interface ApiRequest<TBody = any, TQuery = any, TParams = any> 
+interface ApiRequest<TBody = any, TQuery = any, TParams = any>
   extends Request<TParams, any, TBody, TQuery> {}
 
 interface ApiResponse<TData = any> extends Response<{
@@ -303,7 +303,7 @@ const getUserById: RouteHandler<
     "typeSystemDesign": {
       "score": 0.88,
       "brandedTypes": "EXCELLENT",
-      "discriminatedUnions": "GOOD", 
+      "discriminatedUnions": "GOOD",
       "genericUsage": "EXCELLENT",
       "typeInference": "GOOD"
     },

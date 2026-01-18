@@ -67,15 +67,15 @@ class GradingResult:
 
 class StudentGradingPipeline:
     """Main pipeline for automated student grading with AI detection."""
-    
+
     def __init__(self, config_path: Optional[str] = None):
         self.config = self._load_config(config_path)
         self.setup_logging()
-        
+
         # Results storage
         self.submissions: List[StudentSubmission] = []
         self.results: List[GradingResult] = []
-        
+
     def _load_config(self, config_path: Optional[str]) -> Dict:
         """Load configuration from file or use defaults."""
         default_config = {
@@ -116,7 +116,7 @@ class StudentGradingPipeline:
                 "csv_export": True
             }
         }
-        
+
         if config_path and os.path.exists(config_path):
             try:
                 with open(config_path, 'r') as f:
@@ -127,9 +127,9 @@ class StudentGradingPipeline:
             except Exception as e:
                 logging.warning(f"Failed to load config from {config_path}: {e}")
                 logging.info("Using default configuration")
-        
+
         return default_config
-    
+
     def _deep_merge(self, base_dict: Dict, update_dict: Dict) -> None:
         """Deep merge two dictionaries."""
         for key, value in update_dict.items():
@@ -137,13 +137,13 @@ class StudentGradingPipeline:
                 self._deep_merge(base_dict[key], value)
             else:
                 base_dict[key] = value
-    
+
     def setup_logging(self) -> None:
         """Configure logging for the pipeline."""
         log_level = logging.INFO
         if os.getenv('DEBUG', '').lower() == 'true':
             log_level = logging.DEBUG
-            
+
         logging.basicConfig(
             level=log_level,
             format='%(asctime)s - %(levelname)s - %(message)s',
@@ -154,27 +154,27 @@ class StudentGradingPipeline:
                 )
             ]
         )
-    
+
     def discover_submissions(self, submissions_dir: str) -> List[StudentSubmission]:
         """Discover student submissions in the specified directory."""
         logging.info(f"Discovering submissions in {submissions_dir}")
-        
+
         submissions = []
         submissions_path = Path(submissions_dir)
-        
+
         if not submissions_path.exists():
             raise FileNotFoundError(f"Submissions directory not found: {submissions_dir}")
-        
+
         # Look for student directories
         for student_dir in submissions_path.iterdir():
             if not student_dir.is_dir():
                 continue
-                
+
             # Extract student info from directory name
             # Expected format: studentid_lastname_firstname or similar
             student_id = student_dir.name
             student_name = self._extract_student_name(student_dir.name)
-            
+
             # Check if directory contains code files
             if self._has_code_files(student_dir):
                 submission = StudentSubmission(
@@ -183,18 +183,18 @@ class StudentGradingPipeline:
                     submission_path=str(student_dir),
                     submission_time=self._get_submission_time(student_dir)
                 )
-                
+
                 # Check for late submission
                 submission.late_submission = self._is_late_submission(submission.submission_time)
-                
+
                 submissions.append(submission)
                 logging.debug(f"Found submission: {student_id}")
             else:
                 logging.warning(f"No code files found in {student_dir}")
-        
+
         logging.info(f"Discovered {len(submissions)} valid submissions")
         return submissions
-    
+
     def _extract_student_name(self, dir_name: str) -> str:
         """Extract student name from directory name."""
         # Handle common formats: studentid_lastname_firstname, lastname_firstname, etc.
@@ -202,16 +202,16 @@ class StudentGradingPipeline:
         if len(parts) >= 2:
             return ' '.join(parts[1:])  # Skip first part (likely student ID)
         return dir_name
-    
+
     def _has_code_files(self, directory: Path) -> bool:
         """Check if directory contains code files."""
         code_extensions = {'.py', '.js', '.ts', '.java', '.cpp', '.c', '.go', '.rb', '.php', '.cs'}
-        
+
         for file_path in directory.rglob('*'):
             if file_path.suffix.lower() in code_extensions:
                 return True
         return False
-    
+
     def _get_submission_time(self, directory: Path) -> Optional[datetime]:
         """Get submission timestamp from directory or files."""
         try:
@@ -220,19 +220,19 @@ class StudentGradingPipeline:
             return datetime.fromtimestamp(stat.st_mtime)
         except Exception:
             return None
-    
+
     def _is_late_submission(self, submission_time: Optional[datetime]) -> bool:
         """Check if submission was late (placeholder implementation)."""
         # In real implementation, compare with assignment due date
         return False
-    
+
     def run_ai_detection(self, submission: StudentSubmission) -> Optional[AIDetectionResult]:
         """Run AI detection analysis on a student submission."""
         if not self.config['ai_detection']['enabled']:
             return None
-            
+
         logging.info(f"Running AI detection for {submission.student_id}")
-        
+
         try:
             # Build AI code review command
             cmd = [
@@ -246,7 +246,7 @@ class StudentGradingPipeline:
                 '--format', 'json',
                 '--output', f"/tmp/ai-detection-{submission.student_id}.json"
             ]
-            
+
             # Run the command
             result = subprocess.run(
                 cmd,
@@ -254,15 +254,15 @@ class StudentGradingPipeline:
                 text=True,
                 timeout=self.config['processing']['timeout_seconds']
             )
-            
+
             # Parse results
             output_file = f"/tmp/ai-detection-{submission.student_id}.json"
             if os.path.exists(output_file):
                 with open(output_file, 'r') as f:
                     data = json.load(f)
-                
+
                 ai_data = data.get('metadata', {}).get('aiDetection', {})
-                
+
                 # Determine risk level
                 confidence = ai_data.get('confidenceScore', 0)
                 if confidence >= 0.9:
@@ -273,7 +273,7 @@ class StudentGradingPipeline:
                     risk_level = "MEDIUM"
                 else:
                     risk_level = "LOW"
-                
+
                 return AIDetectionResult(
                     is_ai_generated=ai_data.get('isAIGenerated', False),
                     confidence_score=confidence,
@@ -283,22 +283,22 @@ class StudentGradingPipeline:
                     analysis_time=ai_data.get('analysisTime', 0),
                     warnings=[]
                 )
-                
+
         except subprocess.TimeoutExpired:
             logging.error(f"AI detection timeout for {submission.student_id}")
         except Exception as e:
             logging.error(f"AI detection failed for {submission.student_id}: {e}")
-        
+
         return None
-    
-    def calculate_grade(self, submission: StudentSubmission, 
+
+    def calculate_grade(self, submission: StudentSubmission,
                        ai_result: Optional[AIDetectionResult]) -> GradingResult:
         """Calculate grade for a student submission."""
         logging.info(f"Calculating grade for {submission.student_id}")
-        
+
         # This is a simplified grading logic - in practice, you'd integrate with
         # actual code analysis, test results, etc.
-        
+
         # Base scores (would come from actual code analysis)
         base_scores = {
             "correctness": 85,
@@ -307,15 +307,15 @@ class StudentGradingPipeline:
             "testing": 75,
             "creativity": 80
         }
-        
+
         # Apply AI detection penalties if needed
         academic_integrity_flag = False
         requires_manual_review = False
-        
+
         if ai_result and ai_result.is_ai_generated:
             academic_integrity_flag = True
             requires_manual_review = True
-            
+
             # Apply penalty based on confidence and config
             if self.config['ai_detection']['fail_on_detection']:
                 # Automatic failure
@@ -325,28 +325,28 @@ class StudentGradingPipeline:
                 penalty_factor = min(0.5, ai_result.confidence_score)
                 for key in base_scores:
                     base_scores[key] *= (1 - penalty_factor)
-        
+
         # Apply late penalty
         if submission.late_submission:
             penalty = self.config['assignment']['late_penalty'] / 100
             for key in base_scores:
                 base_scores[key] *= (1 - penalty)
-        
+
         # Calculate weighted overall score
         criteria_weights = self.config['grading']['criteria']
         total_weight = sum(criteria_weights.values())
-        
+
         overall_score = 0
         for criterion, score in base_scores.items():
             weight = criteria_weights.get(criterion, 0) / total_weight
             overall_score += score * weight
-        
+
         # Convert to letter grade
         grade_letter = self._score_to_letter_grade(overall_score)
-        
+
         # Generate feedback
         feedback = self._generate_feedback(submission, ai_result, base_scores, overall_score)
-        
+
         return GradingResult(
             student_id=submission.student_id,
             student_name=submission.student_name,
@@ -358,7 +358,7 @@ class StudentGradingPipeline:
             requires_manual_review=requires_manual_review,
             academic_integrity_flag=academic_integrity_flag
         )
-    
+
     def _score_to_letter_grade(self, score: float) -> str:
         """Convert numeric score to letter grade."""
         if score >= 97: return "A+"
@@ -374,23 +374,23 @@ class StudentGradingPipeline:
         elif score >= 63: return "D"
         elif score >= 60: return "D-"
         else: return "F"
-    
-    def _generate_feedback(self, submission: StudentSubmission, 
+
+    def _generate_feedback(self, submission: StudentSubmission,
                           ai_result: Optional[AIDetectionResult],
                           scores: Dict[str, float], overall_score: float) -> str:
         """Generate personalized feedback for student."""
         feedback_parts = []
-        
+
         # Overall performance
         feedback_parts.append(f"Overall Score: {overall_score:.1f}/100")
         feedback_parts.append("")
-        
+
         # Detailed scores
         feedback_parts.append("Detailed Breakdown:")
         for criterion, score in scores.items():
             feedback_parts.append(f"- {criterion.title()}: {score:.1f}/100")
         feedback_parts.append("")
-        
+
         # AI detection results
         if ai_result:
             if ai_result.is_ai_generated:
@@ -402,13 +402,13 @@ class StudentGradingPipeline:
             else:
                 feedback_parts.append("✅ Academic integrity check passed")
                 feedback_parts.append("")
-        
+
         # Late submission penalty
         if submission.late_submission:
             penalty = self.config['assignment']['late_penalty']
             feedback_parts.append(f"⏰ Late submission penalty applied: -{penalty}%")
             feedback_parts.append("")
-        
+
         # Recommendations
         feedback_parts.append("Recommendations:")
         if overall_score >= 90:
@@ -419,26 +419,26 @@ class StudentGradingPipeline:
             feedback_parts.append("- Passing grade. Review feedback and improve weak areas.")
         else:
             feedback_parts.append("- Below passing. Please review course materials and seek help.")
-        
+
         if ai_result and ai_result.is_ai_generated:
             feedback_parts.append("- Schedule meeting to discuss academic integrity policies.")
             feedback_parts.append("- Complete assignment independently for full credit.")
-        
+
         return "\n".join(feedback_parts)
-    
+
     def process_submission(self, submission: StudentSubmission) -> GradingResult:
         """Process a single student submission."""
         try:
             # Run AI detection
             ai_result = self.run_ai_detection(submission)
-            
+
             # Calculate grade
             grade_result = self.calculate_grade(submission, ai_result)
-            
+
             logging.info(f"Processed {submission.student_id}: {grade_result.grade_letter} ({grade_result.overall_score:.1f})")
-            
+
             return grade_result
-            
+
         except Exception as e:
             logging.error(f"Failed to process {submission.student_id}: {e}")
             # Return default failing grade
@@ -453,20 +453,20 @@ class StudentGradingPipeline:
                 requires_manual_review=True,
                 academic_integrity_flag=False
             )
-    
+
     def process_all_submissions(self, submissions: List[StudentSubmission]) -> List[GradingResult]:
         """Process all submissions in parallel."""
         logging.info(f"Processing {len(submissions)} submissions with {self.config['processing']['parallel_workers']} workers")
-        
+
         results = []
-        
+
         with ThreadPoolExecutor(max_workers=self.config['processing']['parallel_workers']) as executor:
             # Submit all tasks
             future_to_submission = {
                 executor.submit(self.process_submission, submission): submission
                 for submission in submissions
             }
-            
+
             # Collect results
             for future in as_completed(future_to_submission):
                 submission = future_to_submission[future]
@@ -475,81 +475,81 @@ class StudentGradingPipeline:
                     results.append(result)
                 except Exception as e:
                     logging.error(f"Task failed for {submission.student_id}: {e}")
-        
+
         return results
-    
+
     def generate_reports(self, results: List[GradingResult]) -> None:
         """Generate comprehensive grading reports."""
         output_config = self.config['output']
-        
+
         # Create output directories
         os.makedirs(output_config['results_dir'], exist_ok=True)
         os.makedirs(output_config['reports_dir'], exist_ok=True)
-        
+
         # Individual feedback files
         if output_config['individual_feedback']:
             self._generate_individual_feedback(results)
-        
+
         # Summary report
         if output_config['summary_report']:
             self._generate_summary_report(results)
-        
+
         # CSV export
         if output_config['csv_export']:
             self._generate_csv_export(results)
-        
+
         # Academic integrity report
         self._generate_integrity_report(results)
-    
+
     def _generate_individual_feedback(self, results: List[GradingResult]) -> None:
         """Generate individual feedback files for each student."""
         logging.info("Generating individual feedback files")
-        
+
         for result in results:
             filename = f"{result.student_id}_feedback.md"
             filepath = os.path.join(self.config['output']['reports_dir'], filename)
-            
+
             with open(filepath, 'w') as f:
                 f.write(f"# Feedback for {result.student_name} ({result.student_id})\n\n")
                 f.write(f"**Grade:** {result.grade_letter} ({result.overall_score:.1f}/100)\n\n")
-                
+
                 if result.academic_integrity_flag:
                     f.write("## ⚠️ Academic Integrity Alert\n\n")
                     f.write("This submission has been flagged for potential AI assistance. ")
                     f.write("Please schedule a meeting to discuss this assignment.\n\n")
-                
+
                 f.write("## Detailed Feedback\n\n")
                 f.write(result.feedback)
                 f.write("\n\n---\n\n")
                 f.write(f"*Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n")
-    
+
     def _generate_summary_report(self, results: List[GradingResult]) -> None:
         """Generate summary report for the entire class."""
         logging.info("Generating summary report")
-        
+
         filepath = os.path.join(self.config['output']['reports_dir'], 'grading_summary.md')
-        
+
         # Calculate statistics
         total_students = len(results)
         avg_score = sum(r.overall_score for r in results) / total_students if total_students > 0 else 0
         ai_flagged = len([r for r in results if r.academic_integrity_flag])
         manual_review_needed = len([r for r in results if r.requires_manual_review])
-        
+
         grade_distribution = {}
         for result in results:
             grade_distribution[result.grade_letter] = grade_distribution.get(result.grade_letter, 0) + 1
-        
+
         with open(filepath, 'w') as f:
             f.write("# Class Grading Summary\n\n")
             f.write(f"**Assignment:** {self.config['assignment']['title']}\n")
             f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"**Total Students:** {total_students}\n\n")
-            
+
             f.write("## Statistics\n\n")
             f.write(f"- **Average Score:** {avg_score:.1f}/100\n")
             f.write(f"- **AI Detection Alerts:** {ai_flagged}\n")
             f.write(f"- **Manual Review Needed:** {manual_review_needed}\n\n")
-            
+
             f.write("## Grade Distribution\n\n")
             f.write("| Grade | Count | Percentage |\n")
             f.write("|-------|-------|------------|\n")
@@ -557,7 +557,7 @@ class StudentGradingPipeline:
                 count = grade_distribution.get(grade, 0)
                 percentage = (count / total_students * 100) if total_students > 0 else 0
                 f.write(f"| {grade} | {count} | {percentage:.1f}% |\n")
-            
+
             if ai_flagged > 0:
                 f.write("\n## Academic Integrity Alerts\n\n")
                 ai_flagged_students = [r for r in results if r.academic_integrity_flag]
@@ -565,28 +565,28 @@ class StudentGradingPipeline:
                     ai_info = result.ai_detection
                     f.write(f"- **{result.student_name}** ({result.student_id}): ")
                     f.write(f"Confidence {ai_info.confidence_score:.3f}, Risk {ai_info.risk_level}\n")
-    
+
     def _generate_csv_export(self, results: List[GradingResult]) -> None:
         """Generate CSV export for gradebook import."""
         logging.info("Generating CSV export")
-        
+
         filepath = os.path.join(self.config['output']['results_dir'], 'grades.csv')
-        
+
         with open(filepath, 'w', newline='') as csvfile:
             fieldnames = [
                 'student_id', 'student_name', 'overall_score', 'grade_letter',
                 'ai_detected', 'ai_confidence', 'ai_risk_level',
                 'requires_manual_review', 'academic_integrity_flag'
             ]
-            
+
             # Add criteria scores
             if results:
                 criteria = list(results[0].criteria_scores.keys())
                 fieldnames.extend(criteria)
-            
+
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-            
+
             for result in results:
                 row = {
                     'student_id': result.student_id,
@@ -599,34 +599,34 @@ class StudentGradingPipeline:
                     'requires_manual_review': result.requires_manual_review,
                     'academic_integrity_flag': result.academic_integrity_flag
                 }
-                
+
                 # Add criteria scores
                 row.update(result.criteria_scores)
-                
+
                 writer.writerow(row)
-    
+
     def _generate_integrity_report(self, results: List[GradingResult]) -> None:
         """Generate detailed academic integrity report."""
         ai_flagged = [r for r in results if r.academic_integrity_flag]
-        
+
         if not ai_flagged:
             return
-            
+
         logging.info(f"Generating academic integrity report for {len(ai_flagged)} students")
-        
+
         filepath = os.path.join(self.config['output']['reports_dir'], 'academic_integrity_report.md')
-        
+
         with open(filepath, 'w') as f:
             f.write("# Academic Integrity Report\n\n")
             f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"**Students Flagged:** {len(ai_flagged)}\n\n")
-            
+
             f.write("## Summary\n\n")
             f.write("The following students have been flagged for potential AI assistance ")
             f.write("in their submissions. Each case requires manual review and discussion.\n\n")
-            
+
             f.write("## Flagged Submissions\n\n")
-            
+
             for result in ai_flagged:
                 ai_info = result.ai_detection
                 f.write(f"### {result.student_name} ({result.student_id})\n\n")
@@ -635,35 +635,35 @@ class StudentGradingPipeline:
                 f.write(f"- **Patterns Detected:** {ai_info.patterns_detected}\n")
                 f.write(f"- **Grade Impact:** {result.overall_score:.1f}/100 ({result.grade_letter})\n")
                 f.write(f"- **Action Required:** Manual review and student meeting\n\n")
-    
+
     def run_pipeline(self, submissions_dir: str) -> None:
         """Run the complete grading pipeline."""
         logging.info("Starting student grading pipeline")
-        
+
         try:
             # Discover submissions
             self.submissions = self.discover_submissions(submissions_dir)
-            
+
             if not self.submissions:
                 logging.error("No submissions found")
                 return
-            
+
             # Process all submissions
             self.results = self.process_all_submissions(self.submissions)
-            
+
             # Generate reports
             self.generate_reports(self.results)
-            
+
             # Print summary
             total = len(self.results)
             ai_flagged = len([r for r in self.results if r.academic_integrity_flag])
             avg_score = sum(r.overall_score for r in self.results) / total if total > 0 else 0
-            
+
             logging.info("Pipeline completed successfully!")
             logging.info(f"Processed {total} submissions")
             logging.info(f"Average score: {avg_score:.1f}")
             logging.info(f"AI integrity alerts: {ai_flagged}")
-            
+
         except Exception as e:
             logging.error(f"Pipeline failed: {e}")
             raise
@@ -675,13 +675,13 @@ def main():
     parser.add_argument("submissions_dir", help="Directory containing student submissions")
     parser.add_argument("--config", help="Configuration file path")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-    
+
     args = parser.parse_args()
-    
+
     # Set debug mode
     if args.debug:
         os.environ['DEBUG'] = 'true'
-    
+
     # Run pipeline
     pipeline = StudentGradingPipeline(args.config)
     pipeline.run_pipeline(args.submissions_dir)

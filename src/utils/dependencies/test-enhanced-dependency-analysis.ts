@@ -1,6 +1,6 @@
 /**
  * @fileoverview Test module for enhanced dependency analysis
- * 
+ *
  * This module provides a standalone test for the enhanced dependency analyzer
  * to verify that it works correctly with all features.
  */
@@ -14,16 +14,16 @@ logger.setLogLevel('debug');
 
 async function runTest(): Promise<number> {
   console.log('=========== STARTING ENHANCED DEPENDENCY ANALYSIS TEST ===========');
-  
+
   // Use the project root as the test path
   const projectPath = path.resolve(__dirname, '..', '..', '..');
   console.log(`Project path: ${projectPath}`);
-  
+
   try {
     // Run the enhanced dependency analysis
     console.log('Running enhanced dependency analysis...');
     const analysis = await createEnhancedDependencyAnalysis(projectPath);
-    
+
     // Output the results
     console.log('\n--- Enhanced Dependency Analysis Results ---');
     console.log(`Project: ${analysis.projectName}`);
@@ -33,11 +33,11 @@ async function runTest(): Promise<number> {
     console.log(`Transitive dependencies: ${analysis.dependencySummary.transitive}`);
     console.log(`Unused dependencies: ${analysis.unusedDependencies.length}`);
     console.log(`Security issues: ${analysis.securityIssues.total}`);
-    
+
     if (analysis.dependencyGraph) {
       console.log(`Dependency graph generated at: ${analysis.dependencyGraph}`);
     }
-    
+
     // Output recommendations
     if (analysis.recommendations.length > 0) {
       console.log('\n--- Recommendations ---');
@@ -45,12 +45,12 @@ async function runTest(): Promise<number> {
         console.log(`${index + 1}. ${rec}`);
       });
     }
-    
+
     // Output a sample of the overall report
     const reportPreview = analysis.overallReport.substring(0, 500) + '...';
     console.log('\n--- Report Preview ---');
     console.log(reportPreview);
-    
+
     console.log('\n✅ Enhanced dependency analysis test completed successfully');
     return 0;
   } catch (error) {

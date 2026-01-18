@@ -99,7 +99,7 @@ Example recommendation:
 def calculate_metrics(data_points):
     # Debug statement from development
     print(f"Processing {len(data_points)} data points")
-    
+
     # This function is never called from anywhere in the codebase
     result = {}
     for point in data_points:
@@ -112,7 +112,7 @@ def calculate_metrics(data_points):
     import warnings
     warnings.warn(
         "calculate_metrics is deprecated and will be removed in a future version",
-        DeprecationWarning, 
+        DeprecationWarning,
         stacklevel=2
     )
     result = {}

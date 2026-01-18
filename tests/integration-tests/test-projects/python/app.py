@@ -15,10 +15,10 @@ def get_users():
 @app.route('/api/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = find_user_by_id(user_id)
-    
+
     if not user:
         return jsonify({"message": "User not found"}), 404
-    
+
     # Security issue: returning password
     return jsonify(user)
 
@@ -26,12 +26,12 @@ def get_user(user_id):
 def add_user():
     try:
         data = request.get_json()
-        
+
         # Missing validation
-        
+
         # Performance issue: using globals directly
         new_id = len(users) + 1
-        
+
         new_user = {
             "id": new_id,
             "name": data.get("name"),
@@ -39,7 +39,7 @@ def add_user():
             "password": data.get("password"),  # Security issue: password not hashed
             "created_at": "2023-04-15T10:00:00Z"
         }
-        
+
         user = create_user(new_user)
         return jsonify(user), 201
     except Exception as e:

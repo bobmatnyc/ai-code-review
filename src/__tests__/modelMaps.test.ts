@@ -60,7 +60,7 @@ describe('modelMaps', () => {
 
   describe('Provider models', () => {
     const providers: Provider[] = ['gemini', 'anthropic', 'openai', 'openrouter'];
-    
+
     providers.forEach(provider => {
       describe(`${provider} models`, () => {
         it(`should have ${provider} models with correct structure`, () => {
@@ -228,7 +228,7 @@ describe('modelMaps', () => {
           { input: 'openai:gpt-4o', expected: { provider: 'openai', modelName: 'gpt-4o' } },
           { input: 'openrouter:model', expected: { provider: 'openrouter', modelName: 'model' } }
         ];
-        
+
         testCases.forEach(({ input, expected }) => {
           const result = parseModelString(input);
           expect(result).toEqual(expected);

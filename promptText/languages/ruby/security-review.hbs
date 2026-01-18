@@ -94,7 +94,7 @@ class UsersController < ApplicationController
     @user = User.new(params[:user]) # Mass assignment vulnerability
     @user.save
   end
-  
+
   def update
     @user = User.find(params[:id])
     @user.update_attributes(params[:user]) # Can set admin=true
@@ -107,14 +107,14 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
     @user.save
   end
-  
+
   def update
     @user = User.find(params[:id])
     @user.update(user_params)
   end
-  
+
   private
-  
+
   def user_params
     params.require(:user).permit(:name, :email, :password, :password_confirmation)
   end
@@ -123,7 +123,7 @@ end
 # ✅ SECURE: Role-based parameter filtering
 class UsersController < ApplicationController
   private
-  
+
   def user_params
     if current_user.admin?
       params.require(:user).permit(:name, :email, :password, :role, :active)
@@ -177,14 +177,14 @@ end
 def backup_database(filename)
   # Validate filename first
   raise ArgumentError unless filename.match?(/\A[\w\-\.]+\z/)
-  
+
   system("mysqldump", "myapp_production", out: filename)
 end
 
 # ✅ SECURE: Use libraries instead of shell commands
 def process_file(uploaded_file)
   require 'mini_magick'
-  
+
   image = MiniMagick::Image.open(uploaded_file.path)
   image.format('pdf')
   image.write('output.pdf')
@@ -198,7 +198,7 @@ end
 # ✅ SECURE: Application-wide CSRF protection
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
-  
+
   # For API endpoints
   protect_from_forgery with: :null_session, if: Proc.new { |c| c.request.format == 'application/json' }
 end
@@ -207,13 +207,13 @@ end
 class ApiController < ApplicationController
   before_action :authenticate_api_user
   skip_before_action :verify_authenticity_token
-  
+
   private
-  
+
   def authenticate_api_user
     token = request.headers['Authorization']&.sub(/^Bearer /, '')
     @current_user = User.find_by(api_token: token)
-    
+
     head :unauthorized unless @current_user
   end
 end
@@ -234,27 +234,27 @@ end
 class DocumentsController < ApplicationController
   MAX_FILE_SIZE = 10.megabytes
   ALLOWED_TYPES = %w[application/pdf image/jpeg image/png].freeze
-  
+
   def create
     validate_file!(params[:file])
-    
+
     @document = Document.new(document_params)
     @document.file = params[:file]
-    
+
     if @document.save
       render json: { status: 'success' }
     else
       render json: { errors: @document.errors }, status: 422
     end
   end
-  
+
   private
-  
+
   def validate_file!(file)
     raise ArgumentError, 'No file provided' if file.blank?
     raise ArgumentError, 'File too large' if file.size > MAX_FILE_SIZE
     raise ArgumentError, 'Invalid file type' unless ALLOWED_TYPES.include?(file.content_type)
-    
+
     # Additional security: Check file headers
     if file.content_type.start_with?('image/')
       require 'image_processing'
@@ -263,7 +263,7 @@ class DocumentsController < ApplicationController
   rescue => e
     raise ArgumentError, "File validation failed: #{e.message}"
   end
-  
+
   def document_params
     params.require(:document).permit(:title, :description)
   end
@@ -277,15 +277,15 @@ class UserPolicy < ApplicationPolicy
   def show?
     user == record || user.admin?
   end
-  
+
   def update?
     user == record || user.admin?
   end
-  
+
   def destroy?
     user.admin? && user != record
   end
-  
+
   class Scope < Scope
     def resolve
       if user.admin?
@@ -300,16 +300,16 @@ end
 # Controller with authorization
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  
+
   def show
     @user = User.find(params[:id])
     authorize @user
   end
-  
+
   def update
     @user = User.find(params[:id])
     authorize @user
-    
+
     if @user.update(user_params)
       redirect_to @user
     else
@@ -452,12 +452,12 @@ end
 # ✅ SECURE: JWT-based API authentication
 class ApiController < ApplicationController
   before_action :authenticate_api_user
-  
+
   private
-  
+
   def authenticate_api_user
     token = extract_token_from_header
-    
+
     begin
       payload = JWT.decode(token, Rails.application.secret_key_base, true, algorithm: 'HS256')[0]
       @current_user = User.find(payload['user_id'])
@@ -465,7 +465,7 @@ class ApiController < ApplicationController
       render json: { error: 'Invalid token' }, status: :unauthorized
     end
   end
-  
+
   def extract_token_from_header
     header = request.headers['Authorization']
     header.split(' ').last if header&.start_with?('Bearer ')
@@ -478,9 +478,9 @@ end
 # ✅ SECURE: CSP configuration in Rails
 class ApplicationController < ActionController::Base
   before_action :set_csp_header
-  
+
   private
-  
+
   def set_csp_header
     csp_directives = {
       default_src: "'self'",
@@ -491,7 +491,7 @@ class ApplicationController < ActionController::Base
       font_src: "'self'",
       frame_ancestors: "'none'"
     }
-    
+
     csp_header = csp_directives.map { |k, v| "#{k.to_s.tr('_', '-')} #{v}" }.join('; ')
     response.headers['Content-Security-Policy'] = csp_header
   end
@@ -503,26 +503,26 @@ end
 # ✅ SECURE: Sidekiq job with input validation
 class ProcessUserDataJob < ApplicationJob
   queue_as :default
-  
+
   def perform(user_id, data_params)
     user = User.find(user_id)
-    
+
     # Validate data_params structure
     validated_data = validate_data_params(data_params)
-    
+
     # Process with validated data
     UserDataProcessor.new(user, validated_data).process
   end
-  
+
   private
-  
+
   def validate_data_params(params)
     required_keys = %w[name email preferences]
-    
+
     unless required_keys.all? { |key| params.key?(key) }
       raise ArgumentError, "Missing required data parameters"
     end
-    
+
     {
       name: params['name'].to_s.strip,
       email: params['email'].to_s.strip.downcase,

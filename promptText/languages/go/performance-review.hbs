@@ -95,7 +95,7 @@ var bufferPool = sync.Pool{
 func processData(data []byte) []byte {
     buf := bufferPool.Get().([]byte)
     defer bufferPool.Put(buf[:0]) // Reset length, keep capacity
-    
+
     // Use buf for processing
     return processWithBuffer(data, buf)
 }
@@ -110,11 +110,11 @@ func processItemsConcurrently(items []Item) error {
     jobs := make(chan Item, len(items))
     results := make(chan Result, len(items))
     errors := make(chan error, 1)
-    
+
     // Start fixed number of workers
     workers := runtime.NumCPU()
     var wg sync.WaitGroup
-    
+
     for w := 0; w < workers; w++ {
         wg.Add(1)
         go func() {
@@ -132,7 +132,7 @@ func processItemsConcurrently(items []Item) error {
             }
         }()
     }
-    
+
     // Send jobs
     go func() {
         defer close(jobs)
@@ -140,14 +140,14 @@ func processItemsConcurrently(items []Item) error {
             jobs <- item
         }
     }()
-    
+
     // Wait for completion
     go func() {
         wg.Wait()
         close(results)
         close(errors)
     }()
-    
+
     // Collect results or return error
     select {
     case err := <-errors:
@@ -187,7 +187,7 @@ tinyChan := make(chan Data) // May block producers unnecessarily
 func processWithTimeout(ctx context.Context, items []Item) error {
     ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
     defer cancel()
-    
+
     for _, item := range items {
         select {
         case <-ctx.Done():
@@ -306,11 +306,11 @@ func processLargeFile(filename string) error {
         return err
     }
     defer file.Close()
-    
+
     // Use buffered scanner for line-by-line reading
     scanner := bufio.NewScanner(file)
     scanner.Buffer(make([]byte, 64*1024), 1024*1024) // Custom buffer size
-    
+
     for scanner.Scan() {
         if err := processLine(scanner.Text()); err != nil {
             return err
@@ -326,10 +326,10 @@ func writeDataEfficiently(filename string, data [][]byte) error {
         return err
     }
     defer file.Close()
-    
+
     writer := bufio.NewWriterSize(file, 64*1024) // 64KB buffer
     defer writer.Flush()
-    
+
     for _, chunk := range data {
         if _, err := writer.Write(chunk); err != nil {
             return err
@@ -350,19 +350,19 @@ func batchInsertUsers(db *sql.DB, users []User) error {
         return err
     }
     defer stmt.Close()
-    
+
     tx, err := db.Begin()
     if err != nil {
         return err
     }
     defer tx.Rollback()
-    
+
     for _, user := range users {
         if _, err := stmt.Exec(user.ID, user.Name, user.Email); err != nil {
             return err
         }
     }
-    
+
     return tx.Commit()
 }
 
@@ -392,7 +392,7 @@ type Cache struct {
 func (c *Cache) Get(key string) (interface{}, bool) {
     c.mu.RLock()
     defer c.mu.RUnlock()
-    
+
     value, exists := c.data[key]
     if exists {
         // Move to front (LRU)
@@ -404,13 +404,13 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 func (c *Cache) Set(key string, value interface{}) {
     c.mu.Lock()
     defer c.mu.Unlock()
-    
+
     if len(c.data) >= c.max {
         // Evict least recently used
         delete(c.data, c.order[len(c.order)-1])
         c.order = c.order[:len(c.order)-1]
     }
-    
+
     c.data[key] = value
     c.order = append([]string{key}, c.order...)
 }
@@ -427,7 +427,7 @@ func main() {
     go func() {
         log.Println(http.ListenAndServe("localhost:6060", nil))
     }()
-    
+
     // Your application code
 }
 
@@ -438,7 +438,7 @@ func measureOperation(name string, fn func() error) error {
         duration := time.Since(start)
         log.Printf("Operation %s took %v", name, duration)
     }()
-    
+
     return fn()
 }
 
@@ -447,12 +447,12 @@ func trackAllocs(name string, fn func()) {
     var m1, m2 runtime.MemStats
     runtime.GC()
     runtime.ReadMemStats(&m1)
-    
+
     fn()
-    
+
     runtime.GC()
     runtime.ReadMemStats(&m2)
-    
+
     log.Printf("%s: allocated %d bytes", name, m2.TotalAlloc-m1.TotalAlloc)
 }
 ```
@@ -468,9 +468,9 @@ Brief overview of the application's performance characteristics and main bottlen
 ## Critical Performance Issues
 
 ### [Issue Title]
-**Category:** [Memory/CPU/I/O/Concurrency/Algorithm]  
-**Impact:** [High/Medium/Low]  
-**File:** `path/to/file.go`  
+**Category:** [Memory/CPU/I/O/Concurrency/Algorithm]
+**Impact:** [High/Medium/Low]
+**File:** `path/to/file.go`
 **Lines:** X-Y
 
 **Performance Problem:**

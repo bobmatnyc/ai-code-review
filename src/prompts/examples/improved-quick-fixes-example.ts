@@ -31,7 +31,7 @@ export function DataDisplay() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   useEffect(() => {
     // Fetch data from API
     setLoading(true);
@@ -45,7 +45,7 @@ export function DataDisplay() {
         setLoading(false);
       });
   }, []);
-  
+
   // Calculate total value
   function calculateTotal() {
     let total = 0;
@@ -54,16 +54,16 @@ export function DataDisplay() {
     }
     return total;
   }
-  
+
   // Render loading state
   if (loading) return <div>Loading...</div>;
-  
+
   // Render error state
   if (error) return <div>Error loading data.</div>;
-  
+
   // Render empty state
   if (data.length == 0) return <div>No data available.</div>;
-  
+
   // Render data
   return (
     <div className="data-display">

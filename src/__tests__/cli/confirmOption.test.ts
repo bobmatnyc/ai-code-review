@@ -53,11 +53,11 @@ describe('Confirm Option Tests', () => {
       };
 
       const validated = validateArguments(args as any);
-      
+
       expect(validated.noConfirm).toBe(true);
       expect(validated.confirm).toBeUndefined();
     });
-    
+
     it('should use default confirm=true when not specified', () => {
       const args = {
         type: 'quick-fixes',
@@ -65,7 +65,7 @@ describe('Confirm Option Tests', () => {
       };
 
       const validated = validateArguments(args as any);
-      
+
       expect(validated.noConfirm).toBeUndefined();
     });
   });
@@ -85,7 +85,7 @@ describe('Confirm Option Tests', () => {
         noConfirm: true
       }));
     });
-    
+
     it('should set noConfirm to false when confirm=true', async () => {
       const options = {
         type: 'quick-fixes',

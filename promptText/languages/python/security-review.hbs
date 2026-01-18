@@ -114,7 +114,7 @@ class User(models.Model):
         max_length=150,
         validators=[RegexValidator(r'^[\w.@+-]+$')]
     )
-    
+
     class Meta:
         # Prevent mass assignment vulnerabilities
         fields = ['username', 'email']
@@ -259,7 +259,7 @@ class SecureUserModel(BaseModel):
     id: UserId
     username: str
     email: str
-    
+
     @validator('username')
     def validate_username(cls, v):
         if not re.match(r'^[a-zA-Z0-9_]+$', v):

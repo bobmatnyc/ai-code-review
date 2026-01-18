@@ -54,10 +54,10 @@ export function UserProfile({ userId }: { userId: string }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const { t } = useTranslation();
-  
+
   // Unused debug variable
   const isDebugMode = process.env.NODE_ENV === 'development';
-  
+
   useEffect(() => {
     async function loadUser() {
       setLoading(true);
@@ -68,7 +68,7 @@ export function UserProfile({ userId }: { userId: string }) {
             [LEGACY_AUTH_HEADER]: localStorage.getItem('token') || ''
           };
           const result = await fetchDataLegacy(\`/api/\${LEGACY_API_VERSION}/users/\${userId}\`);
-          
+
           // Transform legacy data
           const transformedData: UserData = {
             id: result.id.toString(),
@@ -78,7 +78,7 @@ export function UserProfile({ userId }: { userId: string }) {
             legacyId: result.id,
             permissions: result.permissionList
           };
-          
+
           setUserData(transformedData);
         } else {
           const result = await fetchData(\`/api/v2/users/\${userId}\`);
@@ -86,7 +86,7 @@ export function UserProfile({ userId }: { userId: string }) {
         }
       } catch (err) {
         setError(err as Error);
-        
+
         // Commented out debugging code
         /*
         console.group('User Data Fetch Error');
@@ -99,30 +99,30 @@ export function UserProfile({ userId }: { userId: string }) {
         setLoading(false);
       }
     }
-    
+
     loadUser();
   }, [userId]);
-  
+
   // Unused function - was part of a feature that was never implemented
   function formatUserRole(role: string): string {
     return role === 'admin' ? t('roles.administrator') : t('roles.standardUser');
   }
-  
+
   // Redundant function - duplicate of formatUserRole but with different naming
   const getUserRoleDisplay = (role: string): string => {
     return role === 'admin' ? t('roles.administrator') : t('roles.standardUser');
   };
-  
+
   // Unnecessary memoization - return value is never used
   const userPermissions = useMemo(() => {
     if (!userData) return [];
     return userData.permissions || [];
   }, [userData]);
-  
+
   const handleUserUpdate = useCallback(
     debounce((data: Partial<UserData>) => {
       if (!userData) return;
-      
+
       // This function would update the user but is never called
       const updatedUser = { ...userData, ...data };
       fetchData(\`/api/v2/users/\${userData.id}\`, {
@@ -132,11 +132,11 @@ export function UserProfile({ userId }: { userId: string }) {
     }, 500),
     [userData]
   );
-  
+
   if (loading) return <div>{t('common.loading')}</div>;
   if (error) return <div>{t('errors.userFetchFailed')}</div>;
   if (!userData) return <div>{t('errors.noUserData')}</div>;
-  
+
   return (
     <div className="user-profile">
       <h1>{userData.name}</h1>
@@ -198,18 +198,18 @@ function calculateTotal(items) {
   let total = 0;
   // Unused variable
   const tax = 0.08;
-  
+
   for (let i = 0; i < items.length; i++) {
     total += items[i].price;
   }
-  
+
   // Commented out code
   /*
   if (applyDiscount) {
     total = total * 0.9;
   }
   */
-  
+
   return total;
 }
       `,

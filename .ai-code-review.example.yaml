@@ -14,7 +14,7 @@ api:
 model:
   # Default model to use for reviews
   default: "gemini:gemini-1.5-pro"
-  
+
   # Optional: Separate model for consolidation/writing tasks
   # writer: "openrouter:anthropic/claude-3-haiku"
 
@@ -22,7 +22,7 @@ model:
 output:
   # Directory for review outputs
   directory: "ai-code-review-docs"
-  
+
   # Output format: markdown or json
   format: "markdown"
 
@@ -30,10 +30,10 @@ output:
 behavior:
   # Enable debug mode for verbose logging
   debug: false
-  
+
   # Log level: debug, info, warn, error, none
   log_level: "info"
-  
+
   # Enable interactive mode by default
   interactive: false
 
@@ -41,13 +41,13 @@ behavior:
 features:
   # Include test files in reviews
   include_tests: false
-  
+
   # Include project documentation in context
   include_project_docs: false
-  
+
   # Include dependency analysis in architectural reviews
   include_dependency_analysis: false
-  
+
   # Enable semantic code chunking for better analysis
   enable_semantic_chunking: true
 

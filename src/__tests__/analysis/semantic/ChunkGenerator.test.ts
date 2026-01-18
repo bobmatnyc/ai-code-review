@@ -170,7 +170,7 @@ describe('ChunkGenerator', () => {
 
       const analysis = createMockAnalysis(declarations, 'individual');
       analysis.importGraph = imports;
-      
+
       const fileContent = 'import stuff\n'.repeat(10) + 'function code\n'.repeat(10);
 
       const result = chunkGenerator.generateChunks(analysis, fileContent, 'quick-fixes');
@@ -204,7 +204,7 @@ describe('ChunkGenerator', () => {
     it('should split large groups into smaller chunks', () => {
       // Create many declarations that would exceed max chunk size when grouped
       // Make them more compact so splitting logic is actually triggered
-      const declarations = Array(15).fill(null).map((_, i) => 
+      const declarations = Array(15).fill(null).map((_, i) =>
         createMockDeclaration(`function${i}`, 'function', i * 20 + 1, i * 20 + 18, 3, 'internal', ['CommonDep'])
       );
 
@@ -215,7 +215,7 @@ describe('ChunkGenerator', () => {
 
       expect(result.strategy).toBe('grouped');
       expect(result.chunks.length).toBeGreaterThanOrEqual(1);
-      
+
       // Each chunk should not exceed max size (allow some tolerance for chunking logic)
       result.chunks.forEach(chunk => {
         const chunkSize = chunk.lines[1] - chunk.lines[0] + 1;
@@ -243,7 +243,7 @@ describe('ChunkGenerator', () => {
 
       expect(result.strategy).toBe('hierarchical');
       expect(result.chunks.length).toBeGreaterThanOrEqual(1);
-      
+
       // Should have chunks related to the class
       expect(result.chunks.length).toBeGreaterThan(0);
     });
@@ -355,10 +355,10 @@ describe('ChunkGenerator', () => {
 
       const result = chunkGenerator.generateChunks(analysis, fileContent, 'quick-fixes');
 
-      const exportedChunk = result.chunks.find(c => 
+      const exportedChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'exportedFunc')
       );
-      const internalChunk = result.chunks.find(c => 
+      const internalChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'internalFunc')
       );
 
@@ -377,10 +377,10 @@ describe('ChunkGenerator', () => {
 
       const result = chunkGenerator.generateChunks(analysis, fileContent, 'quick-fixes');
 
-      const complexChunk = result.chunks.find(c => 
+      const complexChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'complexFunc')
       );
-      const simpleChunk = result.chunks.find(c => 
+      const simpleChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'simpleFunc')
       );
 
@@ -399,7 +399,7 @@ describe('ChunkGenerator', () => {
 
       const result = chunkGenerator.generateChunks(analysis, fileContent, 'security');
 
-      const authChunk = result.chunks.find(c => 
+      const authChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'authFunction')
       );
 
@@ -434,10 +434,10 @@ describe('ChunkGenerator', () => {
 
       const result = chunkGenerator.generateChunks(analysis, fileContent, 'quick-fixes');
 
-      const classChunk = result.chunks.find(c => 
+      const classChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'MyClass')
       );
-      const functionChunk = result.chunks.find(c => 
+      const functionChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'complexFunc')
       );
 
@@ -493,9 +493,9 @@ describe('ChunkGenerator', () => {
       const result = chunkGenerator.generateChunks(analysis, fileContent, 'quick-fixes');
 
       expect(result.crossReferences.length).toBeGreaterThan(0);
-      
+
       // Should have relationship between func1 and func2 (shared dependency)
-      const sharedDepRef = result.crossReferences.find(ref => 
+      const sharedDepRef = result.crossReferences.find(ref =>
         ref.relationship === 'depends_on' && ref.description.includes('SharedDep')
       );
       expect(sharedDepRef).toBeDefined();
@@ -534,9 +534,9 @@ describe('ChunkGenerator', () => {
 
     it('should preserve existing config values when updating', () => {
       const originalMinSize = chunkGenerator.getConfig().minChunkSize;
-      
+
       chunkGenerator.updateConfig({ maxChunkSize: 600 });
-      
+
       expect(chunkGenerator.getConfig().minChunkSize).toBe(originalMinSize);
       expect(chunkGenerator.getConfig().maxChunkSize).toBe(600);
     });
@@ -614,7 +614,7 @@ describe('ChunkGenerator', () => {
 
       const result = chunkGenerator.generateChunks(analysis, fileContent, 'quick-fixes');
 
-      const createUserChunk = result.chunks.find(c => 
+      const createUserChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'createUser')
       );
 
@@ -637,7 +637,7 @@ describe('ChunkGenerator', () => {
 
       const result = chunkGenerator.generateChunks(analysis, fileContent, 'quick-fixes');
 
-      const targetChunk = result.chunks.find(c => 
+      const targetChunk = result.chunks.find(c =>
         c.declarations.some(d => d.name === 'targetFunc')
       );
 

@@ -6,7 +6,7 @@ class User {
     public string $email;
     public string $password;  // Security issue: storing password unencrypted
     public string $createdAt;
-    
+
     public function __construct(int $id, string $name, string $email, string $password, string $createdAt) {
         $this->id = $id;
         $this->name = $name;
@@ -14,7 +14,7 @@ class User {
         $this->password = $password;  // Security issue: password not hashed
         $this->createdAt = $createdAt;
     }
-    
+
     public function toArray(): array {
         return [
             'id' => $this->id,
@@ -39,22 +39,22 @@ $users = [
 
 function findUserById(int $id): ?array {
     global $users;
-    
+
     // Performance issue: using a loop instead of a more efficient lookup
     foreach ($users as $user) {
         if ($user['id'] === $id) {
             return $user;
         }
     }
-    
+
     return null;
 }
 
 function createUser(array $user): array {
     global $users;
-    
+
     // Missing validation
-    
+
     // Security issue: No password hashing
     $users[] = $user;
     return $user;

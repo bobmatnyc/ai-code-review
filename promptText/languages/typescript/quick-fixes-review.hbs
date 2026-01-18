@@ -168,7 +168,7 @@ interface CreateUserParams {
 
 const createUser = ({ name, email, role = 'user' }: CreateUserParams): User => {
   const id = crypto.randomUUID(); // Modern UUID generation
-  
+
   return {
     id,
     name,
@@ -215,11 +215,11 @@ const processUsers = (users: User[]): ProcessedUser[] =>
 // ❌ Untyped React component with performance issues
 function UserCard(props) {
   const [loading, setLoading] = useState(false);
-  
+
   useEffect(() => {
     fetchUserData(props.userId);
   }); // Missing dependency array!
-  
+
   return (
     <div onClick={() => props.onUserClick(props.user)}>
       <h3>{props.user.name}</h3>
@@ -236,11 +236,11 @@ interface UserCardProps {
 
 const UserCard: React.FC<UserCardProps> = React.memo(({ user, onUserClick }) => {
   const [loading, setLoading] = useState(false);
-  
+
   const handleClick = useCallback(() => {
     onUserClick(user);
   }, [user, onUserClick]);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -250,10 +250,10 @@ const UserCard: React.FC<UserCardProps> = React.memo(({ user, onUserClick }) => 
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [user.id]); // Proper dependency array
-  
+
   return (
     <div onClick={handleClick}>
       <h3>{user.name}</h3>
@@ -272,11 +272,11 @@ UserCard.displayName = 'UserCard';
 function useUserData(userId) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+
   useEffect(() => {
     fetchUser(userId).then(setUser);
   }, [userId]);
-  
+
   return { user, loading };
 }
 
@@ -292,11 +292,11 @@ const useUserData = (userId: string): UseUserDataReturn => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const fetchUser = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const userData = await apiClient.getUser(userId);
       setUser(userData);
@@ -307,11 +307,11 @@ const useUserData = (userId: string): UseUserDataReturn => {
       setLoading(false);
     }
   }, [userId]);
-  
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
-  
+
   return { user, loading, error, refetch: fetchUser };
 };
 ```
@@ -343,27 +343,27 @@ interface GetUserResponse {
 app.get('/api/users/:id', async (req: Request<GetUserParams>, res: Response<GetUserResponse>) => {
   try {
     const { id } = req.params;
-    
+
     // Validate UUID format
     if (!isValidUUID(id)) {
-      return res.status(400).json({ 
-        error: 'Invalid user ID format' 
+      return res.status(400).json({
+        error: 'Invalid user ID format'
       } as any);
     }
-    
+
     const user = await getUserById(id);
-    
+
     if (!user) {
-      return res.status(404).json({ 
-        error: 'User not found' 
+      return res.status(404).json({
+        error: 'User not found'
       } as any);
     }
-    
+
     res.json({ user });
   } catch (error) {
     console.error('Error fetching user:', error);
-    res.status(500).json({ 
-      error: 'Internal server error' 
+    res.status(500).json({
+      error: 'Internal server error'
     } as any);
   }
 });
@@ -387,7 +387,7 @@ interface OrderProcessingResult {
 }
 
 async function processUserOrder(
-  userId: string, 
+  userId: string,
   orderData: unknown
 ): Promise<OrderProcessingResult> {
   try {
@@ -395,15 +395,15 @@ async function processUserOrder(
     if (!user) {
       return { success: false, error: 'User not found' };
     }
-    
+
     const validatedOrder = await validateOrder(orderData);
     const order = await createOrder(user, validatedOrder);
-    
+
     return { success: true, orderId: order.id };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Order processing failed:', errorMessage);
-    
+
     return { success: false, error: errorMessage };
   }
 }
@@ -459,7 +459,7 @@ async function processUserOrder(
       "effort": "IMMEDIATE"
     },
     {
-      "id": "MOD-002", 
+      "id": "MOD-002",
       "category": "OPTIONAL_CHAINING",
       "title": "Use optional chaining for safe property access",
       "before": "user && user.profile && user.profile.avatar",

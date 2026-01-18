@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests for the confirm option in the review orchestrator.
  *
- * These tests verify that the review orchestrator correctly handles 
+ * These tests verify that the review orchestrator correctly handles
  * the noConfirm flag when making decisions about multi-pass reviews.
  */
 
@@ -150,22 +150,22 @@ let mockExit: any;
 describe('ReviewOrchestrator Confirm Option Tests', () => {
   // Store original environment
   const originalProcessEnv = process.env;
-  
+
   // Set up required hooks
   beforeEach(() => {
     // Reset mocks between tests
     vi.clearAllMocks();
-    
+
     // Reset environment
     process.env = { ...originalProcessEnv };
-    
+
     // Mock process.exit to prevent actual exit
     mockExit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
-    
+
     // Set environment variables needed for tests
     process.env.AI_CODE_REVIEW_MODEL = 'gemini:gemini-2.5-pro';
     process.env.AI_CODE_REVIEW_GOOGLE_API_KEY = 'test-api-key';
-    
+
     // Reset TokenAnalyzer to default behavior
     vi.mocked(TokenAnalyzer.analyzeFiles).mockReturnValue({
       files: [],
@@ -189,12 +189,12 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       }
     });
   });
-  
+
   // Reset after each test
   afterEach(() => {
     mockExit.mockRestore();
   });
-  
+
   // Reset after all tests
   afterAll(() => {
     process.env = originalProcessEnv;
@@ -209,7 +209,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       output: process.stdout
     });
     const mockQuestion = mockInterface?.question || vi.fn();
-    
+
     // Create test options with noConfirm set to true
     const options = {
       type: 'quick-fixes' as const,
@@ -219,36 +219,36 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       noConfirm: true,
       multiPass: false
     };
-    
+
     // Create our test implementation of orchestrateReview
     const orchestrateReviewImpl = async (target: string, opts: any) => {
       // Simplified implementation of the relevant portion of orchestrateReview
       // Focus only on the code path that handles noConfirm and multiPass
-      
+
       // Call TokenAnalyzer to simulate the analysis that finds chunking necessary
       vi.mocked(TokenAnalyzer.analyzeFiles)([], {
         reviewType: 'quick-fixes',
         modelName: 'gemini:gemini-1.5-pro'
       });
-      
+
       // Simulate estimating multi-pass cost
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
-      
+
       // Simulate the chunking recommendation workflow
       if (opts.noConfirm) {
         opts.multiPass = true;
       }
-      
+
       return Promise.resolve();
     };
-    
+
     // Mock the orchestrateReview function with our test implementation
     vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
-    
+
     try {
       // Call the function under test
       await reviewOrchestratorModule.orchestrateReview('src', options);
-      
+
       // Verify expectations
       expect(options.multiPass).toBe(true); // multiPass should be set to true
       expect(TokenAnalyzer.analyzeFiles).toHaveBeenCalled(); // Token analysis called
@@ -257,23 +257,23 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     } finally {
       // Restore the original implementation
       vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
-      
+
       // Clear mock call counts
       vi.clearAllMocks();
     }
   });
-  
+
   // Test for prompting when noConfirm is false
   test('should prompt for confirmation when noConfirm is false or undefined', async () => {
     // Get access to the mocked readline module
     const mockedReadline = vi.mocked(readline);
-    
+
     // Configure mock for this test to return 'y'
     mockedReadline.createInterface.mockReturnValue({
       question: vi.fn((question, callback) => callback('y')),
       close: vi.fn()
     } as any);
-    
+
     // Create options without noConfirm
     const options = {
       type: 'quick-fixes' as const,
@@ -282,7 +282,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       includeProjectDocs: true,
       multiPass: false
     };
-    
+
     // Create our test implementation of orchestrateReview
     const orchestrateReviewImpl = async (target: string, opts: any) => {
       // Simplified implementation that just handles confirmation
@@ -291,14 +291,14 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
         modelName: 'gemini:gemini-1.5-pro'
       });
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
-      
+
       // Simulate the confirmation process
       if (!opts.noConfirm) {
         const rl = mockedReadline.createInterface({
           input: process.stdin,
           output: process.stdout
         });
-        
+
         await new Promise<void>((resolve) => {
           rl.question('Proceed with multi-pass review? (y/N): ', (answer: string) => {
             if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
@@ -309,22 +309,22 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
           });
         });
       }
-      
+
       return Promise.resolve();
     };
-    
+
     // Mock the orchestrateReview function with our test implementation
     vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
-    
+
     try {
       // Call the function under test
       await reviewOrchestratorModule.orchestrateReview('src', options);
-      
+
       // Since our mock readline answers 'y', multiPass should be true
       expect(options.multiPass).toBe(true);
       expect(vi.mocked(TokenAnalyzer.analyzeFiles)).toHaveBeenCalled();
       expect(estimateMultiPassReviewCost).toHaveBeenCalled();
-      
+
       // Readline.question should be called because noConfirm is not set
       expect(mockedReadline.createInterface({
         input: process.stdin,
@@ -333,23 +333,23 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     } finally {
       // Restore the original implementation
       vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
-      
+
       // Clear mock call history
       vi.clearAllMocks();
     }
   });
-  
+
   // Test for exiting when user declines confirmation
   test('should exit when user declines confirmation', async () => {
     // Get access to the mocked readline module
     const mockedReadline = vi.mocked(readline);
-    
+
     // Configure mock for this test to return 'n'
     mockedReadline.createInterface.mockReturnValue({
       question: vi.fn((question, callback) => callback('n')),
       close: vi.fn()
     } as any);
-    
+
     // Create options without noConfirm
     const options = {
       type: 'quick-fixes' as const,
@@ -358,7 +358,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
       includeProjectDocs: true,
       multiPass: false
     };
-    
+
     // Create our test implementation of orchestrateReview
     const orchestrateReviewImpl = async (target: string, opts: any) => {
       // Simplified implementation that handles confirmation and exit
@@ -367,14 +367,14 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
         modelName: 'gemini:gemini-1.5-pro'
       });
       await estimateMultiPassReviewCost([], opts.type, 'gemini:gemini-1.5-pro', {});
-      
+
       // Simulate the confirmation process
       if (!opts.noConfirm) {
         const rl = mockedReadline.createInterface({
           input: process.stdin,
           output: process.stdout
         });
-        
+
         await new Promise<void>((resolve) => {
           rl.question('Proceed with multi-pass review? (y/N): ', (answer: string) => {
             if (answer.toLowerCase() !== 'y' && answer.toLowerCase() !== 'yes') {
@@ -388,17 +388,17 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
           });
         });
       }
-      
+
       return Promise.resolve();
     };
-    
+
     // Mock the orchestrateReview function with our test implementation
     vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockImplementation(orchestrateReviewImpl);
-    
+
     try {
       // Call the function under test
       await reviewOrchestratorModule.orchestrateReview('src', options);
-      
+
       // Verify that process.exit was called when user said 'n'
       expect(mockExit).toHaveBeenCalledWith(0);
       expect(mockedReadline.createInterface({
@@ -408,7 +408,7 @@ describe('ReviewOrchestrator Confirm Option Tests', () => {
     } finally {
       // Restore the original implementation
       vi.spyOn(reviewOrchestratorModule, 'orchestrateReview').mockRestore();
-      
+
       // Clear mocks
       vi.clearAllMocks();
     }

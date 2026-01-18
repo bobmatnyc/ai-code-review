@@ -2,7 +2,7 @@
 
 /**
  * Post-build script to fix OpenAI API test in the bundled output.
- * 
+ *
  * This script replaces the "TEST NOT IMPLEMENTED" message for OpenAI API
  * connections with the actual implementation that properly tests the connection.
  */
@@ -44,10 +44,10 @@ const newCode = `if (apiType === "openai" || apiType === "all") {
 // Check if the original code exists in the bundle
 if (!bundleContent.includes(originalCode)) {
   console.log('⚠️ Original code pattern not found. Looking for alternative pattern...');
-  
+
   // Try a more relaxed pattern
   const relaxedPattern = /if\s*\(\s*apiType\s*===\s*"openai"\s*\|\|\s*apiType\s*===\s*"all"\s*\)\s*{\s*console\.log\(`OpenAI API: \\u26A0\\uFE0F TEST NOT IMPLEMENTED`\);\s*console\.log\(`\s*OpenAI API test not implemented yet`\);\s*}/;
-  
+
   if (relaxedPattern.test(bundleContent)) {
     console.log('🔍 Found using relaxed pattern.');
     bundleContent = bundleContent.replace(relaxedPattern, newCode);

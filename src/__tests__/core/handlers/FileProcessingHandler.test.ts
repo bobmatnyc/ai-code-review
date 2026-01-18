@@ -33,7 +33,7 @@ describe('FileProcessingHandler', () => {
       vi.mocked(fileDiscovery.discoverFiles).mockResolvedValue(mockFiles);
 
       const result = await discoverFilesForReview('target', '/project', { type: 'quick-fixes' });
-      
+
       expect(result).toEqual(mockFiles);
       expect(fileDiscovery.discoverFiles).toHaveBeenCalledWith('target', '/project', undefined);
       expect(logger.info).toHaveBeenCalledWith('Discovered 2 files to review');
@@ -43,7 +43,7 @@ describe('FileProcessingHandler', () => {
       vi.mocked(fileDiscovery.discoverFiles).mockResolvedValue([]);
 
       const result = await discoverFilesForReview('target', '/project', { type: 'quick-fixes' });
-      
+
       expect(result).toEqual([]);
       expect(logger.warn).toHaveBeenCalledWith('No files found for review in target');
     });
@@ -54,7 +54,7 @@ describe('FileProcessingHandler', () => {
 
       await expect(discoverFilesForReview('target', '/project', { type: 'quick-fixes' }))
         .rejects.toThrow('Could not discover files to review in target');
-      
+
       expect(logger.error).toHaveBeenCalled();
     });
   });
@@ -69,11 +69,11 @@ describe('FileProcessingHandler', () => {
         ],
         errors: []
       };
-      
+
       vi.mocked(fileDiscovery.readFilesContent).mockResolvedValue(mockResult);
 
       const result = await readFilesForReview(mockFiles, '/project');
-      
+
       expect(result).toEqual(mockResult);
       expect(fileDiscovery.readFilesContent).toHaveBeenCalledWith(mockFiles, '/project');
       expect(logger.info).toHaveBeenCalledWith('Successfully read 2 out of 2 files');
@@ -85,11 +85,11 @@ describe('FileProcessingHandler', () => {
         fileInfos: [{ path: 'file1.ts', content: 'content1', relativePath: 'file1.ts' }],
         errors: [{ path: 'file2.ts', error: 'Read error' }]
       };
-      
+
       vi.mocked(fileDiscovery.readFilesContent).mockResolvedValue(mockResult);
 
       const result = await readFilesForReview(mockFiles, '/project');
-      
+
       expect(result).toEqual(mockResult);
       expect(logger.warn).toHaveBeenCalledWith('Failed to read 1 file(s):');
     });
@@ -103,12 +103,12 @@ describe('FileProcessingHandler', () => {
           { path: 'file2.ts', error: 'Read error 2' }
         ]
       };
-      
+
       vi.mocked(fileDiscovery.readFilesContent).mockResolvedValue(mockResult);
 
       await expect(readFilesForReview(mockFiles, '/project'))
         .rejects.toThrow('No files could be read for review');
-      
+
       expect(logger.error).toHaveBeenCalled();
     });
   });

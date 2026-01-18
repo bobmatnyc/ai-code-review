@@ -9,10 +9,10 @@ _ai_code_review() {
 
     # Review types
     local review_types="quick-fixes architectural security performance unused-code consolidated evaluation extract-patterns coding-test ai-integration cloud-native developer-experience comprehensive"
-    
+
     # Output formats
     local output_formats="markdown json"
-    
+
     # Models (common ones)
     local models="openrouter:anthropic/claude-4-opus openrouter:anthropic/claude-4-sonnet openrouter:openai/gpt-4o openrouter:google/gemini-2.0-pro"
 

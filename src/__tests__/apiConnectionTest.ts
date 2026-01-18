@@ -267,7 +267,7 @@ export async function testOpenAIConnection(): Promise<{
       } catch (e) {
         // If we can't parse the error as JSON, just use the status
       }
-      
+
       return {
         success: false,
         message: `OpenAI API returned error: ${errorMessage}`

@@ -12,26 +12,26 @@ function attemptJsonRecovery(content: string): any | null {
       const match = text.match(/^(?:typescript|javascript|json|ts|js)\s*\n?\s*({[\s\S]*})$/i);
       return match ? match[1] : null;
     },
-    
+
     // Strategy 2: Extract JSON from mixed content (find first complete JSON object)
     (text: string) => {
       const match = text.match(/({[\s\S]*?})\s*$/);
       return match ? match[1] : null;
     },
-    
+
     // Strategy 3: Look for JSON between quotes (e.g., "typescript\n{...}")
     (text: string) => {
       const match = text.match(/"[^"]*"\s*\n?\s*({[\s\S]*})/);
       return match ? match[1] : null;
     },
-    
+
     // Strategy 4: Remove everything before the first opening brace
     (text: string) => {
       const braceIndex = text.indexOf('{');
       if (braceIndex === -1) return null;
       return text.substring(braceIndex);
     },
-    
+
     // Strategy 5: Try to extract from code blocks with language prefixes
     (text: string) => {
       const match = text.match(/```(?:json|typescript|javascript)?\s*([^`]+)\s*```/i);
@@ -42,7 +42,7 @@ function attemptJsonRecovery(content: string): any | null {
       return cleanContent.startsWith('{') ? cleanContent : null;
     }
   ];
-  
+
   for (const strategy of strategies) {
     try {
       const extracted = strategy(content.trim());
@@ -58,7 +58,7 @@ function attemptJsonRecovery(content: string): any | null {
       continue;
     }
   }
-  
+
   return null;
 }
 
@@ -81,7 +81,7 @@ describe('JSON Recovery', () => {
     it('should recover JSON with typescript prefix', () => {
       const malformedContent = `typescript
 ${JSON.stringify(validJson)}`;
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toEqual(validJson);
     });
@@ -89,15 +89,15 @@ ${JSON.stringify(validJson)}`;
     it('should recover JSON with javascript prefix', () => {
       const malformedContent = `javascript
 ${JSON.stringify(validJson)}`;
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toEqual(validJson);
     });
 
     it('should recover JSON with ts prefix and whitespace', () => {
-      const malformedContent = `ts   
+      const malformedContent = `ts
   ${JSON.stringify(validJson)}`;
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toEqual(validJson);
     });
@@ -108,7 +108,7 @@ ${JSON.stringify(validJson)}`;
       const malformedContent = `Some text before
 More text
 ${JSON.stringify(validJson)}`;
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toEqual(validJson);
     });
@@ -118,7 +118,7 @@ ${JSON.stringify(validJson)}`;
     it('should extract JSON after quoted language identifier', () => {
       const malformedContent = `"typescript"
 ${JSON.stringify(validJson)}`;
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toEqual(validJson);
     });
@@ -127,7 +127,7 @@ ${JSON.stringify(validJson)}`;
   describe('Strategy 4: Remove prefix before brace', () => {
     it('should remove everything before first opening brace', () => {
       const malformedContent = `Random text and numbers 123 ${JSON.stringify(validJson)}`;
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toEqual(validJson);
     });
@@ -138,7 +138,7 @@ ${JSON.stringify(validJson)}`;
       const malformedContent = `\`\`\`json
 ${JSON.stringify(validJson)}
 \`\`\``;
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toEqual(validJson);
     });
@@ -148,7 +148,7 @@ ${JSON.stringify(validJson)}
 typescript
 ${JSON.stringify(validJson)}
 \`\`\``;
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toEqual(validJson);
     });
@@ -157,14 +157,14 @@ ${JSON.stringify(validJson)}
   describe('Error cases', () => {
     it('should return null for completely invalid content', () => {
       const malformedContent = 'This is just plain text with no JSON';
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toBeNull();
     });
 
     it('should return null for malformed JSON', () => {
       const malformedContent = 'typescript\n{invalid json}';
-      
+
       const result = attemptJsonRecovery(malformedContent);
       expect(result).toBeNull();
     });

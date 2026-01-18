@@ -179,24 +179,24 @@ describe('SemanticAnalyzer', () => {
   describe('Code Analysis', () => {
     const typescriptCode = `
       import React from 'react';
-      
+
       interface User {
         id: number;
         name: string;
       }
-      
+
       export class UserService {
         private users: User[] = [];
-        
+
         public addUser(user: User): void {
           this.users.push(user);
         }
-        
+
         public getUser(id: number): User | undefined {
           return this.users.find(u => u.id === id);
         }
       }
-      
+
       export function createUser(name: string): User {
         return { id: Math.random(), name };
       }
@@ -205,7 +205,7 @@ describe('SemanticAnalyzer', () => {
     it.skip('should analyze TypeScript code successfully', async () => {
       // Skip: Requires real TreeSitter for proper parsing
       const result = await analyzer.analyzeCode(typescriptCode, 'UserService.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis).toBeDefined();
       expect(result.analysis!.language).toBe('typescript');
@@ -220,7 +220,7 @@ describe('SemanticAnalyzer', () => {
       // TODO: Fix TreeSitter mocking approach
 
       const result = await analyzer.analyzeCode(typescriptCode, 'UserService.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis!.topLevelDeclarations).toBeDefined();
     });
@@ -234,7 +234,7 @@ describe('SemanticAnalyzer', () => {
       `;
 
       const result = await analyzer.analyzeCode(codeWithImports, 'component.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis!.importGraph).toBeDefined();
     });
@@ -259,7 +259,7 @@ describe('SemanticAnalyzer', () => {
       `;
 
       const result = await analyzer.analyzeCode(complexCode, 'complex.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis!.complexity).toBeDefined();
       expect(result.analysis!.complexity.cyclomaticComplexity).toBeGreaterThan(1);
@@ -269,7 +269,7 @@ describe('SemanticAnalyzer', () => {
     it.skip('should generate chunking recommendations', async () => {
       // Skip: Requires real TreeSitter for structural analysis
       const result = await analyzer.analyzeCode(typescriptCode, 'UserService.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis!.suggestedChunkingStrategy).toBeDefined();
       expect(result.analysis!.suggestedChunkingStrategy.strategy).toBeDefined();
@@ -284,7 +284,7 @@ describe('SemanticAnalyzer', () => {
       // TODO: Fix TreeSitter mocking approach
 
       const result = await analyzer.analyzeCode('invalid typescript code', 'test.ts');
-      
+
       expect(result.success).toBe(true); // Should still succeed with warnings
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].type).toBe('parse_error');
@@ -292,9 +292,9 @@ describe('SemanticAnalyzer', () => {
 
     it('should handle file too large error', async () => {
       const largeContent = 'x'.repeat(2000000); // 2MB file
-      
+
       const result = await analyzer.analyzeCode(largeContent, 'large.ts');
-      
+
       expect(result.success).toBe(false);
       expect(result.fallbackUsed).toBe(true);
       expect(result.errors[0].type).toBe('file_too_large');
@@ -306,7 +306,7 @@ describe('SemanticAnalyzer', () => {
       // TODO: Fix TreeSitter mocking approach
 
       const result = await analyzer.analyzeCode('const x = 1;', 'test.ts');
-      
+
       expect(result.success).toBe(true);
       // Test skipped - mocking needs refactoring
     });
@@ -320,7 +320,7 @@ describe('SemanticAnalyzer', () => {
       };
 
       analyzer.updateConfig(newConfig);
-      
+
       // Configuration update should not throw
       expect(() => analyzer.updateConfig(newConfig)).not.toThrow();
     });
@@ -332,7 +332,7 @@ describe('SemanticAnalyzer', () => {
 
 
       analyzer.updateConfig(newConfig);
-      
+
       // Should handle language changes gracefully
       expect(() => analyzer.updateConfig(newConfig)).not.toThrow();
     });
@@ -346,12 +346,12 @@ import sys
 class UserManager:
     def __init__(self):
         self.users = []
-    
+
     def add_user(self, name, email):
         user = {'name': name, 'email': email}
         self.users.append(user)
         return user
-    
+
     def get_user_by_name(self, name):
         for user in self.users:
             if user['name'] == name:
@@ -365,7 +365,7 @@ def create_manager():
     it.skip('should analyze Python code successfully', async () => {
       // Skip: Requires real TreeSitter Python parser
       const result = await analyzer.analyzeCode(pythonCode, 'user_manager.py');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis!.language).toBe('python');
       expect(result.analysis!.totalLines).toBeGreaterThan(0);
@@ -376,7 +376,7 @@ def create_manager():
     it.skip('should work with analyzeCodeSemantics function', async () => {
       // Skip: Requires real TreeSitter for convenience function testing
       const result = await analyzeCodeSemantics('const x = 1;', 'test.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis?.language).toBe('typescript');
     });
@@ -385,7 +385,7 @@ def create_manager():
   describe('Language Support', () => {
     it('should return list of supported languages', () => {
       const languages = analyzer.getSupportedLanguages();
-      
+
       expect(Array.isArray(languages)).toBe(true);
       expect(languages.length).toBeGreaterThan(0);
     });
@@ -393,7 +393,7 @@ def create_manager():
     it.skip('should handle empty or invalid file paths', async () => {
       // Skip: Requires real TreeSitter for path handling
       const result = await analyzer.analyzeCode('const x = 1;', '');
-      
+
       // Should still work with empty path
       expect(result.success).toBe(true);
     });
@@ -403,7 +403,7 @@ def create_manager():
     it.skip('should handle empty code', async () => {
       // Skip: Requires real TreeSitter for edge case handling
       const result = await analyzer.analyzeCode('', 'empty.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis!.totalLines).toBe(1); // Empty string results in 1 line
     });
@@ -417,7 +417,7 @@ def create_manager():
       `;
 
       const result = await analyzer.analyzeCode(commentOnlyCode, 'comments.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis!.topLevelDeclarations).toHaveLength(0);
     });
@@ -432,7 +432,7 @@ def create_manager():
       `;
 
       const result = await analyzer.analyzeCode(unicodeCode, 'unicode.ts');
-      
+
       expect(result.success).toBe(true);
     });
   });
@@ -442,18 +442,18 @@ def create_manager():
       // Skip: Requires real TreeSitter for performance testing
       // Create a moderately large file (50KB)
       const largeCode = 'const x = 1;\n'.repeat(5000);
-      
+
       const result = await analyzer.analyzeCode(largeCode, 'large.ts');
-      
+
       expect(result.success).toBe(true);
       expect(result.analysis!.totalLines).toBe(5000);
     });
 
     it('should complete analysis in reasonable time', async () => {
       const start = Date.now();
-      
+
       await analyzer.analyzeCode('const x = 1;', 'test.ts');
-      
+
       const duration = Date.now() - start;
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
     });

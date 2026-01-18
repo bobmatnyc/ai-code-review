@@ -2,11 +2,11 @@
 
 /**
  * Script to copy JSON files to the dist directory.
- * 
+ *
  * NOTE: This script is currently NOT needed in the build process as we've moved
  * all model definitions to TypeScript. However, it's kept for potential future use
  * if other JSON files need to be copied during build.
- * 
+ *
  * The modelMaps.json file has been replaced by hardcoded definitions in modelMaps.ts.
  */
 
@@ -23,12 +23,12 @@ console.log('Copying JSON files to dist directory:');
 jsonFiles.forEach(file => {
   const destPath = file.replace(/^src\//, 'dist/');
   const destDir = path.dirname(destPath);
-  
+
   // Ensure the destination directory exists
   if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
   }
-  
+
   // Copy the file
   fs.copyFileSync(file, destPath);
   console.log(`  ${file} -> ${destPath}`);

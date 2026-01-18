@@ -41,7 +41,7 @@ IS_ARCH=false
 if [[ "$*" == *"-t arch"* || "$*" == *"--type arch"* || "$*" == *"-t architectural"* || "$*" == *"--type architectural"* ]]; then
   IS_ARCH=true
   echo "🔍 Running enhanced architectural review with dependency analysis..."
-  
+
   # Check if .env.local file exists
   ENV_FILE="$SCRIPT_DIR/.env.local"
   if [[ -f "$ENV_FILE" ]]; then
@@ -58,7 +58,7 @@ if [[ "$*" == *"-t arch"* || "$*" == *"--type arch"* || "$*" == *"-t architectur
       fi
     fi
   fi
-  
+
   # Add --include-dependency-analysis flag if not already present
   if [[ "$*" != *"--include-dependency-analysis"* && "$*" != *"--no-include-dependency-analysis"* ]]; then
     # Run the code-review command with dependency analysis enabled
@@ -84,14 +84,14 @@ if [[ ! -z "$REVIEW_PATH" && $EXIT_CODE -eq 0 ]]; then
   # Check if it's an architectural review
   if [[ "$REVIEW_PATH" == *"architectural-review"* ]]; then
     echo "Post-processing architectural review..."
-    
+
     # Run the enhanced review script (handles both file lists and package security)
     node "$SCRIPT_DIR/enhance-review.js" "$REVIEW_PATH"
-    
+
     # Get the time after post-processing
     END_TIME=$(date +%s)
     DURATION=$((END_TIME - START_TIME))
-    
+
     echo "✅ Enhanced review completed in $DURATION seconds"
     echo "Review saved to: $REVIEW_PATH"
   fi

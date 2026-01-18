@@ -118,7 +118,7 @@ Example optimization:
 class PostsController < ApplicationController
   def index
     @posts = Post.all
-    
+
     # N+1 query - for each post, a separate query is made to fetch comments
     @posts_with_comments = @posts.map do |post|
       { post: post, comments: post.comments }
@@ -130,7 +130,7 @@ end
 class PostsController < ApplicationController
   def index
     @posts = Post.includes(:comments).all
-    
+
     # No N+1 query - comments are eager loaded with posts
     @posts_with_comments = @posts.map do |post|
       { post: post, comments: post.comments }

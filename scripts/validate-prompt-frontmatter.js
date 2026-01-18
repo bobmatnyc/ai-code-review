@@ -62,18 +62,18 @@ function validateFrontmatter(frontmatter) {
  */
 function extractFrontmatter(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
-  
+
   // Check if file starts with YAML frontmatter
   if (!content.startsWith('---\n')) {
     return null;
   }
-  
+
   // Find the end of frontmatter
   const endIndex = content.indexOf('\n---\n', 4);
   if (endIndex === -1) {
     return null;
   }
-  
+
   // Extract and parse YAML
   const yamlContent = content.substring(4, endIndex);
   try {
@@ -89,13 +89,13 @@ function extractFrontmatter(filePath) {
 function findPromptFiles() {
   const languagesDir = path.join(__dirname, '../promptText/languages');
   const files = [];
-  
+
   function scanDirectory(dir) {
     const entries = fs.readdirSync(dir);
     for (const entry of entries) {
       const fullPath = path.join(dir, entry);
       const stat = fs.statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
         scanDirectory(fullPath);
       } else if (entry.endsWith('.hbs')) {
@@ -103,7 +103,7 @@ function findPromptFiles() {
       }
     }
   }
-  
+
   scanDirectory(languagesDir);
   return files;
 }
@@ -149,19 +149,19 @@ function validatePromptFile(filePath) {
  */
 function main() {
   console.log('🔍 Validating prompt template frontmatter...\n');
-  
+
   const promptFiles = findPromptFiles();
   const results = promptFiles.map(validatePromptFile);
-  
+
   const validFiles = results.filter(r => r.valid);
   const invalidFiles = results.filter(r => !r.valid);
-  
+
   // Report results
   console.log(`📊 Validation Results:`);
   console.log(`   ✅ Valid files: ${validFiles.length}`);
   console.log(`   ❌ Invalid files: ${invalidFiles.length}`);
   console.log(`   📁 Total files: ${results.length}\n`);
-  
+
   if (invalidFiles.length > 0) {
     console.log('❌ Invalid Files:\n');
     invalidFiles.forEach(result => {
@@ -172,7 +172,7 @@ function main() {
       console.log();
     });
   }
-  
+
   if (validFiles.length > 0) {
     console.log('✅ Valid Files Summary:\n');
     const summary = {};
@@ -184,17 +184,17 @@ function main() {
       }
       summary[key].push(result.file);
     });
-    
+
     Object.keys(summary).sort().forEach(key => {
       console.log(`   📋 ${key}: ${summary[key].length} file(s)`);
     });
   }
-  
+
   // Exit with error code if validation failed
   if (invalidFiles.length > 0) {
     process.exit(1);
   }
-  
+
   console.log('\n🎉 All prompt templates have valid frontmatter!');
 }
 

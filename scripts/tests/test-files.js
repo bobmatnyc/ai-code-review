@@ -10,7 +10,7 @@ const path = require('path');
 // Set project root path for correct file references
 const projectRoot = path.join(__dirname, '../..');
 
-  
+
   try {
     // Get all files matching the patterns
     const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md,py,php,java,rb,go,rs,c,cpp,h,hpp,cs,swift,kt}', {
@@ -18,9 +18,9 @@ const projectRoot = path.join(__dirname, '../..');
       absolute: true,
       ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.venv/**', '**/env/**', '**/__pycache__/**']
     });
-    
+
     console.log(`Found ${allFiles.length} files with glob`);
-    
+
     if (allFiles.length === 0) {
       console.log('No files found matching patterns');
       return;
@@ -35,7 +35,7 @@ const projectRoot = path.join(__dirname, '../..');
       }
       filesByExt[ext].push(file);
     }
-    
+
     console.log('Files grouped by extension:');
     for (const ext in filesByExt) {
       const files = filesByExt[ext];
@@ -60,7 +60,7 @@ async function main() {
     '/Users/masa/Projects/ai-code-review/test-projects/python',
     '/Users/masa/Projects/ai-code-review/test-projects/php'
   ];
-  
+
   for (const project of projects) {
     console.log('\n=================================');
     console.log(`Testing project: ${path.basename(project)}`);

@@ -9,7 +9,7 @@ import { detectFramework } from '../../utils/detection';
 const testProjectsPath = path.resolve(__dirname, '../../../tests/integration-tests/test-projects');
 
 describe('Framework Detection', () => {
-  
+
   // Test detection for TypeScript/JavaScript frameworks
   describe('TypeScript/JavaScript Frameworks', () => {
     it('should detect React framework', async () => {

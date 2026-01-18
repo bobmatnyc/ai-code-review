@@ -469,8 +469,8 @@ ${consolidationPrompt}`;
  * @returns The system prompt
  */
 function getConsolidationSystemPrompt(): string {
-  return `You are an expert code reviewer tasked with creating a consolidated final report from a multi-pass review. 
-  
+  return `You are an expert code reviewer tasked with creating a consolidated final report from a multi-pass review.
+
 The review was conducted in multiple passes due to the large size of the codebase. You will receive the complete multi-pass review content and need to:
 
 1. Extract and deduplicate all findings across all passes
@@ -535,7 +535,7 @@ Please create a unified, consolidated report that:
 2. Deduplicates issues that appear in multiple passes
 3. Organizes all issues into three clear sections:
    - **Critical Issues (High Priority)**: List all high-priority/critical findings
-   - **Important Issues (Medium Priority)**: List all medium-priority/important findings  
+   - **Important Issues (Medium Priority)**: List all medium-priority/important findings
    - **Minor Issues (Low Priority)**: List all low-priority/minor findings
 4. Provides a comprehensive grade for the code quality with detailed category breakdowns
 5. Maintains all the valuable insights from each pass

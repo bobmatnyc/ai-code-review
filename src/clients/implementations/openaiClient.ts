@@ -212,7 +212,7 @@ export class OpenAIClient extends AbstractClient {
             {
               role: 'system',
               content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
-              
+
 IMPORTANT: Your response MUST be in the following JSON format:
 
 {
@@ -250,7 +250,7 @@ IMPORTANT: Your response MUST be in the following JSON format:
   ]
 }
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure. 
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.
 
 REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provide an overall assessment of the code quality.`,
             },
@@ -373,7 +373,7 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
             {
               role: 'system',
               content: `You are an expert code reviewer. Focus on providing actionable feedback. IMPORTANT: DO NOT REPEAT THE INSTRUCTIONS IN YOUR RESPONSE. DO NOT ASK FOR CODE TO REVIEW. ASSUME THE CODE IS ALREADY PROVIDED IN THE USER MESSAGE. FOCUS ONLY ON PROVIDING THE CODE REVIEW CONTENT.
-              
+
 IMPORTANT: Your response MUST be in the following JSON format:
 
 {
@@ -411,7 +411,7 @@ IMPORTANT: Your response MUST be in the following JSON format:
   ]
 }
 
-Ensure your response is valid JSON. Do not include any text outside the JSON structure. 
+Ensure your response is valid JSON. Do not include any text outside the JSON structure.
 
 REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provide an overall assessment of the code quality.`,
             },
@@ -568,11 +568,11 @@ REMEMBER TO ALWAYS INCLUDE THE "grade" AND "gradeCategories" FIELDS, which provi
             messages: [
               {
                 role: 'system',
-                content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations. 
-                
+                content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations.
+
 ESSENTIAL TASK: For ALL major dependencies in the project, you MUST use the available tools to thoroughly check for:
 1. Security vulnerabilities and CVEs
-2. Version updates and recommendations 
+2. Version updates and recommendations
 3. Compatibility issues and breaking changes
 4. Deprecation warnings
 5. Maintenance status
@@ -626,7 +626,7 @@ Always include a dedicated "Dependency Security Analysis" section in your review
               {
                 role: 'system',
                 content: `You are an expert code reviewer specialized in architectural analysis. Your task is to analyze code architecture, identify issues, and provide recommendations.
-                
+
 ESSENTIAL TASK: Include a dedicated "Dependency Security Analysis" section in your review that summarizes the findings from the dependency security checks. This is a critical part of the architectural review.`,
               },
               {

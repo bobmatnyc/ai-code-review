@@ -1,6 +1,6 @@
 /**
  * Test script to verify metadata headers in review output
- * 
+ *
  * This script tests the implementation of enhanced metadata headers
  * in both Markdown and JSON output formats by checking the formatter directly.
  */
@@ -36,7 +36,7 @@ const createMockReviewResult = () => {
 // Manually create formatted outputs
 const createMarkdownOutput = () => {
   const reviewResult = createMockReviewResult();
-  
+
   return `# Code Review: ${reviewResult.filePath}
 
 > **Review Type**: ${reviewResult.reviewType}
@@ -78,7 +78,7 @@ const createJsonOutput = () => {
   const reviewResult = createMockReviewResult();
   reviewResult.outputFormat = 'json';
   reviewResult.commandOptions = '--type=quick-fixes --output=json';
-  
+
   // Create enhanced metadata
   const meta = {
     model: {
@@ -106,20 +106,20 @@ const createJsonOutput = () => {
       commandOptions: reviewResult.commandOptions
     }
   };
-  
+
   // Create legacy metadata
   const metadata = {
     model: meta.model.fullName,
     generatedAt: reviewResult.timestamp,
     costEstimation: reviewResult.cost
   };
-  
+
   const jsonOutput = {
     ...reviewResult,
     meta,
     metadata
   };
-  
+
   return JSON.stringify(jsonOutput, null, 2);
 };
 
@@ -155,7 +155,7 @@ const checkMetadataInMarkdown = (content) => {
 const checkMetadataInJson = (content) => {
   try {
     const parsed = JSON.parse(content);
-    
+
     // Check for enhanced metadata structure
     if (!parsed.meta) {
       console.error('Enhanced metadata (meta object) not found in JSON output');
@@ -198,28 +198,28 @@ const checkSanitization = (content, isJson = false) => {
       return false;
     }
   }
-  
+
   // Check if content preserves newlines by looking for common patterns
   // that should include newlines in the review content
-  
+
   // In a code review, there should be line breaks between paragraphs
   if (!content.includes('.\n\n')) {
     console.error('Paragraph breaks (double newlines) are not preserved in the content');
     return false;
   }
-  
+
   // Code blocks should have newlines
   if (content.includes('```') && !content.includes('```\n')) {
     console.error('Newlines in code blocks are not preserved in the content');
     return false;
   }
-  
+
   // Check for list items which should contain newlines
   if (content.includes('- ') && !content.includes('\n- ')) {
     console.error('Newlines in list items are not preserved in the content');
     return false;
   }
-  
+
   return true;
 };
 
@@ -227,45 +227,45 @@ const checkSanitization = (content, isJson = false) => {
 const runTests = async () => {
   try {
     console.log('Testing metadata headers implementation...');
-    
+
     // Test Markdown output
     console.log('\nTesting Markdown output...');
     const markdownOutput = createMarkdownOutput();
-    
+
     // Save the markdown output to a file for inspection
     fs.writeFileSync('./test-output-md.md', markdownOutput, 'utf8');
-    
+
     const markdownMetadataValid = checkMetadataInMarkdown(markdownOutput);
     const markdownSanitizationValid = checkSanitization(markdownOutput);
-    
+
     if (markdownMetadataValid && markdownSanitizationValid) {
       console.log('✅ Markdown output test passed');
     } else {
       console.error('❌ Markdown output test failed');
     }
-    
+
     // Test JSON output
     console.log('\nTesting JSON output...');
     const jsonOutput = createJsonOutput();
-    
+
     // Save the JSON output to a file for inspection
     fs.writeFileSync('./test-output-json.json', jsonOutput, 'utf8');
-    
+
     const jsonMetadataValid = checkMetadataInJson(jsonOutput);
     const jsonSanitizationValid = checkSanitization(jsonOutput, true);
-    
+
     if (jsonMetadataValid && jsonSanitizationValid) {
       console.log('✅ JSON output test passed');
     } else {
       console.error('❌ JSON output test failed');
     }
-    
+
     console.log('\nSummary:');
     console.log(`Markdown metadata: ${markdownMetadataValid ? '✅' : '❌'}`);
     console.log(`Markdown sanitization: ${markdownSanitizationValid ? '✅' : '❌'}`);
     console.log(`JSON metadata: ${jsonMetadataValid ? '✅' : '❌'}`);
     console.log(`JSON sanitization: ${jsonSanitizationValid ? '✅' : '❌'}`);
-    
+
     if (markdownMetadataValid && markdownSanitizationValid && jsonMetadataValid && jsonSanitizationValid) {
       console.log('\n✅ All tests passed - Enhanced metadata headers implementation is working correctly!');
       console.log('The test files have been saved to:');

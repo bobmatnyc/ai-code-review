@@ -69,19 +69,19 @@ async function build() {
       // Don't use banner option for shebang as it sometimes causes issues
       external,
     });
-    
+
     // Post-processing to fix specific issues
     const fs = require('fs');
     const path = require('path');
     const outputPath = path.resolve(__dirname, '../dist/index.js');
-    
+
     // Read the bundle
     let content = fs.readFileSync(outputPath, 'utf8');
-    
+
     // Remove any existing shebang and add a new one
     content = content.replace(/^#!.*\n/, '');
     content = '#!/usr/bin/env node\n' + content;
-    
+
     // Fix the OpenAI API test implementation message
     content = content.replace(
       /console\.log\(`OpenAI API: \\u26A0\\uFE0F TEST NOT IMPLEMENTED`\);[\s\S]*?console\.log\(`  OpenAI API test not implemented yet`\);/,
@@ -94,16 +94,16 @@ async function build() {
       '    console.log(`  Error testing OpenAI API: ${error instanceof Error ? error.message : String(error)}`);\n' +
       '  }'
     );
-    
+
     // Write the updated bundle
     fs.writeFileSync(outputPath, content, 'utf8');
     console.log('Successfully added shebang to dist/index.js');
-    
+
     // Make the file executable
     fs.chmodSync(outputPath, '755');
     console.log('Successfully made dist/index.js executable');
     console.log('✅ Post-processing completed');
-    
+
   } catch (error) {
     console.error(error);
     process.exit(1);

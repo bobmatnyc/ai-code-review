@@ -17,7 +17,7 @@ const fixedContent = handlerContent.replace(
             // Try to import the package security analyzer
             const { createDependencySecuritySection } = require('../utils/dependencies/packageSecurityAnalyzer');
             logger.debug('Package security analyzer module loaded successfully');
-            
+
             // Run the security analysis
             logger.info('Running dependency security analysis for project path: ' + projectPath);
             const securitySection = await createDependencySecuritySection(projectPath);
@@ -25,7 +25,7 @@ const fixedContent = handlerContent.replace(
   `try {
             // The package security analyzer is already imported at the top of the file
             logger.debug('Using imported package security analyzer');
-            
+
             // Run the security analysis
             logger.info('Running dependency security analysis for project path: ' + projectPath);
             const securitySection = await createDependencySecuritySection(projectPath);

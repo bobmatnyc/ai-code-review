@@ -116,15 +116,15 @@ func validateJWT(tokenString string) (*jwt.Claims, error) {
         }
         return publicKey, nil
     })
-    
+
     if err != nil {
         return nil, err
     }
-    
+
     if !token.Valid {
         return nil, errors.New("invalid token")
     }
-    
+
     return token.Claims.(*jwt.Claims), nil
 }
 
@@ -242,12 +242,12 @@ func loadConfig() (*Config, error) {
         APIKey:      os.Getenv("API_KEY"),
         JWTSecret:   os.Getenv("JWT_SECRET"),
     }
-    
+
     // Validate required secrets are present
     if config.DatabaseURL == "" || config.APIKey == "" || config.JWTSecret == "" {
         return nil, errors.New("missing required environment variables")
     }
-    
+
     // Never log these values
     log.Printf("Configuration loaded successfully")
     return config, nil
@@ -259,7 +259,7 @@ func loadConfig() *Config {
         DatabaseURL: os.Getenv("DATABASE_URL"),
         APIKey:      os.Getenv("API_KEY"),
     }
-    
+
     log.Printf("Loaded config: %+v", config) // Logs sensitive data
     return config
 }
@@ -278,7 +278,7 @@ func securityMiddleware(next http.Handler) http.Handler {
         w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         w.Header().Set("Content-Security-Policy", "default-src 'self'")
         w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
-        
+
         next.ServeHTTP(w, r)
     })
 }
@@ -290,24 +290,24 @@ func securityMiddleware(next http.Handler) http.Handler {
 func corsMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         origin := r.Header.Get("Origin")
-        
+
         // Whitelist allowed origins
         allowedOrigins := []string{
             "https://example.com",
             "https://app.example.com",
         }
-        
+
         for _, allowed := range allowedOrigins {
             if origin == allowed {
                 w.Header().Set("Access-Control-Allow-Origin", origin)
                 break
             }
         }
-        
+
         w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
         w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
         w.Header().Set("Access-Control-Max-Age", "3600")
-        
+
         next.ServeHTTP(w, r)
     })
 }
@@ -334,36 +334,36 @@ func handleFileUpload(w http.ResponseWriter, r *http.Request) {
         return
     }
     defer file.Close()
-    
+
     // Validate file size
     if header.Size > 10*1024*1024 { // 10MB limit
         http.Error(w, "File too large", http.StatusBadRequest)
         return
     }
-    
+
     // Validate file type
     allowedTypes := map[string]bool{
         "image/jpeg": true,
         "image/png":  true,
         "text/plain": true,
     }
-    
+
     contentType := header.Header.Get("Content-Type")
     if !allowedTypes[contentType] {
         http.Error(w, "Invalid file type", http.StatusBadRequest)
         return
     }
-    
+
     // Generate safe filename
     safeFilename := generateSafeFilename(header.Filename)
     savePath := filepath.Join("/safe/upload/dir", safeFilename)
-    
+
     // Prevent path traversal
     if !strings.HasPrefix(savePath, "/safe/upload/dir/") {
         http.Error(w, "Invalid file path", http.StatusBadRequest)
         return
     }
-    
+
     // Save file securely
     dest, err := os.Create(savePath)
     if err != nil {
@@ -371,7 +371,7 @@ func handleFileUpload(w http.ResponseWriter, r *http.Request) {
         return
     }
     defer dest.Close()
-    
+
     _, err = io.Copy(dest, file)
     if err != nil {
         http.Error(w, "Failed to save file", http.StatusInternalServerError)
@@ -398,14 +398,14 @@ type visitor struct {
 func (rl *RateLimiter) getLimiter(ip string) *rate.Limiter {
     rl.mu.Lock()
     defer rl.mu.Unlock()
-    
+
     v, exists := rl.visitors[ip]
     if !exists {
         limiter := rate.NewLimiter(rate.Limit(100), 10) // 100 requests per second, burst of 10
         rl.visitors[ip] = &visitor{limiter, time.Now()}
         return limiter
     }
-    
+
     v.lastSeen = time.Now()
     return v.limiter
 }
@@ -414,12 +414,12 @@ func (rl *RateLimiter) middleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         ip := r.RemoteAddr
         limiter := rl.getLimiter(ip)
-        
+
         if !limiter.Allow() {
             http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
             return
         }
-        
+
         next.ServeHTTP(w, r)
     })
 }
@@ -434,10 +434,10 @@ func (rl *RateLimiter) middleware(next http.Handler) http.Handler {
 For each security issue identified, provide:
 
 ### [SEVERITY] Issue Title
-**OWASP Category:** A0X - Category Name  
-**CWE ID:** CWE-XXX (if applicable)  
-**File:** `path/to/file.go`  
-**Lines:** X-Y  
+**OWASP Category:** A0X - Category Name
+**CWE ID:** CWE-XXX (if applicable)
+**File:** `path/to/file.go`
+**Lines:** X-Y
 **Risk Level:** Critical/High/Medium/Low
 
 **Vulnerability Description:**

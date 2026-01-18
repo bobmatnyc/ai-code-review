@@ -2,21 +2,21 @@
 
 /**
  * Pattern Database System for Extract Patterns Review Type
- * 
+ *
  * This module provides storage, organization, and retrieval functionality
  * for extracted code patterns, creating a searchable library of exemplar
  * project patterns.
- * 
+ *
  * Usage:
  *   node tests/extract-patterns/pattern-database.js [command] [options]
- * 
+ *
  * Commands:
  *   store <file>        Store patterns from extract-patterns output
  *   search <query>      Search patterns by keywords
  *   list               List all stored patterns
  *   compare <id1> <id2> Compare two pattern sets
  *   export <format>     Export patterns in specified format
- * 
+ *
  * Database Structure:
  *   - SQLite database for metadata and indexing
  *   - JSON files for full pattern content
@@ -95,7 +95,7 @@ class PatternRecord {
   extractArchitecturePatterns(content) {
     const patterns = [];
     const sections = this.extractSections(content, ['architecture', 'design', 'pattern']);
-    
+
     for (const section of sections) {
       patterns.push({
         type: 'architecture',
@@ -115,7 +115,7 @@ class PatternRecord {
   extractCodeStylePatterns(content) {
     const patterns = [];
     const sections = this.extractSections(content, ['style', 'convention', 'formatting']);
-    
+
     for (const section of sections) {
       patterns.push({
         type: 'codeStyle',
@@ -135,7 +135,7 @@ class PatternRecord {
   extractToolchainPatterns(content) {
     const patterns = [];
     const sections = this.extractSections(content, ['tool', 'build', 'configuration', 'setup']);
-    
+
     for (const section of sections) {
       patterns.push({
         type: 'toolchain',
@@ -155,7 +155,7 @@ class PatternRecord {
   extractTestingPatterns(content) {
     const patterns = [];
     const sections = this.extractSections(content, ['test', 'testing', 'spec', 'mock']);
-    
+
     for (const section of sections) {
       patterns.push({
         type: 'testing',
@@ -175,11 +175,11 @@ class PatternRecord {
   extractConfigurationPatterns(content) {
     const patterns = [];
     const configKeywords = ['config', 'tsconfig', 'package.json', 'webpack', 'babel'];
-    
+
     for (const keyword of configKeywords) {
       const regex = new RegExp(`${keyword}[\\s\\S]*?(?=\\n#{1,6}|$)`, 'gi');
       const matches = content.match(regex);
-      
+
       if (matches) {
         for (const match of matches) {
           patterns.push({
@@ -207,21 +207,21 @@ class PatternRecord {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
-      
+
       if (headerMatch) {
         // Save previous section
         if (currentSection) {
           sections.push(currentSection);
         }
-        
+
         const title = headerMatch[2].trim();
         const titleLower = title.toLowerCase();
-        
+
         // Check if this section matches our keywords
-        const isRelevant = keywords.some(keyword => 
+        const isRelevant = keywords.some(keyword =>
           titleLower.includes(keyword.toLowerCase())
         );
-        
+
         if (isRelevant) {
           currentSection = {
             title,
@@ -235,7 +235,7 @@ class PatternRecord {
         currentSection.content += line + '\n';
       }
     }
-    
+
     // Add final section
     if (currentSection) {
       sections.push(currentSection);
@@ -369,11 +369,11 @@ class PatternDatabase {
       this.db.serialize(() => {
         this.db.run(createPatternsTable);
         this.db.run(createPatternContentTable);
-        
+
         for (const indexSql of createIndexes) {
           this.db.run(indexSql);
         }
-        
+
         resolve();
       });
     });
@@ -384,7 +384,7 @@ class PatternDatabase {
    */
   async storePattern(patternRecord) {
     const insertPattern = `
-      INSERT OR REPLACE INTO patterns 
+      INSERT OR REPLACE INTO patterns
       (id, project_name, project_type, language, extracted_at, model, version, tags, file_path, hash)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
@@ -398,7 +398,7 @@ class PatternDatabase {
       this.db.serialize(() => {
         // Clear existing content for this pattern
         this.db.run('DELETE FROM pattern_content WHERE pattern_id = ?', [patternRecord.id]);
-        
+
         // Insert pattern record
         const db = this.db;
         db.run(insertPattern, [
@@ -495,8 +495,8 @@ class PatternDatabase {
     const offset = options.offset || 0;
 
     const sql = `
-      SELECT * FROM patterns 
-      ORDER BY created_at DESC 
+      SELECT * FROM patterns
+      ORDER BY created_at DESC
       LIMIT ? OFFSET ?
     `;
 

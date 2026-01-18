@@ -218,7 +218,7 @@ Please analyze the project dependencies and structure based on the provided info
 function getDependencyAnalysisInstructions(): string {
   return `# Dependency Analysis Instructions
 
-You are tasked with analyzing the project dependencies and structure based on the provided sample of files. 
+You are tasked with analyzing the project dependencies and structure based on the provided sample of files.
 Focus on identifying potential dependency issues, architectural patterns, and providing recommendations.
 
 ## Analysis Requirements

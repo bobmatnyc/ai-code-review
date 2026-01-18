@@ -125,7 +125,7 @@ const (
     DefaultTimeout = 30 * time.Second
     MaxRetries     = 3
     BufferSize     = 1024
-    
+
     // Enum-like constants
     StatusPending Status = iota
     StatusApproved
@@ -190,11 +190,11 @@ for _, item := range items {
 func processItemsConcurrently(items []Item) {
     workers := runtime.NumCPU()
     jobs := make(chan Item, len(items))
-    
+
     for w := 0; w < workers; w++ {
         go worker(jobs)
     }
-    
+
     for _, item := range items {
         jobs <- item
     }
@@ -261,11 +261,11 @@ import (
     "context"
     "fmt"
     "time"
-    
+
     // Third-party packages
     "github.com/gin-gonic/gin"
     "github.com/sirupsen/logrus"
-    
+
     // Local packages
     "myapp/internal/config"
     "myapp/pkg/database"
@@ -296,9 +296,9 @@ type User struct {
 For each issue identified, provide:
 
 ## Issue: [Brief description]
-**File:** `path/to/file.go`  
-**Lines:** X-Y  
-**Priority:** High/Medium/Low  
+**File:** `path/to/file.go`
+**Lines:** X-Y
+**Priority:** High/Medium/Low
 **Type:** [Error Handling/Performance/Style/Idiom/etc.]
 
 **Current Code:**

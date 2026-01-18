@@ -64,7 +64,7 @@ describe('RateLimiter', () => {
     it('should wait when rate limit is reached', async () => {
       // Since token bucket algorithm handles queuing differently, we'll just verify
       // that the rate limiter respects the token limits and queues requests
-      
+
       // Make 5 requests to reach the limit
       for (let i = 0; i < 5; i++) {
         await rateLimiter.acquire();
@@ -72,13 +72,13 @@ describe('RateLimiter', () => {
 
       // Check that tokens are depleted
       expect(rateLimiter.getTokens()).toBe(0);
-      
+
       // Add a token by advancing time
       mockTime += 10 * 1000; // 10 seconds to add 1 token
-      
+
       // Should now be able to make another request
       await expect(rateLimiter.acquire()).resolves.not.toThrow();
-      
+
       // Tokens should be depleted again
       expect(rateLimiter.getTokens()).toBe(0);
     });

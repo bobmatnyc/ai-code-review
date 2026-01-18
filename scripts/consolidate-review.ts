@@ -2,11 +2,11 @@
 
 /**
  * CLI script to consolidate an existing multi-pass review file
- * 
+ *
  * This script takes a path to a review file, reads its content,
  * and sends it to the AI model for consolidation. It then saves
  * the consolidated review to a new file.
- * 
+ *
  * Usage: ts-node scripts/consolidate-review.ts [path-to-review-file]
  */
 

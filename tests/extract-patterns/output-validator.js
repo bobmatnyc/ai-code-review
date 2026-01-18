@@ -2,13 +2,13 @@
 
 /**
  * Output Validation Framework for Extract Patterns Review Type
- * 
+ *
  * This module validates the quality and accuracy of extract-patterns output
  * by checking for required sections, content quality, and structural integrity.
- * 
+ *
  * Usage:
  *   node tests/extract-patterns/output-validator.js <review-file>
- *   
+ *
  * Or as a module:
  *   const { validateExtractPatternsOutput } = require('./output-validator');
  */
@@ -41,7 +41,7 @@ const VALIDATION_CRITERIA = {
   // Minimum content requirements
   minContentLength: 2000, // Minimum characters for comprehensive analysis
   minSectionCount: 6,     // Minimum number of major sections
-  
+
   // Quality indicators
   qualityIndicators: [
     'specific examples',
@@ -111,7 +111,7 @@ class ValidationResult {
 function extractSections(content) {
   const sections = [];
   const lines = content.split('\n');
-  
+
   for (const line of lines) {
     // Match markdown headers (# ## ### etc.)
     const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
@@ -121,7 +121,7 @@ function extractSections(content) {
       sections.push({ level, title, line });
     }
   }
-  
+
   return sections;
 }
 
@@ -131,10 +131,10 @@ function extractSections(content) {
 function countCodeSnippets(content) {
   // Count fenced code blocks
   const fencedBlocks = (content.match(/```[\s\S]*?```/g) || []).length;
-  
+
   // Count inline code
   const inlineCode = (content.match(/`[^`\n]+`/g) || []).length;
-  
+
   return { fencedBlocks, inlineCode, total: fencedBlocks + inlineCode };
 }
 
@@ -149,7 +149,7 @@ function countExamples(content) {
     /such as/gi,
     /like:/gi
   ];
-  
+
   let count = 0;
   for (const pattern of examplePatterns) {
     const matches = content.match(pattern);
@@ -157,7 +157,7 @@ function countExamples(content) {
       count += matches.length;
     }
   }
-  
+
   return count;
 }
 
@@ -167,13 +167,13 @@ function countExamples(content) {
 function checkQualityIndicators(content, indicators) {
   const found = [];
   const contentLower = content.toLowerCase();
-  
+
   for (const indicator of indicators) {
     if (contentLower.includes(indicator.toLowerCase())) {
       found.push(indicator);
     }
   }
-  
+
   return found;
 }
 
@@ -183,13 +183,13 @@ function checkQualityIndicators(content, indicators) {
 function checkRedFlags(content, redFlags) {
   const found = [];
   const contentLower = content.toLowerCase();
-  
+
   for (const flag of redFlags) {
     if (contentLower.includes(flag.toLowerCase())) {
       found.push(flag);
     }
   }
-  
+
   return found;
 }
 
@@ -198,24 +198,24 @@ function checkRedFlags(content, redFlags) {
  */
 async function validateExtractPatternsOutput(filePath) {
   const result = new ValidationResult();
-  
+
   try {
     // Read the file
     const content = await fs.readFile(filePath, 'utf8');
     result.metrics.contentLength = content.length;
-    
+
     // Extract sections
     const sections = extractSections(content);
     result.metrics.sectionCount = sections.length;
-    
+
     // Check required sections
     result.maxScore += VALIDATION_CRITERIA.requiredSections.length * 10; // 10 points per required section
-    
+
     for (const requiredSection of VALIDATION_CRITERIA.requiredSections) {
-      const found = sections.some(section => 
+      const found = sections.some(section =>
         section.title.toLowerCase().includes(requiredSection.toLowerCase())
       );
-      
+
       if (found) {
         result.sections.found.push(requiredSection);
         result.score += 10;
@@ -225,19 +225,19 @@ async function validateExtractPatternsOutput(filePath) {
         result.details.push(`❌ Missing required section: ${requiredSection}`);
       }
     }
-    
+
     // Check TypeScript-specific sections (if applicable)
-    const isTypeScriptProject = content.toLowerCase().includes('typescript') || 
+    const isTypeScriptProject = content.toLowerCase().includes('typescript') ||
                                content.toLowerCase().includes('.ts');
-    
+
     if (isTypeScriptProject) {
       result.maxScore += VALIDATION_CRITERIA.typescriptSections.length * 5; // 5 points per TS section
-      
+
       for (const tsSection of VALIDATION_CRITERIA.typescriptSections) {
-        const found = sections.some(section => 
+        const found = sections.some(section =>
           section.title.toLowerCase().includes(tsSection.toLowerCase())
         );
-        
+
         if (found) {
           result.score += 5;
           result.details.push(`✅ Found TypeScript section: ${tsSection}`);
@@ -246,7 +246,7 @@ async function validateExtractPatternsOutput(filePath) {
         }
       }
     }
-    
+
     // Check content length
     result.maxScore += 20; // 20 points for adequate content length
     if (result.metrics.contentLength >= VALIDATION_CRITERIA.minContentLength) {
@@ -256,29 +256,29 @@ async function validateExtractPatternsOutput(filePath) {
       result.details.push(`❌ Content too short: ${result.metrics.contentLength} chars (min: ${VALIDATION_CRITERIA.minContentLength})`);
       result.recommendations.push('Increase analysis depth for more comprehensive output');
     }
-    
+
     // Count code snippets and examples
     const codeSnippets = countCodeSnippets(content);
     result.metrics.codeSnippetCount = codeSnippets.total;
     result.metrics.exampleCount = countExamples(content);
-    
+
     // Check for quality indicators
     result.maxScore += 30; // 30 points for quality indicators
     result.quality.indicators = checkQualityIndicators(content, VALIDATION_CRITERIA.qualityIndicators);
-    
+
     const qualityScore = Math.min(30, result.quality.indicators.length * 5);
     result.score += qualityScore;
-    
+
     if (result.quality.indicators.length > 0) {
       result.details.push(`✅ Quality indicators found: ${result.quality.indicators.join(', ')}`);
     } else {
       result.details.push(`❌ No quality indicators found`);
       result.recommendations.push('Include more specific examples and code snippets');
     }
-    
+
     // Check for red flags
     result.quality.redFlags = checkRedFlags(content, VALIDATION_CRITERIA.redFlags);
-    
+
     if (result.quality.redFlags.length > 0) {
       result.score -= result.quality.redFlags.length * 10; // Penalty for red flags
       result.details.push(`❌ Red flags found: ${result.quality.redFlags.join(', ')}`);
@@ -286,7 +286,7 @@ async function validateExtractPatternsOutput(filePath) {
     } else {
       result.details.push(`✅ No red flags detected`);
     }
-    
+
     // Code snippet bonus
     if (result.metrics.codeSnippetCount > 5) {
       result.score += 10;
@@ -295,27 +295,27 @@ async function validateExtractPatternsOutput(filePath) {
       result.details.push(`⚠️  Limited code snippets: ${result.metrics.codeSnippetCount} snippets`);
       result.recommendations.push('Include more code examples for better illustration');
     }
-    
+
     // Example bonus
     if (result.metrics.exampleCount > 10) {
       result.score += 10;
       result.details.push(`✅ Rich examples: ${result.metrics.exampleCount} examples`);
     }
-    
+
     // Final validation
     result.passed = result.isPassed();
-    
+
     // Add overall recommendations
     if (!result.passed) {
       result.recommendations.push('Consider adjusting prompt templates for better coverage');
       result.recommendations.push('Verify model has sufficient context about the project');
     }
-    
+
   } catch (error) {
     result.details.push(`❌ Validation error: ${error.message}`);
     result.passed = false;
   }
-  
+
   return result;
 }
 
@@ -328,38 +328,38 @@ function printValidationResults(result, filePath) {
   console.log(`File: ${filePath}`);
   console.log(`Score: ${result.getScorePercentage()}% (${result.score}/${result.maxScore})`);
   console.log(`Status: ${result.passed ? '✅ PASSED' : '❌ FAILED'}`);
-  
+
   console.log(`\n📊 Metrics:`);
   console.log(`   Content Length: ${result.metrics.contentLength} characters`);
   console.log(`   Sections: ${result.metrics.sectionCount}`);
   console.log(`   Code Snippets: ${result.metrics.codeSnippetCount}`);
   console.log(`   Examples: ${result.metrics.exampleCount}`);
-  
+
   if (result.sections.found.length > 0) {
     console.log(`\n✅ Found Sections (${result.sections.found.length}):`);
     result.sections.found.forEach(section => console.log(`   • ${section}`));
   }
-  
+
   if (result.sections.missing.length > 0) {
     console.log(`\n❌ Missing Sections (${result.sections.missing.length}):`);
     result.sections.missing.forEach(section => console.log(`   • ${section}`));
   }
-  
+
   if (result.quality.indicators.length > 0) {
     console.log(`\n🎯 Quality Indicators:`);
     result.quality.indicators.forEach(indicator => console.log(`   • ${indicator}`));
   }
-  
+
   if (result.quality.redFlags.length > 0) {
     console.log(`\n🚩 Red Flags:`);
     result.quality.redFlags.forEach(flag => console.log(`   • ${flag}`));
   }
-  
+
   if (result.recommendations.length > 0) {
     console.log(`\n💡 Recommendations:`);
     result.recommendations.forEach(rec => console.log(`   • ${rec}`));
   }
-  
+
   console.log(`\n📝 Detailed Results:`);
   result.details.forEach(detail => console.log(`   ${detail}`));
 }
@@ -369,22 +369,22 @@ function printValidationResults(result, filePath) {
  */
 async function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     console.error('Usage: node output-validator.js <review-file>');
     process.exit(1);
   }
-  
+
   const filePath = args[0];
-  
+
   if (!await fs.access(filePath).then(() => true).catch(() => false)) {
     console.error(`Error: File not found: ${filePath}`);
     process.exit(1);
   }
-  
+
   const result = await validateExtractPatternsOutput(filePath);
   printValidationResults(result, filePath);
-  
+
   process.exit(result.passed ? 0 : 1);
 }
 

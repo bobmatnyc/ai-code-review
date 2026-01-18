@@ -26,24 +26,24 @@ const rl = readline.createInterface({
 // Prompt for API keys
 async function promptForApiKeys() {
   const keys = {};
-  
+
   console.log('\n=== AI Code Review Configuration ===');
   console.log('This script will help you set up your API keys for AI Code Review.');
   console.log('Leave blank if you don\'t have a particular API key.\n');
-  
+
   return new Promise((resolve) => {
     rl.question('Google Gemini API Key (AI_CODE_REVIEW_GOOGLE_API_KEY): ', (googleKey) => {
       if (googleKey.trim()) keys.AI_CODE_REVIEW_GOOGLE_API_KEY = googleKey.trim();
-      
+
       rl.question('Anthropic API Key (AI_CODE_REVIEW_ANTHROPIC_API_KEY): ', (anthropicKey) => {
         if (anthropicKey.trim()) keys.AI_CODE_REVIEW_ANTHROPIC_API_KEY = anthropicKey.trim();
-        
+
         rl.question('OpenAI API Key (AI_CODE_REVIEW_OPENAI_API_KEY): ', (openaiKey) => {
           if (openaiKey.trim()) keys.AI_CODE_REVIEW_OPENAI_API_KEY = openaiKey.trim();
-          
+
           rl.question('OpenRouter API Key (AI_CODE_REVIEW_OPENROUTER_API_KEY): ', (openrouterKey) => {
             if (openrouterKey.trim()) keys.AI_CODE_REVIEW_OPENROUTER_API_KEY = openrouterKey.trim();
-            
+
             rl.question('Default Model (AI_CODE_REVIEW_MODEL) [gemini:gemini-1.5-pro]: ', (model) => {
               keys.AI_CODE_REVIEW_MODEL = model.trim() || 'gemini:gemini-1.5-pro';
               resolve(keys);
@@ -59,12 +59,12 @@ async function promptForApiKeys() {
 function createEnvFile(directory, keys) {
   const envPath = path.join(directory, '.env.local');
   let envContent = '';
-  
+
   // Add each key to the content
   for (const [key, value] of Object.entries(keys)) {
     envContent += `${key}=${value}\n`;
   }
-  
+
   // Write the file
   try {
     fs.writeFileSync(envPath, envContent, 'utf8');
@@ -94,7 +94,7 @@ function promptForCustomDirectory() {
 // Main function
 async function main() {
   console.log('Checking for AI Code Review installation...');
-  
+
   // Check if each possible directory exists
   const existingDirs = possibleDirectories.filter(dir => {
     try {
@@ -103,7 +103,7 @@ async function main() {
       return false;
     }
   });
-  
+
   if (existingDirs.length === 0) {
     console.log('❌ Could not find AI Code Review installation directory.');
     console.log('This script should be run from the AI Code Review package directory.');
@@ -113,7 +113,7 @@ async function main() {
       console.log(`${i + 1}. ${dir}`);
     });
   }
-  
+
   // Ask for custom directory
   const customDir = await promptForCustomDirectory();
   if (customDir) {
@@ -128,10 +128,10 @@ async function main() {
       console.error(`Error creating custom directory: ${error.message}`);
     }
   }
-  
+
   // Get API keys from user
   const apiKeys = await promptForApiKeys();
-  
+
   // If custom directory was provided, use it
   if (customDir) {
     const success = createEnvFile(customDir, apiKeys);
@@ -139,7 +139,7 @@ async function main() {
       console.log('\n⚠️ To use this custom directory, add this to your shell profile:');
       console.log(`export AI_CODE_REVIEW_DIR="${customDir}"`);
     }
-  } 
+  }
   // Otherwise use installation directories
   else if (existingDirs.length > 0) {
     let success = false;
@@ -149,7 +149,7 @@ async function main() {
         break;
       }
     }
-    
+
     if (success) {
       console.log('\n✅ Configuration complete! You can now use AI Code Review from any directory.');
     } else {
@@ -159,7 +159,7 @@ async function main() {
   } else {
     console.log('\n❌ No valid directories found for configuration.');
   }
-  
+
   rl.close();
 }
 

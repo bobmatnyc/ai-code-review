@@ -2,12 +2,12 @@
 
 /**
  * Real-world test for tool calling implementation
- * 
+ *
  * This script tests the actual tool calling implementation by:
  * 1. Creating a test directory with vulnerable dependencies
- * 2. Testing the OpenAI tool calling flow with real API keys 
+ * 2. Testing the OpenAI tool calling flow with real API keys
  * 3. Testing the Anthropic tool calling flow with real API keys
- * 
+ *
  * Requires actual API keys in .env.local for:
  * - SERPAPI_KEY
  * - AI_CODE_REVIEW_OPENAI_API_KEY or AI_CODE_REVIEW_ANTHROPIC_API_KEY
@@ -70,26 +70,26 @@ if (SERPAPI_KEY && OPENAI_API_KEY) {
   try {
     // Set the model to GPT-4o which supports tool calling
     env.AI_CODE_REVIEW_MODEL = 'openai:gpt-4o';
-    
+
     // Run an architectural review with the CLI
     console.log(`Running architectural review on ${TEST_DIR} with OpenAI GPT-4o...`);
     const codeBin = path.join(__dirname, 'dist', 'index.js');
-    
+
     // Pipe stderr to stdout to see everything
     const output = execSync(`${codeBin} ${TEST_DIR} --type=arch --debug`, {
       env,
       stdio: ['ignore', 'pipe', 'pipe'],
       maxBuffer: 10 * 1024 * 1024 // 10MB buffer
     }).toString();
-    
+
     // Print out the relevant parts of the output
     console.log(`\nOutput from OpenAI review (excerpt):`);
-    
+
     // Extract dependency security analysis
-    const securitySection = output.includes('Dependency Security Analysis') 
-      ? output.split('Dependency Security Analysis')[1]?.split('---')[0] 
+    const securitySection = output.includes('Dependency Security Analysis')
+      ? output.split('Dependency Security Analysis')[1]?.split('---')[0]
       : null;
-      
+
     if (securitySection) {
       console.log(`\n## Dependency Security Analysis\n${securitySection}`);
       console.log(`✅ OpenAI tool calling successfully found security information!`);
@@ -97,7 +97,7 @@ if (SERPAPI_KEY && OPENAI_API_KEY) {
       console.log(`⚠️ No security analysis section found in the output.`);
       console.log(`This could be because the model didn't use the tool, or the output format is different.`);
     }
-    
+
     testRun = true;
   } catch (error) {
     console.error(`Error during OpenAI test: ${error.message}`);
@@ -113,26 +113,26 @@ if (SERPAPI_KEY && ANTHROPIC_API_KEY) {
   try {
     // Set the model to Claude 3 Opus which supports tool calling
     env.AI_CODE_REVIEW_MODEL = 'anthropic:claude-3-opus';
-    
+
     // Run an architectural review with the CLI
     console.log(`Running architectural review on ${TEST_DIR} with Anthropic Claude 3 Opus...`);
     const codeBin = path.join(__dirname, 'dist', 'index.js');
-    
+
     // Pipe stderr to stdout to see everything
     const output = execSync(`${codeBin} ${TEST_DIR} --type=arch --debug`, {
       env,
       stdio: ['ignore', 'pipe', 'pipe'],
       maxBuffer: 10 * 1024 * 1024 // 10MB buffer
     }).toString();
-    
+
     // Print out the relevant parts of the output
     console.log(`\nOutput from Anthropic review (excerpt):`);
-    
+
     // Extract dependency security analysis
-    const securitySection = output.includes('Dependency Security Analysis') 
-      ? output.split('Dependency Security Analysis')[1]?.split('---')[0] 
+    const securitySection = output.includes('Dependency Security Analysis')
+      ? output.split('Dependency Security Analysis')[1]?.split('---')[0]
       : null;
-      
+
     if (securitySection) {
       console.log(`\n## Dependency Security Analysis\n${securitySection}`);
       console.log(`✅ Anthropic tool calling successfully found security information!`);
@@ -140,7 +140,7 @@ if (SERPAPI_KEY && ANTHROPIC_API_KEY) {
       console.log(`⚠️ No security analysis section found in the output.`);
       console.log(`This could be because the model didn't use the tool, or the output format is different.`);
     }
-    
+
     testRun = true;
   } catch (error) {
     console.error(`Error during Anthropic test: ${error.message}`);

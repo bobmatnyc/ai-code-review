@@ -1,9 +1,9 @@
 /**
  * Unit test to verify the consolidation bug fix
- * 
+ *
  * WHY: This test ensures that consolidation instructions are passed correctly
  * and not treated as source code to review.
- * 
+ *
  * DESIGN DECISION: We mock the client.generateReview to inspect how it's called
  * and verify that:
  * 1. The first parameter (fileContent) is empty string, not consolidation instructions
@@ -59,12 +59,12 @@ describe('consolidateReview bug fix', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks();
-    
+
     // Create a spy for generateReview
     generateReviewSpy = vi.fn().mockResolvedValue({
       content: '# Consolidated Review\n\nThis is a consolidated review result.',
     });
-    
+
     // Set up the mock client's generateReview method
     mockClient.generateReview = generateReviewSpy;
     mockClient.provider = 'gemini'; // Reset provider to default for each test
@@ -90,29 +90,29 @@ describe('consolidateReview bug fix', () => {
 
     // Verify generateReview was called
     expect(generateReviewSpy).toHaveBeenCalled();
-    
+
     // Get the call arguments
     const [fileContent, filePath, reviewType, projectDocs, options] = generateReviewSpy.mock.calls[0];
-    
+
     // Critical assertions for the bug fix:
-    
+
     // 1. File content should be empty string, NOT consolidation instructions
     expect(fileContent).toBe('');
     expect(fileContent).not.toContain('CONSOLIDATION INSTRUCTIONS');
     expect(fileContent).not.toContain('You are an expert code reviewer');
-    
+
     // 2. File path should indicate this is a consolidation task
     expect(filePath).toBe('CONSOLIDATION_TASK');
-    
+
     // 3. Review type should be 'consolidated' for proper markdown output
     expect(reviewType).toBe('consolidated');
-    
+
     // 4. Project docs should contain the consolidation instructions in readme field
     expect(projectDocs).toBeDefined();
     expect(projectDocs.readme).toBeDefined();
     expect(projectDocs.readme).toContain('You are an expert code reviewer tasked with creating a consolidated final report');
     expect(projectDocs.readme).toContain('multi-pass code review of a project named "test-project"');
-    
+
     // 5. Options should indicate this is a consolidation with skipFileContent
     expect(options).toBeDefined();
     expect(options.skipFileContent).toBe(true);
@@ -122,7 +122,7 @@ describe('consolidateReview bug fix', () => {
   test('should handle OpenRouter provider correctly', async () => {
     // Change provider to openrouter to test the other code path
     mockClient.provider = 'openrouter';
-    
+
     const mockReview: ReviewResult = {
       content: '## Pass 1: Review of 1 Files\n\nReview content for pass 1\n\n### High Priority\n- Issue title: OpenRouter test issue',
       filePath: 'multi-pass-review',
@@ -136,13 +136,13 @@ describe('consolidateReview bug fix', () => {
 
     // Verify generateReview was called
     expect(generateReviewSpy).toHaveBeenCalled();
-    
+
     // Verify the same fix applies to OpenRouter path
     const [fileContent, , , projectDocs] = generateReviewSpy.mock.calls[0];
-    
+
     // File content should still be empty
     expect(fileContent).toBe('');
-    
+
     // Consolidation instructions should be in projectDocs.readme
     expect(projectDocs?.readme).toContain('You are an expert code reviewer tasked with creating a consolidated final report');
   });
@@ -167,9 +167,9 @@ describe('consolidateReview bug fix', () => {
 
     // Verify generateReview was called
     expect(generateReviewSpy).toHaveBeenCalled();
-    
+
     const [fileContent] = generateReviewSpy.mock.calls[0];
-    
+
     // The bug would have caused the consolidation prompt to be passed as fileContent
     // This would then be wrapped in code blocks and reviewed as TypeScript
     // Our fix ensures fileContent is empty

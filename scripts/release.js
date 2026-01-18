@@ -2,13 +2,13 @@
 
 /**
  * Release Management Script
- * 
+ *
  * Automates the release process including:
  * - Version bumping (patch, minor, major)
  * - Changelog generation
  * - Git tagging
  * - Release preparation
- * 
+ *
  * Usage:
  *   node scripts/release.js patch   # 1.0.0 -> 1.0.1
  *   node scripts/release.js minor   # 1.0.0 -> 1.1.0
@@ -41,7 +41,7 @@ function runCommand(command, description) {
     console.log(`   [DRY RUN] Would run: ${command}`);
     return '';
   }
-  
+
   try {
     const result = execSync(command, { encoding: 'utf8', stdio: 'pipe' });
     console.log(`✅ ${description} completed`);
@@ -60,7 +60,7 @@ function getCurrentVersion() {
 
 function bumpVersion(currentVersion, type) {
   const [major, minor, patch] = currentVersion.split('.').map(Number);
-  
+
   switch (type) {
     case 'major':
       return `${major + 1}.0.0`;
@@ -75,15 +75,15 @@ function bumpVersion(currentVersion, type) {
 
 function generateChangelog(newVersion) {
   console.log('📝 Generating changelog...');
-  
+
   try {
     // Get the last tag
     const lastTag = execSync('git describe --tags --abbrev=0 2>/dev/null || echo ""', { encoding: 'utf8' }).trim();
-    
+
     // Get commits since last tag
     const commitRange = lastTag ? `${lastTag}..HEAD` : '';
     const commits = execSync(`git log --pretty=format:"- %s (%h)" ${commitRange}`, { encoding: 'utf8' }).trim();
-    
+
     const changelogEntry = `
 ## [${newVersion}] - ${new Date().toISOString().split('T')[0]}
 
@@ -100,25 +100,25 @@ npm install -g @bobmatnyc/ai-code-review@${newVersion}
       // Prepend to CHANGELOG.md
       const changelogPath = path.join(__dirname, '..', 'CHANGELOG.md');
       let existingChangelog = '';
-      
+
       if (fs.existsSync(changelogPath)) {
         existingChangelog = fs.readFileSync(changelogPath, 'utf8');
       } else {
         existingChangelog = '# Changelog\n\nAll notable changes to this project will be documented in this file.\n';
       }
-      
+
       const updatedChangelog = existingChangelog.replace(
         '# Changelog\n\nAll notable changes to this project will be documented in this file.\n',
         `# Changelog\n\nAll notable changes to this project will be documented in this file.\n${changelogEntry}\n`
       );
-      
+
       fs.writeFileSync(changelogPath, updatedChangelog);
       console.log('✅ Updated CHANGELOG.md');
     } else {
       console.log('   [DRY RUN] Would add to CHANGELOG.md:');
       console.log(changelogEntry);
     }
-    
+
     return changelogEntry;
   } catch (error) {
     console.warn('⚠️ Warning: Could not generate changelog:', error.message);
@@ -128,17 +128,17 @@ npm install -g @bobmatnyc/ai-code-review@${newVersion}
 
 async function main() {
   console.log('🚀 Starting release process...\n');
-  
+
   if (isDryRun) {
     console.log('🔍 DRY RUN MODE - No changes will be made\n');
   }
-  
+
   // Get current version
   const currentVersion = getCurrentVersion();
   const newVersion = bumpVersion(currentVersion, releaseType);
-  
+
   console.log(`📦 Version bump: ${currentVersion} -> ${newVersion} (${releaseType})\n`);
-  
+
   // Check if working directory is clean
   try {
     execSync('git diff --exit-code', { stdio: 'pipe' });
@@ -147,20 +147,20 @@ async function main() {
     console.error('❌ Error: Working directory is not clean. Please commit or stash changes first.');
     process.exit(1);
   }
-  
+
   // Generate changelog
   const changelogEntry = generateChangelog(newVersion);
-  
+
   // Update package.json version
   if (!isDryRun) {
     runCommand(`npm version ${newVersion} --no-git-tag-version`, 'Updating package.json version');
   } else {
     console.log(`🔧 [DRY RUN] Would update package.json version to ${newVersion}`);
   }
-  
+
   // Run full build and test
   runCommand('pnpm run build', 'Running full build and test suite');
-  
+
   // Commit changes
   if (!isDryRun) {
     runCommand('git add .', 'Staging changes');
@@ -169,7 +169,7 @@ async function main() {
   } else {
     console.log(`🔧 [DRY RUN] Would commit changes and create tag v${newVersion}`);
   }
-  
+
   console.log('\n🎉 Release preparation complete!');
   console.log('\nNext steps:');
   console.log(`  1. Review the changes: git show v${newVersion}`);

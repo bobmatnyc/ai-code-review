@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for suggesting a new feature! 💡
-        
+
   - type: dropdown
     id: category
     attributes:
@@ -24,7 +24,7 @@ body:
         - Other
     validations:
       required: true
-      
+
   - type: textarea
     id: problem
     attributes:
@@ -33,7 +33,7 @@ body:
       placeholder: As a developer, I find it frustrating when...
     validations:
       required: true
-      
+
   - type: textarea
     id: solution
     attributes:
@@ -42,13 +42,13 @@ body:
       placeholder: I would like to be able to...
     validations:
       required: true
-      
+
   - type: textarea
     id: alternatives
     attributes:
       label: Alternative Solutions
       description: Have you considered any alternative solutions or workarounds?
-      
+
   - type: textarea
     id: use-cases
     attributes:
@@ -58,14 +58,14 @@ body:
         1. When reviewing large codebases...
         2. For teams that need to...
         3. In CI/CD pipelines where...
-        
+
   - type: textarea
     id: examples
     attributes:
       label: Examples
       description: Provide examples of how this feature might work (CLI commands, configuration, etc.)
       render: shell
-      
+
   - type: dropdown
     id: priority
     attributes:
@@ -78,7 +78,7 @@ body:
         - Critical - This is preventing adoption
     validations:
       required: true
-      
+
   - type: checkboxes
     id: willing-to-contribute
     attributes:
@@ -88,7 +88,7 @@ body:
         - label: I'm willing to submit a PR for this feature
         - label: I can help with testing
         - label: I can provide feedback during development
-        
+
   - type: textarea
     id: additional
     attributes:

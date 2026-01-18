@@ -38,10 +38,10 @@ describe('Output Directory Integration Tests', () => {
   it('should parse --output-dir flag correctly', () => {
     // Mock process.argv with --output-dir flag
     process.argv = ['node', 'ai-code-review', 'src', '--output-dir', 'custom-reviews'];
-    
+
     const argv = parseArguments();
     const options = mapArgsToReviewOptions(argv);
-    
+
     expect(options.outputDir).toBe('custom-reviews');
   });
 
@@ -50,7 +50,7 @@ describe('Output Directory Integration Tests', () => {
     const result = createOutputDirectory(projectPath, {
       outputDir: 'custom-output'
     });
-    
+
     expect(result).toBe('/mock/project/custom-output');
   });
 
@@ -59,7 +59,7 @@ describe('Output Directory Integration Tests', () => {
     const result = createOutputDirectory(projectPath, {
       outputDir: '/tmp/reviews'
     });
-    
+
     expect(result).toBe('/tmp/reviews');
   });
 
@@ -67,21 +67,21 @@ describe('Output Directory Integration Tests', () => {
     // Mock environment variable
     const originalEnv = process.env.AI_CODE_REVIEW_OUTPUT_DIR;
     process.env.AI_CODE_REVIEW_OUTPUT_DIR = 'env-output-dir';
-    
+
     // Mock configManager to return the environment variable value
     vi.mocked(configManager.getPathsConfig).mockReturnValue({
       outputDir: 'env-output-dir',
       promptsDir: '',
       templatesDir: ''
     });
-    
+
     const projectPath = '/mock/project';
     const result = createOutputDirectory(projectPath, {
       configOutputDir: 'env-output-dir'
     });
-    
+
     expect(result).toBe('/mock/project/env-output-dir');
-    
+
     // Restore environment variable
     if (originalEnv !== undefined) {
       process.env.AI_CODE_REVIEW_OUTPUT_DIR = originalEnv;
@@ -94,15 +94,15 @@ describe('Output Directory Integration Tests', () => {
     // Mock environment variable
     const originalEnv = process.env.AI_CODE_REVIEW_OUTPUT_DIR;
     process.env.AI_CODE_REVIEW_OUTPUT_DIR = 'env-output-dir';
-    
+
     const projectPath = '/mock/project';
     const result = createOutputDirectory(projectPath, {
       outputDir: 'cli-output-dir',
       configOutputDir: 'env-output-dir'
     });
-    
+
     expect(result).toBe('/mock/project/cli-output-dir');
-    
+
     // Restore environment variable
     if (originalEnv !== undefined) {
       process.env.AI_CODE_REVIEW_OUTPUT_DIR = originalEnv;
@@ -113,7 +113,7 @@ describe('Output Directory Integration Tests', () => {
 
   it('should validate security constraints', () => {
     const projectPath = '/mock/project';
-    
+
     // Test path traversal protection
     expect(() => {
       createOutputDirectory(projectPath, {

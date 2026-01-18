@@ -1,6 +1,6 @@
 /**
  * @fileoverview Tests for the writer model functionality.
- * 
+ *
  * This test file verifies that the --writer-model option and AI_CODE_REVIEW_WRITER_MODEL
  * environment variable work correctly for specifying a separate model for consolidation.
  */
@@ -27,15 +27,15 @@ describe('Writer Model Configuration', () => {
   describe('Environment Variable', () => {
     it('should load writer model from AI_CODE_REVIEW_WRITER_MODEL env var', () => {
       process.env.AI_CODE_REVIEW_WRITER_MODEL = 'openai:gpt-4o-mini';
-      
+
       const config = getConfig();
-      
+
       expect(config.writerModel).toBe('openai:gpt-4o-mini');
     });
 
     it('should return undefined when AI_CODE_REVIEW_WRITER_MODEL is not set', () => {
       const config = getConfig();
-      
+
       expect(config.writerModel).toBeUndefined();
     });
   });
@@ -43,16 +43,16 @@ describe('Writer Model Configuration', () => {
   describe('CLI Options', () => {
     it('should override environment variable with CLI option', () => {
       process.env.AI_CODE_REVIEW_WRITER_MODEL = 'openai:gpt-4o-mini';
-      
+
       const cliOptions: CliOptions = {
         target: '.',
         type: 'quick-fixes',
         output: 'markdown',
         writerModel: 'anthropic:claude-3-haiku'
       };
-      
+
       const config = getConfig(cliOptions);
-      
+
       expect(config.writerModel).toBe('anthropic:claude-3-haiku');
     });
 
@@ -63,9 +63,9 @@ describe('Writer Model Configuration', () => {
         output: 'markdown',
         writerModel: 'gemini:gemini-1.5-flash'
       };
-      
+
       const config = getConfig(cliOptions);
-      
+
       expect(config.writerModel).toBe('gemini:gemini-1.5-flash');
     });
   });
@@ -79,10 +79,10 @@ describe('Writer Model Configuration', () => {
         model: 'anthropic:claude-3-opus',
         writerModel: 'anthropic:claude-3-haiku'
       });
-      
+
       // In the actual consolidateReview function, this logic is used:
       const consolidationModel = config.writerModel || config.selectedModel;
-      
+
       expect(consolidationModel).toBe('anthropic:claude-3-haiku');
     });
 
@@ -93,10 +93,10 @@ describe('Writer Model Configuration', () => {
         output: 'markdown',
         model: 'anthropic:claude-3-opus'
       });
-      
+
       // In the actual consolidateReview function, this logic is used:
       const consolidationModel = config.writerModel || config.selectedModel;
-      
+
       expect(consolidationModel).toBe('anthropic:claude-3-opus');
     });
   });

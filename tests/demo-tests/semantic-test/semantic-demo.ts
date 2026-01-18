@@ -1,6 +1,6 @@
 /**
  * @fileoverview Test file for semantic analysis demonstration
- * 
+ *
  * This file contains various TypeScript constructs to test
  * the semantic chunking functionality including interfaces,
  * classes, functions, and complex code patterns.
@@ -61,7 +61,7 @@ function validateUserData(user: Partial<User>): boolean {
     if (user.preferences.theme && !['light', 'dark'].includes(user.preferences.theme)) {
       return false;
     }
-    
+
     if (typeof user.preferences.notifications !== 'boolean') {
       return false;
     }
@@ -84,7 +84,7 @@ abstract class BaseService {
 
   protected async makeRequest(endpoint: string, data?: any): Promise<any> {
     const url = `${this.apiUrl}${endpoint}`;
-    
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -142,7 +142,7 @@ class UserService extends BaseService {
 
     try {
       const user = await this.makeRequest('/validate', userData) as User;
-      
+
       // Cache the validated user
       if (user.id) {
         this.cache.set(user.id, user);
@@ -166,7 +166,7 @@ class UserService extends BaseService {
 
     const createdUser = await this.makeRequest('/create', userWithId) as User;
     this.cache.set(createdUser.id, createdUser);
-    
+
     return createdUser;
   }
 
@@ -217,7 +217,7 @@ class UserUtils {
   }
 
   public static validateNameLength(name: string): boolean {
-    return name.length >= UserConstants.MIN_NAME_LENGTH && 
+    return name.length >= UserConstants.MIN_NAME_LENGTH &&
            name.length <= UserConstants.MAX_NAME_LENGTH;
   }
 }

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Project type detection utilities.
- * 
+ *
  * This module provides functions to automatically detect project types
  * and programming languages from project files and structure. It's used
  * to set default language options without requiring manual specification.
@@ -27,7 +27,7 @@ export interface ProjectDetectionResult {
 }
 
 /**
- * Project type signature defining files that are checked 
+ * Project type signature defining files that are checked
  * to identify a project's language and type
  */
 interface ProjectTypeSignature {
@@ -243,7 +243,7 @@ const PROJECT_SIGNATURES: ProjectTypeSignature[] = [
       // TypeScript check to ensure this isn't a TypeScript project
       try {
         const files = await fs.readdir(projectPath);
-        const hasTypeScriptFiles = files.some(file => 
+        const hasTypeScriptFiles = files.some(file =>
           file.endsWith('.ts') || file.endsWith('.tsx') || file === 'tsconfig.json'
         );
         return !hasTypeScriptFiles;
@@ -280,10 +280,10 @@ async function checkFilesExist(
   files: string[]
 ): Promise<boolean> {
   if (files.length === 0) return true;
-  
+
   for (const file of files) {
     const filePath = path.join(projectPath, file);
-    
+
     try {
       if (!existsSync(filePath)) {
         return false;
@@ -292,7 +292,7 @@ async function checkFilesExist(
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -309,11 +309,11 @@ async function countFilesByExtension(
   try {
     let count = 0;
     const files = await fs.readdir(projectPath);
-    
+
     for (const file of files) {
       const filePath = path.join(projectPath, file);
       const stats = await fs.stat(filePath);
-      
+
       if (stats.isFile() && extensions.some(ext => file.endsWith(ext))) {
         count++;
       } else if (stats.isDirectory() && file !== 'node_modules' && file !== '.git') {
@@ -321,7 +321,7 @@ async function countFilesByExtension(
         count += await countFilesByExtension(filePath, extensions);
       }
     }
-    
+
     return count;
   } catch {
     return 0;
@@ -351,7 +351,7 @@ async function getLanguageFileStats(
     swift: ['.swift'],
     kotlin: ['.kt']
   };
-  
+
   const result: Record<ProgrammingLanguage, number> = {
     typescript: 0,
     javascript: 0,
@@ -367,14 +367,14 @@ async function getLanguageFileStats(
     swift: 0,
     kotlin: 0
   };
-  
+
   for (const [language, extensions] of Object.entries(extensionMap)) {
     result[language as ProgrammingLanguage] = await countFilesByExtension(
       projectPath,
       extensions
     );
   }
-  
+
   return result;
 }
 
@@ -393,9 +393,9 @@ export async function detectProjectType(
         projectPath,
         signature.requiredFiles
       );
-      
+
       if (!requiredFilesExist) continue;
-      
+
       // Check optional files if specified
       // Count matching optional files for additional confidence
       // No longer used in confidence calculation but kept for future enhancements
@@ -406,25 +406,25 @@ export async function detectProjectType(
           }
         }
       }
-      
+
       // Run additional check if specified
       if (signature.additionalCheck) {
         const additionalCheckPassed = await signature.additionalCheck(projectPath);
         if (!additionalCheckPassed) continue;
       }
-      
+
       // Calculate additional languages
       const languageStats = await getLanguageFileStats(projectPath);
-      
+
       // Filter languages with significant presence (more than 3 files)
       const additionalLanguages = Object.entries(languageStats)
         .filter(
-          ([lang, count]) => 
+          ([lang, count]) =>
             count > 3 && lang !== signature.language && lang !== 'typescript'
         )
         .sort((a, b) => b[1] - a[1]) // Sort by file count (descending)
         .map(([lang]) => lang as ProgrammingLanguage);
-      
+
       return {
         language: signature.language,
         confidence: signature.confidence,
@@ -432,10 +432,10 @@ export async function detectProjectType(
         additionalLanguages: additionalLanguages.length > 0 ? additionalLanguages : undefined
       };
     }
-    
+
     // Fallback to statistical detection if no signature matched
     const languageStats = await getLanguageFileStats(projectPath);
-    
+
     // Get language with most files
     const entries = Object.entries(languageStats);
     if (entries.length === 0 || entries.every(([_, count]) => count === 0)) {
@@ -445,11 +445,11 @@ export async function detectProjectType(
         confidence: 'low'
       };
     }
-    
+
     const sortedLanguages = entries.sort((a, b) => b[1] - a[1]);
     const primaryLanguage = sortedLanguages[0][0] as ProgrammingLanguage;
     const primaryCount = sortedLanguages[0][1];
-    
+
     // If very few files, confidence is low
     if (primaryCount < 3) {
       return {
@@ -457,12 +457,12 @@ export async function detectProjectType(
         confidence: 'low'
       };
     }
-    
+
     // Filter additional languages (more than 3 files, not the primary language)
     const additionalLanguages = sortedLanguages
       .filter(([lang, count]) => count > 3 && lang !== primaryLanguage)
       .map(([lang]) => lang as ProgrammingLanguage);
-    
+
     return {
       language: primaryLanguage,
       confidence: 'medium',

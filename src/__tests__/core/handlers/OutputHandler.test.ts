@@ -36,11 +36,11 @@ vi.mock('path', async () => {
 
 describe('OutputHandler', () => {
   // Test with both string cost (legacy) and object cost (current format)
-  const mockReviewResultStringCost = { 
+  const mockReviewResultStringCost = {
     issues: [],
     cost: '$0.10'
   };
-  
+
   const mockReviewResultObjectCost = {
     issues: [],
     cost: {
@@ -52,22 +52,22 @@ describe('OutputHandler', () => {
       cost: 0.10
     }
   };
-  
-  const mockOptions = { 
+
+  const mockOptions = {
     type: 'quick-fixes',
     output: 'markdown',
     interactive: false,
     target: 'src',
     model: 'openai:gpt-4'
   };
-  
+
   const mockOutputBaseDir = '/output';
   const mockOutputPath = '/output/review.md';
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(saveReviewOutput).mockResolvedValue(mockOutputPath);
-    
+
     // Mock implementation for createOutputDirectory
     vi.spyOn(path, 'isAbsolute').mockImplementation((pathStr) => pathStr.startsWith('/'));
     vi.spyOn(path, 'resolve').mockImplementation((dir, file) => `${dir}/${file}`);
@@ -80,7 +80,7 @@ describe('OutputHandler', () => {
   describe('handleReviewOutput', () => {
     it('should save review output to file with string cost format', async () => {
       await handleReviewOutput(mockReviewResultStringCost, mockOptions, mockOutputBaseDir);
-      
+
       expect(saveReviewOutput).toHaveBeenCalledWith(
         mockReviewResultStringCost,
         mockOptions,
@@ -92,10 +92,10 @@ describe('OutputHandler', () => {
       expect(logger.info).toHaveBeenCalledWith('Review completed successfully');
       expect(logger.info).toHaveBeenCalledWith('Estimated cost: $0.10');
     });
-    
+
     it('should save review output to file with object cost format', async () => {
       await handleReviewOutput(mockReviewResultObjectCost, mockOptions, mockOutputBaseDir);
-      
+
       expect(saveReviewOutput).toHaveBeenCalledWith(
         mockReviewResultObjectCost,
         mockOptions,
@@ -110,9 +110,9 @@ describe('OutputHandler', () => {
 
     it('should handle interactive mode', async () => {
       const interactiveOptions = { ...mockOptions, interactive: true };
-      
+
       await handleReviewOutput(mockReviewResultStringCost, interactiveOptions, mockOutputBaseDir);
-      
+
       expect(displayReviewInteractively).toHaveBeenCalledWith(
         mockOutputPath,
         expect.any(String),
@@ -122,29 +122,29 @@ describe('OutputHandler', () => {
 
     it('should handle errors during save', async () => {
       vi.mocked(saveReviewOutput).mockRejectedValue(new Error('Save error'));
-      
+
       await handleReviewOutput(mockReviewResultStringCost, mockOptions, mockOutputBaseDir);
-      
+
       expect(logger.error).toHaveBeenCalledWith('Failed to save review output: Save error');
     });
 
     it('should handle errors during interactive display', async () => {
       const interactiveOptions = { ...mockOptions, interactive: true };
       vi.mocked(displayReviewInteractively).mockRejectedValue(new Error('Display error'));
-      
+
       await handleReviewOutput(mockReviewResultStringCost, interactiveOptions, mockOutputBaseDir);
-      
+
       expect(logger.error).toHaveBeenCalledWith('Failed to display review interactively: Display error');
     });
 
     it('should handle token usage information', async () => {
-      const reviewResultWithTokens = { 
+      const reviewResultWithTokens = {
         ...mockReviewResultStringCost,
         tokenUsage: { input: 100, output: 50, total: 150 }
       };
-      
+
       await handleReviewOutput(reviewResultWithTokens as any, mockOptions, mockOutputBaseDir);
-      
+
       expect(logger.info).toHaveBeenCalledWith('Token usage: 100 input + 50 output = 150 total');
     });
   });

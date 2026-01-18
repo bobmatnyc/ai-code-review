@@ -6,7 +6,7 @@
  * This script reads the version from package.json and generates a TypeScript
  * file that exports the version constant. This ensures a single source of truth
  * for the version and eliminates potential mismatches between package.json and CLI.
- * 
+ *
  * Additionally, this script now manages build numbers to track deployments.
  */
 

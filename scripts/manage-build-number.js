@@ -2,12 +2,12 @@
 
 /**
  * Script to manage build numbers - check, set, or reset.
- * 
+ *
  * Usage:
  *   node scripts/manage-build-number.js           # Show current build info
  *   node scripts/manage-build-number.js --reset   # Reset build number to 0
  *   node scripts/manage-build-number.js --set 5   # Set build number to 5
- * 
+ *
  * WHY: Provides administrative control over build numbers for
  * troubleshooting and deployment verification.
  */
@@ -48,10 +48,10 @@ if (shouldReset) {
     version: currentVersion,
     lastBuild: new Date().toISOString()
   };
-  
+
   fs.writeFileSync(buildNumberPath, JSON.stringify(newInfo, null, 2));
   console.log(`✅ Build number reset to 0 for version ${currentVersion}`);
-  
+
 } else if (shouldSet && newBuildNumber !== null && !isNaN(newBuildNumber)) {
   // Set build number to specific value
   const newInfo = {
@@ -59,21 +59,21 @@ if (shouldReset) {
     version: currentVersion,
     lastBuild: new Date().toISOString()
   };
-  
+
   fs.writeFileSync(buildNumberPath, JSON.stringify(newInfo, null, 2));
   console.log(`✅ Build number set to ${newBuildNumber} for version ${currentVersion}`);
-  
+
 } else {
   // Display current build info
   console.log('\n📦 Build Number Information:');
   console.log('----------------------------');
-  
+
   if (buildInfo) {
     console.log(`Current Version:  ${buildInfo.version}`);
     console.log(`Build Number:     ${buildInfo.buildNumber}`);
     console.log(`Last Build:       ${buildInfo.lastBuild}`);
     console.log(`Display Format:   ${buildInfo.version} (build ${buildInfo.buildNumber})`);
-    
+
     // Check if version matches package.json
     if (buildInfo.version !== currentVersion) {
       console.log('\n⚠️  Warning: Version mismatch!');
@@ -86,7 +86,7 @@ if (shouldReset) {
     console.log(`Package version: ${currentVersion}`);
     console.log('Build number will be 0 on next build.');
   }
-  
+
   console.log('\nUsage:');
   console.log('  node scripts/manage-build-number.js           # Show current info');
   console.log('  node scripts/manage-build-number.js --reset   # Reset to 0');

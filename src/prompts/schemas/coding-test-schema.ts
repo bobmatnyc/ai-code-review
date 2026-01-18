@@ -246,7 +246,7 @@ export function getCodingTestSchemaAsString(): string {
     "version": "1.0",
     "timestamp": "2024-07-09T12:00:00Z",
     "candidateId": "candidate-123",
-    
+
     "assignment": {
       "title": "E-commerce API Development",
       "description": "Build a RESTful API for an e-commerce platform with user authentication, product catalog, and order management",
@@ -261,16 +261,16 @@ export function getCodingTestSchemaAsString(): string {
       "timeLimit": 240,
       "actualTime": 180
     },
-    
+
     "toolVersion": "4.3.1",
-    
+
     "score": {
       "total": 78,
       "maxScore": 100,
       "percentage": 78,
       "status": "pass",
       "passingThreshold": 70,
-      
+
       "correctness": {
         "score": 25,
         "maxScore": 30,
@@ -296,7 +296,7 @@ export function getCodingTestSchemaAsString(): string {
           }
         ]
       },
-      
+
       "codeQuality": {
         "score": 20,
         "maxScore": 25,
@@ -315,7 +315,7 @@ export function getCodingTestSchemaAsString(): string {
         ]
       }
     },
-    
+
     "evaluation": {
       "overallSummary": "Strong technical solution with solid implementation of core requirements. Code quality is good but could be enhanced with better documentation and more modular design.",
       "hiringRecommendation": "recommend",
@@ -337,7 +337,7 @@ export function getCodingTestSchemaAsString(): string {
         "Performance optimization techniques"
       ]
     },
-    
+
     "technicalAnalysis": {
       "languageDetected": "typescript",
       "frameworkDetected": "express",
@@ -353,7 +353,7 @@ export function getCodingTestSchemaAsString(): string {
         "cognitiveComplexity": 3.8
       }
     },
-    
+
     "feedback": {
       "level": "comprehensive",
       "overallFeedback": "Your solution demonstrates strong technical competence with a solid understanding of API development principles. The code is well-structured and follows many best practices.",
@@ -387,7 +387,7 @@ export function getCodingTestSchemaAsString(): string {
         }
       ]
     },
-    
+
     "assessmentContext": {
       "reviewType": "coding-test",
       "model": "claude-3-sonnet",

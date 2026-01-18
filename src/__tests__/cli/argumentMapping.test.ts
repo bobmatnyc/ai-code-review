@@ -348,16 +348,16 @@ describe('CLI Argument Mapping Integration Tests', () => {
    */
   describe('Error Handling', () => {
     let consoleSpy: any;
-    
+
     beforeEach(() => {
       // Spy on console.error to silence it in tests
       consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     });
-    
+
     afterEach(() => {
       consoleSpy.mockRestore();
     });
-    
+
     it('should catch and log errors from orchestrateReview', async () => {
       const options = {
         type: 'quick-fixes',

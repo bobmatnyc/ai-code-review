@@ -80,7 +80,7 @@ function findDuplicateUsers(users: User[]): User[] {
 function findDuplicateUsers(users: User[]): User[] {
   const emailMap = new Map<string, User>();
   const duplicates = new Set<User>();
-  
+
   for (const user of users) {
     if (emailMap.has(user.email)) {
       duplicates.add(emailMap.get(user.email)!);
@@ -89,7 +89,7 @@ function findDuplicateUsers(users: User[]): User[] {
       emailMap.set(user.email, user);
     }
   }
-  
+
   return Array.from(duplicates);
 }
 
@@ -108,7 +108,7 @@ function calculateUserScores(users: User[]): UserScore[] {
     const { id } = user;
     const { name } = user.profile.personalInfo;
     const { performance, engagement } = user.metrics;
-    
+
     return {
       id,
       name,
@@ -150,7 +150,7 @@ interface UserListProps {
 const UserItem = React.memo<{ user: User; onClick: (user: User) => void }>(
   ({ user, onClick }) => {
     const handleClick = useCallback(() => onClick(user), [user, onClick]);
-    
+
     return (
       <div onClick={handleClick}>
         {user.name}
@@ -167,7 +167,7 @@ const UserItem = React.memo<{ user: User; onClick: (user: User) => void }>(
 
 function UserList({ users, onUserClick }: UserListProps) {
   const memoizedCallback = useCallback(onUserClick, []);
-  
+
   return (
     <div>
       {users.map(user => (
@@ -185,13 +185,13 @@ function useUserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [filters, setFilters] = useState({ role: '', department: '' });
-  
+
   // Expensive filtering on every render
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     (!filters.role || user.role === filters.role) &&
     (!filters.department || user.department === filters.department)
   );
-  
+
   return { users, selectedUser, filteredUsers, setUsers, setSelectedUser, setFilters };
 }
 
@@ -200,30 +200,30 @@ function useUserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [filters, setFilters] = useState({ role: '', department: '' });
-  
+
   // Memoized filtering only when dependencies change
   const filteredUsers = useMemo(() => {
     if (!filters.role && !filters.department) return users;
-    
-    return users.filter(user => 
+
+    return users.filter(user =>
       (!filters.role || user.role === filters.role) &&
       (!filters.department || user.department === filters.department)
     );
   }, [users, filters.role, filters.department]);
-  
+
   // Memoized selected user lookup
-  const selectedUser = useMemo(() => 
+  const selectedUser = useMemo(() =>
     users.find(user => user.id === selectedUserId) ?? null,
     [users, selectedUserId]
   );
-  
-  return { 
-    users, 
-    selectedUser, 
-    filteredUsers, 
-    setUsers, 
-    setSelectedUserId, 
-    setFilters 
+
+  return {
+    users,
+    selectedUser,
+    filteredUsers,
+    setUsers,
+    setSelectedUserId,
+    setFilters
   };
 }
 ```
@@ -235,15 +235,15 @@ function useUserManagement() {
 // ❌ Sequential async operations - poor performance
 async function processUserData(userIds: string[]): Promise<ProcessedUser[]> {
   const results: ProcessedUser[] = [];
-  
+
   for (const id of userIds) {
     const user = await fetchUser(id); // Waits for each request
     const profile = await fetchUserProfile(id);
     const metrics = await fetchUserMetrics(id);
-    
+
     results.push(processUserInfo(user, profile, metrics));
   }
-  
+
   return results;
 }
 
@@ -251,10 +251,10 @@ async function processUserData(userIds: string[]): Promise<ProcessedUser[]> {
 async function processUserData(userIds: string[]): Promise<ProcessedUser[]> {
   const BATCH_SIZE = 10; // Prevent overwhelming the system
   const results: ProcessedUser[] = [];
-  
+
   for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
     const batch = userIds.slice(i, i + BATCH_SIZE);
-    
+
     const batchResults = await Promise.allSettled(
       batch.map(async (id) => {
         try {
@@ -264,7 +264,7 @@ async function processUserData(userIds: string[]): Promise<ProcessedUser[]> {
             fetchUserProfile(id),
             fetchUserMetrics(id)
           ]);
-          
+
           return processUserInfo(user, profile, metrics);
         } catch (error) {
           console.error(`Failed to process user ${id}:`, error);
@@ -272,17 +272,17 @@ async function processUserData(userIds: string[]): Promise<ProcessedUser[]> {
         }
       })
     );
-    
+
     // Filter out failed requests
     const successfulResults = batchResults
-      .filter((result): result is PromiseFulfilledResult<ProcessedUser> => 
+      .filter((result): result is PromiseFulfilledResult<ProcessedUser> =>
         result.status === 'fulfilled' && result.value !== null
       )
       .map(result => result.value);
-    
+
     results.push(...successfulResults);
   }
-  
+
   return results;
 }
 ```
@@ -293,7 +293,7 @@ async function processUserData(userIds: string[]): Promise<ProcessedUser[]> {
 async function processLargeFile(filePath: string): Promise<ProcessedData[]> {
   const fileContent = await fs.readFile(filePath, 'utf8');
   const lines = fileContent.split('\n');
-  
+
   return lines.map(line => processLine(line));
 }
 
@@ -308,7 +308,7 @@ async function processLargeFile(filePath: string): Promise<ProcessedData[]> {
     input: fileStream,
     crlfDelay: Infinity
   });
-  
+
   for await (const line of rl) {
     try {
       const processed = processLine(line);
@@ -317,7 +317,7 @@ async function processLargeFile(filePath: string): Promise<ProcessedData[]> {
       console.warn(`Failed to process line: ${line}`, error);
     }
   }
-  
+
   return results;
 }
 
@@ -328,7 +328,7 @@ async function* processLargeFileStream(filePath: string): AsyncGenerator<Process
     input: fileStream,
     crlfDelay: Infinity
   });
-  
+
   for await (const line of rl) {
     try {
       yield processLine(line);
@@ -479,7 +479,7 @@ export const utilityA = () => { /* ... */ };
 export const utilityB = () => { /* ... */ };
 
 // ✅ Dynamic imports for code splitting
-const LazyComponent = React.lazy(() => 
+const LazyComponent = React.lazy(() =>
   import('./ExpensiveComponent').then(module => ({
     default: module.ExpensiveComponent
   }))
@@ -501,11 +501,11 @@ type DeepReadonly<T> = {
 };
 
 // ✅ Optimized with depth limit
-type DeepReadonly<T, Depth extends number = 5> = 
-  Depth extends 0 
+type DeepReadonly<T, Depth extends number = 5> =
+  Depth extends 0
     ? T
     : {
-        readonly [P in keyof T]: T[P] extends object 
+        readonly [P in keyof T]: T[P] extends object
           ? DeepReadonly<T[P], Prev<Depth>>
           : T[P];
       };
@@ -516,7 +516,7 @@ type DeepReadonly<T, Depth extends number = 5> =
 // ❌ N+1 query problem
 async function getUsersWithPosts(): Promise<UserWithPosts[]> {
   const users = await User.findAll();
-  
+
   return Promise.all(users.map(async user => ({
     ...user,
     posts: await Post.findAll({ where: { userId: user.id } }) // N queries

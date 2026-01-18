@@ -62,7 +62,7 @@ type UserId = string & { readonly brand: unique symbol };
 type SanitizedHTML = string & { readonly brand: unique symbol };
 
 // ✅ SECURE: Discriminated unions for input validation
-type ApiResponse = 
+type ApiResponse =
   | { status: 'success'; data: UserData }
   | { status: 'error'; error: string };
 
