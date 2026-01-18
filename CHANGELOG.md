@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [4.6.4] - 2026-01-18
 
+### Changes
+- docs: update CHANGELOG for v4.6.4 security release (66d6430)
+- chore: fix trailing whitespace and end-of-file issues (#84) (d719852)
+- fix(hooks): resolve pre-commit configuration issues (5e910fc)
+- fix(security): update vulnerable dependencies (fixes #82) (#83) (02584c5)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.4
+```
+
+
+## [4.6.4] - 2026-01-18
+
 ### Security
 - **CRITICAL**: Fixed 6 critical security vulnerabilities in dependencies (#82)
   - Removed unused `langchain` package (0 imports in codebase)
