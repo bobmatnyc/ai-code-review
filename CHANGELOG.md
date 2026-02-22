@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.7] - 2026-02-22
+
+### Changed
+- **Prompt System Modernization** (#90): Major cleanup and optimization of the entire prompt template system
+  - **Token Optimization**: ~45% reduction in analysis section tokens across 8 core prompts (~975 tokens saved per invocation)
+  - **Output Format Standardization**: All review types now use consistent structured JSON schema with unified severity scale (CRITICAL/HIGH/MEDIUM/LOW/INFO), confidence scoring (0.0-1.0), and unique finding ID prefixes (SEC-, PERF-, QF-, ARCH-, BP-, etc.)
+  - **Outdated Content Audit**: Fixed 127 outdated references across 87 template files
+  - **Framework Versions**: Updated all 14 frameworks to current releases (React 19, Next.js 15, Angular 19, Django 5.2, Rails 8, Laravel 12, etc.), fixed 10+ expired `supportedUntil` dates, added Svelte 5, Express 5, NestJS 11
+  - **Language Versions**: Updated Go 1.23, Rust 2024 edition, Java 23+, Python 3.13, Ruby 3.4, PHP 8.4, Node.js 20+
+  - **Security Modernization**: Added supply chain security, AI/ML security (OWASP Top 10 for LLMs), API security, and container security sections; updated OWASP references to "latest edition"
+  - **Tooling Updates**: typescript-eslint 8.x+, eslint-plugin-react-hooks 5.x+
+
+### Upcoming
+- **AI Code Analysis Integration**: Enhanced code analysis capabilities coming via [mcp-vector-search](https://github.com/bobmatnyc/mcp-vector-search) integration — combining vector search, knowledge graphs, and this project's specialized review prompts for deeper, context-aware code analysis
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.7
+```
+
+
 ## [4.6.6] - 2026-02-22
 
 ### Changes

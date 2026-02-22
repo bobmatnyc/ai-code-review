@@ -1,6 +1,16 @@
-# AI Code Review v4.6.0
+# AI Code Review v4.6.7
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
+
+> **Coming Soon**: Enhanced AI code analysis via [mcp-vector-search](https://github.com/bobmatnyc/mcp-vector-search) integration — combining vector search, knowledge graphs, and specialized review prompts for deeper, context-aware code analysis.
+
+## What's New in v4.6.7
+
+### Prompt System Modernization (#90)
+- **~45% token reduction** on core prompts — saves API costs on every review
+- **Standardized output format** across all 15+ review types (consistent severity scale, confidence scoring, finding IDs)
+- **Updated to 2026 standards**: OWASP latest edition, modern security threats (supply chain, AI/ML, API, container security), current framework/language versions
+- **Framework updates**: React 19, Next.js 15, Django 5.2, Rails 8, Laravel 12, and 10+ more
 
 ## What's New in v4.6.0
 
