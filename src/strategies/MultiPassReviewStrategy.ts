@@ -351,6 +351,73 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
     // Set the initial processing phase
     newProgressTracker.setPhase('processing');
 
+    // Check if ALL passes failed before proceeding - detect silent API failure cascade
+    const totalPassCount = chunks.length;
+    const errorPassCount = consolidatedResult.content.split('## Error in Pass').length - 1;
+    const allPassesFailed = errorPassCount >= totalPassCount && totalPassCount > 0;
+
+    if (allPassesFailed) {
+      logger.warn(
+        `[MultiPass] WARNING: All ${totalPassCount} passes failed to produce valid API results!`,
+      );
+      logger.warn(
+        `[MultiPass] This usually indicates an API key issue, invalid model name, or network problem.`,
+      );
+      logger.warn(
+        `[MultiPass] Check your API key and model configuration. Run with --debug for more details.`,
+      );
+
+      // Extract individual error messages from each failed pass for user visibility
+      const passErrorMessages = chunks.map((_, idx) => {
+        const passNum = idx + 1;
+        const passSection = consolidatedResult.content
+          .split('## Error in Pass')
+          .find((s) => s.startsWith(` ${passNum}\n`));
+        if (passSection) {
+          const errorLine = passSection
+            .split('\n')
+            .find((line) => line.startsWith('Error:'));
+          return `- Pass ${passNum}: ${errorLine ? errorLine.replace('Error: ', '') : 'Unknown error'}`;
+        }
+        return `- Pass ${passNum}: Failed`;
+      });
+
+      const allFailedContent = `# Review Failed: All API Calls Returned Errors
+
+## What Happened
+
+All ${totalPassCount} passes of the multi-pass review failed to produce valid results from the API. This is not a code issue — it indicates a problem with the API connection.
+
+## Pass Failures
+
+${passErrorMessages.join('\n')}
+
+## Suggested Actions
+
+1. **Check your API key**: Verify the \`AI_CODE_REVIEW_OPENROUTER_API_KEY\` environment variable is set and valid.
+2. **Verify your model**: Ensure the selected model is available via OpenRouter. Run \`ai-code-review --listmodels\` to see available models.
+3. **Check rate limits**: You may have exceeded API rate limits. Wait a moment and retry.
+4. **Enable debug logging**: Run with \`--debug\` to see detailed API response information.
+5. **Test connectivity**: Run \`ai-code-review test-model\` to validate API connectivity.
+
+## Raw Pass Output
+
+${consolidatedResult.content}`;
+
+      newProgressTracker.complete();
+      return {
+        ...consolidatedResult,
+        content: allFailedContent,
+      };
+    }
+
+    // Warn about partial failures
+    if (errorPassCount > 0) {
+      logger.warn(
+        `[MultiPass] ${errorPassCount} of ${totalPassCount} passes failed. Continuing with ${totalPassCount - errorPassCount} successful passes.`,
+      );
+    }
+
     // Add a summary section based on token analysis
     const initialSummary = this.generateMultiPassSummary(
       consolidatedResult,
@@ -371,7 +438,7 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
 
     // Check if we have enough valid content to consolidate
     const validPassCount = consolidatedResult.content.split('## Pass').length - 1;
-    const errorPassCount = consolidatedResult.content.split('## Error in Pass').length - 1;
+    const remainingErrorPassCount = consolidatedResult.content.split('## Error in Pass').length - 1;
 
     if (validPassCount === 0) {
       logger.error('No valid passes to consolidate - all passes failed');
@@ -379,8 +446,8 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
         ...consolidatedResult,
         content: `# Review Failed\n\nAll ${totalPasses} passes failed to generate valid reviews. Please check the logs for details.\n\n${consolidatedResult.content}`,
       };
-    } else if (errorPassCount > validPassCount * 0.5) {
-      logger.warn(`High error rate: ${errorPassCount}/${totalPasses} passes failed`);
+    } else if (remainingErrorPassCount > validPassCount * 0.5) {
+      logger.warn(`High error rate: ${remainingErrorPassCount}/${totalPasses} passes failed`);
     }
 
     try {
