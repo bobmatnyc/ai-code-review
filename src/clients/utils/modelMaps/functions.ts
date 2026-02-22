@@ -17,6 +17,7 @@ import {
  */
 const DEFAULT_CONTEXT_WINDOWS: Record<string, number> = {
   gemini: 1_048_576,
+  google: 1_048_576, // Alias for gemini provider
   anthropic: 200_000,
   openai: 128_000,
   openrouter: 128_000,
@@ -27,6 +28,7 @@ const DEFAULT_CONTEXT_WINDOWS: Record<string, number> = {
  */
 const DEFAULT_OUTPUT_LIMITS: Record<string, number> = {
   gemini: 8192,
+  google: 8192, // Alias for gemini provider
   anthropic: 8192,
   openai: 16384,
   openrouter: 8192,
@@ -153,6 +155,7 @@ export function getEnhancedModelMapping(modelKey: string): EnhancedModelMapping 
   // Get provider-specific API key env var
   const apiKeyEnvVarMap: Record<string, string> = {
     gemini: 'AI_CODE_REVIEW_GOOGLE_API_KEY',
+    google: 'AI_CODE_REVIEW_GOOGLE_API_KEY', // Alias for gemini provider
     anthropic: 'AI_CODE_REVIEW_ANTHROPIC_API_KEY',
     openai: 'AI_CODE_REVIEW_OPENAI_API_KEY',
     openrouter: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
