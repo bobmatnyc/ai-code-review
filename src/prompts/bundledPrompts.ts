@@ -24,20 +24,16 @@ export const bundledPrompts: Record<string, Record<string, string>> = {
   generic: {
     architectural: `# Architectural Code Review
 
-You are an expert software architect performing a comprehensive architectural review of a codebase.
+Analyze code architecture focusing on:
 
-## Your Task
-
-Analyze the provided code from an architectural perspective, focusing on:
-
-1. **Overall Architecture**: Identify the architectural patterns and evaluate their appropriateness
-2. **Component Structure**: Assess how the code is organized into components, modules, or services
-3. **Dependency Management**: Evaluate how dependencies are managed and injected
-4. **Separation of Concerns**: Check if responsibilities are properly separated
-5. **Code Reusability**: Identify opportunities for better code reuse
-6. **Scalability Considerations**: Assess how well the architecture would scale
-7. **Maintainability**: Evaluate how easy the codebase would be to maintain and extend
-8. **Package Integration**: Identify opportunities to leverage established OSS packages to enhance the codebase
+- **Overall Architecture**: Patterns and their appropriateness
+- **Component Structure**: Organization into components, modules, or services
+- **Dependency Management**: How dependencies are managed and injected
+- **Separation of Concerns**: Whether responsibilities are properly separated
+- **Code Reusability**: Opportunities for better code reuse
+- **Scalability**: How well the architecture would scale
+- **Maintainability**: Ease of maintenance and extension
+- **Package Integration**: Opportunities to leverage established OSS packages
 
 ## Output Format
 
@@ -72,22 +68,14 @@ Prioritized list of architectural improvements, ordered by impact and effort. Wh
 
     'quick-fixes': `# Quick Fixes Code Review
 
-You are an expert software developer performing a code review focused on quick, high-impact improvements.
+Identify quick, high-impact improvements that don't require major architectural changes:
 
-## Your Task
-
-Analyze the provided code and identify issues that:
-1. Can be fixed relatively easily
-2. Would have a meaningful impact on code quality, readability, or performance
-3. Don't require major architectural changes
-
-Focus on:
 - Code style and formatting issues
 - Simple logic errors or bugs
 - Obvious performance optimizations
-- Straightforward improvements to readability
+- Readability improvements
 - Small-scale refactoring opportunities
-- Potential edge cases that aren't handled
+- Unhandled edge cases
 
 {{CI_DATA}}
 
@@ -124,34 +112,27 @@ IMPORTANT: Include fixes for any TypeScript compilation errors or ESLint violati
 
     consolidated: `# Consolidated Code Review
 
-You are a senior software developer performing a comprehensive consolidated review of a codebase.
+Analyze comprehensively and report by priority across:
 
-## Your Task
-
-Analyze the provided code comprehensively and provide a single consolidated response organized by priority. Focus on:
-
-1. **Code Quality & Bugs**: Identify obvious bugs, logic errors, null/undefined issues, and missing error handling
-2. **Architecture & Structure**: Evaluate code organization, separation of concerns, and modularity
-3. **Security Concerns**: Look for security vulnerabilities, exposed credentials, and input validation issues
-4. **Performance Considerations**: Identify inefficient algorithms, opportunities for optimization
-5. **Documentation & Testing**: Assess code documentation, comments, and test coverage
-6. **Best Practices**: Evaluate adherence to language-specific best practices and patterns
+- **Code Quality & Bugs**: Bugs, logic errors, null/undefined issues, missing error handling
+- **Architecture & Structure**: Code organization, separation of concerns, modularity
+- **Security Concerns**: Vulnerabilities, exposed credentials, input validation
+- **Performance**: Inefficient algorithms, optimization opportunities
+- **Documentation & Testing**: Code documentation, comments, test coverage
+- **Best Practices**: Language-specific best practices and patterns
 
 ## Grading Requirements
 
-Provide a comprehensive grade for the codebase using the standard academic scale (A+ to F):
-
-1. **Overall Grade**: Assign a letter grade reflecting the codebase's overall quality
-2. **Category Grades**: Grade each category:
-   - **Functionality**: How well the code achieves its intended purpose
-   - **Code Quality**: Adherence to best practices and clean code principles
-   - **Documentation**: Quality of comments, README files, and inline documentation
-   - **Testing**: Test coverage, quality, and edge case handling
-   - **Maintainability**: Code organization, modularity, and ease of modification
-   - **Security**: Proper validation, authentication, and security practices
-   - **Performance**: Efficiency of algorithms and resource usage
-
-3. **Grade Justification**: Provide clear rationale for each grade based on specific evidence
+Grade the codebase using the academic scale (A+ to F) for:
+- **Overall Grade**: Letter grade with justification
+- **Category Grades** (each with score and grade):
+  - **Functionality**: Achieves intended purpose
+  - **Code Quality**: Best practices, clean code
+  - **Documentation**: Comments, README, inline docs
+  - **Testing**: Coverage, quality, edge cases
+  - **Maintainability**: Organization, modularity
+  - **Security**: Validation, authentication, security practices
+  - **Performance**: Algorithm efficiency, resource usage
 
 ## Output Format
 
@@ -193,19 +174,15 @@ Prioritized list of improvements, ordered by impact and effort. Include strength
 
     security: `# Security Code Review
 
-You are an expert security engineer performing a comprehensive security review of a codebase.
+Analyze code for security vulnerabilities focusing on:
 
-## Your Task
-
-Analyze the provided code for security vulnerabilities and weaknesses, focusing on:
-
-1. **Input Validation**: Check if all inputs are properly validated
-2. **Authentication & Authorization**: Assess how user identity is verified and access control is implemented
-3. **Data Protection**: Evaluate how sensitive data is handled, stored, and transmitted
-4. **Dependency Security**: Identify potentially vulnerable dependencies
-5. **Common Vulnerabilities**: Look for common security issues like XSS, CSRF, SQL injection, etc.
-6. **Error Handling**: Check if errors are handled securely without leaking sensitive information
-7. **Secure Coding Practices**: Assess adherence to secure coding standards
+- **Input Validation**: All inputs properly validated
+- **Authentication & Authorization**: Identity verification and access control
+- **Data Protection**: Sensitive data handling, storage, and transmission
+- **Dependency Security**: Vulnerable dependencies
+- **Common Vulnerabilities**: XSS, CSRF, SQL injection, command injection, etc.
+- **Error Handling**: Errors handled securely without leaking sensitive info
+- **Secure Coding Practices**: Adherence to secure coding standards
 
 ## Output Format
 
@@ -240,19 +217,15 @@ Prioritized list of security improvements, ordered by severity and exploitabilit
 
     performance: `# Performance Code Review
 
-You are an expert performance engineer performing a comprehensive performance review of a codebase.
+Analyze code for performance issues and optimization opportunities focusing on:
 
-## Your Task
-
-Analyze the provided code for performance issues and optimization opportunities, focusing on:
-
-1. **Algorithmic Efficiency**: Identify inefficient algorithms or data structures
-2. **Resource Usage**: Evaluate CPU, memory, network, and disk usage
-3. **Concurrency**: Assess how parallelism and asynchronous operations are handled
-4. **Caching**: Identify opportunities for caching or improvements to existing caching
-5. **Database Interactions**: Evaluate database queries and data access patterns
-6. **UI Performance**: For frontend code, assess rendering performance
-7. **Load and Scale**: Consider how the code would perform under high load
+- **Algorithmic Efficiency**: Inefficient algorithms or data structures
+- **Resource Usage**: CPU, memory, network, and disk utilization
+- **Concurrency**: Parallelism and asynchronous operation handling
+- **Caching**: Caching opportunities or improvements to existing caching
+- **Database Interactions**: Query efficiency and data access patterns
+- **UI Performance**: Rendering performance for frontend code
+- **Load and Scale**: Performance under high load
 
 ## Output Format
 
@@ -287,25 +260,14 @@ Prioritized list of performance optimizations, ordered by impact and effort.
 
     'unused-code': `# Unused Code Review
 
-You are an expert software developer performing a review focused on identifying unused or dead code.
+Identify unused or dead code including:
+- Unused variables, functions, classes, or modules
+- Dead code paths that can never execute
+- Redundant or duplicate code
+- Commented-out code to remove
+- Deprecated features no longer needed
 
-## Your Task
-
-Analyze the provided code to identify:
-1. Unused variables, functions, classes, or modules
-2. Dead code paths that can never be executed
-3. Redundant or duplicate code
-4. Commented-out code that should be removed
-5. Deprecated features that are no longer needed
-
-## Analysis Approach
-
-For each potential unused code element:
-1. Check for references throughout the codebase
-2. Consider both direct and indirect usage
-3. Assess whether the code is preparing for future use
-4. Evaluate the risk of removal
-5. Provide a confidence level for your assessment
+For each candidate: check references (direct and indirect), assess future-use intent, evaluate removal risk, and provide confidence level.
 
 ## Output Format
 
@@ -341,43 +303,24 @@ Prioritized list of cleanup actions, ordered by confidence and impact.
 
     'best-practices': `# Best Practices Code Review
 
-You are an **expert software engineer** specializing in code quality and design patterns. Perform a detailed review focused on adherence to established best practices and patterns.
-
 {{LANGUAGE_INSTRUCTIONS}}
 
-## Analysis Focus
-
-Evaluate the code against the following best practices categories:
+Evaluate adherence to best practices across:
 
 ### 1. Code Organization & Structure
-- Appropriate file and directory organization
-- Clear separation of concerns
-- Consistent naming conventions
-- Logical grouping of related functionality
+- File/directory organization, separation of concerns, naming conventions, logical grouping
 
 ### 2. Design Patterns & Architecture
-- Appropriate use of common design patterns
-- Clean interfaces and abstractions
-- Dependency management and injection
-- Component reusability and modularity
+- Common design patterns, clean interfaces, dependency injection, component reusability
 
 ### 3. Error Handling & Robustness
-- Comprehensive error handling
-- Graceful failure modes
-- Input validation and defensive programming
-- Edge case handling
+- Error handling, graceful failures, input validation, edge cases
 
 ### 4. Performance Optimization
-- Appropriate algorithms and data structures
-- Efficient resource usage
-- Caching and memoization where applicable
-- Avoidance of common performance anti-patterns
+- Algorithm and data structure selection, resource efficiency, caching, anti-pattern avoidance
 
 ### 5. Maintainability & Readability
-- Self-documenting code with appropriate comments
-- Consistent and clear formatting
-- Avoidance of code smells and anti-patterns
-- Testability and debug-friendly structure
+- Self-documenting code, consistent formatting, avoidance of code smells, testability
 
 ## Output Format
 
@@ -680,51 +623,37 @@ NOTE: This assessment is based solely on code analysis patterns. No code improve
 
     comprehensive: `# Comprehensive Code Review
 
-You are an **expert software engineer and architect** performing a comprehensive code review that combines multiple analysis perspectives in a single thorough assessment.
+Analyze code across all perspectives in a single review:
 
-## Your Task
-
-Analyze the provided code from **all** of the following perspectives in a single comprehensive review:
-
-1. **Quick Fixes & Best Practices** - Immediate improvements and coding standards
-2. **Security Analysis** - Vulnerabilities, security patterns, and risk assessment
-3. **Performance Review** - Optimization opportunities and performance bottlenecks
-4. **Architectural Assessment** - Design patterns, structure, and maintainability
-
-## Comprehensive Analysis Framework
-
-### 1. Quick Fixes & Best Practices Analysis
-- **Code Quality Issues**: Syntax, formatting, naming conventions, and style
-- **Language-Specific Patterns**: Proper use of language features and idioms
-- **Error Handling**: Exception handling, validation, and defensive programming
-- **Code Organization**: File structure, imports, exports, and modularity
-- **Documentation**: Comments, inline documentation, and code clarity
-- **Testing Patterns**: Test structure, coverage, and quality
+### 1. Quick Fixes & Best Practices
+- Code quality: syntax, formatting, naming, style
+- Language-specific patterns and idioms
+- Error handling: exceptions, validation, defensive programming
+- Code organization: file structure, imports, modularity
+- Documentation and code clarity
+- Testing: structure, coverage, quality
 
 ### 2. Security Analysis
-- **Input Validation**: User input sanitization and validation
-- **Authentication & Authorization**: Access control and permission handling
-- **Data Protection**: Sensitive data handling, encryption, and storage
-- **Injection Vulnerabilities**: SQL injection, XSS, command injection
-- **Dependency Security**: Third-party library vulnerabilities
-- **Configuration Security**: Secure configuration and secrets management
+- Input validation and sanitization
+- Authentication and authorization: access control, permissions
+- Data protection: sensitive data, encryption, storage
+- Injection vulnerabilities: SQL, XSS, command injection
+- Dependency security: third-party vulnerabilities
+- Configuration security: secrets management
 
 ### 3. Performance Analysis
-- **Algorithmic Efficiency**: Time and space complexity optimization
-- **Resource Management**: Memory usage, file handles, and cleanup
-- **Database Performance**: Query optimization and connection management
-- **Caching Strategies**: Data caching and performance optimization
-- **Async Operations**: Proper async/await patterns and concurrency
-- **Network Performance**: API calls, data transfer, and latency
+- Algorithmic efficiency: time and space complexity
+- Resource management: memory, file handles, cleanup
+- Database: query optimization, connection management
+- Caching strategies
+- Async operations and concurrency
+- Network: API calls, data transfer, latency
 
 ### 4. Architectural Assessment
-- **Design Patterns**: Proper implementation of design patterns
-- **Separation of Concerns**: Clear boundaries between different responsibilities
-- **Dependency Management**: Coupling, cohesion, and dependency injection
-- **Extensibility**: How easily the code can be extended or modified
-- **Maintainability**: Code readability, structure, and long-term sustainability
-
-This comprehensive review should provide a complete picture of the codebase's health and a clear roadmap for improvement across all critical dimensions.
+- Design pattern implementation
+- Separation of concerns
+- Dependency management: coupling, cohesion, injection
+- Extensibility and maintainability
 
 {{LANGUAGE_INSTRUCTIONS}}
 
