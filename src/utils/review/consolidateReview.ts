@@ -560,6 +560,65 @@ function createFallbackConsolidation(review: ReviewResult): string {
   // Extract project name
   const projectName = review.projectName || 'ai-code-review';
 
+  // Detect if ALL pass content consists only of error results (i.e., every API call failed)
+  // Error passes are formatted as "## Error in Pass N" by MultiPassReviewStrategy
+  const errorPassMatches = review.content.match(/## Error in Pass (\d+)/g) || [];
+  const normalPassMatches = review.content.match(/## Pass (\d+): Review of/g) || [];
+
+  // All passes failed when we have error sections but no normal pass sections with review content
+  // OR when the count of error passes equals or exceeds the count of normal pass headers
+  const allPassesAreErrors =
+    errorPassMatches.length > 0 &&
+    (normalPassMatches.length === 0 || errorPassMatches.length >= normalPassMatches.length);
+
+  if (allPassesAreErrors) {
+    logger.warn(
+      `[CONSOLIDATION] All ${errorPassMatches.length} passes returned error content - generating error summary instead of empty findings report`,
+    );
+
+    // Extract error messages from each failed pass for the summary
+    const errorPassRegex = /## Error in Pass (\d+)\n\n([\s\S]*?)(?=## Error in Pass \d+|## Pass \d+|$)/g;
+    const failedPasses: { passNumber: number; error: string }[] = [];
+    let errorMatch: RegExpExecArray | null;
+    while ((errorMatch = errorPassRegex.exec(review.content)) !== null) {
+      const [, passNumberStr, errorContent] = errorMatch;
+      // Extract the Error: line if present
+      const errorLine = errorContent.split('\n').find((line) => line.startsWith('Error:'));
+      failedPasses.push({
+        passNumber: parseInt(passNumberStr, 10),
+        error: errorLine ? errorLine.replace('Error: ', '').trim() : errorContent.substring(0, 100).trim(),
+      });
+    }
+
+    const passErrorList =
+      failedPasses.length > 0
+        ? failedPasses.map((p) => `- Pass ${p.passNumber}: ${p.error}`).join('\n')
+        : errorPassMatches.map((m) => `- ${m.replace('##', '').trim()}: API call failed`).join('\n');
+
+    return `# Consolidated ${review.reviewType.charAt(0).toUpperCase() + review.reviewType.slice(1)} Review Report: ${projectName}
+
+## Review Status: FAILED
+
+All API passes failed to return valid results. No findings could be extracted.
+
+## Failed Passes
+
+${passErrorList}
+
+## Suggested Actions
+
+1. **Check your API key**: Verify your API key environment variable is set correctly and has not expired.
+2. **Verify model availability**: Ensure the selected model (${review.modelUsed || 'unknown'}) is available and you have access to it.
+3. **Check rate limits**: You may have exceeded API rate limits. Wait and retry.
+4. **Enable debug logging**: Re-run with \`--debug\` to see detailed HTTP response information from the API.
+5. **Test your connection**: Run \`ai-code-review test-model\` to validate API connectivity before re-running the review.
+
+## Raw Error Output
+
+${review.content}
+`;
+  }
+
   // Extract key information from each pass - more flexible regex
   const passRegex = /## Pass (\d+): Review of (\d+) Files([\s\S]*?)(?=## Pass \d+:|$)/g;
   const passes: { passNumber: number; fileCount: number; content: string }[] = [];

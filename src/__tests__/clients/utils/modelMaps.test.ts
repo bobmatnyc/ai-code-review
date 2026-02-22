@@ -434,6 +434,19 @@ describe('Model Maps - Fallback for Unknown Models', () => {
       expect(mapping?.apiKeyEnvVar).toBe('AI_CODE_REVIEW_GOOGLE_API_KEY');
     });
 
+    it('should return fallback config for google provider alias (issue #86)', () => {
+      const mapping = getEnhancedModelMapping('google:gemini-3.1-pro-preview');
+      expect(mapping).toBeDefined();
+      expect(mapping?.apiIdentifier).toBe('gemini-3.1-pro-preview');
+      expect(mapping?.contextWindow).toBe(1_048_576); // Should use Gemini's 1M+ limit, not 100k fallback
+      expect(mapping?.outputLimit).toBe(8192);
+      expect(mapping?.provider).toBe('google');
+      expect(mapping?.displayName).toBe('gemini-3.1-pro-preview');
+      expect(mapping?.description).toContain('Unknown model');
+      expect(mapping?.supportsToolCalling).toBe(false); // Conservative default
+      expect(mapping?.apiKeyEnvVar).toBe('AI_CODE_REVIEW_GOOGLE_API_KEY');
+    });
+
     it('should return fallback config for unknown anthropic model', () => {
       const mapping = getEnhancedModelMapping('anthropic:claude-99');
       expect(mapping).toBeDefined();

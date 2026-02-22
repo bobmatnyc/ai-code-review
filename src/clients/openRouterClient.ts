@@ -51,12 +51,14 @@ function getMaxTokensForReviewType(
   switch (reviewType) {
     case 'consolidated':
       return undefined; // No limit for consolidated reviews to avoid truncation
+    case 'comprehensive':
+      return undefined; // No limit for comprehensive reviews - they produce large, detailed output
     case 'architectural':
-      return 8000; // Architectural reviews can be detailed
+      return 16384; // Architectural reviews can be detailed
     case 'security':
-      return 8000; // Security reviews can be detailed
+      return 16384; // Security reviews can be detailed
     case 'performance':
-      return 8000; // Performance reviews can be detailed
+      return 16384; // Performance reviews can be detailed
     case 'quick-fixes':
       return 8000; // Quick fixes can be substantial for large codebases
     default:
@@ -274,6 +276,14 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
       if (!response.ok) {
         const errorData = await response.json();
 
+        // Log HTTP errors at warn level so users can see failures without --debug
+        logger.warn(
+          `[OpenRouter] API request failed: HTTP ${response.status} ${response.statusText} for model ${modelName}`,
+        );
+        logger.warn(
+          `[OpenRouter] Error response: ${JSON.stringify(errorData).substring(0, 500)}`,
+        );
+
         // Check for token limit errors
         const errorMessage = JSON.stringify(errorData).toLowerCase();
         if (
@@ -459,7 +469,6 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         () => content,
       ];
 
-      let _jsonContent = null;
       for (const strategy of jsonExtractionStrategies) {
         try {
           const extracted = strategy();
@@ -469,7 +478,6 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
             // Validate that it has the expected structure
             if (structuredData && typeof structuredData === 'object') {
-              _jsonContent = extracted;
               logger.debug('Successfully extracted and parsed JSON');
               break;
             }
@@ -647,6 +655,14 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // Log HTTP errors at warn level so users can see failures without --debug
+        logger.warn(
+          `[OpenRouter] API request failed: HTTP ${response.status} ${response.statusText} for model ${modelName}`,
+        );
+        logger.warn(
+          `[OpenRouter] Error response: ${JSON.stringify(errorData).substring(0, 500)}`,
+        );
 
         // Check for token limit errors
         const errorMessage = JSON.stringify(errorData).toLowerCase();
@@ -828,7 +844,6 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         () => content,
       ];
 
-      let _jsonContent = null;
       for (const strategy of jsonExtractionStrategies) {
         try {
           const extracted = strategy();
@@ -838,7 +853,6 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
 
             // Validate that it has the expected structure
             if (structuredData && typeof structuredData === 'object') {
-              _jsonContent = extracted;
               logger.debug('Successfully extracted and parsed JSON');
               break;
             }
