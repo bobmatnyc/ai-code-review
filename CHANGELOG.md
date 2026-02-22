@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.6] - 2026-02-22
+
+### Changes
+- Merge pull request #88 from bobmatnyc/fix/issue-86-openrouter-context-window (118a6e7)
+- fix: infer correct context window for OpenRouter-proxied models (#86) (966c54d)
+- Merge pull request #87 from bobmatnyc/fix/issue-86-and-silent-review-failures (317ba6d)
+- fix: surface API failures in comprehensive review instead of empty report (8eb2c1e)
+- fix: add 'google' provider alias for Gemini models (#86) (6eed77d)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.6
+```
+
+
 ## [4.6.5] - 2026-01-18
 
 ### Fixed
