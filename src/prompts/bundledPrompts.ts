@@ -41,14 +41,28 @@ Analyze the provided code from an architectural perspective, focusing on:
 
 ## Output Format
 
-Provide your analysis in the following sections:
+Provide your response as structured JSON with the following schema:
 
-1. **Architecture Overview**: A high-level description of the current architecture
-2. **Strengths**: Architectural aspects that are well-implemented
-3. **Areas for Improvement**: Architectural issues that should be addressed
-4. **Recommendations**: Specific suggestions for improving the architecture
-5. **Package Recommendations**: Where appropriate, suggest mature OSS packages that could replace custom implementations
-6. **Code Examples**: Where appropriate, provide code examples to illustrate your recommendations
+### Executive Summary
+- Overall assessment of the codebase architecture
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., ARCH-001, ARCH-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Design Patterns, Component Structure, Dependency Management, Separation of Concerns, Code Reusability, Scalability, Maintainability, Package Integration
+- **description**: Detailed explanation of the issue
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and potential consequences
+- **recommendation**: Specific, actionable fix with code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of architectural improvements, ordered by impact and effort. Where appropriate, include mature OSS packages that could replace custom implementations.
 
 {{LANGUAGE_INSTRUCTIONS}}
 
@@ -79,14 +93,28 @@ Focus on:
 
 ## Output Format
 
-For each issue you identify:
-1. **Issue**: Describe the issue clearly and concisely
-2. **Impact**: Explain why it's a problem and what impact fixing it would have
-3. **Fix**: Provide a specific, actionable fix
-4. **Code**: Include code examples showing before and after the fix
-5. **Priority**: Rate the issue as High, Medium, or Low priority
+Provide your response as structured JSON with the following schema:
 
-Group issues by priority and include a summary of the most critical fixes at the beginning.
+### Executive Summary
+- Overall assessment of quick-fix opportunities in the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., QF-001, QF-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Code Style, Logic Error, Performance, Readability, Refactoring, Edge Cases, Error Handling, TypeScript Errors, Lint Violations
+- **description**: Detailed explanation of the issue
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and what impact fixing it would have
+- **recommendation**: Specific, actionable fix with before/after code examples
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of quick fixes, ordered by impact and effort. Group by severity with the most critical fixes listed first.
 
 IMPORTANT: Include fixes for any TypeScript compilation errors or ESLint violations from the CI data above.
 
@@ -127,13 +155,37 @@ Provide a comprehensive grade for the codebase using the standard academic scale
 
 ## Output Format
 
-Organize your response with:
-1. **Executive Summary**: High-level overview of the codebase quality
-2. **Overall Grade**: Letter grade with justification
-3. **Category Grades**: Individual grades for each category with explanations
-4. **Critical Issues**: High-priority issues that need immediate attention
-5. **Recommendations**: Specific, actionable improvements organized by priority
-6. **Strengths**: Positive aspects of the codebase worth highlighting
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall assessment of the codebase quality
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+- **Overall Grade**: Letter grade (A+ to F) with justification (alongside the 0.0-1.0 score)
+- **Category Grades**: Individual letter grades (A+ to F) for each category with explanations:
+  - **Functionality** score and grade
+  - **Code Quality** score and grade
+  - **Documentation** score and grade
+  - **Testing** score and grade
+  - **Maintainability** score and grade
+  - **Security** score and grade
+  - **Performance** score and grade
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., CRIT-001, CRIT-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Code Quality, Architecture, Security, Performance, Documentation, Testing, Best Practices
+- **description**: Detailed explanation of the issue
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and potential consequences
+- **recommendation**: Specific, actionable fix with code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements, ordered by impact and effort. Include strengths and positive aspects of the codebase.
 
 {{LANGUAGE_INSTRUCTIONS}}
 
@@ -157,14 +209,28 @@ Analyze the provided code for security vulnerabilities and weaknesses, focusing 
 
 ## Output Format
 
-For each security issue you identify:
-1. **Vulnerability**: Describe the vulnerability clearly
-2. **Impact**: Explain the potential impact and risk level
-3. **Remediation**: Provide a specific, actionable fix
-4. **Code Example**: Include code examples where appropriate
-5. **Security Standard**: Reference relevant security standards or best practices
+Provide your response as structured JSON with the following schema:
 
-Include a summary section at the beginning with an overall security assessment and prioritized list of issues.
+### Executive Summary
+- Overall security assessment of the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., SEC-001, SEC-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Input Validation, Authentication, Authorization, Data Protection, Dependency Security, XSS, CSRF, SQL Injection, Command Injection, Secure Configuration, Error Handling, OWASP Top 10
+- **description**: Detailed explanation of the vulnerability
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters, potential attack vectors, and consequences
+- **recommendation**: Specific, actionable remediation with code examples where appropriate. Reference relevant security standards (OWASP, CWE, NIST) where applicable.
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of security improvements, ordered by severity and exploitability.
 
 {{LANGUAGE_INSTRUCTIONS}}
 
@@ -190,14 +256,28 @@ Analyze the provided code for performance issues and optimization opportunities,
 
 ## Output Format
 
-For each performance issue you identify:
-1. **Issue**: Describe the performance issue clearly
-2. **Impact**: Explain why it's a performance concern and estimate the potential impact
-3. **Optimization**: Provide specific, actionable optimization with clear steps
-4. **Code Example**: Include code examples showing before and after the optimization
-5. **Measurement**: Suggest how to measure the impact of the optimization
+Provide your response as structured JSON with the following schema:
 
-Include a summary section with an overall performance assessment and prioritized list of optimizations.
+### Executive Summary
+- Overall performance assessment of the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., PERF-001, PERF-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Algorithmic Efficiency, Resource Usage, Concurrency, Caching, Database, UI Rendering, Network, Memory Management, Load and Scale, Bundle Size
+- **description**: Detailed explanation of the performance issue
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters, estimated performance impact, and potential consequences at scale
+- **recommendation**: Specific, actionable optimization with before/after code examples. Include measurement suggestions where applicable.
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of performance optimizations, ordered by impact and effort.
 
 {{LANGUAGE_INSTRUCTIONS}}
 
@@ -229,15 +309,29 @@ For each potential unused code element:
 
 ## Output Format
 
-For each instance of unused code you identify:
-1. **Element**: Identify the unused code element (variable, function, class, etc.)
-2. **Location**: Provide the file and line number where the element is defined
-3. **Evidence**: Explain your reasoning for believing it's unused
-4. **Confidence**: Rate your confidence level (High, Medium, Low)
-5. **Recommendation**: Suggest whether to remove it or refactor it
-6. **Code**: Include code examples showing what to remove or change
+Provide your response as structured JSON with the following schema:
 
-Include a summary section with the total number of unused elements found, grouped by type and confidence level.
+### Executive Summary
+- Overall assessment of unused/dead code in the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+- Total count of unused elements found, grouped by type
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., UNUSED-001, UNUSED-002)
+- **title**: Brief descriptive title identifying the unused element
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Unused Variable, Unused Function, Unused Class, Unused Import, Unused Module, Dead Code Path, Redundant Code, Commented-Out Code, Deprecated Feature
+- **description**: Detailed explanation of why this element is considered unused, including evidence and reasoning
+- **location**: File path and line number(s) where the element is defined
+- **impact**: Why this matters — maintenance burden, confusion risk, bundle size impact
+- **recommendation**: Specific guidance — whether to remove, refactor, or document the element, with code examples
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are that this is truly unused)
+
+### Recommendations
+Prioritized list of cleanup actions, ordered by confidence and impact.
 
 {{LANGUAGE_INSTRUCTIONS}}
 
@@ -287,14 +381,28 @@ Evaluate the code against the following best practices categories:
 
 ## Output Format
 
-For each area of improvement you identify:
+Provide your response as structured JSON with the following schema:
 
-1. **Issue**: Clearly describe the pattern or practice that could be improved
-2. **Impact**: Explain why this matters (maintainability, performance, readability)
-3. **Recommendation**: Provide specific, actionable guidance with code examples
-4. **Best Practice Reference**: Mention the established pattern or principle this aligns with
+### Executive Summary
+- Overall best-practices assessment of the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
 
-Prioritize your recommendations by impact, focusing on changes that will significantly improve the codebase.
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., BP-001, BP-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Code Organization, Design Patterns, Error Handling, Performance Optimization, Maintainability, Readability, Testing, Documentation, Security Hygiene
+- **description**: Detailed explanation of the pattern or practice that could be improved
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters — maintainability, performance, readability, or team velocity impact
+- **recommendation**: Specific, actionable guidance with code examples and reference to the established pattern or principle
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements, ordered by impact and effort. Balance theoretical best practices with pragmatic considerations for the specific codebase context.
 
 {{CI_DATA}}
 
@@ -477,9 +585,34 @@ YOUR RESPONSE MUST START WITH THE FOLLOWING EXACT TEXT:
 - Respectful disagreement and compromise
 - Focus on team velocity over individual preferences
 
-## Critical Assessment Output
+## Output Format
 
-IMPORTANT: You MUST follow this EXACT output format. Do not deviate from these headers and structure.
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall developer competency assessment (2-3 sentences, frank and direct)
+- Overall confidence score (0.0-1.0)
+- **Technical Competency**: Score 1-10 with one-line justification
+- **Years of Experience**: Estimated range
+- **Developer Level**: Novice | Junior | Mid-Level | Senior | Staff | Principal
+- **Production Readiness**: Ready | Not Ready | Requires Mentorship
+
+### Findings Array
+Each finding represents a specific competency observation and must include:
+- **id**: Unique identifier (e.g., EVAL-001, EVAL-002)
+- **title**: Brief descriptive title of the observed pattern or issue
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO (maps to risk level for production use)
+- **category**: One of: Security Posture, Error Handling, Architecture Maturity, Production Readiness, Code Quality, AI Generation Indicator, Competency Gap, Demonstrated Strength, Team Fit Risk
+- **description**: Detailed explanation of the observed pattern with specific evidence from the code
+- **location**: File path and line number(s) where the pattern was observed
+- **impact**: Why this matters — hiring risk, production risk, or team impact
+- **recommendation**: Specific guidance (supervision requirements, systems to restrict, skills to develop)
+- **effort**: LOW | MEDIUM | HIGH (training/improvement effort required)
+- **confidence**: 0.0-1.0 (how confident you are in this observation)
+
+### Recommendations
+
+IMPORTANT: You MUST also include this EXACT structured assessment section:
 
 ## Developer Competency Evaluation
 
@@ -491,37 +624,28 @@ IMPORTANT: You MUST follow this EXACT output format. Do not deviate from these h
 
 ### Critical Findings
 
-#### 🚨 Red Flags & Risks
-[REQUIRED: List at least 3-5 specific issues found. Be direct and critical. Examples:]
+#### Red Flags & Risks
+[REQUIRED: List at least 3-5 specific CRITICAL/HIGH severity findings. Be direct and critical.]
 - [INSERT SPECIFIC DANGEROUS PATTERN FOUND]
 - [INSERT SECURITY VULNERABILITY OR RISK]
 - [INSERT PRODUCTION-BREAKING ISSUE]
-- [INSERT TEAM/COLLABORATION CONCERN]
-- [INSERT ANOTHER CRITICAL ISSUE]
 
-#### ⚠️ Competency Gaps
-[REQUIRED: List 3-4 specific skill deficiencies. Examples:]
+#### Competency Gaps
+[REQUIRED: List 3-4 specific HIGH/MEDIUM severity skill gaps.]
 - [INSERT MISSING ESSENTIAL SKILL]
 - [INSERT AREA NEEDING IMMEDIATE IMPROVEMENT]
-- [INSERT KNOWLEDGE GAP THAT POSES RISK]
-- [INSERT ANOTHER COMPETENCY GAP]
 
-#### ✓ Demonstrated Strengths
-[OPTIONAL: List 1-2 genuine strengths if any. Keep brief:]
+#### Demonstrated Strengths
+[OPTIONAL: List 1-2 genuine INFO/LOW severity strengths if any. Keep brief.]
 - [INSERT GENUINE STRENGTH IF ANY]
-- [INSERT ANOTHER STRENGTH IF APPLICABLE]
 
 ### AI Code Generation Assessment
 **Likelihood:** [INSERT PERCENTAGE 0-100]%
 **Confidence:** [SELECT: High/Medium/Low]
-
 **Evidence:**
-[REQUIRED: List 3-5 specific AI indicators found:]
 - [INSERT SPECIFIC AI PATTERN DETECTED]
 - [INSERT COPY-PASTE INDICATOR]
 - [INSERT MISSING OPTIMIZATION A HUMAN WOULD ADD]
-- [INSERT ANOTHER AI TELL]
-- [INSERT ADDITIONAL EVIDENCE IF FOUND]
 
 ### Hiring Recommendation
 
@@ -529,25 +653,15 @@ IMPORTANT: You MUST follow this EXACT output format. Do not deviate from these h
 **Appropriate Level:** [INSERT SPECIFIC LEVEL: e.g., Novice, Junior I, Junior II, Mid-Level I, Mid-Level II, Senior I, Senior II, Staff, Principal]
 
 **Conditions/Concerns:**
-[REQUIRED: List specific conditions and restrictions:]
 - [INSERT SPECIFIC CONDITION OR REQUIREMENT]
 - [INSERT SUPERVISION/MENTORSHIP NEEDS]
 - [INSERT SYSTEMS THEY MUST NOT ACCESS]
-- [INSERT OTHER CONCERNS]
 
 ### Critical Context
 
 **Security Posture:** [SELECT ONE: Strong/Adequate/Weak/Dangerous]
-- [INSERT SPECIFIC SECURITY OBSERVATION]
-- [INSERT ANOTHER SECURITY CONCERN]
-
 **Architecture Maturity:** [SELECT GRADE: A/B/C/D/F]
-- [INSERT KEY ARCHITECTURAL ISSUE]
-- [INSERT DESIGN DECISION CONCERN]
-
 **Team Fit Risk:** [SELECT ONE: Low/Medium/High]
-- [INSERT SPECIFIC COLLABORATION ISSUE]
-- [INSERT COMMUNICATION CONCERN]
 
 ### Code Quality Grades
 
@@ -559,12 +673,6 @@ IMPORTANT: You MUST follow this EXACT output format. Do not deviate from these h
 **Code Maintainability:** [GRADE: A/B/C/D/F] - [Brief justification]
 **Performance Awareness:** [GRADE: A/B/C/D/F] - [Brief justification]
 **Error Handling:** [GRADE: A/B/C/D/F] - [Brief justification]
-
-### Executive Summary
-[REQUIRED: Write exactly 2-3 sentences. Be frank and direct about:]
-[Sentence 1: Developer's actual skill level and major weaknesses]
-[Sentence 2: Primary concerns about their code and practices]
-[Sentence 3: Clear recommendation on production system access]
 
 NOTE: This assessment is based solely on code analysis patterns. No code improvements or suggestions have been provided as this is a pure developer evaluation.
 
@@ -692,14 +800,28 @@ Use a 1-10 scale for each criterion, where:
 
 ## Output Format
 
-Structure your assessment as follows:
+Provide your response as structured JSON with the following schema:
 
 ### Executive Summary
 - Overall score and pass/fail status
 - Key strengths and weaknesses
 - Recommendation for hiring level (if applicable)
+- Overall confidence score (0.0-1.0)
 
-### Detailed Evaluation
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., CT-001, CT-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Correctness, Code Quality, Architecture, Performance, Testing, Documentation, Best Practices
+- **description**: Detailed explanation of the issue or observation
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters for the assessment
+- **recommendation**: Specific, actionable improvement with code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Detailed Evaluation (keep scoring structure)
 
 #### Correctness (30% weight)
 - **Score**: X/10
@@ -732,9 +854,10 @@ Structure your assessment as follows:
 - **Areas for Improvement**: [Specific examples]
 
 ### Recommendations
-- High-priority improvements
-- Medium-priority suggestions
-- Best practices to adopt
+Prioritized list of improvements ordered by severity and impact:
+- CRITICAL/HIGH severity findings to address first
+- MEDIUM severity suggestions
+- LOW/INFO best practices to adopt
 - Resources for learning
 
 ### Technical Metrics
@@ -773,13 +896,28 @@ Analyze the provided TypeScript code from an architectural perspective, focusing
 
 ## Output Format
 
-Provide your analysis in the following sections:
+Provide your response as structured JSON with the following schema:
 
-1. **Architecture Overview**: A high-level description of the current architecture
-2. **TypeScript-Specific Strengths**: Architectural aspects that effectively leverage TypeScript
-3. **Areas for Improvement**: Architectural issues that should be addressed
-4. **Recommendations**: Specific suggestions for improving the architecture
-5. **Code Examples**: Where appropriate, provide TypeScript code examples to illustrate your recommendations
+### Executive Summary
+- Overall assessment of the TypeScript codebase architecture
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., ARCH-001, ARCH-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Type System Design, Interface Architecture, Component Structure, Dependency Management, Separation of Concerns, Code Reusability, Scalability, Maintainability, Module Organization
+- **description**: Detailed explanation of the issue
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and potential consequences
+- **recommendation**: Specific, actionable fix with TypeScript code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of architectural improvements, ordered by impact and effort.
 
 This code is written in TYPESCRIPT. Please provide language-specific advice.
 
@@ -823,14 +961,28 @@ Evaluate the code against the following TypeScript-specific best practices:
 
 ## Output Format
 
-For each area of improvement you identify:
+Provide your response as structured JSON with the following schema:
 
-1. **Issue**: Clearly describe the TypeScript-specific pattern or practice that could be improved
-2. **Impact**: Explain why this matters for type safety, maintainability, or performance
-3. **Recommendation**: Provide specific, actionable guidance with TypeScript code examples
-4. **Version/Package Recommendation**: When applicable, recommend specific versions of TypeScript packages or tools
+### Executive Summary
+- Overall TypeScript best-practices assessment of the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
 
-Prioritize your recommendations by impact, focusing on changes that will significantly improve the codebase's type safety and maintainability.
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., BP-001, BP-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Type System Usage, TypeScript Configuration, Modern Features, Dependency Management, Code Organization, Error Handling, Maintainability, Readability
+- **description**: Detailed explanation of the TypeScript-specific pattern or practice that could be improved
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters for type safety, maintainability, or performance
+- **recommendation**: Specific, actionable guidance with TypeScript code examples. When applicable, include specific versions of TypeScript packages or tools.
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements, ordered by impact and effort, focusing on type safety and maintainability.
 
 This code is written in TYPESCRIPT. Please provide language-specific advice.
 
@@ -1006,15 +1158,29 @@ Use a 1-10 scale for each criterion, where:
 
 ## Output Format
 
-Structure your TypeScript assessment as follows:
+Provide your response as structured JSON with the following schema:
 
 ### Executive Summary
 - Overall score and pass/fail status
 - TypeScript skill level assessment
 - Key strengths and weaknesses
 - Recommendation for hiring level
+- Overall confidence score (0.0-1.0)
 
-### Detailed Evaluation
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., CT-001, CT-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Correctness, TypeScript Code Quality, Architecture, Performance, Testing, Type Safety, TypeScript Configuration, Documentation
+- **description**: Detailed explanation of the issue or observation with TypeScript-specific context
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters for the assessment
+- **recommendation**: Specific, actionable TypeScript improvement with code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Detailed Evaluation (keep scoring structure)
 
 #### Correctness (30% weight)
 - **Score**: X/10
@@ -1057,9 +1223,10 @@ Structure your TypeScript assessment as follows:
 - **Professional Practices**: [Evidence of TypeScript best practices]
 
 ### Recommendations
-- High-priority TypeScript improvements
-- Medium-priority TypeScript suggestions
-- TypeScript best practices to adopt
+Prioritized list of improvements ordered by severity and impact:
+- CRITICAL/HIGH severity findings to address first
+- MEDIUM severity TypeScript suggestions
+- LOW/INFO best practices to adopt
 - TypeScript learning resources
 
 ### Technical Metrics
@@ -1140,15 +1307,28 @@ Evaluate the code against the following React+TypeScript-specific best practices
 
 ## Output Format
 
-For each area of improvement you identify:
+Provide your response as structured JSON with the following schema:
 
-1. **Issue**: Clearly describe the React+TypeScript-specific pattern or practice that could be improved
-2. **Impact**: Explain why this matters for type safety, maintainability, or performance
-3. **Recommendation**: Provide specific, actionable guidance with React+TypeScript code examples
-4. **Package Recommendation**: When applicable, recommend specific versions of React+TypeScript packages or tools
-5. **Version Compatibility**: Note which React version(s) your recommendation applies to (19.x, 18.x, or both)
+### Executive Summary
+- Overall React+TypeScript best-practices assessment of the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
 
-Prioritize your recommendations by impact, focusing on changes that will significantly improve the codebase's type safety and maintainability.
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., BP-001, BP-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Component Structure, Hooks Usage, State Management, Type Safety, React Version Compatibility, Dependency Management, Performance, Accessibility
+- **description**: Detailed explanation of the React+TypeScript-specific pattern or practice that could be improved
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters for type safety, maintainability, or performance
+- **recommendation**: Specific, actionable guidance with React+TypeScript code examples. Note which React version(s) the recommendation applies to (19.x, 18.x, or both). When applicable, include specific package versions.
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements, ordered by impact and effort, focusing on type safety and maintainability.
 
 This code is written in TYPESCRIPT for a REACT application. Please provide framework-specific advice.
 
@@ -1207,6 +1387,31 @@ Evaluate the code against the following Flutter+Dart-specific best practices:
 - Theme management and dark mode support
 - Animation best practices and performance
 
+## Output Format
+
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall Flutter+Dart best-practices assessment of the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., BP-001, BP-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Widget Structure, State Management, Dart Language, Performance Optimization, UI/UX Best Practices, Accessibility, Null Safety, Async Patterns, Code Organization
+- **description**: Detailed explanation of the Flutter+Dart-specific pattern or practice that could be improved
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters for performance, maintainability, or user experience
+- **recommendation**: Specific, actionable guidance with Flutter/Dart code examples
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements, ordered by impact and effort.
+
 This code is written in DART for a FLUTTER application. Please provide Flutter-specific advice.
 
 {{SCHEMA_INSTRUCTIONS}}`,
@@ -1241,6 +1446,31 @@ Analyze the provided Flutter code from an architectural perspective, focusing on
 - **Single Responsibility**: Each widget should have a single, well-defined purpose
 - **Reusable Components**: Creation of reusable widget libraries
 - **Theme Integration**: Consistent theming and styling architecture
+
+## Output Format
+
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall assessment of the Flutter codebase architecture
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., ARCH-001, ARCH-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: State Management Architecture, Widget Architecture, Data Layer, Navigation Architecture, Dependency Management, Scalability, Platform Integration, Reusable Components, Theme Integration
+- **description**: Detailed explanation of the architectural issue
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and potential consequences for the app
+- **recommendation**: Specific, actionable fix with Flutter/Dart code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of architectural improvements, ordered by impact and effort.
 
 This code is written in DART for a FLUTTER application. Please provide Flutter-specific architectural advice.
 
@@ -1292,6 +1522,31 @@ Analyze the provided Flutter/Dart code from **all** of the following perspective
 - **Navigation Architecture**: Routing patterns, deep linking, navigation state
 - **Dependency Injection**: Service locator, dependency management
 - **Platform Integration**: Native functionality, platform channels
+
+## Output Format
+
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall assessment of the Flutter codebase across all review dimensions
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., BP-001, SEC-001, PERF-001, ARCH-001)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Widget Performance, Security, Data Protection, Network Security, Memory Management, State Management Architecture, Widget Architecture, Navigation Architecture, Platform Integration, Null Safety, Async Patterns
+- **description**: Detailed explanation of the issue or observation
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and potential consequences for the app
+- **recommendation**: Specific, actionable fix with Flutter/Dart code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements across all dimensions, ordered by impact and effort.
 
 This code is written in DART for a FLUTTER application. Please provide comprehensive Flutter-specific advice.
 
@@ -1355,13 +1610,37 @@ Provide a comprehensive grade for the codebase using the standard academic scale
 
 ## Output Format
 
-Organize your response with:
-1. **Executive Summary**: High-level overview of the Python codebase quality
-2. **Overall Grade**: Letter grade with justification
-3. **Category Grades**: Individual grades for each category with explanations
-4. **Critical Issues**: High-priority issues that need immediate attention
-5. **Python-Specific Recommendations**: Specific, actionable improvements for Python code
-6. **Strengths**: Positive aspects of the codebase worth highlighting
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall assessment of the Python codebase quality
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+- **Overall Grade**: Letter grade (A+ to F) with justification (alongside the 0.0-1.0 score)
+- **Category Grades**: Individual letter grades (A+ to F) for each category with explanations:
+  - **Functionality** score and grade
+  - **Code Quality** (PEP 8/PEP 257 adherence) score and grade
+  - **Documentation** (docstrings, type hints) score and grade
+  - **Testing** (coverage and Python testing best practices) score and grade
+  - **Maintainability** (Pythonic design, modularity) score and grade
+  - **Security** score and grade
+  - **Performance** (Python idioms and patterns) score and grade
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., CRIT-001, CRIT-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Code Quality, Architecture, Security, Performance, Documentation, Testing, Best Practices, PEP Compliance, Dependency Management
+- **description**: Detailed explanation of the issue with Python-specific context
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and potential consequences
+- **recommendation**: Specific, actionable Python fix with code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements, ordered by impact and effort. Include positive aspects and strengths worth highlighting.
 
 This code is written in PYTHON. Please provide Python-specific advice and recommendations.
 
@@ -1395,11 +1674,28 @@ Analyze the provided Python code from an architectural perspective, focusing on:
 
 ## Output Format
 
-1. **Architecture Overview**: High-level description of the current architecture
-2. **Python-Specific Strengths**: Architectural aspects that effectively leverage Python
-3. **Areas for Improvement**: Architectural issues that should be addressed
-4. **Recommendations**: Specific suggestions for improving the Python architecture
-5. **Package Recommendations**: Suggest mature Python packages for common functionality
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall assessment of the Python codebase architecture
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., ARCH-001, ARCH-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Package Structure, Dependency Management, Import Strategy, Design Patterns, Scalability, Maintainability, Async Patterns, Database Integration, API Design, Configuration Management
+- **description**: Detailed explanation of the issue with Python-specific context
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and potential consequences
+- **recommendation**: Specific, actionable fix with Python code examples where appropriate. Where applicable, suggest mature Python packages for common functionality.
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of architectural improvements, ordered by impact and effort.
 
 This code is written in PYTHON. Please provide Python-specific architectural advice.
 
@@ -1439,6 +1735,31 @@ Evaluate the code against the following Dart-specific best practices:
 - **Abstract Classes**: Appropriate use of abstract classes and interfaces
 - **Constructors**: Proper constructor patterns and factory constructors
 - **Encapsulation**: Appropriate use of private members and getters/setters
+
+## Output Format
+
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall Dart best-practices assessment of the codebase
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., BP-001, BP-002)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Language Features, Null Safety, Async Programming, Object-Oriented Design, Collection Usage, Error Handling, Code Organization, Documentation
+- **description**: Detailed explanation of the Dart-specific pattern or practice that could be improved
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters for type safety, maintainability, or performance
+- **recommendation**: Specific, actionable guidance with Dart code examples
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements, ordered by impact and effort.
 
 This code is written in DART. Please provide Dart-specific advice.
 
@@ -1494,6 +1815,31 @@ Analyze the provided Dart code from **all** of the following perspectives in a s
 - **Testing Architecture**: Unit testing, mocking, and test organization
 
 This comprehensive Dart review should provide a complete picture of the Dart codebase's health and a clear roadmap for improvement across all critical Dart development dimensions.
+
+## Output Format
+
+Provide your response as structured JSON with the following schema:
+
+### Executive Summary
+- Overall assessment of the Dart codebase across all review dimensions
+- Key strengths and critical concerns
+- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+
+### Findings Array
+Each finding must include:
+- **id**: Unique identifier (e.g., BP-001, SEC-001, PERF-001, ARCH-001)
+- **title**: Brief descriptive title
+- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
+- **category**: One of: Language Features, Null Safety, Async Programming, Input Validation, Data Protection, Memory Management, Collection Performance, Library Design, Dependency Management, Design Patterns, Testing Architecture
+- **description**: Detailed explanation of the issue or observation
+- **location**: File path and line number(s) where applicable
+- **impact**: Why this matters and potential consequences
+- **recommendation**: Specific, actionable fix with Dart code examples where appropriate
+- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
+- **confidence**: 0.0-1.0 (how confident you are in this finding)
+
+### Recommendations
+Prioritized list of improvements across all dimensions, ordered by impact and effort.
 
 This code is written in DART. Please provide Dart-specific advice.
 
