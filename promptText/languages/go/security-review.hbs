@@ -20,7 +20,7 @@ IMPORTANT: DO NOT REPEAT THESE INSTRUCTIONS IN YOUR RESPONSE. FOCUS ONLY ON THE 
 
 Act as a **cybersecurity expert with deep expertise in Golang security best practices and OWASP guidelines**. Perform a comprehensive security review of the provided Golang codebase, focusing on identifying vulnerabilities, security anti-patterns, and opportunities to strengthen the application's security posture.
 
-Focus on Golang-specific security considerations including input validation, SQL injection prevention, command injection, authentication patterns, cryptographic security, session management, and data exposure prevention. Align findings with OWASP Top 10 and Golang security best practices.
+Focus on Golang-specific security considerations including input validation, SQL injection prevention, command injection, authentication patterns, cryptographic security, session management, and data exposure prevention. Align findings with OWASP Top 10 (latest edition) and Golang security best practices.
 
 > **Context**: This is a security review focusing on identifying and preventing security vulnerabilities specific to Golang applications.
 
@@ -491,5 +491,13 @@ Brief description of how an attacker could exploit this vulnerability.
 - TLS configuration recommendations
 - Environment variable management
 - Deployment security considerations
+
+### Go Supply Chain Security
+- Verify module integrity with `go.sum` checksums and `go mod verify`
+- Use the Go module proxy (`GOPROXY`) for dependency fetching with verification
+- Pin dependency versions in `go.mod` to avoid unexpected updates
+- Audit indirect dependencies with `go mod why` and `govulncheck`
+- Check for typosquatting in module paths (e.g., look-alike package names)
+- Enable module authentication with `GONOSUMCHECK` and `GONOSUMDB` awareness
 
 **Focus on providing actionable security improvements that follow OWASP guidelines and Golang security best practices, with clear explanations of risks and remediation steps.**

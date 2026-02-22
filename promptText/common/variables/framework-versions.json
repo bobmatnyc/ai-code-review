@@ -2,14 +2,14 @@
   "frameworks": {
     "react": {
       "latest": {
-        "version": "19.1.0",
-        "releaseDate": "March 2025",
-        "supportedUntil": "2026"
+        "version": "19.x",
+        "releaseDate": "December 2024",
+        "supportedUntil": "2027"
       },
       "previous": {
         "version": "18.x",
-        "releaseDate": "2023",
-        "supportedUntil": "2026"
+        "releaseDate": "2022",
+        "supportedUntil": "2027"
       },
       "features": {
         "latest": [
@@ -30,16 +30,18 @@
     },
     "nextjs": {
       "latest": {
-        "version": "15.3.2",
-        "releaseDate": "May 2025",
-        "supportedUntil": "2026",
-        "reactVersion": "19.x"
+        "version": "15.x",
+        "releaseDate": "October 2024",
+        "supportedUntil": "2027",
+        "reactVersion": "19.x",
+        "nodeVersions": ["20.x+"]
       },
       "previous": {
         "version": "14.x",
-        "releaseDate": "2024",
-        "supportedUntil": "2025",
-        "reactVersion": "18.x"
+        "releaseDate": "2023",
+        "supportedUntil": "2026",
+        "reactVersion": "18.x",
+        "nodeVersions": ["18.x+"]
       },
       "features": {
         "latest": [
@@ -60,14 +62,14 @@
     },
     "angular": {
       "latest": {
-        "version": "19.2.10",
-        "releaseDate": "May 2025",
-        "supportedUntil": "late 2025"
+        "version": "19.x",
+        "releaseDate": "November 2024",
+        "supportedUntil": "late 2026"
       },
       "previous": {
         "version": "18.x",
-        "releaseDate": "2024",
-        "supportedUntil": "late 2025"
+        "releaseDate": "May 2024",
+        "supportedUntil": "mid-2026"
       },
       "features": {
         "latest": [
@@ -87,14 +89,14 @@
     },
     "vue": {
       "latest": {
-        "version": "3.5",
+        "version": "3.5.x",
         "releaseDate": "September 2024",
-        "supportedUntil": "mid-2025"
+        "supportedUntil": "2027"
       },
       "previous": {
         "version": "3.4.x",
-        "releaseDate": "2023",
-        "supportedUntil": "mid-2025"
+        "releaseDate": "December 2023",
+        "supportedUntil": "2026"
       },
       "features": {
         "latest": [
@@ -112,11 +114,39 @@
         ]
       }
     },
+    "svelte": {
+      "latest": {
+        "version": "5.x",
+        "releaseDate": "October 2024",
+        "supportedUntil": "2027"
+      },
+      "previous": {
+        "version": "4.x",
+        "releaseDate": "2023",
+        "supportedUntil": "2026"
+      },
+      "features": {
+        "latest": [
+          "Runes-based reactivity (new primitive system replacing stores)",
+          "$state, $derived, $effect runes",
+          "Snippets for reusable markup",
+          "Event attributes replacing on: directives",
+          "Unified Svelte 5 component model"
+        ],
+        "previous": [
+          "Reactive stores ($store syntax)",
+          "Scoped CSS per component",
+          "Transitions and animations API",
+          "Slot-based composition",
+          "SvelteKit integration"
+        ]
+      }
+    },
     "django": {
       "latest": {
-        "version": "5.2",
+        "version": "5.2.x",
         "releaseDate": "April 2025",
-        "supportedUntil": "2026",
+        "supportedUntil": "2028",
         "pythonVersions": ["3.11+"]
       },
       "previous": {
@@ -143,15 +173,15 @@
     },
     "fastapi": {
       "latest": {
-        "version": "0.115.12",
-        "releaseDate": "May 2025",
-        "supportedUntil": "2026",
+        "version": "0.115.x",
+        "releaseDate": "2024",
+        "supportedUntil": "2027",
         "pythonVersions": ["3.8+"]
       },
       "previous": {
         "version": "0.100.x",
-        "releaseDate": "2024",
-        "supportedUntil": "2025",
+        "releaseDate": "2023",
+        "supportedUntil": "2026",
         "pythonVersions": ["3.8+"]
       },
       "features": {
@@ -173,9 +203,9 @@
     },
     "flask": {
       "latest": {
-        "version": "3.1.1",
-        "releaseDate": "May 2025",
-        "supportedUntil": "2026",
+        "version": "3.1.x",
+        "releaseDate": "2024",
+        "supportedUntil": "2027",
         "pythonVersions": ["3.9+"]
       },
       "previous": {
@@ -234,13 +264,13 @@
     "laravel": {
       "latest": {
         "version": "12.x",
-        "releaseDate": "Early 2025",
-        "supportedUntil": "2026",
+        "releaseDate": "February 2025",
+        "supportedUntil": "August 2027",
         "phpVersions": ["8.2+"]
       },
       "previous": {
         "version": "11.x",
-        "releaseDate": "2024",
+        "releaseDate": "March 2024",
         "supportedUntil": "August 2026",
         "phpVersions": ["8.2+"]
       },
@@ -295,14 +325,14 @@
       "latest": {
         "version": "3.4.x",
         "releaseDate": "November 2024",
-        "supportedUntil": "2026",
+        "supportedUntil": "November 2027",
         "javaVersions": ["17+"],
         "springVersion": "6.2.x"
       },
       "previous": {
         "version": "3.2.x",
-        "releaseDate": "2023",
-        "supportedUntil": "2025",
+        "releaseDate": "November 2023",
+        "supportedUntil": "November 2026",
         "javaVersions": ["17+"],
         "springVersion": "6.1.x"
       },
@@ -325,16 +355,16 @@
     },
     "axum": {
       "latest": {
-        "version": "0.7.x",
-        "releaseDate": "2024",
-        "supportedUntil": "2025",
+        "version": "0.8.x",
+        "releaseDate": "January 2025",
+        "supportedUntil": "2027",
         "rustVersions": ["1.75+"]
       },
       "previous": {
-        "version": "0.6.x",
-        "releaseDate": "2023",
-        "supportedUntil": "2024",
-        "rustVersions": ["1.70+"]
+        "version": "0.7.x",
+        "releaseDate": "2024",
+        "supportedUntil": "2026",
+        "rustVersions": ["1.75+"]
       },
       "features": {
         "latest": [
@@ -357,13 +387,13 @@
       "latest": {
         "version": "4.9.x",
         "releaseDate": "2024",
-        "supportedUntil": "2025",
+        "supportedUntil": "2027",
         "rustVersions": ["1.75+"]
       },
       "previous": {
         "version": "4.8.x",
         "releaseDate": "2023",
-        "supportedUntil": "2024",
+        "supportedUntil": "2026",
         "rustVersions": ["1.70+"]
       },
       "features": {
@@ -380,6 +410,96 @@
           "Session management",
           "CORS support",
           "SSL/TLS support"
+        ]
+      }
+    },
+    "express": {
+      "latest": {
+        "version": "5.x",
+        "releaseDate": "October 2024",
+        "supportedUntil": "2027",
+        "nodeVersions": ["18.x+"]
+      },
+      "previous": {
+        "version": "4.21.x",
+        "releaseDate": "2024",
+        "supportedUntil": "2026",
+        "nodeVersions": ["0.10.x+"]
+      },
+      "features": {
+        "latest": [
+          "Native promise/async-await support with automatic error forwarding",
+          "Improved path-to-regexp routing (breaking change from 4.x)",
+          "Removed deprecated APIs and bundled middleware",
+          "Enhanced request and response APIs",
+          "Better TypeScript types"
+        ],
+        "previous": [
+          "Middleware-based pipeline",
+          "Robust routing system",
+          "Wide ecosystem of middleware",
+          "Template engine support",
+          "Static file serving"
+        ]
+      }
+    },
+    "nestjs": {
+      "latest": {
+        "version": "11.x",
+        "releaseDate": "February 2025",
+        "supportedUntil": "2027",
+        "nodeVersions": ["20.x+"]
+      },
+      "previous": {
+        "version": "10.x",
+        "releaseDate": "2023",
+        "supportedUntil": "2026",
+        "nodeVersions": ["16.x+"]
+      },
+      "features": {
+        "latest": [
+          "Node.js 20+ requirement with improved performance",
+          "Express 5 and Fastify 5 adapter support",
+          "Improved lazy-loaded module support",
+          "Enhanced OpenAPI/Swagger integration",
+          "Updated dependency injection engine"
+        ],
+        "previous": [
+          "Decorator-based architecture",
+          "Modular design with dependency injection",
+          "GraphQL and REST API support",
+          "Microservices and WebSockets support",
+          "Built-in testing utilities"
+        ]
+      }
+    },
+    "rails": {
+      "latest": {
+        "version": "8.0.x",
+        "releaseDate": "November 2024",
+        "supportedUntil": "2027",
+        "rubyVersions": ["3.2+"]
+      },
+      "previous": {
+        "version": "7.2.x",
+        "releaseDate": "August 2024",
+        "supportedUntil": "2026",
+        "rubyVersions": ["3.1+"]
+      },
+      "features": {
+        "latest": [
+          "Built-in authentication generator",
+          "Solid Cache, Solid Queue, Solid Cable as defaults",
+          "Kamal 2 deployment with Thruster proxy",
+          "No more Node.js dependency for asset pipeline",
+          "Improved ActiveRecord performance"
+        ],
+        "previous": [
+          "Turbo 8 and Hotwire integration",
+          "Import maps for JavaScript management",
+          "Action Text for rich content",
+          "Active Storage enhancements",
+          "Stimulus and Turbo as defaults"
         ]
       }
     },

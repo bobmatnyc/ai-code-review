@@ -260,6 +260,12 @@ app.post('/api/users', (req, res) => {
 });
 ```
 
+### npm Supply Chain Security
+- Verify package integrity with `npm audit` and lockfile validation
+- Check for typosquatting in dependency names
+- Use `npm audit signatures` for provenance verification
+- Pin dependency versions in production deployments
+
 {{#if languageInstructions}}
 {{{languageInstructions}}}
 {{/if}}

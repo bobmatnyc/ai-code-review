@@ -817,7 +817,7 @@ Evaluate the code against the following TypeScript-specific best practices:
 - Recommend TypeScript versions (currently 5.x is latest stable)
 - Node.js version compatibility recommendations
 - Recommend essential TypeScript-related tools:
-  - ESLint with @typescript-eslint (v6.x+)
+  - ESLint with @typescript-eslint (v8.x+)
   - ts-node for development (v10.x+)
   - Types for libraries (@types/*)
 
@@ -1118,8 +1118,8 @@ Evaluate the code against the following React+TypeScript-specific best practices
 - Specific dependencies:
   - @types/react (matching React version)
   - @types/react-dom (matching React version)
-  - eslint-plugin-react-hooks (4.x+)
-  - typescript-eslint (6.x+)
+  - eslint-plugin-react-hooks (5.x+)
+  - typescript-eslint (8.x+)
 
 ### 5. React 19.x Features
 - Type-safe use of new preloading APIs (preload, preloadData, preconnect)

@@ -94,6 +94,25 @@
         "django": "Available via django-bulma package",
         "laravel": "Compatible via CSS imports"
       }
+    },
+    "daisyui": {
+      "name": "daisyUI",
+      "version": "5.x",
+      "releaseDate": "2025",
+      "features": [
+        "Tailwind CSS component library with semantic class names",
+        "50+ pre-built UI components",
+        "35+ built-in themes with CSS variable-based theming",
+        "Zero JavaScript runtime (pure CSS components)",
+        "Full compatibility with Tailwind CSS 4.x"
+      ],
+      "integrations": {
+        "react": "Works with React via Tailwind CSS plugin",
+        "angular": "Works with Angular via Tailwind CSS plugin",
+        "vue": "Works with Vue via Tailwind CSS plugin",
+        "django": "Available via Tailwind CSS integration",
+        "laravel": "Available via Laravel Tailwind starters"
+      }
     }
   }
 }
