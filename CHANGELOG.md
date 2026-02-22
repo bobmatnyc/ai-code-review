@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [4.6.7] - 2026-02-22
 
+### Changes
+- chore: update build number and version metadata to build 3 (e6517d1)
+- docs: update CHANGELOG and README for v4.6.7 prompt modernization release (97ec548)
+- refactor: optimize bundled prompts for token efficiency (#90) (4e54dad)
+- refactor: standardize output formats across all bundled prompts (#90) (92f8392)
+- refactor: update outdated prompt references and add modern security concerns (#90) (a499d94)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.7
+```
+
+
+## [4.6.7] - 2026-02-22
+
 ### Changed
 - **Prompt System Modernization** (#90): Major cleanup and optimization of the entire prompt template system
   - **Token Optimization**: ~45% reduction in analysis section tokens across 8 core prompts (~975 tokens saved per invocation)
