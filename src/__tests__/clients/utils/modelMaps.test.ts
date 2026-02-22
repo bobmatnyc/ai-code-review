@@ -476,6 +476,27 @@ describe('Model Maps - Fallback for Unknown Models', () => {
       expect(mapping?.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENROUTER_API_KEY');
     });
 
+    it('should infer Gemini context window for unregistered OpenRouter google models (issue #86)', () => {
+      const mapping = getEnhancedModelMapping('openrouter:google/gemini-3.1-pro-preview');
+      expect(mapping).toBeDefined();
+      expect(mapping?.apiIdentifier).toBe('google/gemini-3.1-pro-preview');
+      expect(mapping?.contextWindow).toBe(1_048_576); // Should infer Gemini's 1M+ limit
+      expect(mapping?.provider).toBe('openrouter');
+      expect(mapping?.apiKeyEnvVar).toBe('AI_CODE_REVIEW_OPENROUTER_API_KEY');
+    });
+
+    it('should infer Anthropic context window for unregistered OpenRouter anthropic models', () => {
+      const mapping = getEnhancedModelMapping('openrouter:anthropic/claude-99');
+      expect(mapping).toBeDefined();
+      expect(mapping?.contextWindow).toBe(200_000);
+    });
+
+    it('should infer correct context for OpenRouter deepseek models', () => {
+      const mapping = getEnhancedModelMapping('openrouter:deepseek/deepseek-r2');
+      expect(mapping).toBeDefined();
+      expect(mapping?.contextWindow).toBe(65_536);
+    });
+
     it('should preserve existing known models behavior', () => {
       const knownModel = getEnhancedModelMapping('gemini:gemini-2.5-pro');
       expect(knownModel).toBeDefined();

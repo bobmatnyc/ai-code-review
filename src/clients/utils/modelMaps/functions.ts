@@ -161,10 +161,43 @@ export function getEnhancedModelMapping(modelKey: string): EnhancedModelMapping 
     openrouter: 'AI_CODE_REVIEW_OPENROUTER_API_KEY',
   };
 
+  // For OpenRouter, infer context window from underlying model vendor
+  let contextWindow = DEFAULT_CONTEXT_WINDOWS[provider] || 100_000;
+  let outputLimit = DEFAULT_OUTPUT_LIMITS[provider] || 8192;
+
+  if (provider === 'openrouter') {
+    const OPENROUTER_CONTEXT_OVERRIDES: Array<{
+      pattern: RegExp;
+      contextWindow: number;
+      outputLimit?: number;
+    }> = [
+      { pattern: /google\/gemini/i, contextWindow: 1_048_576 },
+      { pattern: /anthropic\/claude/i, contextWindow: 200_000 },
+      { pattern: /openai\/gpt-4o/i, contextWindow: 128_000, outputLimit: 16_384 },
+      { pattern: /openai\/gpt-4/i, contextWindow: 128_000, outputLimit: 16_384 },
+      { pattern: /openai\/o[134]/i, contextWindow: 200_000, outputLimit: 100_000 },
+      { pattern: /meta-llama\/llama-3/i, contextWindow: 131_072 },
+      { pattern: /deepseek\//i, contextWindow: 65_536 },
+      { pattern: /mistralai\//i, contextWindow: 131_072 },
+      { pattern: /qwen\//i, contextWindow: 131_072 },
+    ];
+
+    for (const override of OPENROUTER_CONTEXT_OVERRIDES) {
+      if (override.pattern.test(modelName)) {
+        contextWindow = override.contextWindow;
+        if (override.outputLimit) outputLimit = override.outputLimit;
+        logger.info(
+          `Inferred context window for OpenRouter model "${modelName}": ${contextWindow.toLocaleString()} tokens`,
+        );
+        break;
+      }
+    }
+  }
+
   return {
     apiIdentifier: modelName,
-    contextWindow: DEFAULT_CONTEXT_WINDOWS[provider] || 100_000,
-    outputLimit: DEFAULT_OUTPUT_LIMITS[provider] || 8192,
+    contextWindow,
+    outputLimit,
     inputPricePerMillion: 0,
     outputPricePerMillion: 0,
     displayName: modelName,
