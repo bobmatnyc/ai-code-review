@@ -139,6 +139,12 @@ export class GeminiClient extends AbstractClient {
 
       logger.info(`Initializing Gemini model: ${this.modelName} (API: ${apiModelName})...`);
 
+      // Check for custom API endpoint override
+      const customEndpoint = process.env.AI_CODE_REVIEW_GOOGLE_API_ENDPOINT;
+      if (customEndpoint) {
+        logger.info(`Using custom Gemini API endpoint: ${customEndpoint}`);
+      }
+
       // Initialize the Google Generative AI client
       this.genAI = new GoogleGenerativeAI(this.apiKey || '');
 
@@ -567,10 +573,14 @@ Ensure your response is well-formatted Markdown with proper headings, bullet poi
     try {
       // Create model instance
       // Note: API versioning is handled internally by the SDK based on model name
-      const model = this.genAI.getGenerativeModel({
-        model: this.customModel.name,
-        safetySettings: DEFAULT_SAFETY_SETTINGS,
-      });
+      const customEndpoint = process.env.AI_CODE_REVIEW_GOOGLE_API_ENDPOINT;
+      const model = this.genAI.getGenerativeModel(
+        {
+          model: this.customModel.name,
+          safetySettings: DEFAULT_SAFETY_SETTINGS,
+        },
+        customEndpoint ? { baseUrl: customEndpoint } : undefined,
+      );
 
       // Determine mode and build prompt
       const isInteractiveMode = options?.interactive === true;
