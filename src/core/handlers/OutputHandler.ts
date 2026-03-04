@@ -45,7 +45,9 @@ export async function handleReviewOutput(
         targetName,
       );
 
-      logger.info(`Review saved to: ${outputPath}`);
+      if (outputPath !== 'stdout') {
+        logger.info(`Review saved to: ${outputPath}`);
+      }
 
       // Display review interactively if requested
       if (options.interactive) {

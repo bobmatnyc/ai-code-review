@@ -362,10 +362,14 @@ export async function saveReviewOutput(
       extension,
     );
 
-    // Write the formatted output to the file
-    logger.debug(`Writing formatted review output to: ${outputPath}`);
-    await fs.writeFile(outputPath, formattedOutput);
-    logger.info(`Review output saved to: ${outputPath}`);
+    if (options.stdout) {
+      process.stdout.write(`${formattedOutput}\n`);
+    } else {
+      // Write the formatted output to the file
+      logger.debug(`Writing formatted review output to: ${outputPath}`);
+      await fs.writeFile(outputPath, formattedOutput);
+      logger.info(`Review output saved to: ${outputPath}`);
+    }
 
     // Process optional outputs (diagrams, raw data, removal scripts)
     await processOptionalOutputs(
@@ -377,7 +381,7 @@ export async function saveReviewOutput(
       outputBaseDir,
     );
 
-    return outputPath;
+    return options.stdout ? 'stdout' : outputPath;
   } catch (error: unknown) {
     await handleSaveError(error, options);
     throw error;
