@@ -31,6 +31,13 @@ export type ReviewType =
   | 'developer-experience'
   | 'comprehensive';
 
+export type OutputDestination = 'file' | 'stdout';
+
+export interface SaveReviewOutputResult {
+  path: string | null;
+  destination: OutputDestination;
+}
+
 /**
  * Options for code reviews
  */
