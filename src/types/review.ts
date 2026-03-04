@@ -31,6 +31,13 @@ export type ReviewType =
   | 'developer-experience'
   | 'comprehensive';
 
+export type OutputDestination = 'file' | 'stdout';
+
+export interface SaveReviewOutputResult {
+  path: string | null;
+  destination: OutputDestination;
+}
+
 /**
  * Options for code reviews
  */
@@ -53,6 +60,8 @@ export interface ReviewOptions {
   includeDependencyAnalysis?: boolean;
   /** Whether to enable semantic chunking for intelligent code analysis */
   enableSemanticChunking?: boolean;
+  /** Whether to emit output to stdout instead of saving to a file */
+  stdout?: boolean;
   /** Whether to run in interactive mode */
   interactive?: boolean;
   /** Whether to test API connections before running the review */

@@ -37,7 +37,7 @@ export async function handleReviewOutput(
       const targetName = path.basename(options.target || '.');
       const modelName = options.model || 'unknown-model';
 
-      const outputPath = await saveReviewOutput(
+      const { path: outputPath, destination } = await saveReviewOutput(
         reviewResult,
         options,
         outputBaseDir,
@@ -45,10 +45,12 @@ export async function handleReviewOutput(
         targetName,
       );
 
-      logger.info(`Review saved to: ${outputPath}`);
+      if (destination !== 'stdout') {
+        logger.info(`Review saved to: ${outputPath}`);
+      }
 
       // Display review interactively if requested
-      if (options.interactive) {
+      if (options.interactive && outputPath) {
         try {
           await displayReviewInteractively(outputPath, process.cwd(), options);
         } catch (error) {

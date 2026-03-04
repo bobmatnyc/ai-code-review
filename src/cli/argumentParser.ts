@@ -422,6 +422,11 @@ export function parseArguments(): any {
               type: 'boolean',
               default: false,
             })
+            .option('stdout', {
+              describe: 'Emit output to stdout instead of saving to a file',
+            type: 'boolean',
+            default: false,
+            })
         );
       },
     )
@@ -619,6 +624,7 @@ interface ParsedArguments {
   includeDependencyAnalysis?: boolean;
   enableSemanticChunking?: boolean;
   interactive?: boolean;
+  stdout?: boolean;
   testApi?: boolean;
   estimate?: boolean;
   multiPass?: boolean;
@@ -702,6 +708,7 @@ export function mapArgsToReviewOptions(
     includeDependencyAnalysis: argv.includeDependencyAnalysis,
     enableSemanticChunking: argv.enableSemanticChunking,
     interactive: argv.interactive,
+    stdout: argv.stdout,
     testApi: argv.testApi,
     estimate: argv.estimate,
     multiPass: argv.multiPass,

@@ -8,7 +8,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { formatReviewOutput } from '../formatters/outputFormatter';
-import type { FileInfo, ReviewOptions, ReviewResult } from '../types/review';
+import type { FileInfo, ReviewOptions, ReviewResult, SaveReviewOutputResult } from '../types/review';
 import { createAIDependencyAnalysis } from '../utils/dependencies/aiDependencyAnalyzer';
 import { processDiagrams } from '../utils/diagramGenerator';
 import { logError } from '../utils/errorLogger';
@@ -320,7 +320,7 @@ export async function saveReviewOutput(
   modelName: string,
   targetName: string,
   files?: FileInfo[],
-): Promise<string> {
+): Promise<SaveReviewOutputResult> {
   try {
     const extension = options.output === 'json' ? '.json' : '.md';
     const { outputPath: initialPath, rawDataPath } = await generateOutputPaths(
@@ -362,10 +362,14 @@ export async function saveReviewOutput(
       extension,
     );
 
-    // Write the formatted output to the file
-    logger.debug(`Writing formatted review output to: ${outputPath}`);
-    await fs.writeFile(outputPath, formattedOutput);
-    logger.info(`Review output saved to: ${outputPath}`);
+    if (options.stdout) {
+      process.stdout.write(`${formattedOutput}\n`);
+    } else {
+      // Write the formatted output to the file
+      logger.debug(`Writing formatted review output to: ${outputPath}`);
+      await fs.writeFile(outputPath, formattedOutput);
+      logger.info(`Review output saved to: ${outputPath}`);
+    }
 
     // Process optional outputs (diagrams, raw data, removal scripts)
     await processOptionalOutputs(
@@ -377,7 +381,10 @@ export async function saveReviewOutput(
       outputBaseDir,
     );
 
-    return outputPath;
+    return {
+      path: options.stdout ? null : outputPath,
+      destination: options.stdout ? 'stdout' : 'file',
+    };
   } catch (error: unknown) {
     await handleSaveError(error, options);
     throw error;
