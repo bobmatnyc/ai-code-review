@@ -620,6 +620,7 @@ interface ParsedArguments {
   enableSemanticChunking?: boolean;
   interactive?: boolean;
   testApi?: boolean;
+  skipKeyCheck?: boolean;
   estimate?: boolean;
   multiPass?: boolean;
   forceSinglePass?: boolean;
@@ -775,6 +776,7 @@ export function mapArgsToReviewOptions(
     typescriptVersion: argv.typescriptVersion,
     memoryLimit: argv.memoryLimit,
     executionTimeout: argv.executionTimeout,
+    skipKeyCheck: argv.skipKeyCheck,
 
     // AI Detection options
     enableAiDetection: argv.enableAiDetection,
