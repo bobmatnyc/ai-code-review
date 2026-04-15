@@ -4,5 +4,5 @@
  */
 
 export const VERSION = '4.6.8';
-export const BUILD_NUMBER = 1;
-export const VERSION_WITH_BUILD = '4.6.8 (build 1)';
+export const BUILD_NUMBER = 2;
+export const VERSION_WITH_BUILD = '4.6.8 (build 2)';

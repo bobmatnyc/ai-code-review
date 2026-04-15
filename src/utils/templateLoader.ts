@@ -11,6 +11,18 @@ import * as Handlebars from 'handlebars';
 import configManager from './configManager';
 import logger from './logger';
 
+/**
+ * Strip YAML frontmatter from template content before Handlebars compilation.
+ * Without this, the --- delimiters and frontmatter fields appear verbatim in rendered prompts.
+ *
+ * @param content Raw template content possibly containing a YAML frontmatter block
+ * @returns Template content with the frontmatter block removed
+ */
+function stripFrontmatter(content: string): string {
+  const frontmatterRegex = /^---[\s\S]*?---\n/;
+  return content.replace(frontmatterRegex, '');
+}
+
 // Get the templates directory from configuration or use a fallback
 const getTemplatesDir = (): string => {
   try {
@@ -301,7 +313,8 @@ function loadTemplate(templatePath: string): HandlebarsTemplateDelegate | null {
     }
 
     // File is new or modified — read, compile, and cache
-    const templateContent = fs.readFileSync(fullPath, 'utf-8');
+    const rawContent = fs.readFileSync(fullPath, 'utf-8');
+    const templateContent = stripFrontmatter(rawContent);
     const compiled = Handlebars.compile(templateContent);
 
     templateCache.set(templatePath, { compiled, mtime: currentMtime });

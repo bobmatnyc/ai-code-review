@@ -63,7 +63,7 @@ const reviewTypeMapping: Record<string, string> = {
   'ai-integration': 'ai-integration-review',
   'cloud-native': 'cloud-native-review',
   'developer-experience': 'developer-experience-review',
-  comprehensive: 'comprehensive',
+  comprehensive: 'comprehensive-review',
 };
 
 /**
