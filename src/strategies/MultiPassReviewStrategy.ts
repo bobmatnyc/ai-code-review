@@ -374,9 +374,7 @@ export class MultiPassReviewStrategy extends BaseReviewStrategy {
           .split('## Error in Pass')
           .find((s) => s.startsWith(` ${passNum}\n`));
         if (passSection) {
-          const errorLine = passSection
-            .split('\n')
-            .find((line) => line.startsWith('Error:'));
+          const errorLine = passSection.split('\n').find((line) => line.startsWith('Error:'));
           return `- Pass ${passNum}: ${errorLine ? errorLine.replace('Error: ', '') : 'Unknown error'}`;
         }
         return `- Pass ${passNum}: Failed`;

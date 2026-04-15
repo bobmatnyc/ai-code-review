@@ -75,9 +75,18 @@ interface CssFrameworkData {
 }
 
 /**
- * Template cache to avoid re-reading and re-compiling templates
+ * Entry in the file-based template cache, including mtime for staleness detection
  */
-const templateCache: Record<string, HandlebarsTemplateDelegate> = {};
+interface TemplateCacheEntry {
+  compiled: HandlebarsTemplateDelegate;
+  mtime: number;
+}
+
+/**
+ * Template cache to avoid re-reading and re-compiling templates.
+ * Tracks file modification time so stale entries are reloaded automatically.
+ */
+const templateCache: Map<string, TemplateCacheEntry> = new Map();
 
 /**
  * Register helpers and partials for Handlebars
@@ -264,34 +273,41 @@ function loadTemplateVariables(): Record<string, unknown> {
 }
 
 /**
- * Load and compile a template from the given path
+ * Load and compile a template from the given path.
+ * Uses mtime-based caching: if the file has not changed since last load,
+ * the compiled template is returned from memory without re-reading disk.
  *
  * @param templatePath Path to the template file (relative to TEMPLATES_DIR)
  * @returns Compiled Handlebars template function
  */
 function loadTemplate(templatePath: string): HandlebarsTemplateDelegate | null {
-  // Check cache first
-  if (templateCache[templatePath]) {
-    return templateCache[templatePath];
-  }
-
   const fullPath = path.join(getTemplatesDir(), templatePath);
 
-  // Check if template exists
+  // Check if template file exists
   if (!fs.existsSync(fullPath)) {
     logger.error(`Template not found: ${fullPath}`);
     return null;
   }
 
   try {
-    // Read and compile template
+    // Get current file modification time
+    const currentMtime = fs.statSync(fullPath).mtimeMs;
+
+    // Return cached entry if file has not changed
+    const cached = templateCache.get(templatePath);
+    if (cached && cached.mtime === currentMtime) {
+      logger.debug(`Template cache hit (mtime match): ${templatePath}`);
+      return cached.compiled;
+    }
+
+    // File is new or modified — read, compile, and cache
     const templateContent = fs.readFileSync(fullPath, 'utf-8');
-    const template = Handlebars.compile(templateContent);
+    const compiled = Handlebars.compile(templateContent);
 
-    // Cache compiled template
-    templateCache[templatePath] = template;
+    templateCache.set(templatePath, { compiled, mtime: currentMtime });
+    logger.debug(`Template loaded and cached: ${templatePath}`);
 
-    return template;
+    return compiled;
   } catch (error) {
     logger.error(`Error loading template ${fullPath}: ${error}`);
     return null;
@@ -485,16 +501,14 @@ export function listAvailableTemplates(): Record<string, string[]> {
 }
 
 /**
- * Clear the template cache to force reloading of templates
- * This is useful when the configuration changes
+ * Clear the template cache to force reloading of templates.
+ * This is useful when the configuration changes or during testing.
  */
 export function clearTemplateCache(): void {
-  // Reset cache and Handlebars registrations
-  for (const key in templateCache) {
-    delete templateCache[key];
-  }
+  // Clear the mtime-tracked template cache
+  templateCache.clear();
 
-  // Clear registered partials
+  // Clear registered Handlebars partials so they are re-registered on next use
   for (const key in Handlebars.partials) {
     Handlebars.unregisterPartial(key);
   }

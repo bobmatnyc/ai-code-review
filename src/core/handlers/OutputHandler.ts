@@ -6,6 +6,7 @@
  */
 
 import * as path from 'node:path';
+import { formatReviewOutput } from '../../formatters/outputFormatter';
 import type { ReviewOptions, ReviewResult } from '../../types/review';
 import logger from '../../utils/logger';
 import { displayReviewInteractively } from '../InteractiveDisplayManager';
@@ -31,6 +32,22 @@ export async function handleReviewOutput(
   options: ReviewOptions,
   outputBaseDir: string,
 ): Promise<void> {
+  // Write review output to stdout if requested
+  if ((options as any).stdout) {
+    try {
+      const stdoutContent = formatReviewOutput(reviewResult, options.output || 'markdown');
+      process.stdout.write(stdoutContent);
+      process.stdout.write('\n');
+      logger.debug('Review output written to stdout');
+    } catch (error) {
+      logger.error(
+        `Failed to write review output to stdout: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
   // Save review output to file
   if (options.output !== 'none') {
     try {

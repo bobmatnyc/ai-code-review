@@ -577,7 +577,8 @@ function createFallbackConsolidation(review: ReviewResult): string {
     );
 
     // Extract error messages from each failed pass for the summary
-    const errorPassRegex = /## Error in Pass (\d+)\n\n([\s\S]*?)(?=## Error in Pass \d+|## Pass \d+|$)/g;
+    const errorPassRegex =
+      /## Error in Pass (\d+)\n\n([\s\S]*?)(?=## Error in Pass \d+|## Pass \d+|$)/g;
     const failedPasses: { passNumber: number; error: string }[] = [];
     let errorMatch: RegExpExecArray | null;
     while ((errorMatch = errorPassRegex.exec(review.content)) !== null) {
@@ -586,14 +587,18 @@ function createFallbackConsolidation(review: ReviewResult): string {
       const errorLine = errorContent.split('\n').find((line) => line.startsWith('Error:'));
       failedPasses.push({
         passNumber: parseInt(passNumberStr, 10),
-        error: errorLine ? errorLine.replace('Error: ', '').trim() : errorContent.substring(0, 100).trim(),
+        error: errorLine
+          ? errorLine.replace('Error: ', '').trim()
+          : errorContent.substring(0, 100).trim(),
       });
     }
 
     const passErrorList =
       failedPasses.length > 0
         ? failedPasses.map((p) => `- Pass ${p.passNumber}: ${p.error}`).join('\n')
-        : errorPassMatches.map((m) => `- ${m.replace('##', '').trim()}: API call failed`).join('\n');
+        : errorPassMatches
+            .map((m) => `- ${m.replace('##', '').trim()}: API call failed`)
+            .join('\n');
 
     return `# Consolidated ${review.reviewType.charAt(0).toUpperCase() + review.reviewType.slice(1)} Review Report: ${projectName}
 

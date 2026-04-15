@@ -59,6 +59,8 @@ export interface ReviewOptions {
   testApi?: boolean;
   /** Whether to skip API key validation on startup */
   skipKeyCheck?: boolean;
+  /** Whether to write review output to standard output */
+  stdout?: boolean;
   /** Whether to estimate token usage and cost without performing the review */
   estimate?: boolean;
   /** Whether to use multi-pass review for large codebases */

@@ -280,9 +280,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         logger.warn(
           `[OpenRouter] API request failed: HTTP ${response.status} ${response.statusText} for model ${modelName}`,
         );
-        logger.warn(
-          `[OpenRouter] Error response: ${JSON.stringify(errorData).substring(0, 500)}`,
-        );
+        logger.warn(`[OpenRouter] Error response: ${JSON.stringify(errorData).substring(0, 500)}`);
 
         // Check for token limit errors
         const errorMessage = JSON.stringify(errorData).toLowerCase();
@@ -660,9 +658,7 @@ Ensure your response is valid JSON. Do not include any text outside the JSON str
         logger.warn(
           `[OpenRouter] API request failed: HTTP ${response.status} ${response.statusText} for model ${modelName}`,
         );
-        logger.warn(
-          `[OpenRouter] Error response: ${JSON.stringify(errorData).substring(0, 500)}`,
-        );
+        logger.warn(`[OpenRouter] Error response: ${JSON.stringify(errorData).substring(0, 500)}`);
 
         // Check for token limit errors
         const errorMessage = JSON.stringify(errorData).toLowerCase();

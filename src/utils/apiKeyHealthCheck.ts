@@ -26,7 +26,10 @@ export interface KeyValidationResult {
  */
 async function validateGoogleApiKey(apiKey: string): Promise<KeyValidationResult> {
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+    const defaultBaseUrl = 'https://generativelanguage.googleapis.com';
+    const customEndpoint = process.env.AI_CODE_REVIEW_GOOGLE_API_ENDPOINT;
+    const baseUrl = customEndpoint || defaultBaseUrl;
+    const url = `${baseUrl}/v1beta/models?key=${apiKey}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {

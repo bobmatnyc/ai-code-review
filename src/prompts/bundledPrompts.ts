@@ -807,46 +807,26 @@ Prioritized list of improvements ordered by severity and impact:
   typescript: {
     architectural: `# TypeScript Architectural Code Review
 
-You are an expert TypeScript architect performing a comprehensive architectural review of a TypeScript codebase.
+Analyze the TypeScript codebase architecture focusing on:
 
-## Your Task
-
-Analyze the provided TypeScript code from an architectural perspective, focusing on:
-
-1. **Overall Architecture**: Identify the architectural patterns and evaluate their appropriateness for a TypeScript project
-2. **Type System Usage**: Assess how effectively TypeScript's type system is being utilized
-3. **Interface Design**: Evaluate the design of interfaces and type definitions
-4. **Component Structure**: Assess how the code is organized into components, modules, or services
-5. **Dependency Management**: Evaluate how dependencies are managed and injected
-6. **Separation of Concerns**: Check if responsibilities are properly separated
-7. **Code Reusability**: Identify opportunities for better code reuse through TypeScript features
-8. **Scalability Considerations**: Assess how well the architecture would scale
-9. **Maintainability**: Evaluate how easy the codebase would be to maintain and extend
+1. **Type System Usage**: Effective use of TypeScript's type system, interfaces, and generics
+2. **Interface Design**: Interface and type definition quality, discriminated unions, branded types
+3. **Component Structure**: Module organization, separation of concerns, single responsibility
+4. **Dependency Management**: Coupling, cohesion, dependency injection patterns
+5. **Code Reusability**: Opportunities for better reuse via TypeScript features
+6. **Scalability**: Architecture suitability for growth
+7. **Maintainability**: Ease of extension and modification
 
 ## Output Format
 
-Provide your response as structured JSON with the following schema:
-
 ### Executive Summary
-- Overall assessment of the TypeScript codebase architecture
-- Key strengths and critical concerns
-- Overall score (0.0-1.0) and confidence score (0.0-1.0)
+- Architecture assessment, key strengths/concerns, overall score (0.0-1.0), confidence (0.0-1.0)
 
 ### Findings Array
-Each finding must include:
-- **id**: Unique identifier (e.g., ARCH-001, ARCH-002)
-- **title**: Brief descriptive title
-- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
-- **category**: One of: Type System Design, Interface Architecture, Component Structure, Dependency Management, Separation of Concerns, Code Reusability, Scalability, Maintainability, Module Organization
-- **description**: Detailed explanation of the issue
-- **location**: File path and line number(s) where applicable
-- **impact**: Why this matters and potential consequences
-- **recommendation**: Specific, actionable fix with TypeScript code examples where appropriate
-- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
-- **confidence**: 0.0-1.0 (how confident you are in this finding)
+Each finding: id (ARCH-NNN), title, severity (CRITICAL/HIGH/MEDIUM/LOW/INFO), category (Type System Design/Interface Architecture/Component Structure/Dependency Management/Separation of Concerns/Code Reusability/Scalability/Maintainability/Module Organization), description, location, impact, recommendation with TypeScript examples, effort (LOW/MEDIUM/HIGH), confidence (0.0-1.0)
 
 ### Recommendations
-Prioritized list of architectural improvements, ordered by impact and effort.
+Prioritized architectural improvements ordered by impact and effort.
 
 This code is written in TYPESCRIPT. Please provide language-specific advice.
 
@@ -875,14 +855,15 @@ Evaluate the code against the following TypeScript-specific best practices:
 - Module resolution strategy best practices
 
 ### 3. Modern TypeScript Features
-- Leverage TypeScript 4.x+ features when applicable
+- Leverage TypeScript 5.7+ features when applicable
 - Use optional chaining (?.) and nullish coalescing (??) operators
 - Template literal types for string manipulation
 - Proper usage of utility types (Partial, Pick, Omit, etc.)
+- Use satisfies operator and const type parameters
 
 ### 4. Dependency Management
-- Recommend TypeScript versions (currently 5.x is latest stable)
-- Node.js version compatibility recommendations
+- Recommend TypeScript versions (currently 5.7+ is latest stable)
+- Node.js 22 LTS version compatibility recommendations
 - Recommend essential TypeScript-related tools:
   - ESLint with @typescript-eslint (v8.x+)
   - ts-node for development (v10.x+)
@@ -921,52 +902,31 @@ This code is written in TYPESCRIPT. Please provide language-specific advice.
 
     comprehensive: `# TypeScript Comprehensive Code Review
 
-You are an **expert TypeScript engineer and architect** performing a comprehensive code review that combines multiple analysis perspectives in a single thorough assessment.
+Analyze the provided TypeScript code across all four dimensions in a single assessment:
 
-## Your Task
+### 1. Quick Fixes & Best Practices
+- Type system: interfaces, generics, no 'any', type guards, utility types
+- Modern syntax: optional chaining, nullish coalescing, template literals
+- Configuration: tsconfig.json strictness, module resolution
+- Error handling: type-safe error patterns and validation
 
-Analyze the provided TypeScript code from **all** of the following perspectives in a single comprehensive review:
+### 2. Security Analysis
+- Type safety as a security layer: prevent runtime errors via proper typing
+- Input validation: Zod/Joi schema validation, no unsafe assertions
+- Injection prevention: XSS, SQL, command injection
+- Dependency security: @types packages, supply chain risks
 
-1. **Quick Fixes & Best Practices** - TypeScript immediate improvements and coding standards
-2. **Security Analysis** - TypeScript-specific security patterns and vulnerabilities
-3. **Performance Review** - TypeScript/JavaScript performance optimization
-4. **Architectural Assessment** - TypeScript application architecture and design patterns
+### 3. Performance Analysis
+- Algorithmic efficiency and data structure selection
+- Bundle size: tree-shaking, lazy loading, code splitting
+- Runtime: type erasure awareness, async patterns, memory management
+- Build: incremental compilation, project references
 
-## TypeScript Comprehensive Analysis Framework
-
-### 1. TypeScript Quick Fixes & Best Practices Analysis
-- **Type System Usage**: Proper interfaces, types, generics, avoiding 'any'
-- **Language Features**: Modern TypeScript syntax, utility types, type guards
-- **Code Organization**: Module structure, imports, exports, declaration files
-- **Configuration**: tsconfig.json optimization and compiler options
-- **Error Handling**: Type-safe error handling and validation patterns
-- **Testing**: Type-safe testing patterns and mock typing
-
-### 2. TypeScript Security Analysis
-- **Type Safety**: Preventing runtime errors through proper typing
-- **Input Validation**: Type-safe input validation and sanitization
-- **API Security**: Type-safe API design and data validation
-- **Dependency Security**: @types packages and declaration file security
-- **Configuration Security**: Secure TypeScript configuration practices
-- **Build Security**: Secure compilation and build processes
-
-### 3. TypeScript Performance Analysis
-- **Compilation Performance**: Efficient TypeScript compilation setup
-- **Runtime Performance**: Type erasure awareness and optimization
-- **Bundle Analysis**: TypeScript impact on bundle size and loading
-- **Type Checking**: Efficient use of TypeScript's type checking
-- **Memory Management**: Proper typing for memory-efficient code
-- **Build Optimization**: TypeScript build process optimization
-
-### 4. TypeScript Architectural Assessment
-- **Type Design**: Interface architecture, type composition, type hierarchy
-- **Module Architecture**: TypeScript module system and dependency management
-- **Framework Integration**: TypeScript integration with chosen frameworks
-- **Scalability**: Type system design for large-scale applications
-- **Maintainability**: Type-driven development and code organization
-- **Testing Architecture**: Type-safe testing strategies and patterns
-
-This comprehensive TypeScript review should provide a complete picture of the TypeScript codebase's health and a clear roadmap for improvement across all critical TypeScript development dimensions.
+### 4. Architectural Assessment
+- Type design: interface hierarchy, discriminated unions, branded types
+- Module boundaries: dependency management, coupling, cohesion
+- Scalability: patterns for large TypeScript codebases
+- Testability: type-safe testing strategies
 
 This code is written in TYPESCRIPT. Please provide TypeScript-specific advice.
 
@@ -976,195 +936,40 @@ This code is written in TYPESCRIPT. Please provide TypeScript-specific advice.
 
     'coding-test': `# TypeScript Coding Test Assessment Review
 
-You are a **Senior TypeScript Technical Evaluator** conducting a comprehensive coding test assessment. Your role is to evaluate the candidate's TypeScript submission against the assignment requirements and provide structured feedback using the specified evaluation criteria.
+You are a **Senior TypeScript Technical Evaluator**. Evaluate the TypeScript submission against requirements.
 
-## Your Task
+## Scoring (1-10 scale per criterion)
+- **Correctness** (30%): Functional requirements met with proper typing
+- **Code Quality** (25%): Type safety, readability, TSDoc, TypeScript conventions
+- **Architecture** (20%): Type design, module structure, tsconfig.json quality
+- **Performance** (15%): Compilation efficiency, bundle impact, runtime optimization
+- **Testing** (10%): Type-safe tests, mock typing, coverage
 
-Analyze the provided TypeScript code submission and evaluate it against the following criteria:
+Scale: 1-3 Poor | 4-6 Adequate | 7-8 Good | 9-10 Excellent
 
-1. **Correctness**: Does the code fulfill all functional requirements with proper TypeScript implementation?
-2. **Code Quality**: Is the code well-structured, readable, and maintainable using TypeScript best practices?
-3. **Architecture**: Are appropriate design patterns and TypeScript architectural decisions used?
-4. **Performance**: Are there performance considerations specific to TypeScript/JavaScript?
-5. **Testing**: Is the code properly tested with TypeScript-aware testing patterns?
-
-## TypeScript-Specific Evaluation Focus
-
-### Type Safety and TypeScript Features
-- **Type Definitions**: Proper use of interfaces, types, and generics
-- **Type Safety**: Avoidance of \`any\`, proper type assertions
-- **Advanced Types**: Utility types, conditional types, mapped types
-- **Configuration**: \`tsconfig.json\` setup and compiler options
-- **Module System**: Proper imports/exports and module resolution
-
-### Framework Integration (if applicable)
-- **React + TypeScript**: Component typing, hooks, context API
-- **Node.js + TypeScript**: Express typing, middleware, database integration
-- **Angular**: Service typing, dependency injection, decorators
-- **Vue.js**: Component composition and TypeScript integration
-
-## Evaluation Framework
-
-### Functional Correctness Assessment
-- **Requirement Compliance**: Verify all stated requirements are implemented with proper typing
-- **Core Functionality**: Assess primary feature implementation with TypeScript best practices
-- **Edge Cases**: Evaluate handling of boundary conditions with type safety
-- **Error Scenarios**: Review error handling with proper TypeScript error types
-- **Input/Output**: Validate data processing with proper type definitions
-
-### TypeScript Code Quality Analysis
-- **Type Safety**: Proper use of TypeScript's type system
-- **Readability**: Clear variable names, consistent formatting, logical structure
-- **Maintainability**: Modular design, separation of concerns, TSDoc documentation
-- **Code Style**: Adherence to TypeScript conventions and best practices
-- **Complexity**: Appropriate complexity levels, effective use of TypeScript features
-
-### TypeScript Architectural Evaluation
-- **Type Design**: Interface design, type composition, and type hierarchy
-- **Module Structure**: Logical organization with proper TypeScript imports/exports
-- **Dependency Management**: Proper use of \`@types\` packages and declaration files
-- **Configuration**: \`tsconfig.json\` optimization for the project needs
-- **Build Integration**: TypeScript compilation and build process setup
-
-### Performance Considerations
-- **Compilation Performance**: Efficient TypeScript compilation setup
-- **Runtime Performance**: Type erasure awareness and optimization
-- **Bundle Size**: Impact of TypeScript on final bundle size
-- **Type Checking**: Efficient use of TypeScript's type checking
-- **Memory Usage**: Proper management of type definitions
-
-### Testing Quality with TypeScript
-- **Type-Safe Testing**: Proper typing of test cases and mocks
-- **Test Coverage**: Extent of test coverage across typed functionality
-- **Test Organization**: Structure and maintainability of TypeScript tests
-- **Mock Typing**: Proper typing of mocks and stubs
-- **Integration Testing**: Type-safe integration tests
-
-## TypeScript Skill Level Indicators
-
-### Beginner Level (Junior)
-- Basic interface and type definitions
-- Simple type annotations
-- Minimal use of generics
-- Heavy use of \`any\` type
-- Basic \`tsconfig.json\` setup
-
-### Intermediate Level (Mid)
-- Proper interface and type usage
-- Some generics and utility types
-- Union and intersection types
-- Conditional type guards
-- Appropriate configuration
-
-### Advanced Level (Senior)
-- Complex generic constraints
-- Custom utility types
-- Advanced type manipulation
-- Discriminated unions
-- Performance-optimized configuration
-
-### Expert Level (Lead/Architect)
-- Template literal types
-- Conditional types and mapped types
-- Complex type-level programming
-- Custom declaration files
-- Advanced compiler configuration
-
-## Scoring System
-
-Provide scores for each criterion:
-- **Correctness**: 30% weight
-- **Code Quality**: 25% weight
-- **Architecture**: 20% weight
-- **Performance**: 15% weight
-- **Testing**: 10% weight
-
-Use a 1-10 scale for each criterion, where:
-- 1-3: Poor/Inadequate
-- 4-6: Adequate/Needs Improvement
-- 7-8: Good/Meets Standards
-- 9-10: Excellent/Exceeds Standards
+## TypeScript Skill Levels
+- **Junior**: Basic interfaces, heavy 'any' usage, simple tsconfig
+- **Mid**: Generics, utility types, union/intersection types, type guards
+- **Senior**: Complex generics, discriminated unions, performance-optimized config
+- **Lead/Architect**: Template literal types, conditional/mapped types, declaration files
 
 ## Output Format
 
-Provide your response as structured JSON with the following schema:
-
 ### Executive Summary
-- Overall score and pass/fail status
-- TypeScript skill level assessment
-- Key strengths and weaknesses
-- Recommendation for hiring level
-- Overall confidence score (0.0-1.0)
+- Overall score, pass/fail, TypeScript skill level, hiring recommendation
+- Confidence score (0.0-1.0)
 
 ### Findings Array
-Each finding must include:
-- **id**: Unique identifier (e.g., CT-001, CT-002)
-- **title**: Brief descriptive title
-- **severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
-- **category**: One of: Correctness, TypeScript Code Quality, Architecture, Performance, Testing, Type Safety, TypeScript Configuration, Documentation
-- **description**: Detailed explanation of the issue or observation with TypeScript-specific context
-- **location**: File path and line number(s) where applicable
-- **impact**: Why this matters for the assessment
-- **recommendation**: Specific, actionable TypeScript improvement with code examples where appropriate
-- **effort**: LOW | MEDIUM | HIGH (estimated fix effort)
-- **confidence**: 0.0-1.0 (how confident you are in this finding)
+Each finding: id (CT-NNN), title, severity (CRITICAL/HIGH/MEDIUM/LOW/INFO), category (Correctness/TypeScript Code Quality/Architecture/Performance/Testing/Type Safety/TypeScript Configuration/Documentation), description, location, impact, recommendation, effort (LOW/MEDIUM/HIGH), confidence (0.0-1.0)
 
-### Detailed Evaluation (keep scoring structure)
-
-#### Correctness (30% weight)
-- **Score**: X/10
-- **Assessment**: [Detailed analysis with TypeScript context]
-- **Strengths**: [Specific TypeScript examples]
-- **Areas for Improvement**: [Specific TypeScript examples]
-
-#### TypeScript Code Quality (25% weight)
-- **Score**: X/10
-- **Type Safety**: [Analysis of type usage and safety]
-- **TypeScript Best Practices**: [Adherence to TypeScript conventions]
-- **Strengths**: [Specific TypeScript examples]
-- **Areas for Improvement**: [Specific TypeScript examples]
-
-#### Architecture (20% weight)
-- **Score**: X/10
-- **Type Design**: [Interface and type architecture analysis]
-- **Module Organization**: [TypeScript module structure]
-- **Strengths**: [Specific TypeScript examples]
-- **Areas for Improvement**: [Specific TypeScript examples]
-
-#### Performance (15% weight)
-- **Score**: X/10
-- **TypeScript Performance**: [Compilation and runtime considerations]
-- **Build Optimization**: [TypeScript build configuration]
-- **Strengths**: [Specific TypeScript examples]
-- **Areas for Improvement**: [Specific TypeScript examples]
-
-#### Testing (10% weight)
-- **Score**: X/10
-- **Type-Safe Testing**: [TypeScript testing patterns]
-- **Test Coverage**: [TypeScript test quality]
-- **Strengths**: [Specific TypeScript examples]
-- **Areas for Improvement**: [Specific TypeScript examples]
+### Detailed Evaluation
+Score each criterion with: Score X/10, Assessment, Strengths, Areas for Improvement
 
 ### TypeScript-Specific Observations
-- **Type System Usage**: [Advanced TypeScript features used]
-- **Configuration Quality**: [tsconfig.json assessment]
-- **Framework Integration**: [How TypeScript is used with chosen framework]
-- **Professional Practices**: [Evidence of TypeScript best practices]
+Type system usage, tsconfig quality, framework integration, professional practices
 
 ### Recommendations
-Prioritized list of improvements ordered by severity and impact:
-- CRITICAL/HIGH severity findings to address first
-- MEDIUM severity TypeScript suggestions
-- LOW/INFO best practices to adopt
-- TypeScript learning resources
-
-### Technical Metrics
-- TypeScript version and configuration
-- Type safety score (estimated)
-- Lines of TypeScript code analyzed
-- Files reviewed
-- Test coverage (if available)
-- Build performance characteristics
+Ordered by severity: CRITICAL/HIGH first, then MEDIUM, then LOW/INFO
 
 This code is written in TYPESCRIPT. Please provide language-specific advice.
 
@@ -1208,7 +1013,7 @@ Evaluate the code against the following React+TypeScript-specific best practices
 - React version:
   - Latest stable: React 19.1.0 (March 2025)
   - Previous major: React 18.x (supported until 2026)
-- TypeScript version (recommend 5.x)
+- TypeScript version (recommend 5.7+)
 - Type-safe CSS solutions (styled-components, emotion, tailwind)
 - Recommend testing libraries with good TypeScript support
 - Specific dependencies:
@@ -1261,7 +1066,7 @@ Prioritized list of improvements, ordered by impact and effort, focusing on type
 
 This code is written in TYPESCRIPT for a REACT application. Please provide framework-specific advice.
 
-{{SCHEMA_INSTRUCTIONS}}`,
+{SCHEMA_INSTRUCTIONS}`,
   },
 
   // Flutter-specific prompts
@@ -1343,7 +1148,7 @@ Prioritized list of improvements, ordered by impact and effort.
 
 This code is written in DART for a FLUTTER application. Please provide Flutter-specific advice.
 
-{{SCHEMA_INSTRUCTIONS}}`,
+{SCHEMA_INSTRUCTIONS}`,
 
     architectural: `# Flutter Architectural Code Review
 
@@ -1403,7 +1208,7 @@ Prioritized list of architectural improvements, ordered by impact and effort.
 
 This code is written in DART for a FLUTTER application. Please provide Flutter-specific architectural advice.
 
-{{SCHEMA_INSTRUCTIONS}}`,
+{SCHEMA_INSTRUCTIONS}`,
 
     comprehensive: `# Flutter Comprehensive Code Review
 
@@ -1479,7 +1284,7 @@ Prioritized list of improvements across all dimensions, ordered by impact and ef
 
 This code is written in DART for a FLUTTER application. Please provide comprehensive Flutter-specific advice.
 
-{{SCHEMA_INSTRUCTIONS}}`,
+{SCHEMA_INSTRUCTIONS}`,
   },
 
   // Python-specific prompts
@@ -1494,7 +1299,7 @@ Analyze the provided Python code comprehensively and provide a single consolidat
 
 1. **Code Quality & Bugs**: Identify obvious bugs, logic errors, exception handling issues, and missing error handling
 2. **Python Best Practices**: Evaluate adherence to PEP 8, PEP 257, and other Python conventions
-3. **Architecture & Structure**: Evaluate code organization, module structure, and package design
+3. **Architecture & Structure**: Evaluate code organization, namespace structure, and package design
 4. **Security Concerns**: Look for security vulnerabilities, input validation issues, and unsafe practices
 5. **Performance Considerations**: Identify inefficient algorithms, opportunities for optimization using Python idioms
 6. **Documentation & Testing**: Assess docstrings, type hints, and test coverage
@@ -1573,7 +1378,7 @@ Prioritized list of improvements, ordered by impact and effort. Include positive
 
 This code is written in PYTHON. Please provide Python-specific advice and recommendations.
 
-{{CI_DATA}}`,
+{CI_DATA}`,
 
     architectural: `# Python Architectural Code Review
 
@@ -1628,9 +1433,9 @@ Prioritized list of architectural improvements, ordered by impact and effort.
 
 This code is written in PYTHON. Please provide Python-specific architectural advice.
 
-{{CI_DATA}}
+{CI_DATA}
 
-{{SCHEMA_INSTRUCTIONS}}`,
+{SCHEMA_INSTRUCTIONS}`,
   },
 
   // Dart-specific prompts
@@ -1694,7 +1499,7 @@ This code is written in DART. Please provide Dart-specific advice.
 
 {{CI_DATA}}
 
-{{SCHEMA_INSTRUCTIONS}}`,
+{SCHEMA_INSTRUCTIONS}`,
 
     comprehensive: `# Dart Comprehensive Code Review
 
@@ -1772,9 +1577,9 @@ Prioritized list of improvements across all dimensions, ordered by impact and ef
 
 This code is written in DART. Please provide Dart-specific advice.
 
-{{CI_DATA}}
+{CI_DATA}
 
-{{SCHEMA_INSTRUCTIONS}}`,
+{SCHEMA_INSTRUCTIONS}`,
   },
 
   // Additional frameworks and languages follow the same pattern...

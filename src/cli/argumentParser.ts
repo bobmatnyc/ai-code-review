@@ -32,12 +32,6 @@ const validReviewTypes: ReviewType[] = [
   'comprehensive',
 ];
 
-// Define all accepted values including aliases (for validation)
-// 'improved-quick-fixes' is a hidden alias that maps to 'quick-fixes'
-const _acceptedReviewTypes: string[] = [
-  ...validReviewTypes,
-  'improved-quick-fixes', // Hidden alias, mapped to 'quick-fixes'
-];
 
 // Define valid output formats
 const validOutputFormats = ['markdown', 'json'];
@@ -422,6 +416,12 @@ export function parseArguments(): any {
               type: 'boolean',
               default: false,
             })
+            .option('stdout', {
+              describe:
+                'Write review output to standard output instead of (or in addition to) a file',
+              type: 'boolean',
+              default: false,
+            })
         );
       },
     )
@@ -685,6 +685,8 @@ interface ParsedArguments {
   writerModel?: string;
   'batch-token-limit'?: number;
   batchTokenLimit?: number;
+  skipKeyCheck?: boolean;
+  stdout?: boolean;
 }
 
 export function mapArgsToReviewOptions(
@@ -783,6 +785,8 @@ export function mapArgsToReviewOptions(
     aiDetectionIncludeInReport: argv.aiDetectionIncludeInReport,
     aiDetectionFailOnDetection: argv.aiDetectionFailOnDetection,
     diagram: argv.diagram,
+    skipKeyCheck: argv.skipKeyCheck,
+    stdout: argv.stdout,
   };
 
   // Add API keys if provided

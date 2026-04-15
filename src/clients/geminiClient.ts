@@ -144,6 +144,10 @@ function initializeGeminiClient(): void {
   }
 
   // Initialize the client
+  const customEndpoint = process.env.AI_CODE_REVIEW_GOOGLE_API_ENDPOINT;
+  if (customEndpoint) {
+    logger.info(`Using custom Google API endpoint: ${customEndpoint}`);
+  }
   genAI = new GoogleGenerativeAI(apiKey);
 
   // Set the model to use
@@ -458,7 +462,10 @@ async function generateGeminiResponse(prompt: string, options?: ReviewOptions): 
       apiVersion: selectedGeminiModel.useV1Beta ? 'v1beta' : undefined,
     };
 
-    const model = genAI.getGenerativeModel(modelOptions);
+    // Pass custom endpoint as RequestOptions baseUrl if configured
+    const customEndpoint = process.env.AI_CODE_REVIEW_GOOGLE_API_ENDPOINT;
+    const requestOptions = customEndpoint ? { baseUrl: customEndpoint } : undefined;
+    const model = genAI.getGenerativeModel(modelOptions, requestOptions);
 
     // Get the appropriate system prompt based on review type and options
     // Use Markdown format for better compatibility and diagram support
