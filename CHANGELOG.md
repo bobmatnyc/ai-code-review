@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.8] - 2026-04-15
+
+### Changes
+- fix(#91,#93,#96): wire --skip-key-check flag, respect custom Gemini endpoint, add --stdout option (f50a995)
+- docs: consolidate duplicate CHANGELOG entry for v4.6.7 (0386479)
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.8
+```
+
+
 ## [4.6.7] - 2026-02-22
 
 ### Changed
