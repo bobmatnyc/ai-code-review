@@ -55,7 +55,7 @@ export class CodeReviewTool extends BaseTool {
           },
           outputFormat: {
             type: 'string',
-            enum: ['markdown', 'json'],
+            enum: ['markdown', 'json', 'html'],
             description: 'Output format for the review results',
             default: 'markdown',
           },

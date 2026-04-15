@@ -18,6 +18,8 @@ export type { ReviewOptions, ReviewResult } from '../core/reviewOrchestrator';
 // Core review functionality
 export { orchestrateReview } from '../core/reviewOrchestrator';
 export { formatOutput } from '../formatters/factory';
+export { formatReviewOutput } from '../formatters/outputFormatter';
+export { convertMarkdownTablesToHtml } from '../formatters/utils/markdownTableToHtml';
 // Plugin system
 export { PluginManager } from '../plugins/PluginManager';
 // Prompt management
@@ -206,10 +208,9 @@ export async function testModelConnection(model?: string): Promise<{
     const client = createAIClient(testModel);
 
     // Simple test prompt
-    const _response = await client.generateResponse(
-      'Respond with "OK" if you can read this message.',
-      { maxTokens: 10 },
-    );
+    await client.generateResponse('Respond with "OK" if you can read this message.', {
+      maxTokens: 10,
+    });
 
     return {
       success: true,
@@ -256,6 +257,27 @@ export function getAvailableModels(): Array<{
     },
     // Add more models as needed
   ];
+}
+
+/**
+ * Render a ReviewResult as an HTML string.
+ *
+ * Converts the full markdown output (including any GFM table blocks) into HTML,
+ * replacing `| col |` table syntax with semantic `<table>` elements. All other
+ * markdown content is returned as-is for the caller to render further if needed.
+ *
+ * @param result - A completed ReviewResult from orchestrateReview or performCodeReview.
+ * @returns HTML string with markdown tables converted to `<table>` elements.
+ *
+ * @example
+ * ```ts
+ * const result = await performCodeReview({ target: './src' });
+ * const html = renderResultAsHtml(result);
+ * document.getElementById('review').innerHTML = html;
+ * ```
+ */
+export function renderResultAsHtml(result: ReviewResult): string {
+  return formatReviewOutput(result, 'html');
 }
 
 /**

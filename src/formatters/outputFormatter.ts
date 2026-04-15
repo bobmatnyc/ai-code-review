@@ -20,6 +20,7 @@
 import type { ReviewResult } from '../types/review';
 import { formatAsJson } from './utils/JsonFormatter';
 import { formatAsMarkdown } from './utils/MarkdownFormatters';
+import { convertMarkdownTablesToHtml } from './utils/markdownTableToHtml';
 
 /**
  * Format the review output based on the specified format
@@ -45,6 +46,10 @@ export function formatReviewOutput(review: ReviewResult, format: string): string
     return formatAsJson(review);
   }
 
+  if (format === 'html') {
+    return convertMarkdownTablesToHtml(formatAsMarkdown(review));
+  }
+
   return formatAsMarkdown(review);
 }
 
@@ -60,3 +65,4 @@ export {
   parseMetadata,
 } from './utils/MetadataFormatter';
 export { extractModelInfo, extractModelInfoFromString } from './utils/ModelInfoExtractor';
+export { convertMarkdownTablesToHtml } from './utils/markdownTableToHtml';

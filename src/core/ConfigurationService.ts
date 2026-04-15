@@ -17,12 +17,13 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-// Use dynamic import for js-yaml to avoid type issues
-// import * as yaml from 'js-yaml';
 import * as dotenv from 'dotenv';
 import { z } from 'zod';
 import type { CliOptions } from '../cli/argumentParser';
 import logger from '../utils/logger';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const jsYaml = require('js-yaml');
 
 // Configuration schema with validation
 const ConfigSchema = z.object({
@@ -38,7 +39,7 @@ const ConfigSchema = z.object({
 
   // Output configuration
   outputDir: z.string().default('ai-code-review-docs'),
-  outputFormat: z.enum(['markdown', 'json']).default('markdown'),
+  outputFormat: z.enum(['markdown', 'json', 'html']).default('markdown'),
 
   // Behavior configuration
   debug: z.boolean().default(false),
@@ -300,9 +301,8 @@ export class ConfigurationService {
           if (extension === '.json') {
             config = JSON.parse(content);
           } else if (extension === '.yaml' || extension === '.yml') {
-            // Use dynamic import for js-yaml
-            const yaml = require('js-yaml');
-            config = yaml.load(content) as ConfigFile;
+            // Use js-yaml to parse YAML content
+            config = jsYaml.load(content) as ConfigFile;
           } else {
             logger.warn(`Unsupported config file format: ${extension}`);
             continue;

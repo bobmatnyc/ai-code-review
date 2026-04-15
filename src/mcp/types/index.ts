@@ -28,8 +28,8 @@ export interface CodeReviewToolInput {
   target: string;
   /** Type of review to perform */
   reviewType?: ReviewType;
-  /** Output format (markdown or json) */
-  outputFormat?: 'markdown' | 'json';
+  /** Output format (markdown, json, or html) */
+  outputFormat?: 'markdown' | 'json' | 'html';
   /** Model to use for the review */
   model?: string;
   /** Whether to include tests in the review */

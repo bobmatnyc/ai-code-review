@@ -32,9 +32,8 @@ const validReviewTypes: ReviewType[] = [
   'comprehensive',
 ];
 
-
 // Define valid output formats
-const validOutputFormats = ['markdown', 'json'];
+const validOutputFormats = ['markdown', 'json', 'html'];
 
 /**
  * Parse command-line arguments for the code review tool
@@ -97,7 +96,7 @@ export function parseArguments(): any {
             })
             .option('output', {
               alias: 'o',
-              describe: 'Output format (markdown or json)',
+              describe: 'Output format (markdown, json, or html)',
               choices: validOutputFormats,
               default: 'markdown',
             })
