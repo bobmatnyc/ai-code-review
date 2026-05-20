@@ -1,8 +1,17 @@
-# AI Code Review v4.6.7
+# AI Code Review v4.6.9
+
+> [!WARNING]
+> **This project is archived as of 2026-05-19. No further updates will be released.**
+>
+> AI Code Review has been succeeded by **[trusty-analyze](https://github.com/bobmatnyc/trusty-analyze)** — a deterministic static analysis daemon (Rust) that delivers reproducible results, zero API cost, and sub-millisecond query latency.
+>
+> This repository and the [`@bobmatnyc/ai-code-review`](https://www.npmjs.com/package/@bobmatnyc/ai-code-review) npm package remain available for cloning, downloading, and continued local use. Issues and pull requests are closed.
+>
+> See **[DEPRECATED.md](DEPRECATED.md)** for the full announcement, a detailed feature comparison, and a migration guide.
+
+---
 
 A TypeScript-based tool for automated code reviews using Google's Gemini AI models, Anthropic Claude models (including Claude 4), OpenAI models, and OpenRouter API with LangChain integration for enhanced prompt management.
-
-> **Coming Soon**: Enhanced AI code analysis via [mcp-vector-search](https://github.com/bobmatnyc/mcp-vector-search) integration — combining vector search, knowledge graphs, and specialized review prompts for deeper, context-aware code analysis.
 
 ## What's New in v4.6.7
 

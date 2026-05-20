@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.9] - 2026-05-19
+
+### Archive Release
+- **Project archived.** This is the final release of `@bobmatnyc/ai-code-review`. No further updates, bug fixes, or feature additions are planned.
+- The repository and npm package remain available for cloning and download.
+- Issues and pull requests are closed; existing installations continue to function.
+- **Successor**: [trusty-analyze](https://github.com/bobmatnyc/trusty-analyze) — a deterministic, zero-cost static analysis daemon written in Rust.
+- See [DEPRECATED.md](DEPRECATED.md) for the full announcement, comparison, and migration guide.
+
+### Installation
+```bash
+npm install -g @bobmatnyc/ai-code-review@4.6.9
+```
+
+
 ## [4.6.8] - 2026-04-15
 
 ### Changes
